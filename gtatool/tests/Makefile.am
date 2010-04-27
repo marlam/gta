@@ -5,11 +5,15 @@
 # notice are preserved. This file is offered as-is, without any warranty.
 
 TESTS = \
+	gta-help.sh \
+	gta-version.sh \
 	gta-create.sh \
 	gta-compress.sh \
 	gta-uncompress.sh \
 	gta-tag.sh \
 	gta-info.sh
+
+EXTRA_DIST = $(TESTS)
 
 if VALGRIND_TESTS
 VALGRIND_CMD = $(VALGRIND) --quiet --log-fd=2 --error-exitcode=1 \
