@@ -1,0 +1,18 @@
+# Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+#
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty provided the copyright notice and this
+# notice are preserved. This file is offered as-is, without any warranty.
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: GTA
+Description: Generic Tagged Arrays
+#URL: TODO
+Version: @VERSION@
+Libs: -L${libdir} -lgta
+Libs.private: @LTLIBLZMA@ @LTLIBBZ2@ @LTLIBZ@
+Cflags: -I${includedir}

@@ -1,0 +1,273 @@
+dnl Process this file with autoconf to produce a configure script.
+
+dnl configure.ac
+dnl
+dnl This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
+dnl (GTAs).
+dnl
+dnl Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+dnl
+dnl This program is free software; you can redistribute it and/or modify
+dnl it under the terms of the GNU General Public License as published by
+dnl the Free Software Foundation; either version 3 of the License, or
+dnl (at your option) any later version.
+dnl
+dnl This program is distributed in the hope that it will be useful,
+dnl but WITHOUT ANY WARRANTY; without even the implied warranty of
+dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+dnl GNU General Public License for more details.
+dnl
+dnl You should have received a copy of the GNU General Public License
+dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+dnl Autotools init stuff
+AC_PREREQ([2.65])
+AC_INIT([gtatool], [0.9.0], [marlam@marlam.de])
+AC_CONFIG_SRCDIR([src/main.cpp])
+AC_CONFIG_AUX_DIR([build-aux])
+AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_HEADERS([config.h])
+AC_CANONICAL_TARGET
+AC_USE_SYSTEM_EXTENSIONS
+AC_SYS_LARGEFILE
+AM_INIT_AUTOMAKE([1.11.1 color-tests silent-rules tar-pax -Wall -Wno-portability])
+AM_SILENT_RULES([yes])
+LT_PREREQ([2.2.6])
+LT_INIT([disable-static])
+gl_EARLY
+AC_PROG_CXX
+AC_PROG_INSTALL
+AC_LANG([C++])
+AC_C_BIGENDIAN
+
+dnl Useful definitions
+AC_DEFINE_UNQUOTED([PLATFORM], ["${target}"], [Platform triplet])
+
+dnl Special handling of W32
+case "${target}" in *-*-mingw32*) w32="yes" ;; *) w32="no" ;; esac
+AM_CONDITIONAL([W32], [test "$w32" = "yes"])
+if test "$w32" = "yes"; then W32=1; else W32=0; fi
+AC_DEFINE_UNQUOTED([W32], [$W32], [Use W32 API?])
+
+dnl Gnulib initialization
+gl_INIT
+
+dnl Valgrind
+AC_ARG_ENABLE([valgrind-tests],
+    [AS_HELP_STRING([--enable-valgrind-tests], [Use valgrind when running tests. Enabled by default if valgrind is available.])],
+    [if test "$enableval" = "yes"; then valgrind_tests="yes"; else valgrind_tests="no"; fi], [valgrind_tests="yes"])
+AC_ARG_VAR([VALGRIND], [Valgrind command])
+if test "$valgrind_tests" = "yes"; then
+    AC_CHECK_PROGS([VALGRIND], [valgrind], [:])
+    if test "$VALGRIND" = ":"; then
+        valgrind_tests="no"
+        AC_MSG_WARN([Disabled valgrind tests because valgrind was not found.])
+    fi
+fi
+AM_CONDITIONAL([VALGRIND_TESTS], [test "$valgrind_tests" = "yes"])
+
+dnl Dynamic modules
+LIB_DLOPEN=
+AC_SUBST([LIB_DLOPEN])
+SAVED_LIBS="$LIBS"
+AC_SEARCH_LIBS([dlopen], [dl],
+    [test "$ac_cv_search_dlopen" = "none required" || LIB_DLOPEN="$ac_cv_search_dlopen"])
+AC_CHECK_FUNCS([dlopen])
+LIBS="$SAVED_LIBS"
+AC_ARG_ENABLE([dynamic-modules],
+    [AS_HELP_STRING([--enable-dynamic-modules], [Enable dynamic loadable modules. Enabled by default if dlopen() is available.])],
+    [if test "$enableval" = "yes"; then dynamic_modules="yes"; else dynamic_modules="no"; fi], 
+    [if test "$ac_cv_func_dlopen" = "no"; then dynamic_modules="no"; else dynamic_modules="yes"; fi])
+if test "$dynamic_modules" = "yes"; then dynamic_modules_val="1"; else dynamic_modules_val="0"; fi
+AC_DEFINE_UNQUOTED([DYNAMIC_MODULES], [$dynamic_modules_val], [Use dynamic modules?])
+AM_CONDITIONAL([DYNAMIC_MODULES], [test "$dynamic_modules" = "yes"])
+
+dnl Feature checks needed by the base module
+LIB_CLOCK_GETTIME=
+AC_SUBST([LIB_CLOCK_GETTIME])
+SAVED_LIBS="$LIBS"
+AC_SEARCH_LIBS([clock_gettime], [rt posix4],
+    [test "$ac_cv_search_clock_gettime" = "none required" || LIB_CLOCK_GETTIME="$ac_cv_search_clock_gettime"])
+AC_CHECK_FUNCS([clock_gettime])
+LIBS="$SAVED_LIBS"
+AC_CHECK_FUNCS([backtrace sigaction vasprintf mmap link fseeko ftello])
+AC_DEFINE_UNQUOTED([BASE_WITH_BASE64], [0], [Define to 1 if the base module should provide base64.])
+
+dnl The GTA library
+AC_LIB_HAVE_LINKFLAGS([gta], [], [#include <gta/gta.h>], [gta_version(0, 0, 0);])
+if test "$HAVE_LIBGTA" != "yes"; then
+    AC_MSG_ERROR([libgta not found])
+fi
+
+dnl The muParser library
+AC_ARG_WITH([muparser],
+    [AS_HELP_STRING([--with-muparser], [Enable the component-compute command. Enabled by default if libmuparser is available.])],
+    [if test "$withval" = "yes"; then muparser="yes"; else muparser="no"; fi], [muparser="yes"])
+if test "$muparser" = "yes"; then
+    muparser_has_separate_include_dir=1;
+    AC_LIB_HAVE_LINKFLAGS([muparser], [], [#include <muParser/muParser.h>], [mu::Parser p;])
+    if test "$HAVE_LIBMUPARSER" != "yes"; then
+        muparser_has_separate_include_dir=0;
+        AC_LIB_HAVE_LINKFLAGS([muparser], [], [#include <muParser.h>], [mu::Parser p;])
+        if test "$HAVE_LIBMUPARSER" != "yes"; then
+            muparser="no"
+            AC_MSG_WARN([Disabled the component-compute command because libmuparser was not found.])
+	fi
+    fi
+    if test "$muparser" = "yes"; then
+        AC_DEFINE_UNQUOTED([MUPARSER_HAS_SEPERATE_INCLUDE_DIR], [$muparser_has_separate_include_dir],
+	    [Does libmuparser have a separate include dir?])
+    fi
+fi
+AM_CONDITIONAL([MUPARSER], [test "$muparser" = "yes"])
+
+dnl NetPBM
+AC_ARG_WITH([netpbm],
+    [AS_HELP_STRING([--with-netpbm], [Enable NetPBM import/export. Enabled by default if libnetpbm is available.])],
+    [if test "$withval" = "yes"; then netpbm="yes"; else netpbm="no"; fi], [netpbm="yes"])
+if test "$netpbm" = "yes"; then
+    AC_LANG([C])
+    AC_LIB_HAVE_LINKFLAGS([netpbm], [], [#include <pam.h>], [pm_init(0, 0);])
+    AC_LANG([C++])
+    if test "$HAVE_LIBNETPBM" != "yes"; then
+        netpbm="no"
+        AC_MSG_WARN([Disabled NetPBM import/export because libnetpbm was not found.])
+    fi
+fi
+AM_CONDITIONAL([NETPBM], [test "$netpbm" = "yes"])
+
+dnl ImageMagick (via the MagickWand API)
+AC_ARG_WITH([magick],
+    [AS_HELP_STRING([--with-magick], [Enable ImageMagick import/export. Enabled by default if libWand is available.])],
+    [if test "$withval" = "yes"; then magick="yes"; else magick="no"; fi], [magick="yes"])
+if test "$magick" = "yes"; then
+    AC_LIB_FROMPACKAGE([Wand], [magick])
+    AC_LIB_HAVE_LINKFLAGS([Wand], [Magick], [#include <wand/MagickWand.h>], [MagickWandGenesis();])
+    if test "$HAVE_LIBWAND" != "yes"; then
+        magick="no"
+        AC_MSG_WARN([Disabled ImageMagick import/export because libWand was not found.])
+    fi
+fi
+AM_CONDITIONAL([MAGICK], [test "$magick" = "yes"])
+
+dnl PFS
+AC_ARG_WITH([pfs],
+    [AS_HELP_STRING([--with-pfs], [Enable PFS import/export. Enabled by default if libpfs-1.2 is available.])],
+    [if test "$withval" = "yes"; then pfs="yes"; else pfs="no"; fi], [pfs="yes"])
+if test "$pfs" = "yes"; then
+    AC_LIB_FROMPACKAGE([pfs-1.2], [pfs])
+    AC_LIB_HAVE_LINKFLAGS([pfs-1.2], [], [#include <pfs-1.2/pfs.h>], [pfs::FrameFile ff(NULL, NULL);])
+    if test "$HAVE_LIBPFS_1_2" != "yes"; then
+        pfs="no"
+        AC_MSG_WARN([Disabled PFS import/export because libpfs-1.2 was not found.])
+    fi
+fi
+AM_CONDITIONAL([PFS], [test "$pfs" = "yes"])
+
+dnl OpenEXR
+AC_ARG_WITH([exr],
+    [AS_HELP_STRING([--with-exr], [Enable OpenEXR import/export. Enabled by default if libIlmImf is available.])],
+    [if test "$withval" = "yes"; then exr="yes"; else exr="no"; fi], [exr="yes"])
+if test "$exr" = "yes"; then
+    dnl FIXME: Despite AC_LANG([C++]), AC_CHECK_HEADER uses the C compiler (why??).
+    dnl We cannot test for OpenEXR/ImfVersion.h because that contains a namespace.
+    dnl We're testing for a header that is safe even for C.
+    AC_CHECK_HEADER([OpenEXR/OpenEXRConfig.h], 
+        [ gl_ABSOLUTE_HEADER([OpenEXR/OpenEXRConfig.h])
+          OPENEXR_INCLUDE_DIR=`echo $gl_cv_absolute_OpenEXR_OpenEXRConfig_h \
+              | sed -e 's/\/OpenEXRConfig.h$//' -e 's/"//g' -e 's/^\/\/\//\//'` ],
+        [ OPENEXR_INCLUDE_DIR="no" ])
+    if test "$OPENEXR_INCLUDE_DIR" != "no"; then
+        AC_LIB_FROMPACKAGE([IlmImf], [exr])
+        AC_LIB_APPENDTOVAR([CPPFLAGS], [-I$OPENEXR_INCLUDE_DIR])
+        AC_LIB_HAVE_LINKFLAGS([IlmImf], [], [#include <ImfVersion.h>], [Imf::getVersion(0)])
+    fi
+    if test "$HAVE_LIBILMIMF" != "yes"; then
+        exr="no"
+        AC_MSG_WARN([Disabled OpenEXR import/export because libIlmImf was not found.])
+    fi
+fi
+AM_CONDITIONAL([EXR], [test "$exr" = "yes"])
+
+dnl GDAL
+AC_ARG_WITH([gdal],
+    [AS_HELP_STRING([--with-gdal], [Enable GDAL import/export. Enabled by default if libgdal is available.])],
+    [if test "$withval" = "yes"; then gdal="yes"; else gdal="no"; fi], [gdal="yes"])
+if test "$gdal" = "yes"; then
+    AC_CHECK_HEADER([gdal/gdal.h], [HAVE_GDAL_INCSUBDIR=yes], [HAVE_GDAL_INCSUBDIR=no])
+    if test "$HAVE_GDAL_INCSUBDIR" = "yes"; then
+        gl_ABSOLUTE_HEADER([gdal/gdal.h])
+        GDAL_INCLUDE_DIR=`echo $gl_cv_absolute_gdal_gdal_h \
+            | sed -e 's/\/gdal.h$//' -e 's/^\/\/\//\//'`
+        AC_LIB_APPENDTOVAR([CXXFLAGS], [-I$GDAL_INCLUDE_DIR])
+    fi
+    dnl On Debian, libgdal.so is called libgdal1.?.0.so.
+    AC_LIB_HAVE_LINKFLAGS([gdal], [], [#include <gdal.h>], [GDALAllRegister();])
+    if test "$HAVE_LIBGDAL" = "no"; then
+        AC_LIB_FROMPACKAGE([gdal1.6.0], [libgdal])
+        AC_LIB_HAVE_LINKFLAGS([gdal1.6.0], [], [#include <gdal.h>], [GDALAllRegister();])
+        HAVE_LIBGDAL="$HAVE_LIBGDAL1_6_0"
+        if test "$HAVE_LIBGDAL" = "yes"; then
+            LIBGDAL="$LIBGDAL1_6_0"
+            LTLIBGDAL="$LTLIBGDAL1_6_0"
+	    AC_DEFINE_UNQUOTED([HAVE_LIBGDAL], [1], [Define if you have the libgdal library.])
+        fi
+    fi
+    if test "$HAVE_LIBGDAL" = "no"; then
+        AC_LIB_FROMPACKAGE([gdal1.5.0], [libgdal])
+        AC_LIB_HAVE_LINKFLAGS([gdal1.5.0], [], [#include <gdal.h>], [GDALAllRegister();])
+        HAVE_LIBGDAL="$HAVE_LIBGDAL1_5_0"
+        if test "$HAVE_LIBGDAL" = "yes"; then
+            LIBGDAL="$LIBGDAL1_5_0"
+            LTLIBGDAL="$LTLIBGDAL1_5_0"
+	    AC_DEFINE_UNQUOTED([HAVE_LIBGDAL], [1], [Define if you have the libgdal library.])
+        fi
+    fi
+    if test "$HAVE_LIBGDAL" != "yes"; then
+        gdal="no"
+        AC_MSG_WARN([Disabled GDAL import/export because libgdal was not found.])
+    fi
+fi
+AM_CONDITIONAL([GDAL], [test "$gdal" = "yes"])
+
+dnl DCMTK
+AC_ARG_WITH([dcmtk],
+    [AS_HELP_STRING([--with-dcmtk], [Enable DCMTK import. Enabled by default if libdcmimgle is available.])],
+    [if test "$withval" = "yes"; then dcmtk="yes"; else dcmtk="no"; fi], [dcmtk="yes"])
+if test "$dcmtk" = "yes"; then
+    AC_LIB_FROMPACKAGE([dcmimgle], [dcmtk])
+    AC_LIB_HAVE_LINKFLAGS([dcmimgle], [dcmdata dcmjpeg ijg8 ijg12 ijg16 ofstd pthread z],
+    [#define HAVE_CONFIG_H
+     #include <dcmtk/dcmimgle/dcmimage.h>],
+    [DicomImage img(NULL);])
+    if test "$HAVE_LIBDCMIMGLE" != "yes"; then
+        dcmtk="no"
+        AC_MSG_WARN([Disabled DCMTK import because libdcmimgle was not found.])
+    fi
+fi
+AM_CONDITIONAL([DCMTK], [test "$dcmtk" = "yes"])
+
+dnl Output
+AC_CONFIG_FILES([Makefile	\
+	src/Makefile		\
+	src/base/Makefile	\
+	src/cmds/Makefile	\
+	tests/Makefile		\
+	])
+AC_OUTPUT
+
+echo ""
+echo "Dynamic modules:  " "$dynamic_modules"
+echo "component-compute:" "$muparser"
+echo "from-netpbm:      " "$netpbm"
+echo "to-netpbm:        " "$netpbm"
+echo "from-magick:      " "$magick"
+echo "to-magick:        " "$magick"
+echo "from-pfs:         " "$pfs"
+echo "to-pfs:           " "$pfs"
+echo "from-exr:         " "$exr"
+echo "to-exr:           " "$exr"
+echo "from-gdal:        " "$gdal"
+echo "to-gdal:          " "$gdal"
+echo "from-dcmtk:       " "$dcmtk"
+echo ""

@@ -1,0 +1,15 @@
+Commands that change arrays
+===========================
+
+layer
+-m|--mode=min|max|median|or|and|xor|diff|add|xadd|sub|xsub|mul|div file...
+
+
+Commands that change streams
+============================
+
+stream-merge [unnecessary; simply use cat]
+stream-split 
+stream-extract (select)
+stream-foreach
+stream-reverse
