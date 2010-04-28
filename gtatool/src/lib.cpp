@@ -324,7 +324,7 @@ void value_from_string(const std::string &s, const gta::type t, const uintmax_t 
         break;
     case gta::cfloat32:
         {
-            float *float_value = static_cast<float *>(value);
+            char *float_value = static_cast<char *>(value);
             float v0;
             is >> v0;
             memcpy(float_value + 0, &v0, sizeof(float));
@@ -336,12 +336,12 @@ void value_from_string(const std::string &s, const gta::type t, const uintmax_t 
             }
             float v1;
             is >> v1;
-            memcpy(float_value + 1, &v1, sizeof(float));
+            memcpy(float_value + sizeof(float), &v1, sizeof(float));
         }
         break;
     case gta::cfloat64:
         {
-            double *double_value = static_cast<double *>(value);
+            char *double_value = static_cast<char *>(value);
             double v0;
             is >> v0;
             memcpy(double_value + 0, &v0, sizeof(double));
@@ -353,7 +353,7 @@ void value_from_string(const std::string &s, const gta::type t, const uintmax_t 
             }
             double v1;
             is >> v1;
-            memcpy(double_value + 1, &v1, sizeof(double));
+            memcpy(double_value + sizeof(double), &v1, sizeof(double));
         }
         break;
     }
