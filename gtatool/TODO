@@ -1,15 +1,28 @@
-Commands that change arrays
-===========================
+Commands to add
+===============
+
+Commands that change arrays:
 
 layer
 -m|--mode=min|max|median|or|and|xor|diff|add|xadd|sub|xsub|mul|div file...
 
-
-Commands that change streams
-============================
+Commands that change streams:
 
 stream-merge [unnecessary; simply use cat]
 stream-split 
 stream-extract (select)
 stream-foreach
 stream-reverse
+
+
+Other things
+============
+
+- Man page, texinfo manual.
+  These just need to give a short description and then mention
+  'gtatool help' and 'gtatool help <cmd>'.
+
+- Add a test for every command. The test infrastructure is already finished,
+  including automatic use of valgrind if available.
+
+- Clean the src/base directory: remove unused code.
