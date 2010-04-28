@@ -34,6 +34,7 @@
 #include "cio.h"
 #include "opt.h"
 #include "debug.h"
+#include "checked_cast.h"
 
 
 extern "C" void gtatool_to_pfs_help(void)
@@ -195,7 +196,7 @@ extern "C" int gtatool_to_pfs(int argc, char *argv[])
                 channels[i] = channel->getRawData();
             }
 
-            blob data(hdr.data_size());
+            blob data(checked_cast<size_t>(hdr.data_size()));
             hdr.read_data(fi, data.ptr());
             for (uintmax_t y = 0; y < hdr.dimension_size(1); y++)
             {

@@ -39,6 +39,7 @@
 #include "cio.h"
 #include "opt.h"
 #include "debug.h"
+#include "checked_cast.h"
 
 using namespace Imf;
 using namespace Imath;
@@ -118,7 +119,7 @@ extern "C" int gtatool_from_exr(int argc, char *argv[])
         {
             throw exc("Cannot import " + ifilename, "Image too large");
         }
-        blob data(hdr.data_size());
+        blob data(checked_cast<size_t>(hdr.data_size()));
         FrameBuffer framebuffer;
         int c = 0;
         for (ChannelList::ConstIterator iter = channellist.begin(); iter != channellist.end(); iter++)

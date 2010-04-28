@@ -33,6 +33,7 @@
 #include "opt.h"
 #include "cio.h"
 #include "str.h"
+#include "checked_cast.h"
 
 
 extern "C" void gtatool_component_extract_help(void)
@@ -158,8 +159,8 @@ extern "C" int gtatool_component_extract(int argc, char *argv[])
                 // Write the GTA header
                 hdro.write_to(stdout);
                 // Manipulate the GTA data
-                blob element_in(hdri.element_size());
-                blob element_out(hdro.element_size());
+                blob element_in(checked_cast<size_t>(hdri.element_size()));
+                blob element_out(checked_cast<size_t>(hdro.element_size()));
                 gta::io_state si, so;
                 for (uintmax_t e = 0; e < hdro.elements(); e++)
                 {

@@ -33,6 +33,7 @@
 #include "opt.h"
 #include "cio.h"
 #include "str.h"
+#include "checked_cast.h"
 
 #include "lib.h"
 
@@ -104,7 +105,7 @@ extern "C" int gtatool_resize(int argc, char *argv[])
                 {
                     throw exc(finame + ": GTA has incompatible number of dimensions");
                 }
-                blob v(hdri.element_size());
+                blob v(checked_cast<size_t>(hdri.element_size()));
                 if (value.values().empty())
                 {
                     memset(v.ptr(), 0, hdri.element_size());
@@ -133,7 +134,7 @@ extern "C" int gtatool_resize(int argc, char *argv[])
                 }
                 hdro.write_to(stdout);
                 // Manipulate the GTA data
-                blob element(hdri.element_size());
+                blob element(checked_cast<size_t>(hdri.element_size()));
                 uintmax_t read_in_elements = 0;
                 std::vector<intmax_t> in_index(hdri.dimensions());
                 std::vector<uintmax_t> out_index(hdro.dimensions());

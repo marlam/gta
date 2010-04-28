@@ -34,6 +34,7 @@
 #include "opt.h"
 #include "cio.h"
 #include "str.h"
+#include "checked_cast.h"
 
 #include "lib.h"
 
@@ -105,7 +106,7 @@ extern "C" int gtatool_create(int argc, char *argv[])
         std::vector<uintmax_t> comp_sizes;
         typelist_from_string(components.value(), &comp_types, &comp_sizes);
         hdr.set_components(comp_types.size(), &(comp_types[0]), comp_sizes.size() == 0 ? NULL : &(comp_sizes[0]));
-        blob v(hdr.element_size());
+        blob v(checked_cast<size_t>(hdr.element_size()));
         if (value.value().empty())
         {
             memset(v.ptr(), 0, hdr.element_size());

@@ -31,6 +31,7 @@
 #include "cio.h"
 #include "opt.h"
 #include "debug.h"
+#include "checked_cast.h"
 
 extern "C"
 {
@@ -150,7 +151,7 @@ extern "C" int gtatool_from_netpbm(int argc, char *argv[])
             }
 
             tuplerow = pnm_allocpamrow(&inpam);
-            dataline.resize(hdr.dimension_size(0), hdr.element_size());
+            dataline.resize(checked_cast<size_t>(hdr.dimension_size(0)), checked_cast<size_t>(hdr.element_size()));
             hdr.write_to(fo);
             gta::io_state so;
             for (uintmax_t y = 0; y < hdr.dimension_size(1); y++)

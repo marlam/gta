@@ -35,6 +35,7 @@
 #include "cio.h"
 #include "opt.h"
 #include "debug.h"
+#include "checked_cast.h"
 
 
 extern "C" void gtatool_to_gdal_help(void)
@@ -412,8 +413,8 @@ extern "C" int gtatool_to_gdal(int argc, char *argv[])
                 GDALSetRasterColorInterpretation(band, ci);
             }
         }
-        dataline.resize(hdr.element_size(), hdr.dimension_size(0));
-        scanlines.resize(sizeof(void *), hdr.components());
+        dataline.resize(checked_cast<size_t>(hdr.element_size()), checked_cast<size_t>(hdr.dimension_size(0)));
+        scanlines.resize(sizeof(void *), checked_cast<size_t>(hdr.components()));
         for (uintmax_t i = 0; i < hdr.components(); i++)
         {
             *scanlines.ptr<void *>(i) = CPLMalloc(hdr.component_size(i) * hdr.dimension_size(0));

@@ -34,6 +34,7 @@
 #include "cio.h"
 #include "opt.h"
 #include "debug.h"
+#include "checked_cast.h"
 
 
 extern "C" void gtatool_from_gdal_help(void)
@@ -136,7 +137,7 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
             }
         }
         components = GDALGetRasterCount(dataset);
-        types.resize(sizeof(gta::type), components);
+        types.resize(sizeof(gta::type), checked_cast<size_t>(components));
         for (uintmax_t i = 0; i < components; i++)
         {
             band = GDALGetRasterBand(dataset, i + 1);
@@ -186,7 +187,7 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
             *types.ptr<gta::type>(i) = type;
         }
         hdr.set_components(components, types.ptr<gta::type>());
-        scanlines.resize(sizeof(void *), components);
+        scanlines.resize(sizeof(void *), checked_cast<size_t>(components));
         for (uintmax_t i = 0; i < components; i++)
         {
             band = GDALGetRasterBand(dataset, i + 1);
@@ -274,7 +275,7 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
         }
         hdr.write_to(fo);
         gta::io_state so;
-        dataline.resize(hdr.element_size(), hdr.dimension_size(0));
+        dataline.resize(checked_cast<size_t>(hdr.element_size()), checked_cast<size_t>(hdr.dimension_size(0)));
         for (uintmax_t y = 0; y < hdr.dimension_size(1); y++)
         {
             for (uintmax_t i = 0; i < components; i++)

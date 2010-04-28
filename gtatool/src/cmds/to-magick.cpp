@@ -34,6 +34,7 @@
 #include "cio.h"
 #include "opt.h"
 #include "debug.h"
+#include "checked_cast.h"
 
 
 extern "C" void gtatool_to_magick_help(void)
@@ -223,12 +224,13 @@ extern "C" int gtatool_to_magick(int argc, char *argv[])
     {
         if (hdr->data_is_chunked())
         {
-            data.resize(hdr->data_size());
+            data.resize(checked_cast<size_t>(hdr->data_size()));
             hdr->read_data(fi, data.ptr());
         }
         else
         {
-            data.resize(hdr->element_size(), hdr->dimension_size(0));
+            data.resize(checked_cast<size_t>(hdr->element_size()),
+                    checked_cast<size_t>(hdr->dimension_size(0)));
         }
         void *line = data.ptr();
         gta::io_state si;

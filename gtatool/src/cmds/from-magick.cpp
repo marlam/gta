@@ -33,6 +33,7 @@
 #include "cio.h"
 #include "opt.h"
 #include "debug.h"
+#include "checked_cast.h"
 
 
 extern "C" void gtatool_from_magick_help(void)
@@ -197,7 +198,7 @@ extern "C" int gtatool_from_magick(int argc, char *argv[])
     }
     try
     {
-        blob line(hdr->element_size(), hdr->dimension_size(0));
+        blob line(checked_cast<size_t>(hdr->element_size()), checked_cast<size_t>(hdr->dimension_size(0)));
         gta::io_state so;
         for (uintmax_t y = 0; y < hdr->dimension_size(1) && !magick_error; y++)
         {

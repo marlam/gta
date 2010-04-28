@@ -33,6 +33,7 @@
 #include "opt.h"
 #include "cio.h"
 #include "str.h"
+#include "checked_cast.h"
 
 #include "lib.h"
 
@@ -118,7 +119,7 @@ extern "C" int gtatool_component_set(int argc, char *argv[])
                     }
                 }
                 hdrt.set_components(comp_types.size(), &(comp_types[0]), comp_sizes.size() == 0 ? NULL : &(comp_sizes[0]));
-                blob comp_values(hdrt.element_size());
+                blob comp_values(checked_cast<size_t>(hdrt.element_size()));
                 if (value.value().empty())
                 {
                     memset(comp_values.ptr(), 0, hdrt.element_size());
@@ -132,7 +133,7 @@ extern "C" int gtatool_component_set(int argc, char *argv[])
                 hdro.set_compression(gta::none);
                 hdro.write_to(stdout);
                 // Manipulate the GTA data
-                blob element(hdri.element_size());
+                blob element(checked_cast<size_t>(hdri.element_size()));
                 gta::io_state si, so;
                 for (uintmax_t e = 0; e < hdro.elements(); e++)
                 {

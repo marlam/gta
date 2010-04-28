@@ -32,6 +32,7 @@
 #include "cio.h"
 #include "opt.h"
 #include "debug.h"
+#include "checked_cast.h"
 
 extern "C"
 {
@@ -153,7 +154,7 @@ extern "C" int gtatool_to_netpbm(int argc, char *argv[])
             pnm_writepaminit(&outpam);
 
             tuple *tuplerow = pnm_allocpamrow(&outpam);
-            blob dataline(hdr.dimension_size(0), hdr.element_size());
+            blob dataline(checked_cast<size_t>(hdr.dimension_size(0)), checked_cast<size_t>(hdr.element_size()));
             gta::io_state si;
             for (uintmax_t y = 0; y < hdr.dimension_size(1); y++)
             {

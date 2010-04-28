@@ -31,6 +31,7 @@
 #include "cio.h"
 #include "opt.h"
 #include "debug.h"
+#include "checked_cast.h"
 
 #include "lib.h"
 
@@ -231,7 +232,7 @@ extern "C" int gtatool_from_raw(int argc, char *argv[])
         hdr.set_dimensions(dimensions.value().size(), &(dimensions.value()[0]));
         hdr.set_components(components.value().size(), &(components.value()[0]));
         hdr.write_to(fo);
-        blob element(hdr.element_size());
+        blob element(checked_cast<size_t>(hdr.element_size()));
         gta::io_state so;
         for (uintmax_t e = 0; e < hdr.elements(); e++)
         {

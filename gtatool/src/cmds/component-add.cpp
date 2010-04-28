@@ -33,6 +33,7 @@
 #include "opt.h"
 #include "cio.h"
 #include "str.h"
+#include "checked_cast.h"
 
 #include "lib.h"
 
@@ -88,7 +89,7 @@ extern "C" int gtatool_component_add(int argc, char *argv[])
         std::vector<uintmax_t> comp_sizes;
         typelist_from_string(components.value(), &comp_types, &comp_sizes);
         hdrt.set_components(comp_types.size(), &(comp_types[0]), comp_sizes.size() == 0 ? NULL : &(comp_sizes[0]));
-        blob comp_values(hdrt.element_size());
+        blob comp_values(checked_cast<size_t>(hdrt.element_size()));
         if (value.value().empty())
         {
             memset(comp_values.ptr(), 0, hdrt.element_size());
@@ -175,8 +176,8 @@ extern "C" int gtatool_component_add(int argc, char *argv[])
                 // Write the GTA header
                 hdro.write_to(stdout);
                 // Manipulate the GTA data
-                blob element_in(hdri.element_size());
-                blob element_out(hdro.element_size());
+                blob element_in(checked_cast<size_t>(hdri.element_size()));
+                blob element_out(checked_cast<size_t>(hdro.element_size()));
                 size_t old_comp_pre_size = 0;
                 for (uintmax_t i = 0; i < hdro_new_comp_index; i++)
                 {

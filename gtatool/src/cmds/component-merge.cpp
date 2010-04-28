@@ -34,6 +34,7 @@
 #include "opt.h"
 #include "cio.h"
 #include "str.h"
+#include "checked_cast.h"
 
 #include "lib.h"
 
@@ -145,7 +146,7 @@ extern "C" int gtatool_component_merge(int argc, char *argv[])
                 }
             }
             hdro.write_to(stdout);
-            blob element_buf(hdro.element_size());
+            blob element_buf(checked_cast<size_t>(hdro.element_size()));
             gta::io_state si, so;
             for (uintmax_t e = 0; e < hdro.elements(); e++)
             {

@@ -39,6 +39,7 @@
 #include "cio.h"
 #include "opt.h"
 #include "debug.h"
+#include "checked_cast.h"
 
 using namespace Imf;
 using namespace Imath;
@@ -127,13 +128,13 @@ extern "C" int gtatool_to_exr(int argc, char *argv[])
         {
             throw exc("Cannot export " + ifilename, "Array too large");
         }
-        blob data(hdr.data_size());
+        blob data(checked_cast<size_t>(hdr.data_size()));
         hdr.read_data(fi, data.ptr());
         gta::header float_hdr;
         gta::type float_types[] = { gta::float32, gta::float32, gta::float32, gta::float32 };
         float_hdr.set_components(hdr.components(), float_types);
         float_hdr.set_dimensions(hdr.dimension_size(0), hdr.dimension_size(1));
-        blob float_data(float_hdr.data_size());
+        blob float_data(checked_cast<size_t>(float_hdr.data_size()));
         for (uintmax_t y = 0; y < hdr.dimension_size(1); y++)
         {
             for (uintmax_t x = 0; x < hdr.dimension_size(0); x++)

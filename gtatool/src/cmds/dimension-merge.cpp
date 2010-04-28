@@ -33,6 +33,7 @@
 #include "opt.h"
 #include "cio.h"
 #include "str.h"
+#include "checked_cast.h"
 
 #include "lib.h"
 
@@ -142,7 +143,7 @@ extern "C" int gtatool_dimension_merge(int argc, char *argv[])
                 hdro.component_taglist(c) = hdri[0].component_taglist(c);
             }
             hdro.write_to(stdout);
-            blob element_buf(hdro.element_size());
+            blob element_buf(checked_cast<size_t>(hdro.element_size()));
             for (size_t i = 0; i < arguments.size(); i++)
             {
                 gta::io_state si, so;

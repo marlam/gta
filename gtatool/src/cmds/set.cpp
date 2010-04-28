@@ -33,6 +33,7 @@
 #include "opt.h"
 #include "cio.h"
 #include "str.h"
+#include "checked_cast.h"
 
 #include "lib.h"
 
@@ -132,7 +133,7 @@ extern "C" int gtatool_set(int argc, char *argv[])
                 hdro.set_compression(gta::none);
                 hdro.write_to(stdout);
                 // Manipulate the GTA data
-                blob element(hdri.element_size());
+                blob element(checked_cast<size_t>(hdri.element_size()));
                 std::vector<uintmax_t> in_index(hdri.dimensions());
                 std::vector<uintmax_t> start_index(hdri.dimensions());
                 for (size_t i = 0; i < start_index.size(); i++)

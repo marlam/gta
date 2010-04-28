@@ -32,6 +32,7 @@
 #include "cio.h"
 #include "opt.h"
 #include "debug.h"
+#include "checked_cast.h"
 
 #include "lib.h"
 
@@ -105,7 +106,7 @@ extern "C" int gtatool_to_raw(int argc, char *argv[])
         {
             throw exc("Cannot export " + ifilename, "Currently only uncompressed GTAs can be exported to raw files");
         }
-        blob element(hdr.element_size());
+        blob element(checked_cast<size_t>(hdr.element_size()));
         gta::io_state si;
         for (uintmax_t e = 0; e < hdr.elements(); e++)
         {

@@ -34,6 +34,7 @@
 #include "opt.h"
 #include "cio.h"
 #include "str.h"
+#include "checked_cast.h"
 
 #include "lib.h"
 
@@ -139,7 +140,7 @@ extern "C" int gtatool_extract(int argc, char *argv[])
                 // Write the GTA header
                 hdro.write_to(stdout);
                 // Manipulate the GTA data
-                blob element(hdri.element_size());
+                blob element(checked_cast<size_t>(hdri.element_size()));
                 std::vector<uintmax_t> indices(hdro.dimensions());
                 gta::io_state si, so;
                 for (uintmax_t e = 0; e < hdri.elements(); e++)
