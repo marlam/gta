@@ -37,10 +37,6 @@
 
 #include "lib.h"
 
-#ifndef EOVERFLOW
-#   define EOVERFLOW EFBIG
-#endif
-
 
 extern "C" void gtatool_component_add_help(void)
 {
@@ -121,10 +117,6 @@ extern "C" int gtatool_component_add(int argc, char *argv[])
                 uintmax_t hdro_new_comp_index;
                 if (index.values().empty())
                 {
-                    if (hdri.components() > std::numeric_limits<uintmax_t>::max() - comp_types.size())
-                    {
-                        throw exc(finame, EOVERFLOW);
-                    }
                     hdro_new_comp_index = hdri.components();
                 }
                 else
@@ -144,7 +136,7 @@ extern "C" int gtatool_component_add(int argc, char *argv[])
                     }
                 }
                 uintmax_t blob_size_index = 0;
-                for (uintmax_t i = hdro_new_comp_index; i < hdro_new_comp_index + comp_types.size(); i++)
+                for (uintmax_t i = hdro_new_comp_index; i < checked_add(hdro_new_comp_index, static_cast<uintmax_t>(comp_types.size())); i++)
                 {
                     hdro_comp_types.push_back(comp_types[i - hdro_new_comp_index]);
                     if (comp_types[i - hdro_new_comp_index] == gta::blob)
@@ -152,7 +144,7 @@ extern "C" int gtatool_component_add(int argc, char *argv[])
                         hdro_comp_sizes.push_back(comp_sizes[blob_size_index++]);
                     }
                 }
-                for (uintmax_t i = hdro_new_comp_index + comp_types.size(); i < hdri.components() + comp_types.size(); i++)
+                for (uintmax_t i = hdro_new_comp_index + comp_types.size(); i < checked_add(hdri.components(), comp_types.size()); i++)
                 {
                     hdro_comp_types.push_back(hdri.component_type(i - comp_types.size()));
                     if (hdri.component_type(i - comp_types.size()) == gta::blob)

@@ -37,10 +37,6 @@
 
 #include "lib.h"
 
-#ifndef EOVERFLOW
-#   define EOVERFLOW EFBIG
-#endif
-
 
 extern "C" void gtatool_dimension_extract_help(void)
 {
@@ -99,10 +95,6 @@ extern "C" int gtatool_dimension_extract(int argc, char *argv[])
                 if (hdri.dimensions() == 0)
                 {
                     throw exc(finame + ": GTA has zero dimensions");
-                }
-                if (hdri.dimensions() > std::numeric_limits<size_t>::max())
-                {
-                    throw exc(finame, EOVERFLOW);
                 }
                 uintmax_t dim = (dimension.values().empty() ? hdri.dimensions() - 1 : dimension.value());
                 if (dim >= hdri.dimensions())

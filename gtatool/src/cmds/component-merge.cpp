@@ -38,10 +38,6 @@
 
 #include "lib.h"
 
-#ifndef EOVERFLOW
-#   define EOVERFLOW EFBIG
-#endif
-
 
 extern "C" void gtatool_component_merge_help(void)
 {
@@ -132,10 +128,6 @@ extern "C" int gtatool_component_merge(int argc, char *argv[])
             }
             hdro.set_components(hdro_comp_types.size(), &(hdro_comp_types[0]),
                     (hdro_comp_sizes.size() > 0 ? &(hdro_comp_sizes[0]) : NULL));
-            if (hdro.element_size() > std::numeric_limits<size_t>::max())
-            {
-                throw exc("cannot merge components", EOVERFLOW);
-            }
             uintmax_t hdro_c = 0;
             for (size_t i = 0; i < arguments.size(); i++)
             {

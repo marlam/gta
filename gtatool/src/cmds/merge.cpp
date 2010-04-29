@@ -37,10 +37,6 @@
 
 #include "lib.h"
 
-#ifndef EOVERFLOW
-#   define EOVERFLOW EFBIG
-#endif
-
 
 extern "C" void gtatool_merge_help(void)
 {
@@ -95,10 +91,6 @@ extern "C" int gtatool_merge(int argc, char *argv[])
             {
                 throw exc(arguments[0] + ": GTA has no dimension " + str::str(dimension.value()));
             }
-            if (hdri[0].dimensions() > std::numeric_limits<size_t>::max())
-            {
-                throw exc("cannot merge arrays", EOVERFLOW);
-            }
             for (size_t i = 1; i < arguments.size(); i++)
             {
                 hdri[i].read_from(fi[i]);
@@ -140,11 +132,7 @@ extern "C" int gtatool_merge(int argc, char *argv[])
                     uintmax_t dim = 0;
                     for (size_t j = 0; j < arguments.size(); j++)
                     {
-                        if (dim > std::numeric_limits<uintmax_t>::max() - hdri[j].dimension_size(d))
-                        {
-                            throw exc("cannot merge arrays", EOVERFLOW);
-                        }
-                        dim += hdri[j].dimension_size(d);
+                        dim = checked_add(dim, hdri[j].dimension_size(d));
                     }
                     hdro_dim_sizes.push_back(dim);
                 }

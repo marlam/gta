@@ -37,10 +37,6 @@
 
 #include "lib.h"
 
-#ifndef EOVERFLOW
-#   define EOVERFLOW EFBIG
-#endif
-
 
 extern "C" void gtatool_dimension_reverse_help(void)
 {

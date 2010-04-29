@@ -37,10 +37,6 @@
 
 #include "lib.h"
 
-#ifndef EOVERFLOW
-#   define EOVERFLOW EFBIG
-#endif
-
 
 extern "C" void gtatool_dimension_add_help(void)
 {
@@ -93,10 +89,6 @@ extern "C" int gtatool_dimension_add(int argc, char *argv[])
             {
                 // Read the GTA header
                 hdri.read_from(fi);
-                if (hdri.dimensions() > std::numeric_limits<size_t>::max() - 1)
-                {
-                    throw exc(finame, EOVERFLOW);
-                }
                 uintmax_t dim = (dimension.values().empty() ? hdri.dimensions() : dimension.value());
                 if (dim > hdri.dimensions())
                 {

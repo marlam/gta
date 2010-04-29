@@ -29,12 +29,9 @@
 #include "str.h"
 #include "msg.h"
 #include "tools.h"
+#include "intcheck.h"
 
 #include "lib.h"
-
-#ifndef EOVERFLOW
-#   define EOVERFLOW EFBIG
-#endif
 
 
 std::string type_to_string(const gta::type t, const uintmax_t size) throw (exc)
@@ -43,11 +40,7 @@ std::string type_to_string(const gta::type t, const uintmax_t size) throw (exc)
     switch (t)
     {
     case gta::blob:
-        if (size > std::numeric_limits<uintmax_t>::max() / 8)
-        {
-            throw exc(EOVERFLOW);
-        }
-        s = std::string("blob") + str::str(size * 8);
+        s = std::string("blob") + str::str(checked_mul(size, static_cast<uintmax_t>(8)));
         break;
     case gta::int8:
         s = "int8";
@@ -221,17 +214,13 @@ void value_from_string(const std::string &s, const gta::type t, const uintmax_t 
     {
     case gta::blob:
         {
-            if (size > std::numeric_limits<size_t>::max())
-            {
-                throw exc(EOVERFLOW);
-            }
             int tv;
             is >> tv;
             if (!is.fail() && (tv < std::numeric_limits<uint8_t>::min() || tv > std::numeric_limits<uint8_t>::max()))
             {
                 is.setstate(std::ios::failbit);
             }
-            memset(value, tv, size);
+            memset(value, tv, checked_cast<size_t>(size));
         }
         break;
     case gta::int8:
@@ -393,11 +382,7 @@ void valuelist_from_string(const std::string &s, const std::vector<gta::type> &t
         switch (types[j])
         {
         case gta::blob:
-            if (sizes[blob_index] > std::numeric_limits<size_t>::max())
-            {
-                throw exc(EOVERFLOW);
-            }
-            value += sizes[blob_index];
+            value += checked_cast<size_t>(sizes[blob_index]);
             blob_index++;
             break;
         case gta::int8:
