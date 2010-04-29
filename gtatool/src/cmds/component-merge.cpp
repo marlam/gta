@@ -34,7 +34,7 @@
 #include "opt.h"
 #include "cio.h"
 #include "str.h"
-#include "checked_cast.h"
+#include "intcheck.h"
 
 #include "lib.h"
 

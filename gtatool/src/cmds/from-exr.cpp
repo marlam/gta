@@ -39,7 +39,7 @@
 #include "cio.h"
 #include "opt.h"
 #include "debug.h"
-#include "checked_cast.h"
+#include "intcheck.h"
 
 using namespace Imf;
 using namespace Imath;

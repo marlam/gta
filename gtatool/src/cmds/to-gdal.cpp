@@ -35,7 +35,7 @@
 #include "cio.h"
 #include "opt.h"
 #include "debug.h"
-#include "checked_cast.h"
+#include "intcheck.h"
 
 
 extern "C" void gtatool_to_gdal_help(void)

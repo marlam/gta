@@ -10,7 +10,7 @@ libbase_la_SOURCES = \
 	msg.h msg.cpp		\
 	debug.h debug.cpp	\
 	exc.h exc.cpp		\
-	checked_cast.h		\
+	intcheck.h		\
 	cio.h cio.cpp		\
 	timer.h timer.cpp	\
 	opt.h opt.cpp		\
