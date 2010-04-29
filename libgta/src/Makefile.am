@@ -14,3 +14,22 @@ AM_CPPFLAGS = -I$(top_builddir)/src
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = gta.pc
 DISTCLEANFILES = $(pkgconfig_DATA)
+
+# XXX
+# FIXME
+#
+# The libgta.la file causes unnecessary direct linking with liblzma, libbz2,
+# libz. This is bad because the application then unnecessarily depends on the
+# .so versions of these libraries, even though it does not use their interfaces
+# directly. Direct linking with these libraries is only necessary for statically
+# linked applications.
+#
+# Pkg-config solves this by providing both a Libs and Libs.private field, where
+# Libs.private is only used for static linking.
+#
+# As of 2010-04-29, libtool has no fix for this problem. Therefore we just
+# remove the libgta.la file here. Applications that want dynamic linking do not
+# need it, and applications that want static linking can either list the
+# dependencies manually or use pkg-config.
+install-exec-hook:
+	rm $(libdir)/libgta.la
