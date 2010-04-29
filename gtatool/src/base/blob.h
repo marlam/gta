@@ -32,12 +32,12 @@
 #ifndef BLOB_H
 #define BLOB_H
 
-#include <limits>
 #include <cstdlib>
+#include <cstring>
 #include <cerrno>
 
-#include "tools.h"
 #include "exc.h"
+#include "intcheck.h"
 
 
 class blob
@@ -46,25 +46,6 @@ private:
     
     size_t _size;
     void *_ptr;
-
-    static size_t mul(size_t a, size_t b) throw (exc)
-    {
-        if (tools::product_overflows(a, b))
-        {
-            throw exc(ENOMEM);
-        }
-        return a * b;
-    }
-
-    static size_t mul(size_t a, size_t b, size_t c) throw (exc)
-    {
-        return mul(mul(a, b), c);
-    }
-
-    static size_t mul(size_t a, size_t b, size_t c, size_t d) throw (exc)
-    {
-        return mul(mul(a, b), mul(c, d));
-    }
 
     static void *alloc(size_t s) throw (exc)
     {
@@ -99,17 +80,17 @@ public:
     }
 
     blob(size_t s, size_t n) throw (exc)
-        : _size(mul(s, n)), _ptr(alloc(_size))
+        : _size(checked_mul(s, n)), _ptr(alloc(_size))
     {
     }
 
     blob(size_t s, size_t n0, size_t n1) throw (exc)
-        : _size(mul(s, n0, n1)), _ptr(alloc(_size))
+        : _size(checked_mul(checked_mul(s, n0), n1)), _ptr(alloc(_size))
     {
     }
 
     blob(size_t s, size_t n0, size_t n1, size_t n2) throw (exc)
-        : _size(mul(s, n0, n1, n2)), _ptr(alloc(_size))
+        : _size(checked_mul(checked_mul(s, n0), checked_mul(n1, n2))), _ptr(alloc(_size))
     {
     }
 
@@ -142,19 +123,19 @@ public:
 
     void resize(size_t s, size_t n) throw (exc)
     {
-        _ptr = realloc(_ptr, mul(s, n));
+        _ptr = realloc(_ptr, checked_mul(s, n));
         _size = s;
     }
 
     void resize(size_t s, size_t n0, size_t n1) throw (exc)
     {
-        _ptr = realloc(_ptr, mul(s, n0, n1));
+        _ptr = realloc(_ptr, checked_mul(checked_mul(s, n0), n1));
         _size = s;
     }
 
     void resize(size_t s, size_t n0, size_t n1, size_t n2) throw (exc)
     {
-        _ptr = realloc(_ptr, mul(s, n0, n1, n2));
+        _ptr = realloc(_ptr, checked_mul(checked_mul(s, n0), checked_mul(n1, n2)));
         _size = s;
     }
 
@@ -176,13 +157,13 @@ public:
     template<typename T>
     const T *ptr(size_t offset = 0) const throw ()
     {
-        return static_cast<const T *>(ptr(mul(offset, sizeof(T))));
+        return static_cast<const T *>(ptr(offset * sizeof(T)));
     }
 
     template<typename T>
     T *ptr(size_t offset = 0) throw ()
     {
-        return static_cast<T *>(ptr(mul(offset, sizeof(T))));
+        return static_cast<T *>(ptr(offset * sizeof(T)));
     }
 };
 

@@ -73,13 +73,6 @@ namespace str
     std::string hex(const std::string &s, bool uppercase = false);
     std::string hex(const void *buf, size_t n, bool uppercase = false);
 
-    /* BASE64 encoding / decoding */
-#if BASE_WITH_BASE64
-    std::string to_base64(const std::string &s) throw (exc);
-    std::string to_base64(const void *buf, const size_t n) throw (exc);
-    std::string from_base64(const std::string &b64) throw (exc);
-#endif
-
     /* Convert various values to human readable strings */
     std::string human_readable_memsize(const uintmax_t size);
     std::string human_readable_length(const double length);

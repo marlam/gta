@@ -28,8 +28,8 @@
 
 #include "str.h"
 #include "msg.h"
-#include "tools.h"
 #include "intcheck.h"
+#include "endianness.h"
 
 #include "lib.h"
 
@@ -428,42 +428,42 @@ void swap_component_endianness(const gta::header &header, uintmax_t i, void *com
         break;
     case gta::int16:
     case gta::uint16:
-        tools::swap_endianness_16(component);
+        endianness::swap16(component);
         break;
     case gta::int32:
     case gta::uint32:
     case gta::float32:
-        tools::swap_endianness_32(component);
+        endianness::swap32(component);
         break;
     case gta::int64:
     case gta::uint64:
     case gta::float64:
-        tools::swap_endianness_64(component);
+        endianness::swap64(component);
         break;
     case gta::int128:
     case gta::uint128:
     case gta::float128:
-        tools::swap_endianness_128(component);
+        endianness::swap128(component);
         break;
     case gta::cfloat32:
         {
             uint32_t *u32 = static_cast<uint32_t *>(component);
-            tools::swap_endianness_32(u32 + 0);
-            tools::swap_endianness_32(u32 + 1);
+            endianness::swap32(u32 + 0);
+            endianness::swap32(u32 + 1);
         }
         break;
     case gta::cfloat64:
         {
             uint64_t *u64 = static_cast<uint64_t *>(component);
-            tools::swap_endianness_64(u64 + 0);
-            tools::swap_endianness_64(u64 + 1);
+            endianness::swap64(u64 + 0);
+            endianness::swap64(u64 + 1);
         }
         break;
     case gta::cfloat128:
         {
             uint64_t *u64 = static_cast<uint64_t *>(component);
-            tools::swap_endianness_128(u64 + 0);
-            tools::swap_endianness_128(u64 + 2);
+            endianness::swap128(u64 + 0);
+            endianness::swap128(u64 + 2);
         }
         break;
     }

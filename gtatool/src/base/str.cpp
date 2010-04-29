@@ -30,16 +30,8 @@
 #include <limits>
 #include <sstream>
 
-#if BASE_WITH_BASE64
-extern "C"
-{
-#   include "base64.h"
-}
-#endif
-
 #include "debug.h"
 #include "msg.h"
-#include "tools.h"
 #include "blob.h"
 
 #include "str.h"
@@ -281,47 +273,6 @@ namespace str
 
         return s;
     }
-
-    /* BASE64 encoding / decoding */
-
-#if BASE_WITH_BASE64
-
-    std::string to_base64(const std::string &s) throw (exc)
-    {
-        return to_base64(reinterpret_cast<const void *>(s.c_str()), s.length());
-    }
-
-    std::string to_base64(const void *buf, const size_t n) throw (exc)
-    {
-        size_t nn = n;
-        size_t l = BASE64_LENGTH(nn) + 1;
-        if (nn > l)
-        {
-            // size_t overflow (see comments in base64.c, function
-            // base64_encode_alloc, for the reasons why this check is sufficient).
-            throw exc("Cannot encode base64", ENOMEM);
-        }
-        blob b64buf(l);
-        base64_encode(reinterpret_cast<const char *>(buf), nn, b64buf.ptr<char>(), l);
-        std::string s(b64buf.ptr<char>());
-        return s;
-    }
-
-    std::string from_base64(const std::string &b64) throw (exc)
-    {
-        const size_t b64_len = b64.length();
-        size_t bin_len = 3 * (b64_len / 4) + 2;
-        blob bin(bin_len);
-        bool ok = base64_decode(b64.c_str(), b64_len, bin.ptr<char>(), &bin_len);
-        if (!ok)
-        {
-            throw exc("Cannot decode base64", EINVAL);
-        }
-        std::string s(bin.ptr<char>(), bin_len);
-        return s;
-    }
-
-#endif
 
     /* Convert various values to human readable strings */
 

@@ -6,16 +6,13 @@
 
 noinst_LTLIBRARIES = libbase.la
 libbase_la_SOURCES = \
-	str.h str.cpp		\
-	msg.h msg.cpp		\
-	debug.h debug.cpp	\
-	exc.h exc.cpp		\
-	intcheck.h		\
-	cio.h cio.cpp		\
-	timer.h timer.cpp	\
-	opt.h opt.cpp		\
-	tools.h tools.cpp	\
-	progress.h progress.cpp	\
-	blob.h			\
-	atomic.h
+	str.h str.cpp \
+	msg.h msg.cpp \
+	debug.h debug.cpp \
+	exc.h exc.cpp \
+	intcheck.h \
+	cio.h cio.cpp \
+	opt.h opt.cpp \
+	endianness.h \
+	blob.h
 AM_CPPFLAGS = -I$(top_srcdir)/gnulib -I$(top_srcdir)/base

@@ -83,15 +83,7 @@ AC_DEFINE_UNQUOTED([DYNAMIC_MODULES], [$dynamic_modules_val], [Use dynamic modul
 AM_CONDITIONAL([DYNAMIC_MODULES], [test "$dynamic_modules" = "yes"])
 
 dnl Feature checks needed by the base module
-LIB_CLOCK_GETTIME=
-AC_SUBST([LIB_CLOCK_GETTIME])
-SAVED_LIBS="$LIBS"
-AC_SEARCH_LIBS([clock_gettime], [rt posix4],
-    [test "$ac_cv_search_clock_gettime" = "none required" || LIB_CLOCK_GETTIME="$ac_cv_search_clock_gettime"])
-AC_CHECK_FUNCS([clock_gettime])
-LIBS="$SAVED_LIBS"
 AC_CHECK_FUNCS([backtrace sigaction vasprintf mmap link fseeko ftello])
-AC_DEFINE_UNQUOTED([BASE_WITH_BASE64], [0], [Define to 1 if the base module should provide base64.])
 
 dnl The GTA library
 AC_LIB_HAVE_LINKFLAGS([gta], [], [#include <gta/gta.h>], [gta_version(0, 0, 0);])

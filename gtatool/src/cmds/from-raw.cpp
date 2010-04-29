@@ -32,6 +32,7 @@
 #include "opt.h"
 #include "debug.h"
 #include "intcheck.h"
+#include "endianness.h"
 
 #include "lib.h"
 
@@ -168,8 +169,8 @@ extern "C" int gtatool_from_raw(int argc, char *argv[])
     std::vector<std::string> endiannesses;
     endiannesses.push_back("little");
     endiannesses.push_back("big");
-    opt::val<std::string> endianness("endianness", 'e', opt::optional, endiannesses);
-    options.push_back(&endianness);
+    opt::val<std::string> endian("endianness", 'e', opt::optional, endiannesses);
+    options.push_back(&endian);
     std::vector<std::string> arguments;
     if (!opt::parse(argc, argv, options, 1, 2, arguments))
     {
@@ -191,17 +192,20 @@ extern "C" int gtatool_from_raw(int argc, char *argv[])
     }
 
     bool host_endianness;
-    if (endianness.values().empty())
+    if (endian.values().empty())
     {
         host_endianness = true;
     }
     else
     {
-#if WORDS_BIGENDIAN
-        host_endianness = (endianness.value().compare("big") == 0);
-#else
-        host_endianness = (endianness.value().compare("little") == 0);
-#endif
+        if (endianness::endianness == endianness::big)
+        {
+            host_endianness = (endian.value().compare("big") == 0);
+        }
+        else
+        {
+            host_endianness = (endian.value().compare("little") == 0);
+        }
     }
 
     FILE *fo = stdout;

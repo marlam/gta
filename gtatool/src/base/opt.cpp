@@ -37,7 +37,6 @@ extern int opterr;
 #undef optional_argument
 
 #include "msg.h"
-#include "tools.h"
 #include "opt.h"
 
 
