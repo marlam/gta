@@ -11,7 +11,7 @@ includedir=@includedir@
 
 Name: GTA
 Description: Generic Tagged Arrays
-#URL: TODO
+URL: http://www.nongnu.org/gta/
 Version: @VERSION@
 Libs: -L${libdir} -lgta
 Libs.private: @LTLIBLZMA@ @LTLIBBZ2@ @LTLIBZ@
