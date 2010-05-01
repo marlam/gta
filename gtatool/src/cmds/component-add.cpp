@@ -136,7 +136,8 @@ extern "C" int gtatool_component_add(int argc, char *argv[])
                     }
                 }
                 uintmax_t blob_size_index = 0;
-                for (uintmax_t i = hdro_new_comp_index; i < checked_add(hdro_new_comp_index, static_cast<uintmax_t>(comp_types.size())); i++)
+                for (uintmax_t i = hdro_new_comp_index;
+                        i < checked_add(hdro_new_comp_index, static_cast<uintmax_t>(comp_types.size())); i++)
                 {
                     hdro_comp_types.push_back(comp_types[i - hdro_new_comp_index]);
                     if (comp_types[i - hdro_new_comp_index] == gta::blob)
@@ -144,7 +145,8 @@ extern "C" int gtatool_component_add(int argc, char *argv[])
                         hdro_comp_sizes.push_back(comp_sizes[blob_size_index++]);
                     }
                 }
-                for (uintmax_t i = hdro_new_comp_index + comp_types.size(); i < checked_add(hdri.components(), comp_types.size()); i++)
+                for (uintmax_t i = hdro_new_comp_index + comp_types.size();
+                        i < checked_add(hdri.components(), static_cast<uintmax_t>(comp_types.size())); i++)
                 {
                     hdro_comp_types.push_back(hdri.component_type(i - comp_types.size()));
                     if (hdri.component_type(i - comp_types.size()) == gta::blob)
