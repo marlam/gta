@@ -96,19 +96,17 @@ AC_ARG_WITH([muparser],
     [AS_HELP_STRING([--with-muparser], [Enable the component-compute command. Enabled by default if libmuparser is available.])],
     [if test "$withval" = "yes"; then muparser="yes"; else muparser="no"; fi], [muparser="yes"])
 if test "$muparser" = "yes"; then
-    muparser_has_separate_include_dir=1;
-    AC_LIB_HAVE_LINKFLAGS([muparser], [], [#include <muParser/muParser.h>], [mu::Parser p;])
-    if test "$HAVE_LIBMUPARSER" != "yes"; then
-        muparser_has_separate_include_dir=0;
-        AC_LIB_HAVE_LINKFLAGS([muparser], [], [#include <muParser.h>], [mu::Parser p;])
-        if test "$HAVE_LIBMUPARSER" != "yes"; then
-            muparser="no"
-            AC_MSG_WARN([Disabled the component-compute command because libmuparser was not found.])
-	fi
+    AC_CHECK_HEADER([muParser/muParser.h], [HAVE_MUPARSER_INCSUBDIR=yes], [HAVE_MUPARSER_INCSUBDIR=no])
+    if test "$HAVE_MUPARSER_INCSUBDIR" = "yes"; then
+        gl_ABSOLUTE_HEADER([muParser/muParser.h])
+        MUPARSER_INCLUDE_DIR=`echo $gl_cv_absolute_muParser_muParser_h \
+            | sed -e 's/\/muParser.h$//' -e 's/^\/\/\//\//'`
+        CPPFLAGS="$CPPFLAGS -isystem $MUPARSER_INCLUDE_DIR"
     fi
-    if test "$muparser" = "yes"; then
-        AC_DEFINE_UNQUOTED([MUPARSER_HAS_SEPERATE_INCLUDE_DIR], [$muparser_has_separate_include_dir],
-	    [Does libmuparser have a separate include dir?])
+    AC_LIB_HAVE_LINKFLAGS([muparser], [], [#include <muParser.h>], [mu::Parser p;])
+    if test "$HAVE_LIBMUPARSER" != "yes"; then
+        muparser="no"
+        AC_MSG_WARN([Disabled the component-compute command because libmuparser was not found.])
     fi
 fi
 AM_CONDITIONAL([MUPARSER], [test "$muparser" = "yes"])
@@ -164,16 +162,15 @@ if test "$exr" = "yes"; then
     dnl FIXME: Despite AC_LANG([C++]), AC_CHECK_HEADER uses the C compiler (why??).
     dnl We cannot test for OpenEXR/ImfVersion.h because that contains a namespace.
     dnl We're testing for a header that is safe even for C.
-    AC_CHECK_HEADER([OpenEXR/OpenEXRConfig.h], 
-        [ gl_ABSOLUTE_HEADER([OpenEXR/OpenEXRConfig.h])
-          OPENEXR_INCLUDE_DIR=`echo $gl_cv_absolute_OpenEXR_OpenEXRConfig_h \
-              | sed -e 's/\/OpenEXRConfig.h$//' -e 's/"//g' -e 's/^\/\/\//\//'` ],
-        [ OPENEXR_INCLUDE_DIR="no" ])
-    if test "$OPENEXR_INCLUDE_DIR" != "no"; then
-        AC_LIB_FROMPACKAGE([IlmImf], [exr])
-        AC_LIB_APPENDTOVAR([CPPFLAGS], [-I$OPENEXR_INCLUDE_DIR])
-        AC_LIB_HAVE_LINKFLAGS([IlmImf], [], [#include <ImfVersion.h>], [Imf::getVersion(0)])
+    AC_CHECK_HEADER([OpenEXR/OpenEXRConfig.h], [HAVE_OPENEXR_INCSUBDIR=yes], [HAVE_OPENEXR_INCSUBDIR=no])
+    if test "$HAVE_OPENEXR_INCSUBDIR" = "yes"; then
+        gl_ABSOLUTE_HEADER([OpenEXR/OpenEXRConfig.h])
+        OPENEXR_INCLUDE_DIR=`echo $gl_cv_absolute_OpenEXR_OpenEXRConfig_h \
+            | sed -e 's/\/OpenEXRConfig.h$//' -e 's/^\/\/\//\//'`
+        CPPFLAGS="$CPPFLAGS -isystem $OPENEXR_INCLUDE_DIR"
     fi
+    AC_LIB_FROMPACKAGE([IlmImf], [exr])
+    AC_LIB_HAVE_LINKFLAGS([IlmImf], [], [#include <ImfVersion.h>], [Imf::getVersion(0)])
     if test "$HAVE_LIBILMIMF" != "yes"; then
         exr="no"
         AC_MSG_WARN([Disabled OpenEXR import/export because libIlmImf was not found.])
@@ -191,7 +188,7 @@ if test "$gdal" = "yes"; then
         gl_ABSOLUTE_HEADER([gdal/gdal.h])
         GDAL_INCLUDE_DIR=`echo $gl_cv_absolute_gdal_gdal_h \
             | sed -e 's/\/gdal.h$//' -e 's/^\/\/\//\//'`
-        AC_LIB_APPENDTOVAR([CXXFLAGS], [-I$GDAL_INCLUDE_DIR])
+        CPPFLAGS="$CPPFLAGS -isystem $GDAL_INCLUDE_DIR"
     fi
     dnl On Debian, libgdal.so is called libgdal1.?.0.so.
     AC_LIB_HAVE_LINKFLAGS([gdal], [], [#include <gdal.h>], [GDALAllRegister();])

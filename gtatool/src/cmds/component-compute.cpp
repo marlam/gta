@@ -28,11 +28,7 @@
 
 #include <gta/gta.hpp>
 
-#if MUPARSER_HAS_SEPERATE_INCLUDE_DIR
-#   include <muParser/muParser.h>
-#else
-#   include <muParser.h>
-#endif
+#include <muParser.h>
 
 #include "msg.h"
 #include "blob.h"
