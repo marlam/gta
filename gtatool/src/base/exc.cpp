@@ -66,12 +66,14 @@ void exc::create(const char *when, int sys_errno, const char *what) throw ()
 }
 
 exc::exc() throw ()
+    : std::exception()
 {
     _str[0] = '\0';
     _sys_errno = 0;
 }
 
 exc::exc(const std::string &when, int sys_errno, const std::string &what) throw ()
+    : std::exception()
 {
     create(when.c_str(), sys_errno, what.c_str());
     if (!empty())
@@ -81,6 +83,7 @@ exc::exc(const std::string &when, int sys_errno, const std::string &what) throw 
 }
 
 exc::exc(const std::string &when, const std::string &what) throw ()
+    : std::exception()
 {
     create(when.c_str(), 0, what.c_str());
     if (!empty())
@@ -90,6 +93,7 @@ exc::exc(const std::string &when, const std::string &what) throw ()
 }
 
 exc::exc(int sys_errno) throw ()
+    : std::exception()
 {
     create("", sys_errno, "");
     if (!empty())
@@ -99,11 +103,13 @@ exc::exc(int sys_errno) throw ()
 }
 
 exc::exc(const exc &e) throw ()
+    : std::exception()
 {
     strcpy(_str, e._str);
 }
 
 exc::exc(const std::exception &e) throw ()
+    : std::exception()
 {
     // TODO: Avoid the crappy what() strings; ideally translate them to errnos.
     // E.g. std::bad_alloc -> ENOMEM.
