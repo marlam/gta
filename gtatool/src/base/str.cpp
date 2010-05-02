@@ -46,7 +46,7 @@ static int vasprintf(char **strp, const char *format, va_list args)
      * of vsnprintf(), but not for Microsofts version (Visual Studio etc.)!
      */
     int length = vsnprintf(NULL, 0, format, args);
-    if (length + 1 < length     // integer overflow
+    if (length > std::numeric_limits<int>::max() - 1
             || !(*strp = static_cast<char *>(malloc(length + 1))))
     {
         return -1;
