@@ -305,7 +305,7 @@ extern "C" int gtatool_help(int argc, char *argv[])
     if (arguments.size() == 0)
     {
         msg::req_txt(
-                "Usage: %s [-q|--quiet] [-v|--verbose] <command> [argument...]\n",
+                "Usage: %s [-q|--quiet] [-v|--verbose] <command> [argument...]",
                 program_name);
         msg::req_txt("\nCommands that operate on element component level:");
         for (int i = 0; commands[i].name; i++)
