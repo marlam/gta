@@ -75,9 +75,8 @@ public:
         case GET_GLOBAL:
             {
                 const char *val = hdr.global_taglist().get(_name.c_str());
-                msg::req("%s array %llu global: %s%s",
-                        filename.c_str(), static_cast<unsigned long long>(gta_index),
-                        _name.c_str(), val ? (std::string("=") + val).c_str() : " not set");
+                msg::req(filename + " array " + str::str(gta_index) + " global: "
+                        + _name + (val ? std::string("=") + val : std::string(" not set")));
             }
             break;
 
@@ -118,10 +117,8 @@ public:
                 for (uintmax_t i = a; i <= b; i++)
                 {
                     const char *val = hdr.dimension_taglist(_index).get(_name.c_str());
-                    msg::req("%s array %llu dimension %llu: %s%s",
-                            filename.c_str(), static_cast<unsigned long long>(gta_index),
-                            static_cast<unsigned long long>(_index),
-                            _name.c_str(), val ? (std::string("=") + val).c_str() : " not set");
+                    msg::req(filename + " array " + str::str(gta_index) + " dimension " + str::str(_index) + ": "
+                            + _name + (val ? std::string("=") + val : std::string(" not set")));
                 }
             }
             break;
@@ -214,10 +211,8 @@ public:
                 for (uintmax_t i = a; i <= b; i++)
                 {
                     const char *val = hdr.component_taglist(_index).get(_name.c_str());
-                    msg::req("%s array %llu component %llu: %s%s",
-                            filename.c_str(), static_cast<unsigned long long>(gta_index),
-                            static_cast<unsigned long long>(_index),
-                            _name.c_str(), val ? (std::string("=") + val).c_str() : " not set");
+                    msg::req(filename + " array " + str::str(gta_index) + " component " + str::str(_index) + ": "
+                            + _name + (val ? std::string("=") + val : std::string(" not set")));
                 }
             }
             break;

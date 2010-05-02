@@ -96,49 +96,39 @@ extern "C" int gtatool_info(int argc, char *argv[])
                 }
                 if (hdr.data_size() == 0)
                 {
-                    msg::req("%s array %llu:", finame.c_str(),
-                            static_cast<unsigned long long>(array));
+                    msg::req(finame + " array " + str::str(array) + ":");
                     msg::req("    empty array");
                 }
                 else
                 {
-                    msg::req("%s array %llu: %llu bytes (%s)", finame.c_str(),
-                            static_cast<unsigned long long>(array),
-                            static_cast<unsigned long long>(hdr.data_size()),
-                            str::human_readable_memsize(hdr.data_size()).c_str());
-                    msg::req("    %s elements of type %s",
-                            dimensions.str().c_str(),
-                            components.str().c_str());
+                    msg::req(finame + " array " + str::str(array) + ": "
+                            + str::str(hdr.data_size()) + " bytes ("
+                            + str::human_readable_memsize(hdr.data_size()) + ")");
+                    msg::req(std::string("    ") + dimensions.str() + " elements of type " + components.str());
                 }
                 for (uintmax_t i = 0; i < hdr.global_taglist().tags(); i++)
                 {
-                    msg::req("        %s=%s",
-                            str::sanitize(hdr.global_taglist().name(i)).c_str(),
-                            str::sanitize(hdr.global_taglist().value(i)).c_str());
+                    msg::req(std::string("        ")
+                            + hdr.global_taglist().name(i) + "=" + hdr.global_taglist().value(i));
                 }
                 for (uintmax_t i = 0; i < hdr.dimensions(); i++)
                 {
-                    msg::req("    dimension %llu: %llu",
-                            static_cast<unsigned long long>(i),
-                            static_cast<unsigned long long>(hdr.dimension_size(i)));
+                    msg::req(std::string("    dimension ") + str::str(i) + ": " + str::str(hdr.dimension_size(i)));
                     for (uintmax_t j = 0; j < hdr.dimension_taglist(i).tags(); j++)
                     {
-                        msg::req("        %s=%s",
-                                str::sanitize(hdr.dimension_taglist(i).name(j)).c_str(),
-                                str::sanitize(hdr.dimension_taglist(i).value(j)).c_str());
+                        msg::req(std::string("        ")
+                                + hdr.dimension_taglist(i).name(j) + "=" + hdr.dimension_taglist(i).value(j));
                     }
                 }
                 for (uintmax_t i = 0; i < hdr.components(); i++)
                 {
-                    msg::req("    element component %llu: %s, %s",
-                            static_cast<unsigned long long>(i),
-                            type_to_string(hdr.component_type(i), hdr.component_size(i)).c_str(),
-                            str::human_readable_memsize(hdr.component_size(i)).c_str());
+                    msg::req(std::string("    element component ") + str::str(i) + ": "
+                            + type_to_string(hdr.component_type(i), hdr.component_size(i)) + ", "
+                            + str::human_readable_memsize(hdr.component_size(i)));
                     for (uintmax_t j = 0; j < hdr.component_taglist(i).tags(); j++)
                     {
-                        msg::req("        %s=%s",
-                                str::sanitize(hdr.component_taglist(i).name(j)).c_str(),
-                                str::sanitize(hdr.component_taglist(i).value(j)).c_str());
+                        msg::req(std::string("        ")
+                                + hdr.component_taglist(i).name(j) + "=" + hdr.component_taglist(i).value(j));
                     }
                 }
                 // Skip the GTA data

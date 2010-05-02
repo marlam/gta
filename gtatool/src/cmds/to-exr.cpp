@@ -106,12 +106,12 @@ extern "C" int gtatool_to_exr(int argc, char *argv[])
                     || hdr.component_type(i) == gta::uint64
                     || hdr.component_type(i) == gta::float64)
             {
-                msg::wrn("Converting %s to float32 for array element component %llu may lose precision",
-                        (hdr.component_type(i) == gta::int32 ? "int32"
+                msg::wrn(std::string("Converting ")
+                        + (hdr.component_type(i) == gta::int32 ? "int32"
                          : hdr.component_type(i) == gta::uint32 ? "uint32"
                          : hdr.component_type(i) == gta::int64 ? "int64"
-                         : hdr.component_type(i) == gta::uint64 ? "uint64" : "float64"),
-                        static_cast<unsigned long long>(i));
+                         : hdr.component_type(i) == gta::uint64 ? "uint64" : "float64")
+                        + " to float32 for array element component " + str::str(i) + " may lose precision");
             }
             else if (hdr.component_type(i) != gta::int8
                     && hdr.component_type(i) != gta::uint8
