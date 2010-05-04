@@ -56,7 +56,7 @@ install-exec-hook:
 	rmdir $(libdir) || true
 endif
 
-if MUPARSER
+if WITH_MUPARSER
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += component-compute.la
 component_compute_la_SOURCES = component-compute.cpp
@@ -67,7 +67,7 @@ libbuiltin_la_LIBADD += $(LTLIBMUPARSER)
 endif
 endif
 
-if NETPBM
+if WITH_NETPBM
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += from-netpbm.la
 from_netpbm_la_SOURCES = from-netpbm.cpp
@@ -81,7 +81,7 @@ libbuiltin_la_LIBADD += $(LTLIBNETPBM)
 endif
 endif
 
-if MAGICK
+if WITH_MAGICK
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += from-magick.la
 from_magick_la_SOURCES = from-magick.cpp
@@ -95,7 +95,7 @@ libbuiltin_la_LIBADD += $(LTLIBWAND)
 endif
 endif
 
-if PFS
+if WITH_PFS
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += from-pfs.la
 from_pfs_la_SOURCES = from-pfs.cpp
@@ -109,7 +109,7 @@ libbuiltin_la_LIBADD += $(LTLIBPFS_1_2)
 endif
 endif
 
-if EXR
+if WITH_EXR
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += from-exr.la
 from_exr_la_SOURCES = from-exr.cpp
@@ -123,7 +123,7 @@ libbuiltin_la_LIBADD += $(LTLIBILMIMF)
 endif
 endif
 
-if GDAL
+if WITH_GDAL
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += from-gdal.la
 from_gdal_la_SOURCES = from-gdal.cpp
@@ -137,7 +137,7 @@ libbuiltin_la_LIBADD += $(LTLIBGDAL)
 endif
 endif
 
-if DCMTK
+if WITH_DCMTK
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += from-dcmtk.la
 from_dcmtk_la_SOURCES = from-dcmtk.cpp

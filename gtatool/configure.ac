@@ -78,8 +78,7 @@ AC_ARG_ENABLE([dynamic-modules],
     [AS_HELP_STRING([--enable-dynamic-modules], [Enable dynamic loadable modules. Enabled by default if dlopen() is available.])],
     [if test "$enableval" = "yes"; then dynamic_modules="yes"; else dynamic_modules="no"; fi], 
     [if test "$ac_cv_func_dlopen" = "no"; then dynamic_modules="no"; else dynamic_modules="yes"; fi])
-if test "$dynamic_modules" = "yes"; then dynamic_modules_val="1"; else dynamic_modules_val="0"; fi
-AC_DEFINE_UNQUOTED([DYNAMIC_MODULES], [$dynamic_modules_val], [Use dynamic modules?])
+AC_DEFINE_UNQUOTED([DYNAMIC_MODULES], [`if test "$dynamic_modules" = "yes"; then echo "1"; else echo "0"; fi`], [Use dynamic modules?])
 AM_CONDITIONAL([DYNAMIC_MODULES], [test "$dynamic_modules" = "yes"])
 
 dnl Feature checks needed by the base module
@@ -109,7 +108,8 @@ if test "$muparser" = "yes"; then
         AC_MSG_WARN([Disabled the component-compute command because libmuparser was not found.])
     fi
 fi
-AM_CONDITIONAL([MUPARSER], [test "$muparser" = "yes"])
+AC_DEFINE_UNQUOTED([WITH_MUPARSER], [`if test "$muparser" = "yes"; then echo "1"; else echo "0"; fi`], [Use muparser?])
+AM_CONDITIONAL([WITH_MUPARSER], [test "$muparser" = "yes"])
 
 dnl NetPBM
 AC_ARG_WITH([netpbm],
@@ -124,7 +124,8 @@ if test "$netpbm" = "yes"; then
         AC_MSG_WARN([Disabled NetPBM import/export because libnetpbm was not found.])
     fi
 fi
-AM_CONDITIONAL([NETPBM], [test "$netpbm" = "yes"])
+AC_DEFINE_UNQUOTED([WITH_NETPBM], [`if test "$netpbm" = "yes"; then echo "1"; else echo "0"; fi`], [Use netpbm?])
+AM_CONDITIONAL([WITH_NETPBM], [test "$netpbm" = "yes"])
 
 dnl ImageMagick (via the MagickWand API)
 AC_ARG_WITH([magick],
@@ -138,7 +139,8 @@ if test "$magick" = "yes"; then
         AC_MSG_WARN([Disabled ImageMagick import/export because libWand was not found.])
     fi
 fi
-AM_CONDITIONAL([MAGICK], [test "$magick" = "yes"])
+AC_DEFINE_UNQUOTED([WITH_MAGICK], [`if test "$magick" = "yes"; then echo "1"; else echo "0"; fi`], [Use magick?])
+AM_CONDITIONAL([WITH_MAGICK], [test "$magick" = "yes"])
 
 dnl PFS
 AC_ARG_WITH([pfs],
@@ -152,7 +154,8 @@ if test "$pfs" = "yes"; then
         AC_MSG_WARN([Disabled PFS import/export because libpfs-1.2 was not found.])
     fi
 fi
-AM_CONDITIONAL([PFS], [test "$pfs" = "yes"])
+AC_DEFINE_UNQUOTED([WITH_PFS], [`if test "$pfs" = "yes"; then echo "1"; else echo "0"; fi`], [Use pfs?])
+AM_CONDITIONAL([WITH_PFS], [test "$pfs" = "yes"])
 
 dnl OpenEXR
 AC_ARG_WITH([exr],
@@ -176,7 +179,8 @@ if test "$exr" = "yes"; then
         AC_MSG_WARN([Disabled OpenEXR import/export because libIlmImf was not found.])
     fi
 fi
-AM_CONDITIONAL([EXR], [test "$exr" = "yes"])
+AC_DEFINE_UNQUOTED([WITH_EXR], [`if test "$exr" = "yes"; then echo "1"; else echo "0"; fi`], [Use exr?])
+AM_CONDITIONAL([WITH_EXR], [test "$exr" = "yes"])
 
 dnl GDAL
 AC_ARG_WITH([gdal],
@@ -217,7 +221,8 @@ if test "$gdal" = "yes"; then
         AC_MSG_WARN([Disabled GDAL import/export because libgdal was not found.])
     fi
 fi
-AM_CONDITIONAL([GDAL], [test "$gdal" = "yes"])
+AC_DEFINE_UNQUOTED([WITH_GDAL], [`if test "$gdal" = "yes"; then echo "1"; else echo "0"; fi`], [Use gdal?])
+AM_CONDITIONAL([WITH_GDAL], [test "$gdal" = "yes"])
 
 dnl DCMTK
 AC_ARG_WITH([dcmtk],
@@ -234,7 +239,8 @@ if test "$dcmtk" = "yes"; then
         AC_MSG_WARN([Disabled DCMTK import because libdcmimgle was not found.])
     fi
 fi
-AM_CONDITIONAL([DCMTK], [test "$dcmtk" = "yes"])
+AC_DEFINE_UNQUOTED([WITH_DCMTK], [`if test "$dcmtk" = "yes"; then echo "1"; else echo "0"; fi`], [Use dcmtk?])
+AM_CONDITIONAL([WITH_DCMTK], [test "$dcmtk" = "yes"])
 
 dnl Output
 AC_CONFIG_FILES([Makefile	\
