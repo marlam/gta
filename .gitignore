@@ -7,3 +7,4 @@ configure
 src/Makefile.in
 *.swp
 *~
+*.info

@@ -1,0 +1,31 @@
+\input texinfo   @c -*-texinfo-*-
+@setfilename gta.info
+@settitle Gtatool Manual
+
+@copying
+Copyright (C) 2010  Martin Lambers @email{marlam@@marlam.de}
+
+Copying and distribution of this file, with or without modification, are
+permitted in any medium without royalty provided the copyright notice and this
+notice are preserved. This file is offered as-is, without any warranty.
+This is a short example of a complete Texinfo file.
+@end copying
+
+@node Top
+@top Gtatool Manual
+@insertcopying
+
+@unnumbered About
+
+Gtatool manipulates Generic Tagged Array (GTA) files.
+
+The @code{gta} tool provides a set of commands that manipulate GTAs on various
+levels (element components, dimensions, arrays, or streams) and allow import
+from and export to other file formats.
+
+Use @code{gta help} to get a list of available commands, and
+@code{gta help cmd} to get help for command @code{cmd}.
+
+(Alternatively, you can use @code{gta --help} and @code{gta cmd --help}.)
+
+@bye
