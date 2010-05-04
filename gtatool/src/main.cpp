@@ -77,7 +77,8 @@ typedef struct
     extern "C" void gtatool_ ## FNBASE ## _help (void);
 
 #define COMMAND_STATIC(NAME, CATEGORY, FNBASE, AVAILABLE) \
-    { NAME, CATEGORY, AVAILABLE, NULL, gtatool_ ## FNBASE, gtatool_ ## FNBASE ## _help }
+    { NAME, CATEGORY, AVAILABLE, NULL, \
+        AVAILABLE ? gtatool_ ## FNBASE : NULL, AVAILABLE ? gtatool_ ## FNBASE ## _help : NULL}
 
 #if DYNAMIC_MODULES
 #   define COMMAND_MODULE(NAME, CATEGORY, FNBASE, AVAILABLE) \
