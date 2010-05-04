@@ -24,5 +24,3 @@ Other things
 
 - Add a test for every command. The test infrastructure is already finished,
   including automatic use of valgrind if available.
-
-- Clean the src/base directory: remove unused code.
