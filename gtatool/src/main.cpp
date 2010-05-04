@@ -66,6 +66,7 @@ typedef struct
 {
     const char *name;
     command_category_t category;
+    bool available;
     void *module_handle;
     int (*cmd)(int argc, char *argv[]);
     void (*cmd_print_help)(void);
@@ -75,11 +76,15 @@ typedef struct
     extern "C" int gtatool_ ## FNBASE (int argc, char *argv[]); \
     extern "C" void gtatool_ ## FNBASE ## _help (void);
 
-#define COMMAND_STATIC(NAME, CATEGORY, FNBASE) { NAME, CATEGORY, NULL, gtatool_ ## FNBASE, gtatool_ ## FNBASE ## _help }
+#define COMMAND_STATIC(NAME, CATEGORY, FNBASE, AVAILABLE) \
+    { NAME, CATEGORY, AVAILABLE, NULL, gtatool_ ## FNBASE, gtatool_ ## FNBASE ## _help }
+
 #if DYNAMIC_MODULES
-#   define COMMAND_MODULE(NAME, CATEGORY, FNBASE) { NAME, CATEGORY, NULL, NULL, NULL }
+#   define COMMAND_MODULE(NAME, CATEGORY, FNBASE, AVAILABLE) \
+        { NAME, CATEGORY, AVAILABLE, NULL, NULL, NULL }
 #else
-#   define COMMAND_MODULE(NAME, CATEGORY, FNBASE) COMMAND_STATIC(NAME, CATEGORY, FNBASE)
+#   define COMMAND_MODULE(NAME, CATEGORY, FNBASE, AVAILABLE) \
+        COMMAND_STATIC(NAME, CATEGORY, FNBASE, AVAILABLE)
 #endif
 
 COMMAND_DECL(component_add)
@@ -122,68 +127,44 @@ COMMAND_DECL(version)
 
 command_t commands[] =
 {
-    COMMAND_STATIC("component-add",     component,  component_add),
-#ifdef HAVE_LIBMUPARSER
-    COMMAND_MODULE("component-compute", component,  component_compute),
-#endif
-    COMMAND_STATIC("component-convert", component,  component_convert),
-    COMMAND_STATIC("component-extract", component,  component_extract),
-    COMMAND_STATIC("component-merge",   component,  component_merge),
-    COMMAND_STATIC("component-reorder", component,  component_reorder),
-    COMMAND_STATIC("component-set",     component,  component_set),
-    COMMAND_STATIC("compress",          array,      compress),
-    COMMAND_STATIC("create",            array,      create),
-    COMMAND_STATIC("dimension-add",     dimension,  dimension_add),
-    COMMAND_STATIC("dimension-extract", dimension,  dimension_extract),
-    COMMAND_STATIC("dimension-merge",   dimension,  dimension_merge),
-    COMMAND_STATIC("dimension-reorder", dimension,  dimension_reorder),
-    COMMAND_STATIC("dimension-reverse", dimension,  dimension_reverse),
-    COMMAND_STATIC("extract",           array,      extract),
-    COMMAND_STATIC("fill",              array,      fill),
-#ifdef HAVE_LIBDCMIMGLE
-    COMMAND_MODULE("from-dcmtk",        conversion, from_dcmtk),
-#endif
-#ifdef HAVE_LIBILMIMF
-    COMMAND_MODULE("from-exr",          conversion, from_exr),
-#endif
-#ifdef HAVE_LIBGDAL
-    COMMAND_MODULE("from-gdal",         conversion, from_gdal),
-#endif
-#ifdef HAVE_LIBWAND
-    COMMAND_MODULE("from-magick",       conversion, from_magick),
-#endif
-#ifdef HAVE_LIBNETPBM
-    COMMAND_MODULE("from-netpbm",       conversion, from_netpbm),
-#endif
-#ifdef HAVE_LIBPFS_1_2
-    COMMAND_MODULE("from-pfs",          conversion, from_pfs),
-#endif
-    COMMAND_STATIC("from-raw",          conversion, from_raw),
-    COMMAND_STATIC("help",              misc,       help),
-    COMMAND_STATIC("info",              array,      info),
-    COMMAND_STATIC("merge",             array,      merge),
-    COMMAND_STATIC("resize",            array,      resize),
-    COMMAND_STATIC("set",               array,      set),
-    COMMAND_STATIC("tag",               array,      tag),
-#ifdef HAVE_LIBILMIMF
-    COMMAND_MODULE("to-exr",            conversion, to_exr),
-#endif
-#ifdef HAVE_LIBGDAL
-    COMMAND_MODULE("to-gdal",           conversion, to_gdal),
-#endif
-#ifdef HAVE_LIBWAND
-    COMMAND_MODULE("to-magick",         conversion, to_magick),
-#endif
-#ifdef HAVE_LIBNETPBM
-    COMMAND_MODULE("to-netpbm",         conversion, to_netpbm),
-#endif
-#ifdef HAVE_LIBPFS_1_2
-    COMMAND_MODULE("to-pfs",            conversion, to_pfs),
-#endif
-    COMMAND_STATIC("to-raw",            conversion, to_raw),
-    COMMAND_STATIC("uncompress",        array,      uncompress),
-    COMMAND_STATIC("version",           misc,       version),
-    { NULL, misc, NULL, NULL, NULL }
+    COMMAND_STATIC("component-add",     component,  component_add,     true),
+    COMMAND_MODULE("component-compute", component,  component_compute, WITH_MUPARSER),
+    COMMAND_STATIC("component-convert", component,  component_convert, true),
+    COMMAND_STATIC("component-extract", component,  component_extract, true),
+    COMMAND_STATIC("component-merge",   component,  component_merge,   true),
+    COMMAND_STATIC("component-reorder", component,  component_reorder, true),
+    COMMAND_STATIC("component-set",     component,  component_set,     true),
+    COMMAND_STATIC("compress",          array,      compress,          true),
+    COMMAND_STATIC("create",            array,      create,            true),
+    COMMAND_STATIC("dimension-add",     dimension,  dimension_add,     true),
+    COMMAND_STATIC("dimension-extract", dimension,  dimension_extract, true),
+    COMMAND_STATIC("dimension-merge",   dimension,  dimension_merge,   true),
+    COMMAND_STATIC("dimension-reorder", dimension,  dimension_reorder, true),
+    COMMAND_STATIC("dimension-reverse", dimension,  dimension_reverse, true),
+    COMMAND_STATIC("extract",           array,      extract,           true),
+    COMMAND_STATIC("fill",              array,      fill,              true),
+    COMMAND_MODULE("from-dcmtk",        conversion, from_dcmtk,        WITH_DCMTK),
+    COMMAND_MODULE("from-exr",          conversion, from_exr,          WITH_EXR),
+    COMMAND_MODULE("from-gdal",         conversion, from_gdal,         WITH_GDAL),
+    COMMAND_MODULE("from-magick",       conversion, from_magick,       WITH_MAGICK),
+    COMMAND_MODULE("from-netpbm",       conversion, from_netpbm,       WITH_NETPBM),
+    COMMAND_MODULE("from-pfs",          conversion, from_pfs,          WITH_PFS),
+    COMMAND_STATIC("from-raw",          conversion, from_raw,          true),
+    COMMAND_STATIC("help",              misc,       help,              true),
+    COMMAND_STATIC("info",              array,      info,              true),
+    COMMAND_STATIC("merge",             array,      merge,             true),
+    COMMAND_STATIC("resize",            array,      resize,            true),
+    COMMAND_STATIC("set",               array,      set,               true),
+    COMMAND_STATIC("tag",               array,      tag,               true),
+    COMMAND_MODULE("to-exr",            conversion, to_exr,            WITH_EXR),
+    COMMAND_MODULE("to-gdal",           conversion, to_gdal,           WITH_GDAL),
+    COMMAND_MODULE("to-magick",         conversion, to_magick,         WITH_MAGICK),
+    COMMAND_MODULE("to-netpbm",         conversion, to_netpbm,         WITH_NETPBM),
+    COMMAND_MODULE("to-pfs",            conversion, to_pfs,            WITH_PFS),
+    COMMAND_STATIC("to-raw",            conversion, to_raw,            true),
+    COMMAND_STATIC("uncompress",        array,      uncompress,        true),
+    COMMAND_STATIC("version",           misc,       version,           true),
+    { NULL, misc, false, NULL, NULL, NULL }
 };
 
 
@@ -202,7 +183,7 @@ int cmd_strcmp(const void *a, const void *b)
 int cmd_find(const char *cmd)
 {
     command_t *p;
-    command_t key = { cmd, misc, NULL, NULL, NULL };
+    command_t key = { cmd, misc, false, NULL, NULL, NULL };
 
     p = static_cast<command_t *>(bsearch(
                 static_cast<void *>(&key),
@@ -216,7 +197,7 @@ int cmd_find(const char *cmd)
     }
     int cmd_index = p - commands;
 #if DYNAMIC_MODULES
-    if (!commands[cmd_index].cmd)
+    if (commands[cmd_index].available && !commands[cmd_index].cmd)
     {
         std::string cmd_name = commands[cmd_index].name;
         std::string module_name = std::string(PKGLIBDIR) + "/" + cmd_name + ".so";
@@ -307,54 +288,31 @@ extern "C" int gtatool_help(int argc, char *argv[])
         msg::req_txt(
                 "Usage: %s [-q|--quiet] [-v|--verbose] <command> [argument...]",
                 program_name);
-        msg::req_txt("\nCommands that operate on element component level:");
-        for (int i = 0; commands[i].name; i++)
+        command_category_t categories[] = {
+            component,
+            dimension,
+            array,
+            /* stream, */
+            conversion,
+            misc
+        };
+        const char *descriptions[] = {
+            "Commands that operate on element component level",
+            "Commands that operate on dimension level",
+            "Commands that operate on array level",
+            /* "Commands that operate on stream level", */
+            "Commands to convert from/to other file formats",
+            "Miscellaneous commands"
+        };
+        for (size_t i = 0; i < sizeof(categories) / sizeof(categories[0]); i++)
         {
-            if (commands[i].category == component)
+            msg::req_txt("\n%s:", descriptions[i]);
+            for (int j = 0; commands[j].name; j++)
             {
-                msg::req("%s", commands[i].name);
-            }
-        }
-        msg::req_txt("\nCommands that operate on dimension level:");
-        for (int i = 0; commands[i].name; i++)
-        {
-            if (commands[i].category == dimension)
-            {
-                msg::req("%s", commands[i].name);
-            }
-        }
-        msg::req_txt("\nCommands that operate on array level:");
-        for (int i = 0; commands[i].name; i++)
-        {
-            if (commands[i].category == array)
-            {
-                msg::req("%s", commands[i].name);
-            }
-        }
-        /*
-        msg::req_txt("Commands that operate on stream level:");
-        for (int i = 0; commands[i].name; i++)
-        {
-            if (commands[i].category == stream)
-            {
-                msg::req("%s", commands[i].name);
-            }
-        }
-        */
-        msg::req_txt("\nCommands to convert from/to other file formats:");
-        for (int i = 0; commands[i].name; i++)
-        {
-            if (commands[i].category == conversion)
-            {
-                msg::req("%s", commands[i].name);
-            }
-        }
-        msg::req_txt("\nMiscellaneous commands:");
-        for (int i = 0; commands[i].name; i++)
-        {
-            if (commands[i].category == misc)
-            {
-                msg::req("%s", commands[i].name);
+                if (commands[j].category == categories[i])
+                {
+                    msg::req("%s%s", commands[j].name, commands[j].available ? "" : " [unavailable]");
+                }
             }
         }
         msg::req_txt(
@@ -369,6 +327,11 @@ extern "C" int gtatool_help(int argc, char *argv[])
         if (cmd_index < 0)
         {
             msg::err("command unknown: %s", argv[1]);
+            return 1;
+        }
+        else if (!commands[cmd_index].available)
+        {
+            msg::err("command not available in this version of %s: %s", PACKAGE_NAME, argv[1]);
             return 1;
         }
         else
@@ -438,6 +401,11 @@ int main(int argc, char *argv[])
         if (cmd_index < 0)
         {
             msg::err("command unknown: %s", argv[argv_cmd_index]);
+            exitcode = 1;
+        }
+        else if (!commands[cmd_index].available)
+        {
+            msg::err("command not available in this version of %s: %s", PACKAGE_NAME, argv[1]);
             exitcode = 1;
         }
         else
