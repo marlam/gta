@@ -35,15 +35,13 @@
  * \section file_format The Generic Tagged Array (GTA) File Format
  *
  * The GTA file format has the following features:\n
- * - GTA files can store any kind of data in multidimensional arrays\n
- * - GTA files can use simple tags to describe the data\n
- * - GTA files are streamable, which allows direct reading from and writing to
- *   pipes, network sockets, or other non-seekable media\n
- * - GTA files can use ZLIB, BZIP2, or XZ compression, allowing a tradeoff between
- *   compression/decompression speed and compression ratio\n
- * - Uncompressed GTA files allow easy out-of-core data access
+ * - GTAs can store any kind of data in multidimensional arrays\n
+ * - GTAs can optionally use simple tags to store rich metadata\n
+ * - GTAs are streamable, which allows direct reading from and writing to pipes, network sockets, and other non-seekable media\n
+ * - GTAs can use ZLIB, BZIP2, or XZ compression, allowing a tradeoff between compression/decompression speed and compression ratio\n
+ * - Uncompressed GTA files allow easy out-of-core data access for very large arrays
  *
- * See the <a href="../specification.pdf">GTA file format specification</a> for more details.
+ * See the <a href="../specification.pdf">GTA file format specification</a> for details.
  *
  * \section lib The libgta Library
  *
@@ -52,11 +50,12 @@
  * and tag lists. There is one global tag list for the whole array, one tag list for each dimension, and one
  * tag list for each element component.\n
  *
- * The data can either be managed completely in memory, for applications that know that the data fits into memory,
- * or it can be read and written block-wise.
+ * The data can either be managed completely in memory, or it can be read and written block-wise.
  *
  * Additionally, low-level input/output and data manipulation functions are provided for applications that need to
  * implement their own custom data management.
+ *
+ * The library provides interfaces for C and C++. See the <a href="files.html">Files</a> section.
  *
  * \section examples Examples
  *
