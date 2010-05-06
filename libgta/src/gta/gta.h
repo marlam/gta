@@ -178,7 +178,9 @@ typedef struct gta_internal_header_struct gta_header_t;
  *
  * A tag consists of a name and a value. A tag list stores these name/value pairs.\n
  * Tag names are non-empty UTF-8 strings that must not contain '='.\n
- * Tag values are UTF-8 strings.
+ * Tag values are UTF-8 strings.\n
+ * If you do not want to deal with conversions between the local character set and UTF-8,
+ * you must restrict names and values to ASCII.
  */
 typedef struct gta_internal_taglist_struct gta_taglist_t;
 
