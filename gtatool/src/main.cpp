@@ -24,6 +24,8 @@
 #include "config.h"
 
 #if W32
+#   include <stdlib.h>
+#   include <io.h>
 #   include <fcntl.h>
 #endif
 
