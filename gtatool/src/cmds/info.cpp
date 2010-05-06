@@ -109,7 +109,7 @@ extern "C" int gtatool_info(int argc, char *argv[])
                 for (uintmax_t i = 0; i < hdr.global_taglist().tags(); i++)
                 {
                     msg::req(std::string("        ")
-                            + hdr.global_taglist().name(i) + "=" + hdr.global_taglist().value(i));
+                            + from_utf8(hdr.global_taglist().name(i)) + "=" + from_utf8(hdr.global_taglist().value(i)));
                 }
                 for (uintmax_t i = 0; i < hdr.dimensions(); i++)
                 {
@@ -117,7 +117,7 @@ extern "C" int gtatool_info(int argc, char *argv[])
                     for (uintmax_t j = 0; j < hdr.dimension_taglist(i).tags(); j++)
                     {
                         msg::req(std::string("        ")
-                                + hdr.dimension_taglist(i).name(j) + "=" + hdr.dimension_taglist(i).value(j));
+                                + from_utf8(hdr.dimension_taglist(i).name(j)) + "=" + from_utf8(hdr.dimension_taglist(i).value(j)));
                     }
                 }
                 for (uintmax_t i = 0; i < hdr.components(); i++)
@@ -128,7 +128,7 @@ extern "C" int gtatool_info(int argc, char *argv[])
                     for (uintmax_t j = 0; j < hdr.component_taglist(i).tags(); j++)
                     {
                         msg::req(std::string("        ")
-                                + hdr.component_taglist(i).name(j) + "=" + hdr.component_taglist(i).value(j));
+                                + from_utf8(hdr.component_taglist(i).name(j)) + "=" + from_utf8(hdr.component_taglist(i).value(j)));
                     }
                 }
                 // Skip the GTA data

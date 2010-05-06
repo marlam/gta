@@ -82,6 +82,14 @@ AC_DEFINE_UNQUOTED([DYNAMIC_MODULES], [`if test "$dynamic_modules" = "yes"; then
 AM_CONDITIONAL([DYNAMIC_MODULES], [test "$dynamic_modules" = "yes"])
 
 dnl Feature checks needed by the base module
+LIB_ICONV=
+AC_SUBST([LIB_ICONV])
+AC_CHECK_FUNCS([iconv_open], [],
+    [AC_LIB_HAVE_LINKFLAGS([iconv], [], [#include <iconv.h>], [iconv_open(0, 0);])
+     if test "$HAVE_LIBICONV" != "yes"; then
+         AC_MSG_ERROR([libiconv not found])
+     fi
+     LIB_ICONV="$LTLIBICONV"])
 AC_CHECK_FUNCS([backtrace sigaction vasprintf mmap link fseeko ftello])
 
 dnl The GTA library

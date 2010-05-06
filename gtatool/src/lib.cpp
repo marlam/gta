@@ -30,6 +30,7 @@
 #include "msg.h"
 #include "intcheck.h"
 #include "endianness.h"
+#include "debug.h"
 
 #include "lib.h"
 
@@ -504,4 +505,38 @@ uintmax_t indices_to_linear_index(const gta::header &header, const uintmax_t *in
         index += indices[i] * dim_product;
     }
     return index;
+}
+
+std::string from_utf8(const std::string &s)
+{
+    const std::string localcharset = str::localcharset();
+    std::string r;
+    try
+    {
+        r = str::convert(s, "UTF-8", localcharset);
+    }
+    catch (exc)
+    {
+        r = std::string("(not representable in charset ") + localcharset + std::string(")");
+    }
+    return r;
+}
+
+std::string to_utf8(const std::string &s)
+{
+    const std::string localcharset = str::localcharset();
+    std::string r;
+    try
+    {
+        r = str::convert(s, localcharset, "UTF-8");
+    }
+    catch (exc &e)
+    {
+        /* This should never happen: everything that can be entered by the user should
+         * be representable in UTF-8. Crash the program and let's see if this ever gets
+         * reported. */
+        msg::err("CANNOT CONVERT TO UTF-8: %s", e.what());
+        debug::crash();
+    }
+    return r;
 }

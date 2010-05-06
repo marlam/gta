@@ -10,5 +10,5 @@ gta_SOURCES = main.cpp lib.h lib.cpp
 AM_CPPFLAGS = -I$(top_srcdir)/src/base -DPKGLIBDIR=\"$(pkglibdir)\"
 gta_LDADD = $(top_builddir)/src/cmds/libbuiltin.la \
 	$(top_builddir)/src/base/libbase.la \
-	$(LTLIBGTA) $(LIB_DLOPEN)
+	$(LTLIBGTA) $(LIB_DLOPEN) $(LIB_ICONV)
 gta_LDFLAGS = -export-dynamic

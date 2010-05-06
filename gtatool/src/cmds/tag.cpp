@@ -74,21 +74,21 @@ public:
         {
         case GET_GLOBAL:
             {
-                const char *val = hdr.global_taglist().get(_name.c_str());
+                const char *val = hdr.global_taglist().get(to_utf8(_name));
                 msg::req(filename + " array " + str::str(gta_index) + " global: "
-                        + _name + (val ? std::string("=") + val : std::string(" not set")));
+                        + _name + (val ? std::string("=") + from_utf8(val) : std::string(" not set")));
             }
             break;
 
         case SET_GLOBAL:
             {
-                hdr.global_taglist().set(_name.c_str(), _value.c_str());
+                hdr.global_taglist().set(to_utf8(_name), to_utf8(_value));
             }
             break;
 
         case UNSET_GLOBAL:
             {
-                hdr.global_taglist().unset(_name.c_str());
+                hdr.global_taglist().unset(to_utf8(_name));
             }
             break;
 
@@ -116,9 +116,9 @@ public:
                 }
                 for (uintmax_t i = a; i <= b; i++)
                 {
-                    const char *val = hdr.dimension_taglist(_index).get(_name.c_str());
+                    const char *val = hdr.dimension_taglist(_index).get(to_utf8(_name));
                     msg::req(filename + " array " + str::str(gta_index) + " dimension " + str::str(_index) + ": "
-                            + _name + (val ? std::string("=") + val : std::string(" not set")));
+                            + _name + (val ? std::string("=") + from_utf8(val) : std::string(" not set")));
                 }
             }
             break;
@@ -141,7 +141,7 @@ public:
                 }
                 for (uintmax_t i = a; i <= b; i++)
                 {
-                    hdr.dimension_taglist(_index).set(_name.c_str(), _value.c_str());
+                    hdr.dimension_taglist(_index).set(to_utf8(_name), to_utf8(_value));
                 }
             }
             break;
@@ -164,7 +164,7 @@ public:
                 }
                 for (uintmax_t i = a; i <= b; i++)
                 {
-                    hdr.dimension_taglist(_index).unset(_name.c_str());
+                    hdr.dimension_taglist(_index).unset(to_utf8(_name));
                 }
             }
             break;
@@ -210,9 +210,9 @@ public:
                 }
                 for (uintmax_t i = a; i <= b; i++)
                 {
-                    const char *val = hdr.component_taglist(_index).get(_name.c_str());
+                    const char *val = hdr.component_taglist(_index).get(to_utf8(_name));
                     msg::req(filename + " array " + str::str(gta_index) + " component " + str::str(_index) + ": "
-                            + _name + (val ? std::string("=") + val : std::string(" not set")));
+                            + _name + (val ? std::string("=") + from_utf8(val) : std::string(" not set")));
                 }
             }
             break;
@@ -235,7 +235,7 @@ public:
                 }
                 for (uintmax_t i = a; i <= b; i++)
                 {
-                    hdr.component_taglist(_index).set(_name.c_str(), _value.c_str());
+                    hdr.component_taglist(_index).set(to_utf8(_name), to_utf8(_value));
                 }
             }
             break;
@@ -258,7 +258,7 @@ public:
                 }
                 for (uintmax_t i = a; i <= b; i++)
                 {
-                    hdr.component_taglist(_index).unset(_name.c_str());
+                    hdr.component_taglist(_index).unset(to_utf8(_name));
                 }
             }
             break;

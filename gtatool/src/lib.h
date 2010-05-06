@@ -52,4 +52,8 @@ void swap_element_endianness(const gta::header &header, void *element);
 void linear_index_to_indices(const gta::header &header, uintmax_t e, uintmax_t *indices);
 uintmax_t indices_to_linear_index(const gta::header &header, const uintmax_t *indices);
 
+/* Convert strings between the local character set and UTF-8, in a fail-safe way */
+std::string from_utf8(const std::string &s);
+std::string to_utf8(const std::string &s);
+
 #endif
