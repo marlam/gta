@@ -347,6 +347,15 @@ namespace str
 #if W32
         char charset[2 + 10 + 1];
         snprintf(charset, 2 + 10 + 1, "CP%u", GetACP());
+        /* Another instance of incredibly braindead Windows design.
+         * We need to return the active code page to get correct results when
+         * output goes into files or pipes. But the console output codepage is
+         * not related to the active code page. So we force it to be the same.
+         * but this only works if the console window uses a true type font;
+         * raster fonts ignore the console output codepage.
+         * If you find this too stupid to believe, read Microsofts documentation
+         * of the SetConsoleOutputCP function. */
+        SetConsoleOutputCP(GetACP());
 #else
         char *bak = setlocale(LC_CTYPE, NULL);
         setlocale(LC_CTYPE, "");
