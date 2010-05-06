@@ -23,13 +23,8 @@
 
 #include "config.h"
 
-#include <cstring>
-#include <cstdlib>
 #if W32
 #   include <fcntl.h>
-#endif
-#if DYNAMIC_MODULES
-#   include <dlfcn.h>
 #endif
 
 #include <gta/gta.hpp>
@@ -38,196 +33,10 @@
 #include "opt.h"
 #include "debug.h"
 
+#include "cmds.h"
+
 char *program_name;
 
-
-// The code to manage and start the commands was taken from cvtool-0.2.6.
-
-/*
- * The command functions. All live in their own .cpp file, except for the
- * trivial help and version commands. Some are builtin, and some are loaded
- * as modules (notably those that depend on external libraries).
- * Add the aproppriate lines for each command in this section.
- * The commands must appear in ascending order according to strcmp(), because we
- * do a binary search on the command name.
- */
-
-typedef enum
-{
-    component,
-    dimension,
-    array,
-    stream,
-    conversion,
-    misc
-} command_category_t;
-
-typedef struct
-{
-    const char *name;
-    command_category_t category;
-    bool available;
-    void *module_handle;
-    int (*cmd)(int argc, char *argv[]);
-    void (*cmd_print_help)(void);
-} command_t;
-
-#define COMMAND_DECL(FNBASE)      \
-    extern "C" int gtatool_ ## FNBASE (int argc, char *argv[]); \
-    extern "C" void gtatool_ ## FNBASE ## _help (void);
-
-#define COMMAND_STATIC(NAME, CATEGORY, FNBASE, AVAILABLE) \
-    { NAME, CATEGORY, AVAILABLE, NULL, \
-        AVAILABLE ? gtatool_ ## FNBASE : NULL, AVAILABLE ? gtatool_ ## FNBASE ## _help : NULL}
-
-#if DYNAMIC_MODULES
-#   define COMMAND_MODULE(NAME, CATEGORY, FNBASE, AVAILABLE) \
-        { NAME, CATEGORY, AVAILABLE, NULL, NULL, NULL }
-#else
-#   define COMMAND_MODULE(NAME, CATEGORY, FNBASE, AVAILABLE) \
-        COMMAND_STATIC(NAME, CATEGORY, FNBASE, AVAILABLE)
-#endif
-
-COMMAND_DECL(component_add)
-COMMAND_DECL(component_compute)
-COMMAND_DECL(component_convert)
-COMMAND_DECL(component_extract)
-COMMAND_DECL(component_merge)
-COMMAND_DECL(component_reorder)
-COMMAND_DECL(component_set)
-COMMAND_DECL(compress)
-COMMAND_DECL(create)
-COMMAND_DECL(dimension_add)
-COMMAND_DECL(dimension_extract)
-COMMAND_DECL(dimension_merge)
-COMMAND_DECL(dimension_reorder)
-COMMAND_DECL(dimension_reverse)
-COMMAND_DECL(extract)
-COMMAND_DECL(fill)
-COMMAND_DECL(from_dcmtk)
-COMMAND_DECL(from_exr)
-COMMAND_DECL(from_gdal)
-COMMAND_DECL(from_magick)
-COMMAND_DECL(from_netpbm)
-COMMAND_DECL(from_pfs)
-COMMAND_DECL(from_raw)
-COMMAND_DECL(help)
-COMMAND_DECL(info)
-COMMAND_DECL(merge)
-COMMAND_DECL(resize)
-COMMAND_DECL(set)
-COMMAND_DECL(tag)
-COMMAND_DECL(to_exr)
-COMMAND_DECL(to_gdal)
-COMMAND_DECL(to_magick)
-COMMAND_DECL(to_netpbm)
-COMMAND_DECL(to_pfs)
-COMMAND_DECL(to_raw)
-COMMAND_DECL(uncompress)
-COMMAND_DECL(version)
-
-command_t commands[] =
-{
-    COMMAND_STATIC("component-add",     component,  component_add,     true),
-    COMMAND_MODULE("component-compute", component,  component_compute, WITH_MUPARSER),
-    COMMAND_STATIC("component-convert", component,  component_convert, true),
-    COMMAND_STATIC("component-extract", component,  component_extract, true),
-    COMMAND_STATIC("component-merge",   component,  component_merge,   true),
-    COMMAND_STATIC("component-reorder", component,  component_reorder, true),
-    COMMAND_STATIC("component-set",     component,  component_set,     true),
-    COMMAND_STATIC("compress",          array,      compress,          true),
-    COMMAND_STATIC("create",            array,      create,            true),
-    COMMAND_STATIC("dimension-add",     dimension,  dimension_add,     true),
-    COMMAND_STATIC("dimension-extract", dimension,  dimension_extract, true),
-    COMMAND_STATIC("dimension-merge",   dimension,  dimension_merge,   true),
-    COMMAND_STATIC("dimension-reorder", dimension,  dimension_reorder, true),
-    COMMAND_STATIC("dimension-reverse", dimension,  dimension_reverse, true),
-    COMMAND_STATIC("extract",           array,      extract,           true),
-    COMMAND_STATIC("fill",              array,      fill,              true),
-    COMMAND_MODULE("from-dcmtk",        conversion, from_dcmtk,        WITH_DCMTK),
-    COMMAND_MODULE("from-exr",          conversion, from_exr,          WITH_EXR),
-    COMMAND_MODULE("from-gdal",         conversion, from_gdal,         WITH_GDAL),
-    COMMAND_MODULE("from-magick",       conversion, from_magick,       WITH_MAGICK),
-    COMMAND_MODULE("from-netpbm",       conversion, from_netpbm,       WITH_NETPBM),
-    COMMAND_MODULE("from-pfs",          conversion, from_pfs,          WITH_PFS),
-    COMMAND_STATIC("from-raw",          conversion, from_raw,          true),
-    COMMAND_STATIC("help",              misc,       help,              true),
-    COMMAND_STATIC("info",              array,      info,              true),
-    COMMAND_STATIC("merge",             array,      merge,             true),
-    COMMAND_STATIC("resize",            array,      resize,            true),
-    COMMAND_STATIC("set",               array,      set,               true),
-    COMMAND_STATIC("tag",               array,      tag,               true),
-    COMMAND_MODULE("to-exr",            conversion, to_exr,            WITH_EXR),
-    COMMAND_MODULE("to-gdal",           conversion, to_gdal,           WITH_GDAL),
-    COMMAND_MODULE("to-magick",         conversion, to_magick,         WITH_MAGICK),
-    COMMAND_MODULE("to-netpbm",         conversion, to_netpbm,         WITH_NETPBM),
-    COMMAND_MODULE("to-pfs",            conversion, to_pfs,            WITH_PFS),
-    COMMAND_STATIC("to-raw",            conversion, to_raw,            true),
-    COMMAND_STATIC("uncompress",        array,      uncompress,        true),
-    COMMAND_STATIC("version",           misc,       version,           true),
-    { NULL, misc, false, NULL, NULL, NULL }
-};
-
-
-/*
- * If you just want to add a command, there's no need to change anything below
- * this line.
- */
-
-int cmd_strcmp(const void *a, const void *b)
-{
-    const command_t *c1 = static_cast<const command_t *>(a);
-    const command_t *c2 = static_cast<const command_t *>(b);
-    return strcmp(c1->name, c2->name);
-}
-
-int cmd_find(const char *cmd)
-{
-    command_t *p;
-    command_t key = { cmd, misc, false, NULL, NULL, NULL };
-
-    p = static_cast<command_t *>(bsearch(
-                static_cast<void *>(&key),
-                static_cast<void *>(commands),
-                sizeof(commands) / sizeof(commands[0]) - 1,
-                sizeof(command_t),
-                cmd_strcmp));
-    if (!p)
-    {
-        return -1;
-    }
-    int cmd_index = p - commands;
-#if DYNAMIC_MODULES
-    if (commands[cmd_index].available && !commands[cmd_index].cmd)
-    {
-        std::string cmd_name = commands[cmd_index].name;
-        std::string module_name = std::string(PKGLIBDIR) + "/" + cmd_name + ".so";
-        std::string fn_name = std::string("gtatool_") + str::replace(cmd_name, "-", "_");
-        std::string help_fn_name = fn_name + "_help";
-        commands[cmd_index].module_handle = dlopen(module_name.c_str(), RTLD_LAZY);
-        if (!commands[cmd_index].module_handle)
-        {
-            msg::err("%s", dlerror());
-            exit(1);
-        }
-        commands[cmd_index].cmd = reinterpret_cast<int (*)(int, char **)>(
-                dlsym(commands[cmd_index].module_handle, fn_name.c_str()));
-        if (!commands[cmd_index].cmd)
-        {
-            msg::err("%s", dlerror());
-            exit(1);
-        }
-        commands[cmd_index].cmd_print_help = reinterpret_cast<void (*)()>(
-                dlsym(commands[cmd_index].module_handle, help_fn_name.c_str()));
-        if (!commands[cmd_index].cmd_print_help)
-        {
-            msg::err("%s", dlerror());
-            exit(1);
-        }
-    }
-#endif
-    return cmd_index;
-}
 
 extern "C" void gtatool_version_help(void)
 {
@@ -289,7 +98,7 @@ extern "C" int gtatool_help(int argc, char *argv[])
         msg::req_txt(
                 "Usage: %s [-q|--quiet] [-v|--verbose] <command> [argument...]",
                 program_name);
-        command_category_t categories[] = {
+        cmd_category_t categories[] = {
             component,
             dimension,
             array,
@@ -308,11 +117,11 @@ extern "C" int gtatool_help(int argc, char *argv[])
         for (size_t i = 0; i < sizeof(categories) / sizeof(categories[0]); i++)
         {
             msg::req_txt("\n%s:", descriptions[i]);
-            for (int j = 0; commands[j].name; j++)
+            for (int j = 0; j < cmd_count(); j++)
             {
-                if (commands[j].category == categories[i])
+                if (cmd_category(j) == categories[i])
                 {
-                    msg::req("%s%s", commands[j].name, commands[j].available ? "" : " [unavailable]");
+                    msg::req("%s%s", cmd_name(j), cmd_is_available(j) ? "" : " [unavailable]");
                 }
             }
         }
@@ -330,20 +139,16 @@ extern "C" int gtatool_help(int argc, char *argv[])
             msg::err("command unknown: %s", argv[1]);
             return 1;
         }
-        else if (!commands[cmd_index].available)
+        else if (!cmd_is_available(cmd_index))
         {
             msg::err("command not available in this version of %s: %s", PACKAGE_NAME, argv[1]);
             return 1;
         }
         else
         {
-            commands[cmd_index].cmd_print_help();
-#if DYNAMIC_MODULES
-            if (commands[cmd_index].module_handle)
-            {
-                (void)dlclose(commands[cmd_index].module_handle);
-            }
-#endif
+            cmd_open(cmd_index);
+            cmd_run_help(cmd_index);
+            cmd_close(cmd_index);
             return 0;
         }
     }
@@ -404,7 +209,7 @@ int main(int argc, char *argv[])
             msg::err("command unknown: %s", argv[argv_cmd_index]);
             exitcode = 1;
         }
-        else if (!commands[cmd_index].available)
+        else if (!cmd_is_available(cmd_index))
         {
             msg::err("command not available in this version of %s: %s", PACKAGE_NAME, argv[1]);
             exitcode = 1;
@@ -412,13 +217,9 @@ int main(int argc, char *argv[])
         else
         {
             msg::set_program_name(msg::program_name() + " " + argv[argv_cmd_index]);
-            exitcode = commands[cmd_index].cmd(argc - argv_cmd_index, &(argv[argv_cmd_index]));
-#if DYNAMIC_MODULES
-            if (commands[cmd_index].module_handle)
-            {
-                (void)dlclose(commands[cmd_index].module_handle);
-            }
-#endif
+            cmd_open(cmd_index);
+            exitcode = cmd_run(cmd_index, argc - argv_cmd_index, &(argv[argv_cmd_index]));
+            cmd_close(cmd_index);
         }
     }
     return exitcode;
