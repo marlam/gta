@@ -38,6 +38,9 @@
 #endif
 #include <bzlib.h>
 
+#if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__ && !defined DLL_EXPORT
+#   define LZMA_API_STATIC
+#endif
 #include <lzma.h>
 
 #define GTA_BUILD
