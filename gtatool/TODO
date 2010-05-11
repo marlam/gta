@@ -1,26 +1,29 @@
 Commands to add
 ===============
 
-Commands that change arrays:
+- component-split
+  Complementary to component-merge:
+  Splits an array into multiple arrays by separating the components.
+  Generates multiple output files instead of only one.
 
-layer
--m|--mode=min|max|median|or|and|xor|diff|add|xadd|sub|xsub|mul|div file...
+- dimension-split
+  Complementary to dimension-merge:
+  Splits an array into multiple arrays by separating one dimension.
+  Generates multiple output files instead of only one.
 
-Commands that change streams:
+- Commands that change streams:
+  stream-merge [unnecessary; simply use cat]
+  stream-split
+  stream-extract (select)
+  stream-foreach
+  stream-reverse
 
-stream-merge [unnecessary; simply use cat]
-stream-split 
-stream-extract (select)
-stream-foreach
-stream-reverse
+- Maybe:
+  layer -m|--mode=min|max|median|or|and|xor|diff|add|xadd|sub|xsub|mul|div file...
 
 
 Other things
 ============
-
-- Man page, texinfo manual.
-  These just need to give a short description and then mention
-  'gtatool help' and 'gtatool help <cmd>'.
 
 - Add a test for every command. The test infrastructure is already finished,
   including automatic use of valgrind if available.
