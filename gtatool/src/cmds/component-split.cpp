@@ -43,7 +43,7 @@ extern "C" void gtatool_component_split_help(void)
             "\n"
             "Split each input array into multiple arrays by separating its array element components. "
             "A list of components to drop can be given.\n"
-            "If you want to extract a subset of components, use the component-extract command.\n"
+            "If you only want to extract a subset of components, use the component-extract command instead.\n"
             "All output arrays will be written into a single stream; if you want separate files, "
             "pipe this stream through the stream-split command.\n"
             "Example:\n"
@@ -77,7 +77,6 @@ extern "C" int gtatool_component_split(int argc, char *argv[])
     try
     {
         gta::header hdri;
-        gta::header hdro;
         // Loop over all input files
         size_t arg = 0;
         do
