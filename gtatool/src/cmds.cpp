@@ -80,6 +80,7 @@ CMD_DECL(component_extract)
 CMD_DECL(component_merge)
 CMD_DECL(component_reorder)
 CMD_DECL(component_set)
+CMD_DECL(component_split)
 CMD_DECL(compress)
 CMD_DECL(create)
 CMD_DECL(dimension_add)
@@ -120,6 +121,7 @@ static cmd_t cmds[] =
     CMD_STATIC("component-merge",   component,  component_merge,   true),
     CMD_STATIC("component-reorder", component,  component_reorder, true),
     CMD_STATIC("component-set",     component,  component_set,     true),
+    CMD_STATIC("component-split",   component,  component_split,   true),
     CMD_STATIC("compress",          array,      compress,          true),
     CMD_STATIC("create",            array,      create,            true),
     CMD_STATIC("dimension-add",     dimension,  dimension_add,     true),

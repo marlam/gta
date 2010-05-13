@@ -18,6 +18,7 @@ libbuiltin_la_SOURCES = \
 	component-merge.cpp	\
 	component-reorder.cpp	\
 	component-set.cpp	\
+	component-split.cpp	\
 	dimension-add.cpp	\
 	dimension-extract.cpp	\
 	dimension-merge.cpp	\
