@@ -1,0 +1,6 @@
+Gtatool is a command line tool to manipulate GTAs.
+
+It provides a set of commands that manipulate GTAs on various levels, and it
+can import from and export to many other file formats.
+
+See http://www.nongnu.org/gta/ for more information.
