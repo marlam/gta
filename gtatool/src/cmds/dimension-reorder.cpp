@@ -107,17 +107,20 @@ extern "C" int gtatool_dimension_reorder(int argc, char *argv[])
             }
 
             // Loop over all GTAs inside the current file
+            uintmax_t array_index = 0;
             while (cio::has_more(fi, finame))
             {
+                // Determine the name of the array for error messages
+                std::string array_name = finame + " array " + str::str(array_index);
                 // Read the GTA header
                 hdri.read_from(fi);
                 if (hdri.data_is_chunked())
                 {
-                    throw exc(finame + ": GTA is compressed");
+                    throw exc(array_name + ": array is compressed");
                 }
                 if (!indices.value().empty() && hdri.dimensions() != indices.value().size())
                 {
-                    throw exc(finame + ": GTA has " + str::str(hdri.dimensions()) 
+                    throw exc(array_name + ": array has " + str::str(hdri.dimensions()) 
                             + " dimensions while list of indices has " + str::str(indices.value().size()));
                 }
                 uintmax_t data_offset = cio::tell(fi, finame);
@@ -163,6 +166,11 @@ extern "C" int gtatool_dimension_reorder(int argc, char *argv[])
                 }
                 cio::seek(fi, data_offset, SEEK_SET, finame);
                 hdri.skip_data(fi);
+                array_index++;
+            }
+            if (fi != stdin)
+            {
+                cio::close(fi);
             }
             arg++;
         }

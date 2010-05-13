@@ -81,6 +81,7 @@ extern "C" int gtatool_component_merge(int argc, char *argv[])
             fi[i] = cio::open(arguments[i], "r");
         }
         std::vector<gta::header> hdri(arguments.size());
+        uintmax_t array_index = 0;
         while (cio::has_more(fi[0], arguments[0]))
         {
             for (size_t i = 0; i < arguments.size(); i++)
@@ -90,13 +91,13 @@ extern "C" int gtatool_component_merge(int argc, char *argv[])
                 {
                     if (hdri[i].dimensions() != hdri[0].dimensions())
                     {
-                        throw exc(arguments[i] + ": incompatible GTA");
+                        throw exc(arguments[i] + " array " + str::str(array_index) + ": incompatible array");
                     }                        
                     for (uintmax_t d = 0; d < hdri[0].dimensions(); d++)
                     {
                         if (hdri[i].dimension_size(d) != hdri[0].dimension_size(d))
                         {
-                            throw exc(arguments[i] + ": incompatible GTA");
+                            throw exc(arguments[i] + " array " + str::str(array_index) + ": incompatible array");
                         }
                     }
                 }
@@ -150,12 +151,13 @@ extern "C" int gtatool_component_merge(int argc, char *argv[])
                 }
                 hdro.write_elements(so, stdout, 1, element_buf.ptr());
             }
+            array_index++;
         }
         for (size_t i = 1; i < arguments.size(); i++)
         {
             if (cio::has_more(fi[i], arguments[i]))
             {
-                msg::wrn("ignoring additional GTA(s) from %s", arguments[i].c_str());
+                msg::wrn("ignoring additional array(s) from %s", arguments[i].c_str());
             }
         }
         for (size_t i = 0; i < arguments.size(); i++)

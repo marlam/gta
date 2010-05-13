@@ -94,13 +94,16 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
             FILE *fi = (arguments.size() == 0 ? stdin : cio::open(finame, "r"));
 
             // Loop over all GTAs inside the current file
+            uintmax_t array_index = 0;
             while (cio::has_more(fi, finame))
             {
+                // Determine the name of the array for error messages
+                std::string array_name = finame + " array " + str::str(array_index);
                 // Read the GTA header
                 hdri.read_from(fi);
                 if (hdri.dimensions() > std::numeric_limits<size_t>::max())
                 {
-                    throw exc(finame + ": too many dimensions");
+                    throw exc(array_name + ": too many dimensions");
                 }
                 // Set up variables
                 std::vector<double> comp_vars;
@@ -112,7 +115,7 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
                             || hdri.component_type(i) == gta::float128
                             || hdri.component_type(i) == gta::cfloat128)
                     {
-                        throw exc(finame + ": cannot compute variables of type "
+                        throw exc(array_name + ": cannot compute variables of type "
                                 + type_to_string(hdri.component_type(i), hdri.component_size(i)));
                     }
                     if (hdri.component_type(i) == gta::cfloat32 || hdri.component_type(i) == gta::cfloat64)
@@ -362,6 +365,11 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
                     }
                     hdro.write_elements(so, stdout, 1, element.ptr());
                 }
+                array_index++;
+            }
+            if (fi != stdin)
+            {
+                cio::close(fi);
             }
             arg++;
         }

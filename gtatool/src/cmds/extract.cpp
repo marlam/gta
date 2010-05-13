@@ -100,24 +100,27 @@ extern "C" int gtatool_extract(int argc, char *argv[])
             FILE *fi = (arguments.size() == 0 ? stdin : cio::open(finame, "r"));
 
             // Loop over all GTAs inside the current file
+            uintmax_t array_index = 0;
             while (cio::has_more(fi, finame))
             {
+                // Determine the name of the array for error messages
+                std::string array_name = finame + " array " + str::str(array_index);
                 // Read the GTA header
                 hdri.read_from(fi);
                 if (hdri.dimensions() == 0)
                 {
-                    throw exc(finame + ": GTA has zero dimensions");
+                    throw exc(array_name + ": array has zero dimensions");
                 }
                 if (hdri.dimensions() != low.value().size())
                 {
-                    throw exc(finame + ": GTA has " + str::str(hdri.dimensions())
+                    throw exc(array_name + ": array has " + str::str(hdri.dimensions())
                             + " dimensions, but sub-array has " + str::str(low.value().size()));
                 }
                 for (uintmax_t i = 0; i < hdri.dimensions(); i++)
                 {
                     if (hdri.dimension_size(i) <= high.value()[i])
                     {
-                        throw exc(finame + ": GTA does not contain the requested sub-array");
+                        throw exc(array_name + ": array does not contain the requested sub-array");
                     }
                 }
                 // Determine the new dimensions
@@ -157,6 +160,11 @@ extern "C" int gtatool_extract(int argc, char *argv[])
                         hdro.write_elements(so, stdout, 1, element.ptr());
                     }
                 }
+                array_index++;
+            }
+            if (fi != stdin)
+            {
+                cio::close(fi);
             }
             arg++;
         }

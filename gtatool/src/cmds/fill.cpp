@@ -106,14 +106,17 @@ extern "C" int gtatool_fill(int argc, char *argv[])
             FILE *fi = (arguments.size() == 0 ? stdin : cio::open(finame, "r"));
 
             // Loop over all GTAs inside the current file
+            uintmax_t array_index = 0;
             while (cio::has_more(fi, finame))
             {
+                // Determine the name of the array for error messages
+                std::string array_name = finame + " array " + str::str(array_index);
                 // Read the GTA header
                 hdri.read_from(fi);
                 // Determine compatibility and read value
                 if (!low.values().empty() && low.value().size() != hdri.dimensions())
                 {
-                    throw exc(finame + ": GTA has incompatible number of dimensions");
+                    throw exc(array_name + ": array has incompatible number of dimensions");
                 }
                 blob v(checked_cast<size_t>(hdri.element_size()));
                 if (value.values().empty())
@@ -164,6 +167,11 @@ extern "C" int gtatool_fill(int argc, char *argv[])
                     }
                     hdro.write_elements(so, stdout, 1, element.ptr());
                 }
+                array_index++;
+            }
+            if (fi != stdin)
+            {
+                cio::close(fi);
             }
             arg++;
         }

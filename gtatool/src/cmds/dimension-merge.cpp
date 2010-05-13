@@ -81,6 +81,7 @@ extern "C" int gtatool_dimension_merge(int argc, char *argv[])
             fi[i] = cio::open(arguments[i], "r");
         }
         std::vector<gta::header> hdri(arguments.size());
+        uintmax_t array_index = 0;
         while (cio::has_more(fi[0], arguments[0]))
         {
             for (size_t i = 0; i < arguments.size(); i++)
@@ -90,25 +91,25 @@ extern "C" int gtatool_dimension_merge(int argc, char *argv[])
                 {
                     if (hdri[i].components() != hdri[0].components())
                     {
-                        throw exc(arguments[i] + ": incompatible GTA");
+                        throw exc(arguments[i] + " array " + str::str(array_index) + ": incompatible array");
                     }
                     for (uintmax_t c = 0; c < hdri[0].dimensions(); c++)
                     {
                         if (hdri[i].component_type(c) != hdri[0].component_type(c)
                                 || hdri[i].component_size(c) != hdri[0].component_size(c))
                         {
-                            throw exc(arguments[i] + ": incompatible GTA");
+                            throw exc(arguments[i] + " array " + str::str(array_index) + ": incompatible array");
                         }
                     }
                     if (hdri[i].dimensions() != hdri[0].dimensions())
                     {
-                        throw exc(arguments[i] + ": incompatible GTA");
+                        throw exc(arguments[i] + " array " + str::str(array_index) + ": incompatible array");
                     }
                     for (uintmax_t d = 0; d < hdri[0].dimensions(); d++)
                     {
                         if (hdri[i].dimension_size(d) != hdri[0].dimension_size(d))
                         {
-                            throw exc(arguments[i] + ": incompatible GTA");
+                            throw exc(arguments[i] + " array " + str::str(array_index) + ": incompatible array");
                         }
                     }
                 }
@@ -153,6 +154,7 @@ extern "C" int gtatool_dimension_merge(int argc, char *argv[])
                     hdro.write_elements(so, stdout, 1, element_buf.ptr());
                 }
             }
+            array_index++;
         }
         for (size_t i = 1; i < arguments.size(); i++)
         {

@@ -582,13 +582,16 @@ extern "C" int gtatool_component_convert(int argc, char *argv[])
             FILE *fi = (arguments.size() == 0 ? stdin : cio::open(finame, "r"));
 
             // Loop over all GTAs inside the current file
+            uintmax_t array_index = 0;
             while (cio::has_more(fi, finame))
             {
+                // Determine the name of the array for error messages
+                std::string array_name = finame + " array " + str::str(array_index);
                 // Read the GTA header
                 hdri.read_from(fi);
                 if (hdri.components() != comp_types.size())
                 {
-                    throw exc(finame + ": number of components does not match");
+                    throw exc(array_name + ": number of components does not match");
                 }
                 for (uintmax_t i = 0; i < hdri.components(); i++)
                 {
@@ -598,7 +601,7 @@ extern "C" int gtatool_component_convert(int argc, char *argv[])
                             || hdri.component_type(i) == gta::float128
                             || hdri.component_type(i) == gta::cfloat128)
                     {
-                        throw exc(finame + ": conversion from type "
+                        throw exc(array_name + ": conversion from type "
                                 + type_to_string(hdri.component_type(i), hdri.component_size(i))
                                 + " is currently not supported");
                     }
@@ -629,6 +632,11 @@ extern "C" int gtatool_component_convert(int argc, char *argv[])
                     }
                     hdro.write_elements(so, stdout, 1, element_out.ptr());
                 }
+                array_index++;
+            }
+            if (fi != stdin)
+            {
+                cio::close(fi);
             }
             arg++;
         }

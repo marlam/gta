@@ -71,13 +71,13 @@ public:
 
     void apply(const std::string &filename, uintmax_t gta_index, gta::header &hdr) throw (std::exception)
     {
+        std::string array_name = filename + " array " + str::str(gta_index);
         switch (_cmd)
         {
         case GET_GLOBAL:
             {
                 const char *val = hdr.global_taglist().get(to_utf8(_name).c_str());
-                msg::req(filename + " array " + str::str(gta_index) + " global: "
-                        + _name + (val ? std::string("=") + from_utf8(val) : std::string(" not set")));
+                msg::req(array_name + " global: " + _name + (val ? std::string("=") + from_utf8(val) : std::string(" not set")));
             }
             break;
 
@@ -103,14 +103,14 @@ public:
             {
                 if (hdr.dimensions() == 0)
                 {
-                    throw exc("GTA has no dimensions");
+                    throw exc(array_name + ": array has no dimensions");
                 }
                 uintmax_t a = 0, b = hdr.dimensions() - 1;
                 if (!_index_all)
                 {
                     if (_index >= hdr.dimensions())
                     {
-                        throw exc("Dimension index too big");
+                        throw exc(array_name + ": dimension index too big");
                     }
                     a = _index;
                     b = _index;
@@ -118,7 +118,7 @@ public:
                 for (uintmax_t i = a; i <= b; i++)
                 {
                     const char *val = hdr.dimension_taglist(_index).get(to_utf8(_name).c_str());
-                    msg::req(filename + " array " + str::str(gta_index) + " dimension " + str::str(_index) + ": "
+                    msg::req(array_name + " dimension " + str::str(_index) + ": "
                             + _name + (val ? std::string("=") + from_utf8(val) : std::string(" not set")));
                 }
             }
@@ -128,14 +128,14 @@ public:
             {
                 if (hdr.dimensions() == 0)
                 {
-                    throw exc("GTA has no dimensions");
+                    throw exc(array_name + ": array has no dimensions");
                 }
                 uintmax_t a = 0, b = hdr.dimensions() - 1;
                 if (!_index_all)
                 {
                     if (_index >= hdr.dimensions())
                     {
-                        throw exc("Dimension index too big");
+                        throw exc(array_name + "dimension index too big");
                     }
                     a = _index;
                     b = _index;
@@ -151,14 +151,14 @@ public:
             {
                 if (hdr.dimensions() == 0)
                 {
-                    throw exc("GTA has no dimensions");
+                    throw exc(array_name + ": array has no dimensions");
                 }
                 uintmax_t a = 0, b = hdr.dimensions() - 1;
                 if (!_index_all)
                 {
                     if (_index >= hdr.dimensions())
                     {
-                        throw exc("Dimension index too big");
+                        throw exc(array_name + ": dimension index too big");
                     }
                     a = _index;
                     b = _index;
@@ -174,14 +174,14 @@ public:
             {
                 if (hdr.dimensions() == 0)
                 {
-                    throw exc("GTA has no dimensions");
+                    throw exc(array_name + ": array has no dimensions");
                 }
                 uintmax_t a = 0, b = hdr.dimensions() - 1;
                 if (!_index_all)
                 {
                     if (_index >= hdr.dimensions())
                     {
-                        throw exc("Dimension index too big");
+                        throw exc(array_name + ": dimension index too big");
                     }
                     a = _index;
                     b = _index;
@@ -197,14 +197,14 @@ public:
             {
                 if (hdr.components() == 0)
                 {
-                    throw exc("GTA has no components");
+                    throw exc(array_name + ": array has no components");
                 }
                 uintmax_t a = 0, b = hdr.components() - 1;
                 if (!_index_all)
                 {
                     if (_index >= hdr.components())
                     {
-                        throw exc("Component index too big");
+                        throw exc(array_name + ": component index too big");
                     }
                     a = _index;
                     b = _index;
@@ -212,7 +212,7 @@ public:
                 for (uintmax_t i = a; i <= b; i++)
                 {
                     const char *val = hdr.component_taglist(_index).get(to_utf8(_name).c_str());
-                    msg::req(filename + " array " + str::str(gta_index) + " component " + str::str(_index) + ": "
+                    msg::req(array_name + " component " + str::str(_index) + ": "
                             + _name + (val ? std::string("=") + from_utf8(val) : std::string(" not set")));
                 }
             }
@@ -222,14 +222,14 @@ public:
             {
                 if (hdr.components() == 0)
                 {
-                    throw exc("GTA has no components");
+                    throw exc(array_name + ": array has no components");
                 }
                 uintmax_t a = 0, b = hdr.components() - 1;
                 if (!_index_all)
                 {
                     if (_index >= hdr.components())
                     {
-                        throw exc("Component index too big");
+                        throw exc(array_name + ": component index too big");
                     }
                     a = _index;
                     b = _index;
@@ -245,14 +245,14 @@ public:
             {
                 if (hdr.components() == 0)
                 {
-                    throw exc("GTA has no components");
+                    throw exc(array_name + ": array has no components");
                 }
                 uintmax_t a = 0, b = hdr.components() - 1;
                 if (!_index_all)
                 {
                     if (_index >= hdr.components())
                     {
-                        throw exc("Component index too big");
+                        throw exc(array_name + ": component index too big");
                     }
                     a = _index;
                     b = _index;
@@ -268,14 +268,14 @@ public:
             {
                 if (hdr.components() == 0)
                 {
-                    throw exc("GTA has no components");
+                    throw exc(array_name + ": array has no components");
                 }
                 uintmax_t a = 0, b = hdr.components() - 1;
                 if (!_index_all)
                 {
                     if (_index >= hdr.components())
                     {
-                        throw exc("Component index too big");
+                        throw exc(array_name + ": component index too big");
                     }
                     a = _index;
                     b = _index;
@@ -586,6 +586,10 @@ extern "C" int gtatool_tag(int argc, char *argv[])
                 // Copy the GTA data
                 hdr.copy_data(fi, hdr, stdout);
                 array++;
+            }
+            if (fi != stdin)
+            {
+                cio::close(fi);
             }
             arg++;
         }

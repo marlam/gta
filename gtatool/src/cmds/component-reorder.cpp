@@ -103,13 +103,16 @@ extern "C" int gtatool_component_reorder(int argc, char *argv[])
             FILE *fi = (arguments.size() == 0 ? stdin : cio::open(finame, "r"));
 
             // Loop over all GTAs inside the current file
+            uintmax_t array_index = 0;
             while (cio::has_more(fi, finame))
             {
+                // Determine the name of the array for error messages
+                std::string array_name = finame + " array " + str::str(array_index);
                 // Read the GTA header
                 hdri.read_from(fi);
                 if (!indices.value().empty() && hdri.components() != indices.value().size())
                 {
-                    throw exc(finame + ": GTA has " + str::str(hdri.components()) 
+                    throw exc(array_name + ": array has " + str::str(hdri.components()) 
                             + " components while list of indices has " + str::str(indices.value().size()));
                 }
                 // Determine the new component order
@@ -157,6 +160,11 @@ extern "C" int gtatool_component_reorder(int argc, char *argv[])
                     }
                     hdro.write_elements(so, stdout, 1, element_out.ptr());
                 }
+                array_index++;
+            }
+            if (fi != stdin)
+            {
+                cio::close(fi);
             }
             arg++;
         }

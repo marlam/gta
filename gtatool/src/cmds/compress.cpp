@@ -98,6 +98,10 @@ extern "C" int gtatool_compress(int argc, char *argv[])
                 // Copy the GTA data
                 hdri.copy_data(fi, hdro, stdout);
             }
+            if (fi != stdin)
+            {
+                cio::close(fi);
+            }
             arg++;
         }
         while (arg < arguments.size());

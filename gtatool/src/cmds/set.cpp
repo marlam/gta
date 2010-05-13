@@ -107,25 +107,28 @@ extern "C" int gtatool_set(int argc, char *argv[])
             FILE *fi = (arguments.size() == 0 ? stdin : cio::open(finame, "r"));
 
             // Loop over all GTAs inside the current file
+            uintmax_t array_index = 0;
             while (cio::has_more(fi, finame))
             {
+                // Determine the name of the array for error messages
+                std::string array_name = finame + " array " + str::str(array_index);
                 // Read the GTA header
                 hdri.read_from(fi);
                 // Determine compatibility
                 if (hdri.dimensions() != hdrs.dimensions())
                 {
-                    throw exc(finame + ": GTA has incompatible number of dimensions");
+                    throw exc(array_name + ": array has incompatible number of dimensions");
                 }
                 if (hdri.components() != hdrs.components())
                 {
-                    throw exc(finame + ": GTA has incompatible element components");
+                    throw exc(array_name + ": array has incompatible element components");
                 }
                 for (uintmax_t i = 0; i < hdri.components(); i++)
                 {
                     if (hdri.component_type(i) != hdrs.component_type(i)
                             || hdri.component_size(i) != hdrs.component_size(i))
                     {
-                        throw exc(finame + ": GTA has incompatible element components");
+                        throw exc(array_name + ": array has incompatible element components");
                     }
                 }
                 // Write the GTA header
@@ -165,6 +168,11 @@ extern "C" int gtatool_set(int argc, char *argv[])
                     }
                     hdro.write_elements(so, stdout, 1, element.ptr());
                 }
+                array_index++;
+            }
+            if (fi != stdin)
+            {
+                cio::close(fi);
             }
             arg++;
         }

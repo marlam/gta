@@ -84,31 +84,32 @@ extern "C" int gtatool_merge(int argc, char *argv[])
             fi[i] = cio::open(arguments[i], "r");
         }
         std::vector<gta::header> hdri(arguments.size());
+        uintmax_t array_index = 0;
         while (cio::has_more(fi[0], arguments[0]))
         {
             hdri[0].read_from(fi[0]);
             if (dimension.value() >= hdri[0].dimensions())
             {
-                throw exc(arguments[0] + ": GTA has no dimension " + str::str(dimension.value()));
+                throw exc(arguments[0] + " array " + str::str(array_index) + ": array has no dimension " + str::str(dimension.value()));
             }
             for (size_t i = 1; i < arguments.size(); i++)
             {
                 hdri[i].read_from(fi[i]);
                 if (hdri[i].components() != hdri[0].components())
                 {
-                    throw exc(arguments[i] + ": incompatible GTA");
+                    throw exc(arguments[i] + " array " + str::str(array_index) + ": incompatible array");
                 }
                 for (uintmax_t c = 0; c < hdri[0].dimensions(); c++)
                 {
                     if (hdri[i].component_type(c) != hdri[0].component_type(c)
                             || hdri[i].component_size(c) != hdri[0].component_size(c))
                     {
-                        throw exc(arguments[i] + ": incompatible GTA");
+                        throw exc(arguments[i] + " array " + str::str(array_index) + ": incompatible array");
                     }
                 }
                 if (hdri[i].dimensions() != hdri[0].dimensions())
                 {
-                    throw exc(arguments[i] + ": incompatible GTA");
+                    throw exc(arguments[i] + " array " + str::str(array_index) + ": incompatible array");
                 }
                 for (uintmax_t d = 0; d < hdri[0].dimensions(); d++)
                 {
@@ -118,7 +119,7 @@ extern "C" int gtatool_merge(int argc, char *argv[])
                     }
                     if (hdri[i].dimension_size(d) != hdri[0].dimension_size(d))
                     {
-                        throw exc(arguments[i] + ": incompatible GTA");
+                        throw exc(arguments[i] + " array " + str::str(array_index) + ": incompatible array");
                     }
                 }
             }
@@ -183,12 +184,13 @@ extern "C" int gtatool_merge(int argc, char *argv[])
                 hdri[j].read_elements(si[j], fi[j], 1, element_buf.ptr());
                 hdro.write_elements(so, stdout, 1, element_buf.ptr());
             }
+            array_index++;
         }
         for (size_t i = 1; i < arguments.size(); i++)
         {
             if (cio::has_more(fi[i], arguments[i]))
             {
-                msg::wrn("ignoring additional GTA(s) from %s", arguments[i].c_str());
+                msg::wrn("ignoring additional array(s) from %s", arguments[i].c_str());
             }
         }
         for (size_t i = 0; i < arguments.size(); i++)

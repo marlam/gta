@@ -86,8 +86,11 @@ extern "C" int gtatool_component_set(int argc, char *argv[])
             FILE *fi = (arguments.size() == 0 ? stdin : cio::open(finame, "r"));
 
             // Loop over all GTAs inside the current file
+            uintmax_t array_index = 0;
             while (cio::has_more(fi, finame))
             {
+                // Determine the name of the array for error messages
+                std::string array_name = finame + " array " + str::str(array_index);
                 // Read the GTA header
                 hdri.read_from(fi);
                 // Determine components to set
@@ -110,7 +113,7 @@ extern "C" int gtatool_component_set(int argc, char *argv[])
                 {
                     if (current_indices[i] >= hdri.components())
                     {
-                        throw exc(finame + ": GTA has no component " + str::str(current_indices[i]));
+                        throw exc(array_name + ": array has no component " + str::str(current_indices[i]));
                     }
                     comp_types.push_back(hdri.component_type(current_indices[i]));
                     if (hdri.component_type(current_indices[i]) == gta::blob)
@@ -146,6 +149,11 @@ extern "C" int gtatool_component_set(int argc, char *argv[])
                     }
                     hdro.write_elements(so, stdout, 1, element.ptr());
                 }
+                array_index++;
+            }
+            if (fi != stdin)
+            {
+                cio::close(fi);
             }
             arg++;
         }

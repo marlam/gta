@@ -135,6 +135,10 @@ extern "C" int gtatool_info(int argc, char *argv[])
                 hdr.skip_data(fi);
                 array++;
             }
+            if (fi != stdin)
+            {
+                cio::close(fi);
+            }
             arg++;
         }
         while (arg < arguments.size());
