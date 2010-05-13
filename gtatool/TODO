@@ -1,16 +1,6 @@
 Commands to add
 ===============
 
-- component-split
-  Complementary to component-merge:
-  Splits an array into multiple arrays by separating the components.
-  Generates multiple output files instead of only one.
-
-- dimension-split
-  Complementary to dimension-merge:
-  Splits an array into multiple arrays by separating one dimension.
-  Generates multiple output files instead of only one.
-
 - Commands that change streams:
   stream-merge [unnecessary; simply use cat]
   stream-split
