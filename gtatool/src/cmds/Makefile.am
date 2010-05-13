@@ -24,6 +24,7 @@ libbuiltin_la_SOURCES = \
 	dimension-merge.cpp	\
 	dimension-reorder.cpp	\
 	dimension-reverse.cpp	\
+	dimension-split.cpp	\
 	compress.cpp		\
 	create.cpp		\
 	extract.cpp		\

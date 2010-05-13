@@ -88,6 +88,7 @@ CMD_DECL(dimension_extract)
 CMD_DECL(dimension_merge)
 CMD_DECL(dimension_reorder)
 CMD_DECL(dimension_reverse)
+CMD_DECL(dimension_split)
 CMD_DECL(extract)
 CMD_DECL(fill)
 CMD_DECL(from_dcmtk)
@@ -129,6 +130,7 @@ static cmd_t cmds[] =
     CMD_STATIC("dimension-merge",   dimension,  dimension_merge,   true),
     CMD_STATIC("dimension-reorder", dimension,  dimension_reorder, true),
     CMD_STATIC("dimension-reverse", dimension,  dimension_reverse, true),
+    CMD_STATIC("dimension-split",   dimension,  dimension_split,   true),
     CMD_STATIC("extract",           array,      extract,           true),
     CMD_STATIC("fill",              array,      fill,              true),
     CMD_MODULE("from-dcmtk",        conversion, from_dcmtk,        WITH_DCMTK),
