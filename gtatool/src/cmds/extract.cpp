@@ -104,7 +104,7 @@ extern "C" int gtatool_extract(int argc, char *argv[])
             while (cio::has_more(fi, finame))
             {
                 // Determine the name of the array for error messages
-                std::string array_name = finame + " array " + str::str(array_index);
+                std::string array_name = finame + " array " + str::from(array_index);
                 // Read the GTA header
                 hdri.read_from(fi);
                 if (hdri.dimensions() == 0)
@@ -113,8 +113,8 @@ extern "C" int gtatool_extract(int argc, char *argv[])
                 }
                 if (hdri.dimensions() != low.value().size())
                 {
-                    throw exc(array_name + ": array has " + str::str(hdri.dimensions())
-                            + " dimensions, but sub-array has " + str::str(low.value().size()));
+                    throw exc(array_name + ": array has " + str::from(hdri.dimensions())
+                            + " dimensions, but sub-array has " + str::from(low.value().size()));
                 }
                 for (uintmax_t i = 0; i < hdri.dimensions(); i++)
                 {

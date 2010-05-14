@@ -70,16 +70,16 @@ extern "C" int gtatool_dimension_reorder(int argc, char *argv[])
         if (indices.value()[i] >= indices.value().size())
         {
             msg::err("invalid index %s in list of %s indices",
-                    str::str(indices.value()[i]).c_str(),
-                    str::str(indices.value().size()).c_str());
+                    str::from(indices.value()[i]).c_str(),
+                    str::from(indices.value().size()).c_str());
             return 1;
         }
         for (size_t j = 0; j < i; j++)
         {
             if (indices.value()[i] == indices.value()[j])
             {
-                msg::err("index %s was used more than once", 
-                        str::str(indices.value()[i]).c_str());
+                msg::err("index %s was used more than once",
+                        str::from(indices.value()[i]).c_str());
                 return 1;
             }
         }
@@ -111,7 +111,7 @@ extern "C" int gtatool_dimension_reorder(int argc, char *argv[])
             while (cio::has_more(fi, finame))
             {
                 // Determine the name of the array for error messages
-                std::string array_name = finame + " array " + str::str(array_index);
+                std::string array_name = finame + " array " + str::from(array_index);
                 // Read the GTA header
                 hdri.read_from(fi);
                 if (hdri.data_is_chunked())
@@ -120,8 +120,8 @@ extern "C" int gtatool_dimension_reorder(int argc, char *argv[])
                 }
                 if (!indices.value().empty() && hdri.dimensions() != indices.value().size())
                 {
-                    throw exc(array_name + ": array has " + str::str(hdri.dimensions()) 
-                            + " dimensions while list of indices has " + str::str(indices.value().size()));
+                    throw exc(array_name + ": array has " + str::from(hdri.dimensions())
+                            + " dimensions while list of indices has " + str::from(indices.value().size()));
                 }
                 uintmax_t data_offset = cio::tell(fi, finame);
                 // Reorder the dimensions

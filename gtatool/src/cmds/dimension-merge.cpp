@@ -91,25 +91,25 @@ extern "C" int gtatool_dimension_merge(int argc, char *argv[])
                 {
                     if (hdri[i].components() != hdri[0].components())
                     {
-                        throw exc(arguments[i] + " array " + str::str(array_index) + ": incompatible array");
+                        throw exc(arguments[i] + " array " + str::from(array_index) + ": incompatible array");
                     }
                     for (uintmax_t c = 0; c < hdri[0].dimensions(); c++)
                     {
                         if (hdri[i].component_type(c) != hdri[0].component_type(c)
                                 || hdri[i].component_size(c) != hdri[0].component_size(c))
                         {
-                            throw exc(arguments[i] + " array " + str::str(array_index) + ": incompatible array");
+                            throw exc(arguments[i] + " array " + str::from(array_index) + ": incompatible array");
                         }
                     }
                     if (hdri[i].dimensions() != hdri[0].dimensions())
                     {
-                        throw exc(arguments[i] + " array " + str::str(array_index) + ": incompatible array");
+                        throw exc(arguments[i] + " array " + str::from(array_index) + ": incompatible array");
                     }
                     for (uintmax_t d = 0; d < hdri[0].dimensions(); d++)
                     {
                         if (hdri[i].dimension_size(d) != hdri[0].dimension_size(d))
                         {
-                            throw exc(arguments[i] + " array " + str::str(array_index) + ": incompatible array");
+                            throw exc(arguments[i] + " array " + str::from(array_index) + ": incompatible array");
                         }
                     }
                 }

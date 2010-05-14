@@ -111,7 +111,7 @@ extern "C" int gtatool_set(int argc, char *argv[])
             while (cio::has_more(fi, finame))
             {
                 // Determine the name of the array for error messages
-                std::string array_name = finame + " array " + str::str(array_index);
+                std::string array_name = finame + " array " + str::from(array_index);
                 // Read the GTA header
                 hdri.read_from(fi);
                 // Determine compatibility

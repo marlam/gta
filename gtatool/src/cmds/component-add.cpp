@@ -109,7 +109,7 @@ extern "C" int gtatool_component_add(int argc, char *argv[])
             while (cio::has_more(fi, finame))
             {
                 // Determine the name of the array for error messages
-                std::string array_name = finame + " array " + str::str(array_index);
+                std::string array_name = finame + " array " + str::from(array_index);
                 // Read the GTA header
                 hdri.read_from(fi);
                 // Add components
@@ -126,7 +126,7 @@ extern "C" int gtatool_component_add(int argc, char *argv[])
                 {
                     if (index.value() > hdri.components())
                     {
-                        throw exc(array_name + ": array has less than " + str::str(index.value()) + " components");
+                        throw exc(array_name + ": array has less than " + str::from(index.value()) + " components");
                     }
                     hdro_new_comp_index = index.value();
                 }

@@ -92,13 +92,13 @@ extern "C" int gtatool_dimension_split(int argc, char *argv[])
             while (cio::has_more(fi, finame))
             {
                 // Determine the name of the array for error messages
-                std::string array_name = finame + " array " + str::str(array_index);
+                std::string array_name = finame + " array " + str::from(array_index);
                 // Read the GTA header
                 hdri.read_from(fi);
                 uintmax_t dim = (dimension.values().empty() ? hdri.dimensions() - 1 : dimension.value());
                 if (dim >= hdri.dimensions())
                 {
-                    throw exc(array_name + ": array has no dimension " + str::str(dim));
+                    throw exc(array_name + ": array has no dimension " + str::from(dim));
                 }
                 // Determine the new dimensions
                 std::vector<uintmax_t> dim_sizes;

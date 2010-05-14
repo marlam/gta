@@ -29,6 +29,7 @@
 #include <cerrno>
 #include <limits>
 #include <sstream>
+#include <typeinfo>
 
 #if W32
 # define WIN32_LEAN_AND_MEAN
@@ -133,76 +134,105 @@ namespace str
 
     /* Create std::strings from all basic data types */
 
-    std::string str(bool x)
+    std::string from(bool x)
     {
         return std::string(x ? "0" : "1");
     }
 
-    std::string str(signed char x)
+    std::string from(signed char x)
     {
         return int_to_str(x);
     }
 
-    std::string str(unsigned char x)
+    std::string from(unsigned char x)
     {
         return uint_to_str(x);
     }
 
-    std::string str(short x)
+    std::string from(short x)
     {
         return int_to_str(x);
     }
 
-    std::string str(unsigned short x)
+    std::string from(unsigned short x)
     {
         return uint_to_str(x);
     }
 
-    std::string str(int x)
+    std::string from(int x)
     {
         return int_to_str(x);
     }
 
-    std::string str(unsigned int x)
+    std::string from(unsigned int x)
     {
         return uint_to_str(x);
     }
 
-    std::string str(long x)
+    std::string from(long x)
     {
         return int_to_str(x);
     }
 
-    std::string str(unsigned long x)
+    std::string from(unsigned long x)
     {
         return uint_to_str(x);
     }
 
-    std::string str(long long x)
+    std::string from(long long x)
     {
         return int_to_str(x);
     }
 
-    std::string str(unsigned long long x)
+    std::string from(unsigned long long x)
     {
         return uint_to_str(x);
     }
 
-    std::string str(float x)
+    std::string from(float x)
     {
         return float_to_str(x);
     }
 
-    std::string str(double x)
+    std::string from(double x)
     {
         return float_to_str(x);
     }
 
-    std::string str(long double x)
+    std::string from(long double x)
     {
         return float_to_str(x);
     }
 
+    /* Convert a string to one of the basic data types */
+
+    template<typename T>
+    static inline T _to(const std::string &s) throw (exc)
+    {
+        std::istringstream is(s);
+        T v;
+        is >> v;
+        if (is.fail() || !is.eof())
+        {
+            throw exc(std::string("cannot convert '") + sanitize(s) + "' to " + typeid(T).name(), EINVAL);
+        }
+        return v;
+    }
+
+    template<> bool to<bool>(const std::string &s) throw (exc) { return _to<bool>(s); }
+    template<> signed char to<signed char>(const std::string &s) throw (exc) { return _to<signed char>(s); }
+    template<> unsigned char to<unsigned char>(const std::string &s) throw (exc) { return _to<unsigned char>(s); }
+    template<> short to<short>(const std::string &s) throw (exc) { return _to<short>(s); }
+    template<> unsigned short to<unsigned short>(const std::string &s) throw (exc) { return _to<unsigned short>(s); }
+    template<> int to<int>(const std::string &s) throw (exc) { return _to<int>(s); }
+    template<> unsigned int to<unsigned int>(const std::string &s) throw (exc) { return _to<unsigned int>(s); }
+    template<> long to<long>(const std::string &s) throw (exc) { return _to<long>(s); }
+    template<> unsigned long to<unsigned long>(const std::string &s) throw (exc) { return _to<unsigned long>(s); }
+    template<> long long to<long long>(const std::string &s) throw (exc) { return _to<long long>(s); }
+    template<> unsigned long long to<unsigned long long>(const std::string &s) throw (exc) { return _to<unsigned long long>(s); }
+    template<> float to<float>(const std::string &s) throw (exc) { return _to<float>(s); }
+    template<> double to<double>(const std::string &s) throw (exc) { return _to<double>(s); }
+    template<> long double to<long double>(const std::string &s) throw (exc) { return _to<long double>(s); }
 
     /* Create std::strings printf-like */
 

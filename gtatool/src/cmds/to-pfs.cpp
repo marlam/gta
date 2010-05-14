@@ -172,7 +172,7 @@ extern "C" int gtatool_to_pfs(int argc, char *argv[])
                 }
                 else
                 {
-                    channel_name = std::string("X-GTA/") + str::str(i);
+                    channel_name = std::string("X-GTA/") + str::from(i);
                 }
                 pfs::Channel *channel = frame->createChannel(channel_name.c_str());
                 for (uintmax_t t = 0; t < hdr.component_taglist(i).tags(); t++)

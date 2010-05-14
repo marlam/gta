@@ -41,7 +41,7 @@ std::string type_to_string(const gta::type t, const uintmax_t size) throw (exc)
     switch (t)
     {
     case gta::blob:
-        s = std::string("blob") + str::str(checked_mul(size, static_cast<uintmax_t>(8)));
+        s = std::string("blob") + str::from(checked_mul(size, static_cast<uintmax_t>(8)));
         break;
     case gta::int8:
         s = "int8";

@@ -98,7 +98,7 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
             while (cio::has_more(fi, finame))
             {
                 // Determine the name of the array for error messages
-                std::string array_name = finame + " array " + str::str(array_index);
+                std::string array_name = finame + " array " + str::from(array_index);
                 // Read the GTA header
                 hdri.read_from(fi);
                 if (hdri.dimensions() > std::numeric_limits<size_t>::max())
@@ -142,20 +142,20 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
                     {
                         if (hdri.component_type(i) == gta::cfloat32 || hdri.component_type(i) == gta::cfloat64)
                         {
-                            parsers[p].DefineVar(std::string("c") + str::str(i) + "re", &(comp_vars[comp_vars_index++]));
-                            parsers[p].DefineVar(std::string("c") + str::str(i) + "im", &(comp_vars[comp_vars_index++]));
+                            parsers[p].DefineVar(std::string("c") + str::from(i) + "re", &(comp_vars[comp_vars_index++]));
+                            parsers[p].DefineVar(std::string("c") + str::from(i) + "im", &(comp_vars[comp_vars_index++]));
                         }
                         else
                         {
-                            parsers[p].DefineVar(std::string("c") + str::str(i), &(comp_vars[comp_vars_index++]));
+                            parsers[p].DefineVar(std::string("c") + str::from(i), &(comp_vars[comp_vars_index++]));
                         }
                     }
                     parsers[p].DefineVar("c", &components_var);
                     parsers[p].DefineVar("d", &dimensions_var);
                     for (uintmax_t i = 0; i < hdri.dimensions(); i++)
                     {
-                        parsers[p].DefineVar(std::string("d") + str::str(i), &(dim_vars[i]));
-                        parsers[p].DefineVar(std::string("i") + str::str(i), &(index_vars[i]));
+                        parsers[p].DefineVar(std::string("d") + str::from(i), &(dim_vars[i]));
+                        parsers[p].DefineVar(std::string("i") + str::from(i), &(index_vars[i]));
                     }
                     parsers[p].SetExpr(expressions.values()[p]);
                 }

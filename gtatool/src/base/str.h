@@ -47,20 +47,37 @@ namespace str
     std::string sanitize(const std::string &s);
 
     /* Create std::strings from all basic data types */
-    std::string str(bool x);
-    std::string str(signed char x);
-    std::string str(unsigned char x);
-    std::string str(short x);
-    std::string str(unsigned short x);
-    std::string str(int x);
-    std::string str(unsigned int x);
-    std::string str(long x);
-    std::string str(unsigned long x);
-    std::string str(long long x);
-    std::string str(unsigned long long x);
-    std::string str(float x);
-    std::string str(double x);
-    std::string str(long double x);
+    std::string from(bool x);
+    std::string from(signed char x);
+    std::string from(unsigned char x);
+    std::string from(short x);
+    std::string from(unsigned short x);
+    std::string from(int x);
+    std::string from(unsigned int x);
+    std::string from(long x);
+    std::string from(unsigned long x);
+    std::string from(long long x);
+    std::string from(unsigned long long x);
+    std::string from(float x);
+    std::string from(double x);
+    std::string from(long double x);
+
+    /* Convert a string to one of the basic data types */
+    template<typename T> T to(const std::string &s) throw (exc);
+    template<> bool to<bool>(const std::string &s) throw (exc);
+    template<> signed char to<signed char>(const std::string &s) throw (exc);
+    template<> unsigned char to<unsigned char>(const std::string &s) throw (exc);
+    template<> short to<short>(const std::string &s) throw (exc);
+    template<> unsigned short to<unsigned short>(const std::string &s) throw (exc);
+    template<> int to<int>(const std::string &s) throw (exc);
+    template<> unsigned int to<unsigned int>(const std::string &s) throw (exc);
+    template<> long to<long>(const std::string &s) throw (exc);
+    template<> unsigned long to<unsigned long>(const std::string &s) throw (exc);
+    template<> long long to<long long>(const std::string &s) throw (exc);
+    template<> unsigned long long to<unsigned long long>(const std::string &s) throw (exc);
+    template<> float to<float>(const std::string &s) throw (exc);
+    template<> double to<double>(const std::string &s) throw (exc);
+    template<> long double to<long double>(const std::string &s) throw (exc);
 
     /* Create std::strings printf-like */
     std::string vasprintf(const char *format, va_list args) AFP(1, 0);

@@ -91,13 +91,13 @@ extern "C" int gtatool_component_merge(int argc, char *argv[])
                 {
                     if (hdri[i].dimensions() != hdri[0].dimensions())
                     {
-                        throw exc(arguments[i] + " array " + str::str(array_index) + ": incompatible array");
+                        throw exc(arguments[i] + " array " + str::from(array_index) + ": incompatible array");
                     }                        
                     for (uintmax_t d = 0; d < hdri[0].dimensions(); d++)
                     {
                         if (hdri[i].dimension_size(d) != hdri[0].dimension_size(d))
                         {
-                            throw exc(arguments[i] + " array " + str::str(array_index) + ": incompatible array");
+                            throw exc(arguments[i] + " array " + str::from(array_index) + ": incompatible array");
                         }
                     }
                 }

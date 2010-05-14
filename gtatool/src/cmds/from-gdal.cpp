@@ -111,15 +111,15 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
         }
         if (GDALGetGeoTransform(dataset, geo_transform) == CE_None)
         {
-            hdr.global_taglist().set("GDAL/ORIGIN", (str::str(geo_transform[0]) + " " + str::str(geo_transform[3])).c_str());
-            hdr.global_taglist().set("GDAL/PIXEL_SIZE", (str::str(geo_transform[1]) + " " + str::str(geo_transform[5])).c_str());
+            hdr.global_taglist().set("GDAL/ORIGIN", (str::from(geo_transform[0]) + " " + str::from(geo_transform[3])).c_str());
+            hdr.global_taglist().set("GDAL/PIXEL_SIZE", (str::from(geo_transform[1]) + " " + str::from(geo_transform[5])).c_str());
             hdr.global_taglist().set("GDAL/GEO_TRANSFORM",
-                    (str::str(geo_transform[0]) + " "
-                     + str::str(geo_transform[1]) + " "
-                     + str::str(geo_transform[2]) + " "
-                     + str::str(geo_transform[3]) + " "
-                     + str::str(geo_transform[4]) + " "
-                     + str::str(geo_transform[5])).c_str());
+                    (str::from(geo_transform[0]) + " "
+                     + str::from(geo_transform[1]) + " "
+                     + str::from(geo_transform[2]) + " "
+                     + str::from(geo_transform[3]) + " "
+                     + str::from(geo_transform[4]) + " "
+                     + str::from(geo_transform[5])).c_str());
         }
         metadata = GDALGetMetadata(dataset, NULL);
         if (metadata)
@@ -167,11 +167,11 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
                 break;
             case GDT_CInt16:
                 type = gta::cfloat32;
-                msg::inf("Band %s: Converting GDT_CInt16 to gta::cfloat32", str::str(i + 1).c_str());
+                msg::inf("Band %s: Converting GDT_CInt16 to gta::cfloat32", str::from(i + 1).c_str());
                 break;
             case GDT_CInt32:
                 type = gta::cfloat32;
-                msg::inf("Band %s: Converting GDT_CInt16 to gta::cfloat32", str::str(i + 1).c_str());
+                msg::inf("Band %s: Converting GDT_CInt16 to gta::cfloat32", str::from(i + 1).c_str());
                 break;
             case GDT_CFloat32:
                 type = gta::cfloat32;
@@ -196,17 +196,17 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
             value = GDALGetRasterOffset(band, &success);
             if (success)
             {
-                hdr.component_taglist(i).set("GDAL/OFFSET", str::str(value).c_str());
+                hdr.component_taglist(i).set("GDAL/OFFSET", str::from(value).c_str());
             }
             value = GDALGetRasterScale(band, &success);
             if (success)
             {
-                hdr.component_taglist(i).set("GDAL/SCALE", str::str(value).c_str());
+                hdr.component_taglist(i).set("GDAL/SCALE", str::from(value).c_str());
             }
             value = GDALGetRasterNoDataValue(band, &success);
             if (success)
             {
-                hdr.component_taglist(i).set("GDAL/NO_DATA_VALUE", str::str(value).c_str());
+                hdr.component_taglist(i).set("GDAL/NO_DATA_VALUE", str::from(value).c_str());
             }
             const char *unit = GDALGetRasterUnitType(band);
             if (unit && unit[0])

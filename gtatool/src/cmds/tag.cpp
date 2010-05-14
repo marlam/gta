@@ -71,7 +71,7 @@ public:
 
     void apply(const std::string &filename, uintmax_t gta_index, gta::header &hdr) throw (std::exception)
     {
-        std::string array_name = filename + " array " + str::str(gta_index);
+        std::string array_name = filename + " array " + str::from(gta_index);
         switch (_cmd)
         {
         case GET_GLOBAL:
@@ -118,7 +118,7 @@ public:
                 for (uintmax_t i = a; i <= b; i++)
                 {
                     const char *val = hdr.dimension_taglist(_index).get(to_utf8(_name).c_str());
-                    msg::req(array_name + " dimension " + str::str(_index) + ": "
+                    msg::req(array_name + " dimension " + str::from(_index) + ": "
                             + _name + (val ? std::string("=") + from_utf8(val) : std::string(" not set")));
                 }
             }
@@ -212,7 +212,7 @@ public:
                 for (uintmax_t i = a; i <= b; i++)
                 {
                     const char *val = hdr.component_taglist(_index).get(to_utf8(_name).c_str());
-                    msg::req(array_name + " component " + str::str(_index) + ": "
+                    msg::req(array_name + " component " + str::from(_index) + ": "
                             + _name + (val ? std::string("=") + from_utf8(val) : std::string(" not set")));
                 }
             }

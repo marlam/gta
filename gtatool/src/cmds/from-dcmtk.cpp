@@ -140,7 +140,7 @@ extern "C" int gtatool_from_dcmtk(int argc, char *argv[])
             }
             else
             {
-                throw exc("Cannot import " + ifilename, "unsupported depth value " + str::str(di->getDepth()));
+                throw exc("Cannot import " + ifilename, "unsupported depth value " + str::from(di->getDepth()));
             }
             if (di->isMonochrome())
             {
@@ -154,23 +154,23 @@ extern "C" int gtatool_from_dcmtk(int argc, char *argv[])
             // Set meta information
             {
                 hdr.global_taglist().set("DICOM/FILENAME", ifilename.c_str());
-                hdr.global_taglist().set("DICOM/FRAMES", str::str(di->getFrameCount()).c_str());
-                hdr.global_taglist().set("DICOM/FRAME", str::str(frame).c_str());
+                hdr.global_taglist().set("DICOM/FRAMES", str::from(di->getFrameCount()).c_str());
+                hdr.global_taglist().set("DICOM/FRAME", str::from(frame).c_str());
                 hdr.global_taglist().set("DICOM/TRANSFER_SYNTAX", DcmXfer(xfer).getXferName());
                 const char *color_model = di->getString(di->getPhotometricInterpretation());
                 if (color_model)
                 {
                     hdr.global_taglist().set("DICOM/COLOR_MODEL", color_model);
                 }
-                hdr.global_taglist().set("DICOM/PIXEL_ASPECT_RATIO", str::str(di->getHeightWidthRatio()).c_str());
-                hdr.global_taglist().set("DICOM/BITS_PER_SAMPLE", str::str(di->getDepth()).c_str());
+                hdr.global_taglist().set("DICOM/PIXEL_ASPECT_RATIO", str::from(di->getHeightWidthRatio()).c_str());
+                hdr.global_taglist().set("DICOM/BITS_PER_SAMPLE", str::from(di->getDepth()).c_str());
             }
 
             // Extract data
             const void *data = di->getOutputData(bits, frame, 0);
             if (!data)
             {
-                throw exc("Cannot import " + ifilename, "failed to render frame " + str::str(frame));
+                throw exc("Cannot import " + ifilename, "failed to render frame " + str::from(frame));
             }
 
             // Save GTA

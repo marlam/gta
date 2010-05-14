@@ -89,7 +89,7 @@ extern "C" int gtatool_component_split(int argc, char *argv[])
             while (cio::has_more(fi, finame))
             {
                 // Determine the name of the array for error messages
-                std::string array_name = finame + " array " + str::str(array_index);
+                std::string array_name = finame + " array " + str::from(array_index);
                 // Read the GTA header
                 hdri.read_from(fi);
                 // Determine output GTAs
@@ -103,7 +103,7 @@ extern "C" int gtatool_component_split(int argc, char *argv[])
                         {
                             if (drop.value()[j] >= hdri.components())
                             {
-                                throw exc(array_name + ": array has no component " + str::str(drop.value()[j]));
+                                throw exc(array_name + ": array has no component " + str::from(drop.value()[j]));
                             }
                             if (drop.value()[j] == i)
                             {

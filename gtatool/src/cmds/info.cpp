@@ -96,13 +96,13 @@ extern "C" int gtatool_info(int argc, char *argv[])
                 }
                 if (hdr.data_size() == 0)
                 {
-                    msg::req(finame + " array " + str::str(array) + ":");
+                    msg::req(finame + " array " + str::from(array) + ":");
                     msg::req("    empty array");
                 }
                 else
                 {
-                    msg::req(finame + " array " + str::str(array) + ": "
-                            + str::str(hdr.data_size()) + " bytes ("
+                    msg::req(finame + " array " + str::from(array) + ": "
+                            + str::from(hdr.data_size()) + " bytes ("
                             + str::human_readable_memsize(hdr.data_size()) + ")");
                     msg::req(std::string("    ") + dimensions.str() + " elements of type " + components.str());
                 }
@@ -113,7 +113,7 @@ extern "C" int gtatool_info(int argc, char *argv[])
                 }
                 for (uintmax_t i = 0; i < hdr.dimensions(); i++)
                 {
-                    msg::req(std::string("    dimension ") + str::str(i) + ": " + str::str(hdr.dimension_size(i)));
+                    msg::req(std::string("    dimension ") + str::from(i) + ": " + str::from(hdr.dimension_size(i)));
                     for (uintmax_t j = 0; j < hdr.dimension_taglist(i).tags(); j++)
                     {
                         msg::req(std::string("        ")
@@ -122,7 +122,7 @@ extern "C" int gtatool_info(int argc, char *argv[])
                 }
                 for (uintmax_t i = 0; i < hdr.components(); i++)
                 {
-                    msg::req(std::string("    element component ") + str::str(i) + ": "
+                    msg::req(std::string("    element component ") + str::from(i) + ": "
                             + type_to_string(hdr.component_type(i), hdr.component_size(i)) + ", "
                             + str::human_readable_memsize(hdr.component_size(i)));
                     for (uintmax_t j = 0; j < hdr.component_taglist(i).tags(); j++)

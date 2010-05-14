@@ -115,7 +115,7 @@ extern "C" int gtatool_stream_split(int argc, char *argv[])
                 // Read the GTA header
                 hdri.read_from(fi);
                 // Open the output file
-                std::string array_index_str = str::str(array_index);
+                std::string array_index_str = str::from(array_index);
                 if (array_index_str.length() < min_width)
                 {
                     array_index_str.insert(0, min_width - array_index_str.length(), '0');
