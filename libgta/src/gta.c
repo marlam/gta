@@ -3074,7 +3074,7 @@ gta_data_is_chunked(const gta_header_t *GTA_RESTRICT header)
     return header->data_in_chunks;
 }
 
-void
+gta_compression_t
 gta_get_compression(gta_header_t *GTA_RESTRICT header)
 {
     return header->compression;
