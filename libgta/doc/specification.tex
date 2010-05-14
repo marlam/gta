@@ -99,11 +99,11 @@ Each array element would consists of three components, all of type
 
 A \emph{tag} consists of a tag name and a tag value.
 
-A tag name is a non-empty, zero-terminated, UTF-8 encoded string that does not
+A tag name is a non-empty, zero-terminated, \mbox{UTF-8} encoded string that does not
 contain control characters (characters with a code less than 32 or equal to 127)
 and does not contain the character \code{=}.
 
-A tag value is a zero-terminated, UTF-8 encoded string that does not contain
+A tag value is a zero-terminated, \mbox{UTF-8} encoded string that does not contain
 control characters (characters with a code less than 32 or equal to 127). It can
 be empty, and it can contain the character \code{=}.
 
@@ -161,15 +161,24 @@ the file. This value is the number of bytes that the compressed chunk data
 uses. It is guaranteed to be less than or equal to the number of bytes of the
 chunk data. If a compression method would produce compressed chunk data that
 is larger than the uncompressed chunk data, the chunk is simply not compressed
-but stored uncompressed (with the compression method \code{GTA\_NONE}.
+but stored uncompressed (with the compression method \code{GTA\_NONE}).
 \end{itemize}
 
 \begin{table}
 \begin{tabular}{l|l|l}
 Compression method & Number & Description\\\hline
 \code{GTA\_NONE}  & 0 & No compression \\
-\code{GTA\_ZLIB}  & 1 & ZLIB compression (fast,\\
+\code{GTA\_ZLIB}  & 1 & ZLIB compression with default level (fast,\\
                   &   & moderate compression ratio) \\
+\code{GTA\_ZLIB1} & 4 & ZLIB compression with level 1\\
+\code{GTA\_ZLIB2} & 5 & ZLIB compression with level 2\\
+\code{GTA\_ZLIB3} & 6 & ZLIB compression with level 3\\
+\code{GTA\_ZLIB4} & 7 & ZLIB compression with level 4\\
+\code{GTA\_ZLIB5} & 8 & ZLIB compression with level 5\\
+\code{GTA\_ZLIB6} & 9 & ZLIB compression with level 6\\
+\code{GTA\_ZLIB7} & 10& ZLIB compression with level 7\\
+\code{GTA\_ZLIB8} & 11& ZLIB compression with level 8\\
+\code{GTA\_ZLIB9} & 12& ZLIB compression with level 9\\
 \code{GTA\_BZIP2} & 2 & BZIP2 compression (moderate speed,\\
                   &   & good compression ratio) \\
 \code{GTA\_XZ}    & 3 & XZ compression (low compression speed,\\
@@ -191,7 +200,7 @@ data size zero marks the last chunk in a chunk list.
 \subsection{GTA Header}
 
 The first three bytes of a GTA Header are of type \code{GTA\_UINT8} and contain
-the UTF-8 codes of the characters \code{G}, \code{T}, and \code{A}.
+the \mbox{UTF-8} codes of the characters \code{G}, \code{T}, and \code{A}.
 
 The fourth byte is of type \code{GTA\_UINT8} and contains the GTA file format
 version number. Currently, this value must always be 1.
@@ -201,8 +210,9 @@ can be set (1) or unset (0).
 
 The lowest bit flag determines if multibyte values in the file are in big endian
 (1) or little endian (0) byte ordering. This flag applies to all values in the
-header and in the data. The type \code{GTA\_BLOB} is special: it must be
-independent of byte ordering, so that it is valid regardless of this flag.
+header and in the data. (The array element component type \code{GTA\_BLOB} is special:
+it must be independent of byte ordering, so that it is valid regardless of this
+flag.)
 
 The second lowest bit flag determines if the GTA array data that follows the header 
 is stored in chunks (1) or not (0).
@@ -237,7 +247,7 @@ than zero. A dimension definition that stores the special value 0 in its size
 field signals the end of the dimension list.
 
 After the list of dimensions, the global tag list is stored.  The global tag
-list stores each tag name and its tag value as-is (UTF-8 strings, zero
+list stores each tag name and its tag value as-is (\mbox{UTF-8} strings, zero
 terminated). An empty name (consisting only of the value 0) signals
 the end of the global tag list.
 
@@ -336,7 +346,7 @@ interpreted by the application. Currently defined values are
 	\end{itemize}
 \item \code{UNIT}: SI unit symbol that describes the unit for the values of
 this component. The value can be any SI unit symbol with or without prefix.
-The value must use UTF-8 characters instead of plain ASCII where applicable,
+The value must use \mbox{UTF-8} characters instead of plain ASCII where applicable,
 e.g.~the middle dot instead of \code{*}.
 \end{itemize}
 
