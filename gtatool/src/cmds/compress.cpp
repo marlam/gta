@@ -37,9 +37,11 @@
 extern "C" void gtatool_compress_help(void)
 {
     msg::req_txt(
-            "compress [--method=zlib|bzip2|xz] [<files>...]\n"
+            "compress [--method=zlib[1-9]|bzip2|xz] [<files>...]\n"
             "\n"
-            "Compresses GTAs. The default method is bzip2.");
+            "Compresses GTAs. The default method is bzip2.\n"
+            "The zlib method can optionally be followed by the compression level (1-9). If no level is specified, "
+            "the default level is used.\n");
 }
 
 extern "C" int gtatool_compress(int argc, char *argv[])
@@ -49,6 +51,15 @@ extern "C" int gtatool_compress(int argc, char *argv[])
     options.push_back(&help);
     std::vector<std::string> methods;
     methods.push_back("zlib");
+    methods.push_back("zlib1");
+    methods.push_back("zlib2");
+    methods.push_back("zlib3");
+    methods.push_back("zlib4");
+    methods.push_back("zlib5");
+    methods.push_back("zlib6");
+    methods.push_back("zlib7");
+    methods.push_back("zlib8");
+    methods.push_back("zlib9");
     methods.push_back("bzip2");
     methods.push_back("xz");
     opt::val<std::string> method("method", '\0', opt::optional, methods, "bzip2");
@@ -64,7 +75,16 @@ extern "C" int gtatool_compress(int argc, char *argv[])
         return 0;
     }
     gta::compression compression =
-        (method.value().compare("zlib") == 0 ? gta::zlib
+        (  method.value().compare("zlib") == 0 ? gta::zlib
+         : method.value().compare("zlib1") == 0 ? gta::zlib1
+         : method.value().compare("zlib2") == 0 ? gta::zlib2
+         : method.value().compare("zlib3") == 0 ? gta::zlib3
+         : method.value().compare("zlib4") == 0 ? gta::zlib4
+         : method.value().compare("zlib5") == 0 ? gta::zlib5
+         : method.value().compare("zlib6") == 0 ? gta::zlib6
+         : method.value().compare("zlib7") == 0 ? gta::zlib7
+         : method.value().compare("zlib8") == 0 ? gta::zlib8
+         : method.value().compare("zlib9") == 0 ? gta::zlib9
          : method.value().compare("bzip2") == 0 ? gta::bzip2
          : gta::xz);
 
