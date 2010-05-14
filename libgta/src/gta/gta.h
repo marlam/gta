@@ -282,7 +282,16 @@ typedef enum
 typedef enum
 {
     GTA_NONE  = 0,      /**< \brief No compression */
-    GTA_ZLIB  = 1,      /**< \brief ZLIB compression (fast, moderate compression rate) */
+    GTA_ZLIB  = 1,      /**< \brief ZLIB compression with default level (fast, moderate compression rate) */
+    GTA_ZLIB1 = 4,      /**< \brief ZLIB compression with level 1 */
+    GTA_ZLIB2 = 5,      /**< \brief ZLIB compression with level 2 */
+    GTA_ZLIB3 = 6,      /**< \brief ZLIB compression with level 3 */
+    GTA_ZLIB4 = 7,      /**< \brief ZLIB compression with level 4 */
+    GTA_ZLIB5 = 8,      /**< \brief ZLIB compression with level 5 */
+    GTA_ZLIB6 = 9,      /**< \brief ZLIB compression with level 6 */
+    GTA_ZLIB7 = 10,     /**< \brief ZLIB compression with level 7 */
+    GTA_ZLIB8 = 11,     /**< \brief ZLIB compression with level 8 */
+    GTA_ZLIB9 = 12,     /**< \brief ZLIB compression with level 9 */
     GTA_BZIP2 = 2,      /**< \brief BZIP2 compression (moderate speed, good compression rates) */
     GTA_XZ    = 3       /**< \brief XZ compression (low/moderate speed, good/very good compression rates) */
 } gta_compression_t;
@@ -634,11 +643,24 @@ GTA_ATTR_NONNULL_ALL GTA_ATTR_PURE GTA_ATTR_NOTHROW;
  * \return              true (1) or false (0).
  *
  * Returns true if the array data is stored in chunks, which means that it
- * cannot be accessed by the out-of-core input functions. If the data is chunked,
- * it is most probably compressed.
+ * cannot be accessed by the out-of-core input functions.\n
+ * Note that compressed data is always stored in chunk, while uncompressed
+ * data is usually not stored in chunks.
  */
 extern GTA_EXPORT int
 gta_data_is_chunked(const gta_header_t *GTA_RESTRICT header)
+GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
+
+/**
+ * \brief               Get the compression.
+ * \param header        The header.
+ * \return              The compression type.
+ *
+ * Gets the compression type for the header and data.\n
+ * See \a gta_compression_t for more information on compression types.
+ */
+extern GTA_EXPORT gta_compression_t
+gta_get_compression(gta_header_t *GTA_RESTRICT header)
 GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
 
 /**

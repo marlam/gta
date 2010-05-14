@@ -384,7 +384,27 @@ gta_compress(void **dst, size_t *dst_size, const void *src, size_t src_size, gta
         break;
 
     case GTA_ZLIB:
+    case GTA_ZLIB1:
+    case GTA_ZLIB2:
+    case GTA_ZLIB3:
+    case GTA_ZLIB4:
+    case GTA_ZLIB5:
+    case GTA_ZLIB6:
+    case GTA_ZLIB7:
+    case GTA_ZLIB8:
+    case GTA_ZLIB9:
         {
+            int zlib_level = (
+                      compression == GTA_ZLIB1 ? 1
+                    : compression == GTA_ZLIB2 ? 2
+                    : compression == GTA_ZLIB3 ? 3
+                    : compression == GTA_ZLIB4 ? 4
+                    : compression == GTA_ZLIB5 ? 5
+                    : compression == GTA_ZLIB6 ? 6
+                    : compression == GTA_ZLIB7 ? 7
+                    : compression == GTA_ZLIB8 ? 8
+                    : compression == GTA_ZLIB9 ? 9
+                    : Z_DEFAULT_COMPRESSION);
             int zlib_r;
             uLong zlib_uncompressed_size = src_size;
             uLongf zlib_compressed_size;
@@ -408,7 +428,7 @@ gta_compress(void **dst, size_t *dst_size, const void *src, size_t src_size, gta
                 retval = GTA_SYSTEM_ERROR;
                 break;
             }
-            zlib_r = compress2(*dst, &zlib_compressed_size, src, zlib_uncompressed_size, 6);
+            zlib_r = compress2(*dst, &zlib_compressed_size, src, zlib_uncompressed_size, zlib_level);
             if (zlib_r != Z_OK)
             {
                 free(*dst);
@@ -554,6 +574,15 @@ gta_uncompress(void *dst, size_t dst_size, const void *src, size_t src_size, gta
         break;
 
     case GTA_ZLIB:
+    case GTA_ZLIB1:
+    case GTA_ZLIB2:
+    case GTA_ZLIB3:
+    case GTA_ZLIB4:
+    case GTA_ZLIB5:
+    case GTA_ZLIB6:
+    case GTA_ZLIB7:
+    case GTA_ZLIB8:
+    case GTA_ZLIB9:
         {
             int zlib_r;
             uLong zlib_compressed_size = src_size;
@@ -3043,6 +3072,12 @@ int
 gta_data_is_chunked(const gta_header_t *GTA_RESTRICT header)
 {
     return header->data_in_chunks;
+}
+
+void
+gta_get_compression(gta_header_t *GTA_RESTRICT header)
+{
+    return header->compression;
 }
 
 void

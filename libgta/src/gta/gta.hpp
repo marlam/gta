@@ -147,6 +147,15 @@ namespace gta
     {
         none = GTA_NONE,   /**< \brief No compression */
         zlib = GTA_ZLIB,   /**< \brief ZLIB compression (fast, moderate compression rate) */
+        zlib1 = GTA_ZLIB1, /**< \brief ZLIB compression with level 1 */
+        zlib2 = GTA_ZLIB2, /**< \brief ZLIB compression with level 2 */
+        zlib3 = GTA_ZLIB3, /**< \brief ZLIB compression with level 3 */
+        zlib4 = GTA_ZLIB4, /**< \brief ZLIB compression with level 4 */
+        zlib5 = GTA_ZLIB5, /**< \brief ZLIB compression with level 5 */
+        zlib6 = GTA_ZLIB6, /**< \brief ZLIB compression with level 6 */
+        zlib7 = GTA_ZLIB7, /**< \brief ZLIB compression with level 7 */
+        zlib8 = GTA_ZLIB8, /**< \brief ZLIB compression with level 8 */
+        zlib9 = GTA_ZLIB9, /**< \brief ZLIB compression with level 9 */
         bzip2 = GTA_BZIP2, /**< \brief BZIP2 compression (moderate speed, good compression rates) */
         xz = GTA_XZ        /**< \brief XZ compression (low/moderate speed, good/very good compression rates) */
     };
@@ -1038,13 +1047,26 @@ namespace gta
          * \brief               Check wether input data is stored in chunks.
          * \return              true or false.
          *
-         * Returns true is the array data is stored in chunks, which means that it
-         * cannot be accessed by the out-of-core input functions. If the data is chunked,
-         * it is most probably compressed.
+         * Returns true if the array data is stored in chunks, which means that it
+         * cannot be accessed by the out-of-core input functions.\n
+         * Note that compressed data is always stored in chunk, while uncompressed
+         * data is usually not stored in chunks.
          */
         bool data_is_chunked() const throw ()
         {
             return gta_data_is_chunked(_header);
+        }
+
+        /**
+         * \brief               Get the compression.
+         * \return              The compression type.
+         *
+         * Gets the compression type for the header and data.\n
+         * See \a gta_compression_t for more information on compression types.
+         */
+        compression get_compression() const throw ()
+        {
+            return static_cast<compression>(gta_get_compression(_header));
         }
 
         /**
