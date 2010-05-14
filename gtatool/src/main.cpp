@@ -104,7 +104,7 @@ extern "C" int gtatool_help(int argc, char *argv[])
             component,
             dimension,
             array,
-            /* stream, */
+            stream,
             conversion,
             misc
         };
@@ -112,7 +112,7 @@ extern "C" int gtatool_help(int argc, char *argv[])
             "Commands that operate on element component level",
             "Commands that operate on dimension level",
             "Commands that operate on array level",
-            /* "Commands that operate on stream level", */
+            "Commands that operate on stream level",
             "Commands to convert from/to other file formats",
             "Miscellaneous commands"
         };

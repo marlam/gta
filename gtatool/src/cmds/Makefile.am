@@ -35,6 +35,7 @@ libbuiltin_la_SOURCES = \
 	set.cpp			\
 	tag.cpp			\
 	uncompress.cpp		\
+	stream-merge.cpp	\
 	from-raw.cpp		\
 	to-raw.cpp
 libbuiltin_la_LIBADD =

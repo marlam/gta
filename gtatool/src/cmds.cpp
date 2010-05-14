@@ -103,6 +103,7 @@ CMD_DECL(info)
 CMD_DECL(merge)
 CMD_DECL(resize)
 CMD_DECL(set)
+CMD_DECL(stream_merge)
 CMD_DECL(tag)
 CMD_DECL(to_exr)
 CMD_DECL(to_gdal)
@@ -145,6 +146,7 @@ static cmd_t cmds[] =
     CMD_STATIC("merge",             array,      merge,             true),
     CMD_STATIC("resize",            array,      resize,            true),
     CMD_STATIC("set",               array,      set,               true),
+    CMD_STATIC("stream-merge",      stream,     stream_merge,      true),
     CMD_STATIC("tag",               array,      tag,               true),
     CMD_MODULE("to-exr",            conversion, to_exr,            WITH_EXR),
     CMD_MODULE("to-gdal",           conversion, to_gdal,           WITH_GDAL),
