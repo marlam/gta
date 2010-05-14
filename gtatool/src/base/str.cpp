@@ -29,7 +29,6 @@
 #include <cerrno>
 #include <limits>
 #include <sstream>
-#include <typeinfo>
 
 #if W32
 # define WIN32_LEAN_AND_MEAN
@@ -207,32 +206,32 @@ namespace str
     /* Convert a string to one of the basic data types */
 
     template<typename T>
-    static inline T _to(const std::string &s) throw (exc)
+    static inline T _to(const std::string &s, const std::string &name) throw (exc)
     {
         std::istringstream is(s);
         T v;
         is >> v;
         if (is.fail() || !is.eof())
         {
-            throw exc(std::string("cannot convert '") + sanitize(s) + "' to " + typeid(T).name(), EINVAL);
+            throw exc(std::string("cannot convert '") + sanitize(s) + "' to " + name, EINVAL);
         }
         return v;
     }
 
-    template<> bool to<bool>(const std::string &s) throw (exc) { return _to<bool>(s); }
-    template<> signed char to<signed char>(const std::string &s) throw (exc) { return _to<signed char>(s); }
-    template<> unsigned char to<unsigned char>(const std::string &s) throw (exc) { return _to<unsigned char>(s); }
-    template<> short to<short>(const std::string &s) throw (exc) { return _to<short>(s); }
-    template<> unsigned short to<unsigned short>(const std::string &s) throw (exc) { return _to<unsigned short>(s); }
-    template<> int to<int>(const std::string &s) throw (exc) { return _to<int>(s); }
-    template<> unsigned int to<unsigned int>(const std::string &s) throw (exc) { return _to<unsigned int>(s); }
-    template<> long to<long>(const std::string &s) throw (exc) { return _to<long>(s); }
-    template<> unsigned long to<unsigned long>(const std::string &s) throw (exc) { return _to<unsigned long>(s); }
-    template<> long long to<long long>(const std::string &s) throw (exc) { return _to<long long>(s); }
-    template<> unsigned long long to<unsigned long long>(const std::string &s) throw (exc) { return _to<unsigned long long>(s); }
-    template<> float to<float>(const std::string &s) throw (exc) { return _to<float>(s); }
-    template<> double to<double>(const std::string &s) throw (exc) { return _to<double>(s); }
-    template<> long double to<long double>(const std::string &s) throw (exc) { return _to<long double>(s); }
+    template<> bool to<bool>(const std::string &s) throw (exc) { return _to<bool>(s, "bool"); }
+    template<> signed char to<signed char>(const std::string &s) throw (exc) { return _to<signed char>(s, "signed char"); }
+    template<> unsigned char to<unsigned char>(const std::string &s) throw (exc) { return _to<unsigned char>(s, "unsigned char"); }
+    template<> short to<short>(const std::string &s) throw (exc) { return _to<short>(s, "short"); }
+    template<> unsigned short to<unsigned short>(const std::string &s) throw (exc) { return _to<unsigned short>(s, "unsigned short"); }
+    template<> int to<int>(const std::string &s) throw (exc) { return _to<int>(s, "int"); }
+    template<> unsigned int to<unsigned int>(const std::string &s) throw (exc) { return _to<unsigned int>(s, "unsigned int"); }
+    template<> long to<long>(const std::string &s) throw (exc) { return _to<long>(s, "long"); }
+    template<> unsigned long to<unsigned long>(const std::string &s) throw (exc) { return _to<unsigned long>(s, "unsigned long"); }
+    template<> long long to<long long>(const std::string &s) throw (exc) { return _to<long long>(s, "long long"); }
+    template<> unsigned long long to<unsigned long long>(const std::string &s) throw (exc) { return _to<unsigned long long>(s, "unsigned long long"); }
+    template<> float to<float>(const std::string &s) throw (exc) { return _to<float>(s, "float"); }
+    template<> double to<double>(const std::string &s) throw (exc) { return _to<double>(s, "double"); }
+    template<> long double to<long double>(const std::string &s) throw (exc) { return _to<long double>(s, "long double"); }
 
     /* Create std::strings printf-like */
 
