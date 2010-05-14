@@ -103,6 +103,7 @@ CMD_DECL(info)
 CMD_DECL(merge)
 CMD_DECL(resize)
 CMD_DECL(set)
+CMD_DECL(stream_extract)
 CMD_DECL(stream_merge)
 CMD_DECL(stream_split)
 CMD_DECL(tag)
@@ -147,6 +148,7 @@ static cmd_t cmds[] =
     CMD_STATIC("merge",             array,      merge,             true),
     CMD_STATIC("resize",            array,      resize,            true),
     CMD_STATIC("set",               array,      set,               true),
+    CMD_STATIC("stream-extract",    stream,     stream_extract,    true),
     CMD_STATIC("stream-merge",      stream,     stream_merge,      true),
     CMD_STATIC("stream-split",      stream,     stream_split,      true),
     CMD_STATIC("tag",               array,      tag,               true),
