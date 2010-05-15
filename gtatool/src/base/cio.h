@@ -57,6 +57,9 @@
 namespace cio
 {
 #if W32
+    // Fix off_t
+#   undef off_t
+#   define off_t off64_t
     // Convert sane path names to and from Windows path names.
     std::string to_sys(const std::string &pathname) throw (exc);
     std::string from_sys(const std::string &pathname) throw (exc);
