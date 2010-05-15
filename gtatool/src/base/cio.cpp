@@ -938,4 +938,19 @@ error_exit:
     {
         return test(1, pathname);
     }
+
+    std::string basename(const std::string &name, const std::string &suffix) throw (exc)
+    {
+        std::string base(name);
+        size_t slash = name.find_last_of('/');
+        if (slash != std::string::npos)
+        {
+            base = base.substr(slash + 1);
+        }
+        if (suffix.length() > 0 && base.substr(base.length() - suffix.length()).compare(suffix) == 0)
+        {
+            base = base.substr(0, base.length() - suffix.length());
+        }
+        return base;
+    }
 }

@@ -130,14 +130,16 @@ namespace cio
 
     // replacements for shell utilities:
     // mkdir -p  (with a variant that assumes that a given prefix already exists)
-    // rm -r
-    // test -f
-    // test -d
     void mkdir_p(const std::string &prefix, const std::string &dirname) throw (exc);
     void mkdir_p(const std::string &dirname) throw (exc);
+    // rm -r
     void rm_r(const std::string &pathname) throw (exc);
+    // test -f
     bool test_f(const std::string &pathname) throw (exc);
+    // test -d
     bool test_d(const std::string &pathname) throw (exc);
+    // basename name [suffix]
+    std::string basename(const std::string &name, const std::string &suffix = std::string("")) throw (exc);
 };
 
 #endif
