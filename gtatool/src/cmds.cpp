@@ -98,6 +98,7 @@ CMD_DECL(from_magick)
 CMD_DECL(from_netpbm)
 CMD_DECL(from_pfs)
 CMD_DECL(from_raw)
+CMD_DECL(gui)
 CMD_DECL(help)
 CMD_DECL(info)
 CMD_DECL(merge)
@@ -143,6 +144,7 @@ static cmd_t cmds[] =
     CMD_MODULE("from-netpbm",       conversion, from_netpbm,       WITH_NETPBM),
     CMD_MODULE("from-pfs",          conversion, from_pfs,          WITH_PFS),
     CMD_STATIC("from-raw",          conversion, from_raw,          true),
+    CMD_MODULE("gui",               misc,       gui,               WITH_QT),
     CMD_STATIC("help",              misc,       help,              true),
     CMD_STATIC("info",              array,      info,              true),
     CMD_STATIC("merge",             array,      merge,             true),

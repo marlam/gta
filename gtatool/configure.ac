@@ -255,6 +255,58 @@ fi
 AC_DEFINE_UNQUOTED([WITH_DCMTK], [`if test "$dcmtk" = "yes"; then echo "1"; else echo "0"; fi`], [Use dcmtk?])
 AM_CONDITIONAL([WITH_DCMTK], [test "$dcmtk" = "yes"])
 
+dnl Qt
+AC_ARG_WITH([qt],
+    [AS_HELP_STRING([--with-qt], [Enable Qt GUI. Enabled by default if Qt >= 4.4.3 is available.])],
+    [if test "$withval" = "yes"; then qt="yes"; else qt="no"; fi], [qt="yes"])
+if test "$qt" = "yes"; then
+    RCC=""
+    AC_ARG_VAR([RCC], [rcc command])
+    AC_CHECK_TOOLS([RCC], [rcc-qt4 rcc])
+    MOC=""
+    AC_ARG_VAR([MOC], [moc command])
+    AC_CHECK_TOOLS([MOC], [moc-qt4 moc])
+    AC_CHECK_HEADER([qt4/Qt/qconfig.h], [HAVE_QTINC=yes], [HAVE_QTINC=no])
+    if test "$HAVE_QTINC" = "yes"; then
+        gl_ABSOLUTE_HEADER([qt4/Qt/qconfig.h])
+        QT_INCLUDE_DIR=`echo $gl_cv_absolute_qt4_Qt_qconfig_h | sed -e 's/\/Qt\/qconfig.h$//' -e 's/^\/\/\//\//'`
+    else
+        AC_CHECK_HEADER([Qt/qconfig.h], [HAVE_QTINC=yes], [HAVE_QTINC=no])
+        if test "$HAVE_QTINC" = "yes"; then
+            gl_ABSOLUTE_HEADER([Qt/qconfig.h])
+            QT_INCLUDE_DIR=`echo $gl_cv_absolute_Qt_qconfig_h | sed -e 's/\/Qt\/qconfig.h$//' -e 's/^\/\/\//\//'`
+        fi
+    fi
+    if test "$RCC" != ":" -a "$MOC" != ":" -a "$HAVE_QTINC" = "yes"; then
+        CPPFLAGS="$CPPFLAGS -isystem $QT_INCLUDE_DIR -isystem $QT_INCLUDE_DIR/Qt -isystem $QT_INCLUDE_DIR/QtCore -isystem $QT_INCLUDE_DIR/QtGui"
+        AC_LIB_FROMPACKAGE([QtGui], [qt])
+        case "${target}" in
+        *-*-mingw32*)
+            AC_LIB_HAVE_LINKFLAGS([QtGui], [gdi32 comdlg32 oleaut32 imm32 winmm winspool QtCore kernel32 user32 shell32 uuid ole32 advapi32 ws2_32 png z],
+                [#include <QApplication>
+                 #if (QT_VERSION < QT_VERSION_CHECK(4, 4, 3))
+                 # error Qt version too old
+                 #endif],
+                [QApplication::exec();])
+            ;;
+        *)
+	    AC_LIB_HAVE_LINKFLAGS([QtGui], [QtCore],
+                [#include <QApplication>
+                 #if (QT_VERSION < QT_VERSION_CHECK(4, 4, 3))
+                 # error Qt version too old
+                 #endif],
+                [QApplication::exec();])
+            ;;
+        esac
+    fi
+    if test "$HAVE_LIBQTGUI" != "yes"; then
+        qt="no"
+        AC_MSG_WARN([Disabled Qt GUI because Qt >= 4.4.3 was not found.])
+    fi
+fi
+AC_DEFINE_UNQUOTED([WITH_QT], [`if test "$qt" = "yes"; then echo "1"; else echo "0"; fi`], [Use Qt?])
+AM_CONDITIONAL([WITH_QT], [test "$qt" = "yes"])
+
 dnl Output
 AC_CONFIG_FILES([Makefile	\
 	src/Makefile		\
@@ -279,4 +331,5 @@ echo "to-exr:           " "$exr"
 echo "from-gdal:        " "$gdal"
 echo "to-gdal:          " "$gdal"
 echo "from-dcmtk:       " "$dcmtk"
+echo "gui:              " "$gui"
 echo ""

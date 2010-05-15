@@ -5,6 +5,9 @@
 # notice are preserved. This file is offered as-is, without any warranty.
 
 AM_CPPFLAGS = -I$(top_srcdir)/src/base -I$(top_srcdir)/src
+BUILT_SOURCES =
+CLEANFILES =
+EXTRA_DIST =
 
 #
 # Builtin commands
@@ -40,6 +43,7 @@ libbuiltin_la_SOURCES = \
 	stream-split.cpp	\
 	from-raw.cpp		\
 	to-raw.cpp
+nodist_libbuiltin_la_SOURCES =
 libbuiltin_la_LIBADD =
 
 #
@@ -150,5 +154,32 @@ from_dcmtk_la_LIBADD = $(LTLIBDCMIMGLE)
 else
 libbuiltin_la_SOURCES += from-dcmtk.cpp
 libbuiltin_la_LIBADD += $(LTLIBDCMIMGLE)
+endif
+endif
+
+if WITH_QT
+moc_verbose = $(moc_verbose_$(V))
+moc_verbose_ = $(moc_verbose_$(AM_DEFAULT_VERBOSITY))
+moc_verbose_0 = @echo "  MOC   " $@;
+%.moc.cpp: %.h
+	$(moc_verbose)$(MOC) -o $@ $<
+rcc_verbose = $(rcc_verbose_$(V))
+rcc_verbose_ = $(rcc_verbose_$(AM_DEFAULT_VERBOSITY))
+rcc_verbose_0 = @echo "  RCC   " $@;
+%.resources.cpp: %.qrc
+	$(rcc_verbose)$(RCC) -o $@ $<
+GUI_BUILT_SOURCES = gui.moc.cpp gui.resources.cpp
+BUILT_SOURCES += $(GUI_BUILT_SOURCES)
+CLEANFILES += $(GUI_BUILT_SOURCES)
+EXTRA_DIST += gui.png gui.qrc
+if DYNAMIC_MODULES
+pkglib_LTLIBRARIES += gui.la
+gui_la_SOURCES = gui.h gui.cpp
+nodist_gui_la_SOURCES = $(GUI_BUILT_SOURCES)
+gui_la_LIBADD = $(LTLIBQTGUI)
+else
+libbuiltin_la_SOURCES += gui.h gui.cpp
+nodist_libbuiltin_la_SOURCES += $(GUI_BUILT_SOURCES)
+libbuiltin_la_LIBADD += $(LTLIBQTGUI)
 endif
 endif
