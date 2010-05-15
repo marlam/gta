@@ -52,7 +52,7 @@
 #       define EOVERFLOW EFBIG
 #   endif
 #   undef off_t
-#   define off_t int64_t
+#   define off_t off64_t
 #   define fseeko(stream, offset, whence) fseeko64(stream, offset, whence)
 #   define ftello(stream) ftello64(stream)
 #   define lseek(fd, offset, whence) _lseeki64(fd, offset, whence)
