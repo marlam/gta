@@ -53,8 +53,8 @@ TO checked_cast(FROM x) throw (exc)
     if (std::numeric_limits<FROM>::is_signed && std::numeric_limits<TO>::is_signed)
     {
         if (sizeof(FROM) > sizeof(TO)
-                && (x < std::numeric_limits<TO>::min()
-                    || x > std::numeric_limits<TO>::max()))
+                && (x < static_cast<FROM>(std::numeric_limits<TO>::min())
+                    || x > static_cast<FROM>(std::numeric_limits<TO>::max())))
         {
             throw exc(ERANGE);
         }
