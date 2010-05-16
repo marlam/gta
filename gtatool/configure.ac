@@ -45,6 +45,12 @@ AC_DEFINE_UNQUOTED([PLATFORM], ["${target}"], [Platform triplet])
 
 dnl Special handling of W32
 case "${target}" in *-*-mingw32*) w32="yes" ;; *) w32="no" ;; esac
+if test "$w32" = "yes"; then
+    AC_CHECK_TOOL([WINDRES], [windres], [:])
+    if test "$WINDRES" = ":"; then
+        AC_MSG_ERROR([windres not found])
+    fi
+fi
 AM_CONDITIONAL([W32], [test "$w32" = "yes"])
 if test "$w32" = "yes"; then W32=1; else W32=0; fi
 AC_DEFINE_UNQUOTED([W32], [$W32], [Use W32 API?])

@@ -8,7 +8,20 @@ SUBDIRS = base cmds
 bin_PROGRAMS = gta
 gta_SOURCES = main.cpp cmds.h cmds.cpp lib.h lib.cpp
 AM_CPPFLAGS = -I$(top_srcdir)/src/base -DPKGLIBDIR=\"$(pkglibdir)\"
-gta_LDADD = $(top_builddir)/src/cmds/libbuiltin.la \
-	$(top_builddir)/src/base/libbase.la \
+gta_LDADD = $(top_builddir)/src/cmds/libbuiltin.la
+if WITH_QT
+if DYNAMIC_MODULES
+else
+# FIXME: The GUI resources will not be linked in unless we
+# force this here. Why? Is there a clean way to solve this?
+gta_LDADD += $(top_builddir)/src/cmds/gui.resources.lo
+endif
+endif
+gta_LDADD += $(top_builddir)/src/base/libbase.la \
 	$(LTLIBGTA) $(LIB_DLOPEN) $(LIB_ICONV)
 gta_LDFLAGS = -export-dynamic
+if W32
+gta_SOURCES += appicon.ico
+.ico.o:
+	echo "IDI_ICON1 ICON DISCARDABLE \"$<\"" | $(WINDRES) -o $@
+endif
