@@ -747,10 +747,14 @@ void GUI::help_about()
             .arg(PACKAGE_NAME).arg(VERSION).arg(gta::version()).arg(PACKAGE_URL).arg(PACKAGE_URL));
 }
 
+extern int qInitResources();
+
 extern "C" int gtatool_gui(int argc, char *argv[])
 {
     /* Let Qt handle the command line first, so that Qt options work */
     QApplication *app = new QApplication(argc, argv);
+    /* Force linking of the Qt resources. Necessary if dynamic modules are disabled. */
+    qInitResources();
     /* Now handle our own command line options / arguments */
     std::vector<opt::option *> options;
     opt::info help("help", '\0', opt::optional);
