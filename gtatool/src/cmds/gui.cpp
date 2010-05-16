@@ -23,6 +23,10 @@
 #include "config.h"
 
 #include <string>
+#if W32
+#   define WIN32_LEAN_AND_MEAN
+#   include <windows.h>
+#endif
 
 #include <QApplication>
 #include <QMainWindow>
@@ -762,6 +766,9 @@ extern "C" int gtatool_gui(int argc, char *argv[])
         return 0;
     }
     /* Run the GUI */
+#if W32
+    FreeConsole();
+#endif
     int retval = 0;
     try
     {
