@@ -25,6 +25,7 @@
 #include <string>
 #if W32
 #   define WIN32_LEAN_AND_MEAN
+#   define _WIN32_WINNT 0x0502
 #   include <windows.h>
 #endif
 
@@ -771,7 +772,14 @@ extern "C" int gtatool_gui(int argc, char *argv[])
     }
     /* Run the GUI */
 #if W32
-    FreeConsole();
+    DWORD console_process_list[1];
+    if (GetConsoleProcessList(console_process_list, 1) == 1)
+    {
+        // We are the only process using the console. In particular, the user did not call us
+        // via the command interpreter and thus will not watch the console for output.
+        // Therefore, we can get rid of it.
+        FreeConsole();
+    }
 #endif
     int retval = 0;
     try
