@@ -555,6 +555,7 @@ void GUI::open(const std::string &filename)
                     this, SLOT(file_changed(const std::string &, const std::string &)));
             _files_widget->addTab(fw, QString(cio::to_sys(cio::basename(filename)).c_str()));
             _files_widget->tabBar()->setTabTextColor(_files_widget->indexOf(fw), "black");
+            _files_widget->setCurrentWidget(fw);
         }
     }
     catch (std::exception &e)
@@ -585,6 +586,7 @@ void GUI::file_open()
         return;
     }
     QStringList file_names = file_dialog->selectedFiles();
+    file_names.sort();
     for (int i = 0; i < file_names.size(); i++)
     {
         open(qPrintable(file_names[i]));
@@ -607,8 +609,7 @@ void GUI::file_save()
     try
     {
         cio::rewind(fw->file(), fw->name());
-        FILE *fo;
-        std::string foname = cio::mktempfile(&fo, PACKAGE_NAME);
+        FILE *fo = cio::open(fw->name() + ".tmp", "w");
         for (size_t i = 0; i < fw->headers().size(); i++)
         {
             gta::header dummy_header;
@@ -617,11 +618,14 @@ void GUI::file_save()
             dummy_header.copy_data(fw->file(), *(fw->headers()[i]), fo);
         }
 #if W32
+        /* Windows is too stupid to do this right */
         cio::close(fw->file(), fw->name());
+        cio::close(fo, fw->name() + ".tmp");
         cio::remove(fw->name());
-        cio::rename(foname, fw->name());
+        cio::rename(fw->name() + ".tmp", fw->name());
+        fo = cio::open(fw->name(), "r");
 #else
-        cio::rename(foname, fw->name());
+        cio::rename(fw->name() + ".tmp", fw->name());
         cio::close(fw->file(), fw->name());
 #endif
         fw->saved(fo);
