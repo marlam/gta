@@ -261,6 +261,9 @@ void cmd_close(int cmd_index)
     if (cmds[cmd_index].module_handle)
     {
         (void)dlclose(cmds[cmd_index].module_handle);
+        cmds[cmd_index].module_handle = NULL;
+        cmds[cmd_index].cmd_print_help = NULL;
+        cmds[cmd_index].cmd = NULL;
     }
 #endif
 }
