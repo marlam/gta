@@ -23,6 +23,8 @@
 #include "config.h"
 
 #include <string>
+#include <cerrno>
+#include <cstring>
 #if W32
 #   define WIN32_LEAN_AND_MEAN
 #   define _WIN32_WINNT 0x0502
@@ -478,6 +480,42 @@ GUI::GUI()
     connect(file_close_all_action, SIGNAL(triggered()), this, SLOT(file_close_all()));
     file_menu->addAction(file_close_all_action);
     file_menu->addSeparator();
+    QAction *file_import_dcmtk_action = new QAction(tr("Import via DCMTK..."), this);
+    connect(file_import_dcmtk_action, SIGNAL(triggered()), this, SLOT(file_import_dcmtk()));
+    if (!cmd_is_available(cmd_find("from-dcmtk")))
+    {
+        file_import_dcmtk_action->setEnabled(false);
+    }
+    file_menu->addAction(file_import_dcmtk_action);
+    QAction *file_import_exr_action = new QAction(tr("Import via EXR..."), this);
+    connect(file_import_exr_action, SIGNAL(triggered()), this, SLOT(file_import_exr()));
+    if (!cmd_is_available(cmd_find("from-exr")))
+    {
+        file_import_exr_action->setEnabled(false);
+    }
+    file_menu->addAction(file_import_exr_action);
+    QAction *file_import_gdal_action = new QAction(tr("Import via GDAL..."), this);
+    connect(file_import_gdal_action, SIGNAL(triggered()), this, SLOT(file_import_gdal()));
+    if (!cmd_is_available(cmd_find("from-gdal")))
+    {
+        file_import_gdal_action->setEnabled(false);
+    }
+    file_menu->addAction(file_import_gdal_action);
+    QAction *file_import_magick_action = new QAction(tr("Import via Magick..."), this);
+    connect(file_import_magick_action, SIGNAL(triggered()), this, SLOT(file_import_magick()));
+    if (!cmd_is_available(cmd_find("from-magick")))
+    {
+        file_import_magick_action->setEnabled(false);
+    }
+    file_menu->addAction(file_import_magick_action);
+    QAction *file_import_pfs_action = new QAction(tr("Import via PFS..."), this);
+    connect(file_import_pfs_action, SIGNAL(triggered()), this, SLOT(file_import_pfs()));
+    if (!cmd_is_available(cmd_find("from-pfs")))
+    {
+        file_import_pfs_action->setEnabled(false);
+    }
+    file_menu->addAction(file_import_pfs_action);
+    file_menu->addSeparator();
     QAction *quit_action = new QAction(tr("&Quit"), this);
     quit_action->setShortcut(tr("Ctrl+Q"));
     connect(quit_action, SIGNAL(triggered()), this, SLOT(close()));
@@ -521,6 +559,215 @@ void GUI::file_changed(const std::string &name, const std::string &temp_name)
     _files_widget->tabBar()->setTabTextColor(file_index, QColor("red"));
 }
 
+QStringList GUI::file_open_dialog(const QStringList &filters)
+{
+    QFileDialog *file_dialog = new QFileDialog(this);
+    file_dialog->setWindowTitle(tr("Open"));
+    file_dialog->setAcceptMode(QFileDialog::AcceptOpen);
+    file_dialog->setFileMode(QFileDialog::ExistingFiles);
+    if (_last_file_open_dir.exists())
+    {
+        file_dialog->setDirectory(_last_file_open_dir);
+    }
+    QStringList complete_filters;
+    complete_filters << filters << tr("All files (*)");
+    file_dialog->setFilters(complete_filters);
+    QStringList file_names;
+    if (file_dialog->exec())
+    {
+        file_names = file_dialog->selectedFiles();
+        file_names.sort();
+        _last_file_open_dir = file_dialog->directory();
+    }
+    return file_names;
+}
+
+QString GUI::file_save_dialog(const QString &existing_name)
+{
+    QDir file_dialog_dir;
+    if (!existing_name.isEmpty())
+    {
+        file_dialog_dir = QDir(QFileInfo(existing_name).absolutePath());
+    }
+    else
+    {
+        file_dialog_dir = _last_file_save_as_dir;
+    }
+    QFileDialog *file_dialog = new QFileDialog(this);
+    file_dialog->setWindowTitle(tr("Save"));
+    file_dialog->setAcceptMode(QFileDialog::AcceptSave);
+    file_dialog->setFileMode(QFileDialog::AnyFile);
+    file_dialog->setDefaultSuffix("gta");
+    if (file_dialog_dir.exists())
+    {
+        file_dialog->setDirectory(file_dialog_dir);
+    }
+    QStringList filters;
+    filters << tr("GTA files (*.gta)") << tr("All files (*)");
+    file_dialog->setFilters(filters);
+    QString file_name;
+    if (file_dialog->exec())
+    {
+        file_name = file_dialog->selectedFiles().at(0);
+        QFileInfo file_info(file_name);
+        _last_file_save_as_dir = file_dialog->directory();
+        for (int i = 0; i < _files_widget->count(); i++)
+        {
+            FileWidget *existing_fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
+            QFileInfo existing_file_info(cio::to_sys(existing_fw->name()).c_str());
+            if (file_info.canonicalFilePath() == existing_file_info.canonicalFilePath())
+            {
+                QMessageBox::critical(this, "Error", "This file is currently opened. Close it first.");
+                file_name = QString();
+                break;
+            }
+        }
+    }
+    return file_name;
+}
+
+int GUI::run(const std::string &cmd, const std::vector<std::string> &argv,
+        std::string &std_err, FILE *std_out, FILE *std_in)
+{
+    /* prepare */
+    std::vector<char *> real_argv;
+    real_argv.push_back(::strdup(cmd.c_str()));
+    for (size_t i = 0; i < argv.size(); i++)
+    {
+        real_argv.push_back(::strdup(argv[i].c_str()));
+    }
+    real_argv.push_back(NULL);
+    for (size_t i = 0; i < real_argv.size() - 1; i++)
+    {
+        if (!real_argv[i])
+        {
+            for (size_t j = 0; j < i; j++)
+            {
+                ::free(real_argv[i]);
+            }
+            std_err = ::strerror(ENOMEM);
+            return 1;
+        }
+    }
+    /* save environment */
+    FILE *std_err_bak = msg::file();
+    FILE *std_out_bak = stdout;
+    FILE *std_in_bak = stdin;
+    std::string msg_prg_name_bak = msg::program_name();
+    int msg_columns_bak = msg::columns();
+    /* modify environment */
+    FILE *std_err_tmp;
+    try
+    {
+        std_err_tmp = cio::tempfile(PACKAGE_NAME);
+    }
+    catch (std::exception &e)
+    {
+        std_err = e.what();
+        for (size_t i = 0; i < real_argv.size() - 1; i++)
+        {
+            ::free(real_argv[i]);
+        }
+        return 1;
+    }
+    msg::set_file(std_err_tmp);
+    if (std_out)
+    {
+        stdout = std_out;
+    }
+    if (std_in)
+    {
+        stdin = std_in;
+    }
+    msg::set_program_name(msg_prg_name_bak + " " + cmd);
+    msg::set_columns(80);
+    /* run command */
+    int cmd_index = cmd_find(cmd.c_str());
+    cmd_open(cmd_index);
+    int retval = cmd_run(cmd_index, real_argv.size() - 1, &(real_argv[0]));
+    for (size_t i = 0; i < real_argv.size() - 1; i++)
+    {
+        ::free(real_argv[i]);
+    }
+    cmd_close(cmd_index);
+    /* restore environment */
+    msg::set_file(std_err_bak);
+    stdout = std_out_bak;
+    stdin = std_in_bak;
+    msg::set_program_name(msg_prg_name_bak);
+    msg::set_columns(msg_columns_bak);
+    /* read messages */
+    try
+    {
+        cio::rewind(std_err_tmp);
+        std_err = "";
+        int c;
+        while ((c = cio::getc(std_err_tmp)) != EOF)
+        {
+            std_err.append(1, c);
+        }
+    }
+    catch (std::exception &e)
+    {
+        std_err = e.what();
+        retval = 1;
+    }
+    try
+    {
+        cio::close(std_err_tmp);
+    }
+    catch (...)
+    {
+    }
+    return retval;
+}
+
+void GUI::import(const std::string &cmd, const QStringList &filters)
+{
+    QStringList open_file_names = file_open_dialog(filters);
+    if (open_file_names.size() > 0)
+    {
+        QString save_file_name = file_save_dialog();
+        if (!save_file_name.isEmpty())
+        {
+            FILE *f = NULL;
+            try
+            {
+                f = cio::open(qPrintable(save_file_name), "w");
+                for (int i = 0; i < open_file_names.size(); i++)
+                {
+                    std::string std_err;
+                    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+                    int retval = run(cmd, std::vector<std::string>(1, qPrintable(open_file_names[i])), std_err, f, NULL);
+                    QApplication::restoreOverrideCursor();
+                    if (retval != 0)
+                    {
+                        throw exc(std::string("<p>Import failed.</p><pre>") + std_err + "</pre>");
+                    }
+                }
+                cio::close(f, qPrintable(save_file_name));
+                f = NULL;
+                open(qPrintable(save_file_name));
+            }
+            catch (std::exception &e)
+            {
+                QMessageBox::critical(this, "Error", e.what());
+                if (f)
+                {
+                    try
+                    {
+                        cio::close(f);
+                        cio::remove(qPrintable(save_file_name));
+                    }
+                    catch (...)
+                    {
+                    }
+                }
+            }
+        }
+    }
+}
+
 void GUI::open(const std::string &filename)
 {
     QFileInfo file_info(cio::to_sys(filename).c_str());
@@ -539,6 +786,7 @@ void GUI::open(const std::string &filename)
     try
     {
         FILE *f = cio::open(filename, "r");
+        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
         while (cio::has_more(f, filename))
         {
             off_t offset = cio::tell(f, filename);
@@ -551,6 +799,7 @@ void GUI::open(const std::string &filename)
         if (headers.size() == 0)
         {
             cio::close(f, filename);
+            QApplication::restoreOverrideCursor();
             QMessageBox::critical(this, "Error", "File is empty");
         }
         else
@@ -562,6 +811,7 @@ void GUI::open(const std::string &filename)
             _files_widget->tabBar()->setTabTextColor(_files_widget->indexOf(fw), "black");
             _files_widget->setCurrentWidget(fw);
         }
+        QApplication::restoreOverrideCursor();
     }
     catch (std::exception &e)
     {
@@ -569,34 +819,18 @@ void GUI::open(const std::string &filename)
         {
             delete headers[i];
         }
+        QApplication::restoreOverrideCursor();
         QMessageBox::critical(this, "Error", e.what());
     }
 }
 
 void GUI::file_open()
 {
-    QFileDialog *file_dialog = new QFileDialog(this);
-    file_dialog->setWindowTitle(tr("Open"));
-    file_dialog->setAcceptMode(QFileDialog::AcceptOpen);
-    file_dialog->setFileMode(QFileDialog::ExistingFiles);
-    if (_last_file_open_dir.exists())
-    {
-        file_dialog->setDirectory(_last_file_open_dir);
-    }
-    QStringList filters;
-    filters << tr("GTA files (*.gta)") << tr("All files (*)");
-    file_dialog->setFilters(filters);
-    if (!file_dialog->exec())
-    {
-        return;
-    }
-    QStringList file_names = file_dialog->selectedFiles();
-    file_names.sort();
+    QStringList file_names = file_open_dialog(QStringList("GTA files (*.gta)"));
     for (int i = 0; i < file_names.size(); i++)
     {
         open(qPrintable(file_names[i]));
     }
-    _last_file_open_dir = file_dialog->directory();
 }
 
 void GUI::file_save()
@@ -653,47 +887,26 @@ void GUI::file_save_as()
         return;
     }
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    QDir file_dialog_dir;
-    if (fw->name().length() == 0)
+    std::string old_name = fw->name();
+    bool old_is_changed = fw->is_changed();
+    QString file_name = file_save_dialog(old_name.length() == 0 ? QString() : cio::to_sys(old_name).c_str());
+    if (!file_name.isEmpty())
     {
-        file_dialog_dir = QDir(QFileInfo(cio::to_sys(fw->name()).c_str()).absolutePath());
-    }
-    else
-    {
-        file_dialog_dir = _last_file_save_as_dir;
-    }
-    QFileDialog *file_dialog = new QFileDialog(this);
-    file_dialog->setWindowTitle(tr("Save as"));
-    file_dialog->setAcceptMode(QFileDialog::AcceptSave);
-    file_dialog->setFileMode(QFileDialog::AnyFile);
-    file_dialog->setDefaultSuffix("gta");
-    if (file_dialog_dir.exists())
-    {
-        file_dialog->setDirectory(file_dialog_dir);
-    }
-    QStringList filters;
-    filters << tr("GTA files (*.gta)") << tr("All files (*)");
-    file_dialog->setFilters(filters);
-    if (!file_dialog->exec())
-    {
-        return;
-    }
-    QString file_name = file_dialog->selectedFiles().at(0);
-    QFileInfo file_info(file_name);
-    for (int i = 0; i < _files_widget->count(); i++)
-    {
-        FileWidget *existing_fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
-        QFileInfo existing_file_info(cio::to_sys(existing_fw->name()).c_str());
-        if (file_info.canonicalFilePath() == existing_file_info.canonicalFilePath())
+        fw->set_name(cio::from_sys(qPrintable(file_name)));
+        file_save();
+        if (!fw->is_changed())
         {
-            QMessageBox::critical(this, "Error", "This file is currently opened. Close it first.");
-            return;
+            _files_widget->setTabText(_files_widget->indexOf(fw), QString(cio::to_sys(cio::basename(fw->name())).c_str()));
+        }
+        else
+        {
+            fw->set_name(old_name);
+            if (!old_is_changed)
+            {
+                fw->saved(fw->file());
+            }
         }
     }
-    fw->set_name(cio::from_sys(qPrintable(file_name)));
-    _files_widget->setTabText(_files_widget->indexOf(fw), QString(cio::to_sys(cio::basename(fw->name())).c_str()));
-    file_save();
-    _last_file_save_as_dir = file_dialog->directory();
 }
 
 void GUI::file_save_all()
@@ -750,6 +963,31 @@ void GUI::file_close_all()
     {
         _files_widget->removeTab(0);
     }
+}
+
+void GUI::file_import_dcmtk()
+{
+    import("from-dcmtk");
+}
+
+void GUI::file_import_exr()
+{
+    import("from-exr");
+}
+
+void GUI::file_import_gdal()
+{
+    import("from-gdal");
+}
+
+void GUI::file_import_magick()
+{
+    import("from-magick");
+}
+
+void GUI::file_import_pfs()
+{
+    import("from-pfs");
 }
 
 void GUI::help_about()

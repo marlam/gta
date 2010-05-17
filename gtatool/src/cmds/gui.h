@@ -35,6 +35,7 @@
 #include <QLabel>
 #include <QTabWidget>
 #include <QDir>
+#include <QStringList>
 
 #include <gta/gta.hpp>
 
@@ -183,6 +184,12 @@ private:
     QDir _last_file_open_dir;
     QDir _last_file_save_as_dir;
 
+    QStringList file_open_dialog(const QStringList &filters = QStringList());
+    QString file_save_dialog(const QString &existing_name = QString());
+    int run(const std::string &cmd, const std::vector<std::string> &argv,
+            std::string &std_err, FILE *std_out = NULL, FILE *std_in = NULL);
+    void import(const std::string &cmd, const QStringList &filters = QStringList());
+
 private slots:
     void file_changed(const std::string &name, const std::string &temp_name);
 
@@ -202,6 +209,12 @@ private slots:
     void file_save_all();
     void file_close();
     void file_close_all();
+    void file_import_dcmtk();
+    void file_import_exr();
+    void file_import_gdal();
+    void file_import_magick();
+    void file_import_pfs();
+    void file_import_raw();
     void help_about();
 };
 
