@@ -146,7 +146,7 @@ extern "C" int gtatool_to_magick(int argc, char *argv[])
     {
         ExceptionType severity;
         char *description = MagickGetException(magick_wand, &severity);
-        msg::err("ImageMagick error: %s", *description ? description : "unknown error");
+        msg::err_txt("ImageMagick error: %s", *description ? description : "unknown error");
         description = static_cast<char *>(MagickRelinquishMemory(description));
         magick_wand = DestroyMagickWand(magick_wand);
         MagickWandTerminus();
@@ -375,7 +375,7 @@ extern "C" int gtatool_to_magick(int argc, char *argv[])
     {
         ExceptionType severity;
         char *description = MagickGetException(magick_wand, &severity);
-        msg::err("ImageMagick error: %s", *description ? description : "unknown error");
+        msg::err_txt("ImageMagick error: %s", *description ? description : "unknown error");
         description = static_cast<char *>(MagickRelinquishMemory(description));
         return 1;
     }
