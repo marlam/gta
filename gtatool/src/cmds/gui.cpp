@@ -601,6 +601,10 @@ void GUI::file_open()
 
 void GUI::file_save()
 {
+    if (_files_widget->count() == 0)
+    {
+        return;
+    }
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
     if (!fw->is_changed())
     {
@@ -644,6 +648,10 @@ void GUI::file_save()
 
 void GUI::file_save_as()
 {
+    if (_files_widget->count() == 0)
+    {
+        return;
+    }
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
     QDir file_dialog_dir;
     if (fw->name().length() == 0)
@@ -690,6 +698,10 @@ void GUI::file_save_as()
 
 void GUI::file_save_all()
 {
+    if (_files_widget->count() == 0)
+    {
+        return;
+    }
     int old_index = _files_widget->currentIndex();
     for (int i = 0; i < _files_widget->count(); i++)
     {
@@ -701,6 +713,10 @@ void GUI::file_save_all()
 
 void GUI::file_close()
 {
+    if (_files_widget->count() == 0)
+    {
+        return;
+    }
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
     if (fw->is_changed())
     {
