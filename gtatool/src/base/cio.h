@@ -89,6 +89,9 @@ namespace cio
     void read(void *dest, size_t s, size_t n, FILE *f, const std::string &filename = std::string("")) throw (exc);
     void write(const void *src, size_t s, size_t n, FILE *f, const std::string &filename = std::string("")) throw (exc);
 
+    // flush
+    void flush(FILE *f, const std::string &filename = std::string("")) throw (exc);
+
     // fseek and ftello replacements
     bool seekable(FILE *f) throw ();
     void seek(FILE *f, off_t offset, int whence, const std::string &filename = std::string("")) throw (exc);

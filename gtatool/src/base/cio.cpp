@@ -579,6 +579,14 @@ error_exit:
         }
     }
 
+    void flush(FILE *f, const std::string &filename) throw (exc)
+    {
+        if (::fflush(f) != 0)
+        {
+            throw exc("Cannot flush " + (!filename.empty() ? to_sys(filename) : "temporary file"), errno);
+        }
+    }
+
     bool seekable(FILE *f) throw ()
     {
         return (::ftello(f) != -1);
