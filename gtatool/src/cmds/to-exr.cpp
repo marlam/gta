@@ -82,7 +82,7 @@ extern "C" int gtatool_to_exr(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
 
@@ -106,7 +106,7 @@ extern "C" int gtatool_to_exr(int argc, char *argv[])
                     || hdr.component_type(i) == gta::uint64
                     || hdr.component_type(i) == gta::float64)
             {
-                msg::wrn(std::string("Converting ")
+                msg::wrn_txt(std::string("Converting ")
                         + (hdr.component_type(i) == gta::int32 ? "int32"
                          : hdr.component_type(i) == gta::uint32 ? "uint32"
                          : hdr.component_type(i) == gta::int64 ? "int64"
@@ -250,12 +250,12 @@ extern "C" int gtatool_to_exr(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
     catch (...)
     {
-        msg::err("Cannot write %s: OpenEXR error", ofilename.c_str());
+        msg::err_txt("Cannot write %s: OpenEXR error", ofilename.c_str());
         return 1;
     }
 

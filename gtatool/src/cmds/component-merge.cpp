@@ -69,7 +69,7 @@ extern "C" int gtatool_component_merge(int argc, char *argv[])
 
     if (cio::isatty(stdout))
     {
-        msg::err("refusing to write to a tty");
+        msg::err_txt("refusing to write to a tty");
         return 1;
     }
 
@@ -157,7 +157,7 @@ extern "C" int gtatool_component_merge(int argc, char *argv[])
         {
             if (cio::has_more(fi[i], arguments[i]))
             {
-                msg::wrn("ignoring additional array(s) from %s", arguments[i].c_str());
+                msg::wrn_txt("ignoring additional array(s) from %s", arguments[i].c_str());
             }
         }
         for (size_t i = 0; i < arguments.size(); i++)
@@ -167,7 +167,7 @@ extern "C" int gtatool_component_merge(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
 

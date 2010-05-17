@@ -70,21 +70,21 @@ extern "C" int gtatool_extract(int argc, char *argv[])
     }
     if (low.value().size() != high.value().size())
     {
-        msg::err("low and high coordinates must have the same dimensions");
+        msg::err_txt("low and high coordinates must have the same dimensions");
         return 1;
     }
     for (size_t i = 0; i < low.value().size(); i++)
     {
         if (low.value()[i] > high.value()[i])
         {
-            msg::err("low coordinate(s) are greater than high coordinate(s)");
+            msg::err_txt("low coordinate(s) are greater than high coordinate(s)");
             return 1;
         }
     }
 
     if (cio::isatty(stdout))
     {
-        msg::err("refusing to write to a tty");
+        msg::err_txt("refusing to write to a tty");
         return 1;
     }
 
@@ -172,7 +172,7 @@ extern "C" int gtatool_extract(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
 

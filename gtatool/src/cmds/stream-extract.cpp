@@ -190,13 +190,13 @@ extern "C" int gtatool_stream_extract(int argc, char *argv[])
     }
     catch (exc)
     {
-        msg::err("invalid range list");
+        msg::err_txt("invalid range list");
         return 1;
     }
 
     if (cio::isatty(stdout))
     {
-        msg::err("refusing to write to a tty");
+        msg::err_txt("refusing to write to a tty");
         return 1;
     }
 
@@ -247,13 +247,13 @@ extern "C" int gtatool_stream_extract(int argc, char *argv[])
             arg++;
         }
         while (arg < arguments.size());
-        msg::dbg(str::from(array_index) + " arrays processed, "
+        msg::dbg_txt(str::from(array_index) + " arrays processed, "
                 + str::from(array_index - dropcounter) + " kept, "
                 + str::from(dropcounter) + " dropped");
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
 

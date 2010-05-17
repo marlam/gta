@@ -76,7 +76,7 @@ extern "C" int gtatool_from_pfs(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
 
@@ -196,12 +196,12 @@ extern "C" int gtatool_from_pfs(int argc, char *argv[])
     }
     catch (pfs::Exception &e)
     {
-        msg::err("%s", e.getMessage());
+        msg::err_txt("%s", e.getMessage());
         return 1;
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
 

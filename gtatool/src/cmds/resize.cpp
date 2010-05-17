@@ -74,13 +74,13 @@ extern "C" int gtatool_resize(int argc, char *argv[])
     }
     if (!index.values().empty() && index.value().size() != dimensions.value().size())
     {
-        msg::err("the index must have the same dimensionality as the resized array");
+        msg::err_txt("the index must have the same dimensionality as the resized array");
         return 1;
     }
 
     if (cio::isatty(stdout))
     {
-        msg::err("refusing to write to a tty");
+        msg::err_txt("refusing to write to a tty");
         return 1;
     }
 
@@ -200,7 +200,7 @@ extern "C" int gtatool_resize(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
 

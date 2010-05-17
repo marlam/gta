@@ -78,7 +78,7 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
 
     if (cio::isatty(stdout))
     {
-        msg::err("refusing to write to a tty");
+        msg::err_txt("refusing to write to a tty");
         return 1;
     }
 
@@ -377,12 +377,12 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
     }
     catch (mu::Parser::exception_type &e)
     {
-        msg::err(e.GetMsg());
+        msg::err_txt(e.GetMsg());
         return 1;
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
 

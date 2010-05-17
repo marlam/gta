@@ -82,7 +82,7 @@ extern "C" int gtatool_from_magick(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
 
@@ -173,7 +173,7 @@ extern "C" int gtatool_from_magick(int argc, char *argv[])
             hdr->component_taglist(3).set("INTERPRETATION", "ALPHA");
         }
         hdr->set_dimensions(MagickGetImageWidth(magick_wand), MagickGetImageHeight(magick_wand));
-        msg::inf("%d x %d array, %d element components of type %s",
+        msg::inf_txt("%d x %d array, %d element components of type %s",
                 static_cast<int>(hdr->dimension_size(0)),
                 static_cast<int>(hdr->dimension_size(1)),
                 static_cast<int>(hdr->components()),
@@ -183,7 +183,7 @@ extern "C" int gtatool_from_magick(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         magick_wand = DestroyMagickWand(magick_wand);
         MagickWandTerminus();
         return 1;
@@ -314,7 +314,7 @@ extern "C" int gtatool_from_magick(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         retval = 1;
     }
 

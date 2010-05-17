@@ -85,7 +85,7 @@ extern "C" int gtatool_from_exr(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
 
@@ -139,12 +139,12 @@ extern "C" int gtatool_from_exr(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
     catch (...)
     {
-        msg::err("Cannot load %s: OpenEXR error", ifilename.c_str());
+        msg::err_txt("Cannot load %s: OpenEXR error", ifilename.c_str());
         return 1;
     }
 

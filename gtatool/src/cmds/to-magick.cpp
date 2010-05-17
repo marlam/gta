@@ -79,7 +79,7 @@ extern "C" int gtatool_to_magick(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
 
@@ -92,36 +92,36 @@ extern "C" int gtatool_to_magick(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
     if (hdr->dimensions() != 2)
     {
-        msg::err("Only two-dimensional arrays can be exported to images");
+        msg::err_txt("Only two-dimensional arrays can be exported to images");
         return 1;
     }
     if (hdr->components() < 1 || hdr->components() > 4)
     {
-        msg::err("Only arrays with 1-4 element components can be exported to images");
+        msg::err_txt("Only arrays with 1-4 element components can be exported to images");
         return 1;
     }
     gta::type channel_type = hdr->component_type(0);
     if (channel_type != gta::uint8 && channel_type != gta::uint16 && channel_type != gta::float32)
     {
-        msg::err("Only arrays with element component types uint8, uint16, or float32 can be exported to images");
+        msg::err_txt("Only arrays with element component types uint8, uint16, or float32 can be exported to images");
         return 1;
     }
     for (uintmax_t i = 1; i < hdr->components(); i++)
     {
         if (hdr->component_type(i) != channel_type)
         {
-            msg::err("Only arrays with element components that all have the same type can be exported to images");
+            msg::err_txt("Only arrays with element components that all have the same type can be exported to images");
             return 1;
         }
     }
     if (hdr->data_is_chunked() && hdr->data_size() > std::numeric_limits<size_t>::max())
     {
-        msg::err("Array too large");
+        msg::err_txt("Array too large");
         return 1;
     }
     bool has_alpha = (hdr->components() == 2 || hdr->components() == 4);
@@ -360,7 +360,7 @@ extern "C" int gtatool_to_magick(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
 

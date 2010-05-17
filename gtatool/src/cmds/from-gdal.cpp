@@ -77,7 +77,7 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
 
@@ -167,11 +167,11 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
                 break;
             case GDT_CInt16:
                 type = gta::cfloat32;
-                msg::inf("Band %s: Converting GDT_CInt16 to gta::cfloat32", str::from(i + 1).c_str());
+                msg::inf_txt("Band %s: Converting GDT_CInt16 to gta::cfloat32", str::from(i + 1).c_str());
                 break;
             case GDT_CInt32:
                 type = gta::cfloat32;
-                msg::inf("Band %s: Converting GDT_CInt16 to gta::cfloat32", str::from(i + 1).c_str());
+                msg::inf_txt("Band %s: Converting GDT_CInt16 to gta::cfloat32", str::from(i + 1).c_str());
                 break;
             case GDT_CFloat32:
                 type = gta::cfloat32;
@@ -346,7 +346,7 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
 

@@ -77,7 +77,7 @@ extern "C" int gtatool_to_gdal(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
 
@@ -181,14 +181,14 @@ extern "C" int gtatool_to_gdal(int argc, char *argv[])
                         geo_transform + 3, geo_transform + 4, geo_transform + 5) != 6
                     || GDALSetGeoTransform(dataset, geo_transform) != CE_None)
             {
-                msg::wrn("GTA contains invalid GDAL/GEO_TRANSFORM information");
+                msg::wrn_txt("GTA contains invalid GDAL/GEO_TRANSFORM information");
             }
         }
         if (hdr.global_taglist().get("GDAL/PROJECTION"))
         {
             if (GDALSetProjection(dataset, hdr.global_taglist().get("GDAL/PROJECTION")) != CE_None)
             {
-                msg::wrn("GTA contains invalid GDAL/PROJECTION information");
+                msg::wrn_txt("GTA contains invalid GDAL/PROJECTION information");
             }
         }
         for (uintmax_t t = 0; t < hdr.global_taglist().tags(); t++)
@@ -198,7 +198,7 @@ extern "C" int gtatool_to_gdal(int argc, char *argv[])
             {
                 if (GDALSetMetadataItem(dataset, name.substr(14).c_str(), hdr.global_taglist().value(t), NULL) != CE_None)
                 {
-                    msg::wrn("GTA contains invalid GDAL/METADATA/* information");
+                    msg::wrn_txt("GTA contains invalid GDAL/METADATA/* information");
                 }
             }
         }
@@ -211,7 +211,7 @@ extern "C" int gtatool_to_gdal(int argc, char *argv[])
                 if (sscanf(hdr.component_taglist(i).get("GDAL/OFFSET"), "%lf", &value) != 1
                         || GDALSetRasterOffset(band, value) != CE_None)
                 {
-                    msg::wrn(std::string("GTA component ") + str::from(i) + " contains invalid GDAL/OFFSET information");
+                    msg::wrn_txt(std::string("GTA component ") + str::from(i) + " contains invalid GDAL/OFFSET information");
                 }
             }
             if (hdr.component_taglist(i).get("GDAL/SCALE"))
@@ -219,7 +219,7 @@ extern "C" int gtatool_to_gdal(int argc, char *argv[])
                 if (sscanf(hdr.component_taglist(i).get("GDAL/SCALE"), "%lf", &value) != 1
                         || GDALSetRasterScale(band, value) != CE_None)
                 {
-                    msg::wrn(std::string("GTA component ") + str::from(i) + " contains invalid GDAL/SCALE information");
+                    msg::wrn_txt(std::string("GTA component ") + str::from(i) + " contains invalid GDAL/SCALE information");
                 }
             }
             if (hdr.component_taglist(i).get("GDAL/NO_DATA_VALUE"))
@@ -227,7 +227,7 @@ extern "C" int gtatool_to_gdal(int argc, char *argv[])
                 if (sscanf(hdr.component_taglist(i).get("GDAL/NO_DATA_VALUE"), "%lf", &value) != 1
                         || GDALSetRasterNoDataValue(band, value) != CE_None)
                 {
-                    msg::wrn(std::string("GTA component ") + str::from(i) + " contains invalid GDAL/NO_DATA_VALUE information");
+                    msg::wrn_txt(std::string("GTA component ") + str::from(i) + " contains invalid GDAL/NO_DATA_VALUE information");
                 }
             }
             /* FIXME: There is no GDALSetRasterUnitType() function?!
@@ -235,7 +235,7 @@ extern "C" int gtatool_to_gdal(int argc, char *argv[])
             {
                 if (GDALSetRasterUnitType(band, hdr.component_taglist(i).get("GDAL/UNIT_TYPE")) != CE_None)
                 {
-                    msg::wrn(std::string("GTA component ") + str::from(i) + " contains invalid GDAL/UNIT_TYPE information");
+                    msg::wrn_txt(std::string("GTA component ") + str::from(i) + " contains invalid GDAL/UNIT_TYPE information");
                 }
             }
             */
@@ -321,7 +321,7 @@ extern "C" int gtatool_to_gdal(int argc, char *argv[])
                 }
                 else
                 {
-                    msg::wrn(std::string("GTA component ") + str::from(i) + " contains invalid GDAL/COLOR_INTERPRETATION information");
+                    msg::wrn_txt(std::string("GTA component ") + str::from(i) + " contains invalid GDAL/COLOR_INTERPRETATION information");
                 }
             }
             else if (hdr.component_taglist(i).get("INTERPRETATION"))
@@ -454,7 +454,7 @@ extern "C" int gtatool_to_gdal(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
 

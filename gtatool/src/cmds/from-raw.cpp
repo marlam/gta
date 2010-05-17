@@ -186,7 +186,7 @@ extern "C" int gtatool_from_raw(int argc, char *argv[])
     {
         if (dimensions.value()[i] < 1)
         {
-            msg::err("Dimension sizes must be greater than zero.");
+            msg::err_txt("Dimension sizes must be greater than zero.");
             return 1;
         }
     }
@@ -225,7 +225,7 @@ extern "C" int gtatool_from_raw(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
 
@@ -255,7 +255,7 @@ extern "C" int gtatool_from_raw(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
 

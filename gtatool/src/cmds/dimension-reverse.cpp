@@ -71,7 +71,7 @@ extern "C" int gtatool_dimension_reverse(int argc, char *argv[])
         {
             if (indices.value()[i] == indices.value()[j])
             {
-                msg::err("index %s was used more than once", 
+                msg::err_txt("index %s was used more than once", 
                         str::from(indices.value()[i]).c_str());
                 return 1;
             }
@@ -80,7 +80,7 @@ extern "C" int gtatool_dimension_reverse(int argc, char *argv[])
 
     if (cio::isatty(stdout))
     {
-        msg::err("refusing to write to a tty");
+        msg::err_txt("refusing to write to a tty");
         return 1;
     }
 
@@ -158,7 +158,7 @@ extern "C" int gtatool_dimension_reverse(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
 

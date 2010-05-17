@@ -73,7 +73,7 @@ extern "C" int gtatool_dimension_split(int argc, char *argv[])
 
     if (cio::isatty(stdout))
     {
-        msg::err("refusing to write to a tty");
+        msg::err_txt("refusing to write to a tty");
         return 1;
     }
 
@@ -160,7 +160,7 @@ extern "C" int gtatool_dimension_split(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("%s", e.what());
+        msg::err_txt("%s", e.what());
         return 1;
     }
 
