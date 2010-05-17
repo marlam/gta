@@ -120,7 +120,6 @@ Q_OBJECT
 private:
     FILE *_f;
     std::string _name;
-    std::string _temp_name;
     bool _is_changed;
     std::vector<gta::header *> _headers;
     std::vector<off_t> _offsets;
@@ -131,7 +130,7 @@ private slots:
 
 public:
 
-    FileWidget(FILE *f, const std::string &name, const std::string &temp_name,
+    FileWidget(FILE *f, const std::string &name,
             const std::vector<gta::header *> &headers,
             const std::vector<off_t> &offsets,
             QWidget *parent = NULL);
@@ -145,11 +144,6 @@ public:
     const std::string &name() const
     {
         return _name;
-    }
-
-    const std::string &temp_name() const
-    {
-        return _temp_name;
     }
 
     const std::vector<gta::header *> &headers() const
@@ -172,7 +166,7 @@ public:
     void set_name(const std::string &name);
 
 signals:
-    void changed(const std::string &name, const std::string &temp_name);
+    void changed(const std::string &name);
 };
 
 class GUI : public QMainWindow
@@ -185,13 +179,14 @@ private:
     QDir _last_file_save_as_dir;
 
     QStringList file_open_dialog(const QStringList &filters = QStringList());
-    QString file_save_dialog(const QString &existing_name = QString());
+    QString file_save_dialog(const QString &existing_name = QString(), const QStringList &filters = QStringList());
     int run(const std::string &cmd, const std::vector<std::string> &argv,
             std::string &std_err, FILE *std_out = NULL, FILE *std_in = NULL);
-    void import(const std::string &cmd, const QStringList &filters = QStringList());
+    void import_from(const std::string &cmd, const QStringList &filters);
+    void export_to(const std::string &cmd, const QStringList &filters);
 
 private slots:
-    void file_changed(const std::string &name, const std::string &temp_name);
+    void file_changed(const std::string &name);
 
 protected:
     void closeEvent(QCloseEvent *event);	
@@ -215,6 +210,11 @@ private slots:
     void file_import_magick();
     void file_import_pfs();
     void file_import_raw();
+    void file_export_exr();
+    void file_export_gdal();
+    void file_export_magick();
+    void file_export_pfs();
+    void file_export_raw();
     void help_about();
 };
 

@@ -383,12 +383,12 @@ void ArrayWidget::update()
     }
 }
 
-FileWidget::FileWidget(FILE *f, const std::string &name, const std::string &temp_name,
+FileWidget::FileWidget(FILE *f, const std::string &name,
         const std::vector<gta::header *> &headers,
         const std::vector<off_t> &offsets,
         QWidget *parent)
     : QWidget(parent),
-    _f(f), _name(name), _temp_name(temp_name), _is_changed(name.length() == 0),
+    _f(f), _name(name), _is_changed(name.length() == 0),
     _headers(headers), _offsets(offsets)
 {
     _arrays_widget = new MyTabWidget;
@@ -408,6 +408,13 @@ FileWidget::FileWidget(FILE *f, const std::string &name, const std::string &temp
 
 FileWidget::~FileWidget()
 {
+    try
+    {
+        cio::close(_f, _name);
+    }
+    catch (...)
+    {
+    }
 }
 
 void FileWidget::array_changed(gta::header *header)
@@ -423,7 +430,7 @@ void FileWidget::array_changed(gta::header *header)
     }
     _arrays_widget->tabBar()->setTabTextColor(array_index, QColor("red"));
     _is_changed = true;
-    emit changed(_name, _temp_name);
+    emit changed(_name);
 }
 
 void FileWidget::saved(FILE *f)
@@ -480,41 +487,71 @@ GUI::GUI()
     connect(file_close_all_action, SIGNAL(triggered()), this, SLOT(file_close_all()));
     file_menu->addAction(file_close_all_action);
     file_menu->addSeparator();
-    QAction *file_import_dcmtk_action = new QAction(tr("Import via DCMTK..."), this);
+    QMenu *file_import_menu = file_menu->addMenu(tr("Import"));
+    QAction *file_import_dcmtk_action = new QAction(tr("via DCMTK..."), this);
     connect(file_import_dcmtk_action, SIGNAL(triggered()), this, SLOT(file_import_dcmtk()));
     if (!cmd_is_available(cmd_find("from-dcmtk")))
     {
         file_import_dcmtk_action->setEnabled(false);
     }
-    file_menu->addAction(file_import_dcmtk_action);
-    QAction *file_import_exr_action = new QAction(tr("Import via EXR..."), this);
+    file_import_menu->addAction(file_import_dcmtk_action);
+    QAction *file_import_exr_action = new QAction(tr("via EXR..."), this);
     connect(file_import_exr_action, SIGNAL(triggered()), this, SLOT(file_import_exr()));
     if (!cmd_is_available(cmd_find("from-exr")))
     {
         file_import_exr_action->setEnabled(false);
     }
-    file_menu->addAction(file_import_exr_action);
-    QAction *file_import_gdal_action = new QAction(tr("Import via GDAL..."), this);
+    file_import_menu->addAction(file_import_exr_action);
+    QAction *file_import_gdal_action = new QAction(tr("via GDAL..."), this);
     connect(file_import_gdal_action, SIGNAL(triggered()), this, SLOT(file_import_gdal()));
     if (!cmd_is_available(cmd_find("from-gdal")))
     {
         file_import_gdal_action->setEnabled(false);
     }
-    file_menu->addAction(file_import_gdal_action);
-    QAction *file_import_magick_action = new QAction(tr("Import via Magick..."), this);
+    file_import_menu->addAction(file_import_gdal_action);
+    QAction *file_import_magick_action = new QAction(tr("via Magick..."), this);
     connect(file_import_magick_action, SIGNAL(triggered()), this, SLOT(file_import_magick()));
     if (!cmd_is_available(cmd_find("from-magick")))
     {
         file_import_magick_action->setEnabled(false);
     }
-    file_menu->addAction(file_import_magick_action);
-    QAction *file_import_pfs_action = new QAction(tr("Import via PFS..."), this);
+    file_import_menu->addAction(file_import_magick_action);
+    QAction *file_import_pfs_action = new QAction(tr("via PFS..."), this);
     connect(file_import_pfs_action, SIGNAL(triggered()), this, SLOT(file_import_pfs()));
     if (!cmd_is_available(cmd_find("from-pfs")))
     {
         file_import_pfs_action->setEnabled(false);
     }
-    file_menu->addAction(file_import_pfs_action);
+    file_import_menu->addAction(file_import_pfs_action);
+    QMenu *file_export_menu = file_menu->addMenu(tr("Export"));
+    QAction *file_export_exr_action = new QAction(tr("via EXR..."), this);
+    connect(file_export_exr_action, SIGNAL(triggered()), this, SLOT(file_export_exr()));
+    if (!cmd_is_available(cmd_find("from-exr")))
+    {
+        file_export_exr_action->setEnabled(false);
+    }
+    file_export_menu->addAction(file_export_exr_action);
+    QAction *file_export_gdal_action = new QAction(tr("via GDAL..."), this);
+    connect(file_export_gdal_action, SIGNAL(triggered()), this, SLOT(file_export_gdal()));
+    if (!cmd_is_available(cmd_find("from-gdal")))
+    {
+        file_export_gdal_action->setEnabled(false);
+    }
+    file_export_menu->addAction(file_export_gdal_action);
+    QAction *file_export_magick_action = new QAction(tr("via Magick..."), this);
+    connect(file_export_magick_action, SIGNAL(triggered()), this, SLOT(file_export_magick()));
+    if (!cmd_is_available(cmd_find("from-magick")))
+    {
+        file_export_magick_action->setEnabled(false);
+    }
+    file_export_menu->addAction(file_export_magick_action);
+    QAction *file_export_pfs_action = new QAction(tr("via PFS..."), this);
+    connect(file_export_pfs_action, SIGNAL(triggered()), this, SLOT(file_export_pfs()));
+    if (!cmd_is_available(cmd_find("from-pfs")))
+    {
+        file_export_pfs_action->setEnabled(false);
+    }
+    file_export_menu->addAction(file_export_pfs_action);
     file_menu->addSeparator();
     QAction *quit_action = new QAction(tr("&Quit"), this);
     quit_action->setShortcut(tr("Ctrl+Q"));
@@ -544,13 +581,13 @@ void GUI::closeEvent(QCloseEvent *event)
     }
 }
 
-void GUI::file_changed(const std::string &name, const std::string &temp_name)
+void GUI::file_changed(const std::string &name)
 {
     int file_index = 0;
     for (int i = 0; i < _files_widget->count(); i++)
     {
         FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
-        if (fw->name().compare(name) == 0 && fw->temp_name().compare(temp_name) == 0)
+        if (fw->name().compare(name) == 0)
         {
             file_index = i;
             break;
@@ -582,7 +619,7 @@ QStringList GUI::file_open_dialog(const QStringList &filters)
     return file_names;
 }
 
-QString GUI::file_save_dialog(const QString &existing_name)
+QString GUI::file_save_dialog(const QString &existing_name, const QStringList &filters)
 {
     QDir file_dialog_dir;
     if (!existing_name.isEmpty())
@@ -597,14 +634,25 @@ QString GUI::file_save_dialog(const QString &existing_name)
     file_dialog->setWindowTitle(tr("Save"));
     file_dialog->setAcceptMode(QFileDialog::AcceptSave);
     file_dialog->setFileMode(QFileDialog::AnyFile);
-    file_dialog->setDefaultSuffix("gta");
+    if (filters.empty())
+    {
+        file_dialog->setDefaultSuffix("gta");
+    }
     if (file_dialog_dir.exists())
     {
         file_dialog->setDirectory(file_dialog_dir);
     }
-    QStringList filters;
-    filters << tr("GTA files (*.gta)") << tr("All files (*)");
-    file_dialog->setFilters(filters);
+    QStringList complete_filters;
+    if (!filters.empty())
+    {
+        complete_filters << filters;
+    }
+    else
+    {
+        complete_filters << tr("GTA files (*.gta)");
+    }
+    complete_filters << tr("All files (*)");
+    file_dialog->setFilters(complete_filters);
     QString file_name;
     if (file_dialog->exec())
     {
@@ -722,7 +770,7 @@ int GUI::run(const std::string &cmd, const std::vector<std::string> &argv,
     return retval;
 }
 
-void GUI::import(const std::string &cmd, const QStringList &filters)
+void GUI::import_from(const std::string &cmd, const QStringList &filters)
 {
     QStringList open_file_names = file_open_dialog(filters);
     if (open_file_names.size() > 0)
@@ -768,6 +816,48 @@ void GUI::import(const std::string &cmd, const QStringList &filters)
     }
 }
 
+void GUI::export_to(const std::string &cmd, const QStringList &filters)
+{
+    if (_files_widget->count() == 0)
+    {
+        return;
+    }
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    if (fw->is_changed())
+    {
+        QMessageBox::critical(this, "Error", "File is not saved. Please save it first.");
+        return;
+    }
+    QString save_file_name = file_save_dialog(cio::to_sys(fw->name()).c_str(), filters);
+    if (!save_file_name.isEmpty())
+    {
+        FILE *f = NULL;
+        try
+        {
+            // create a file to catch 'permission denied' early
+            FILE *f = cio::open(qPrintable(save_file_name), "w");
+            cio::close(f, qPrintable(save_file_name));
+            // export
+            cio::rewind(fw->file(), fw->name());
+            std::string std_err;
+            std::vector<std::string> args;
+            args.push_back(cio::to_sys(fw->name()));
+            args.push_back(qPrintable(save_file_name));
+            QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+            int retval = run(cmd, args, std_err, NULL, NULL);
+            QApplication::restoreOverrideCursor();
+            if (retval != 0)
+            {
+                throw exc(std::string("<p>Export failed.</p><pre>") + std_err + "</pre>");
+            }
+        }
+        catch (std::exception &e)
+        {
+            QMessageBox::critical(this, "Error", e.what());
+        }
+    }
+}
+
 void GUI::open(const std::string &filename)
 {
     QFileInfo file_info(cio::to_sys(filename).c_str());
@@ -804,9 +894,8 @@ void GUI::open(const std::string &filename)
         }
         else
         {
-            FileWidget *fw = new FileWidget(f, filename, "", headers, offsets);
-            connect(fw, SIGNAL(changed(const std::string &, const std::string &)),
-                    this, SLOT(file_changed(const std::string &, const std::string &)));
+            FileWidget *fw = new FileWidget(f, filename, headers, offsets);
+            connect(fw, SIGNAL(changed(const std::string &)), this, SLOT(file_changed(const std::string &)));
             _files_widget->addTab(fw, QString(cio::to_sys(cio::basename(filename)).c_str()));
             _files_widget->tabBar()->setTabTextColor(_files_widget->indexOf(fw), "black");
             _files_widget->setCurrentWidget(fw);
@@ -860,17 +949,14 @@ void GUI::file_save()
             fw->headers()[i]->write_to(fo);
             dummy_header.copy_data(fw->file(), *(fw->headers()[i]), fo);
         }
-#if W32
-        /* Windows is too stupid to do this right */
-        cio::close(fw->file(), fw->name());
+        /* This is a stupid and unsafe way to switch to the new file, but it works
+         * cross-platform and also over NFS etc: after this, the file exists and
+         * has the expected contents. */
         cio::close(fo, fw->name() + ".tmp");
+        cio::close(fw->file(), fw->name());
         cio::remove(fw->name());
         cio::rename(fw->name() + ".tmp", fw->name());
         fo = cio::open(fw->name(), "r");
-#else
-        cio::rename(fw->name() + ".tmp", fw->name());
-        cio::close(fw->file(), fw->name());
-#endif
         fw->saved(fo);
         _files_widget->tabBar()->setTabTextColor(_files_widget->indexOf(fw), "black");
     }
@@ -941,6 +1027,7 @@ void GUI::file_close()
         }
     }
     _files_widget->removeTab(_files_widget->indexOf(fw));
+    delete fw;
 }
 
 void GUI::file_close_all()
@@ -961,33 +1048,55 @@ void GUI::file_close_all()
     }
     while (_files_widget->count() > 0)
     {
+        FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->widget(0));
         _files_widget->removeTab(0);
+        delete fw;
     }
 }
 
 void GUI::file_import_dcmtk()
 {
-    import("from-dcmtk");
+    import_from("from-dcmtk", QStringList("DICOM files (*.dcm)"));
 }
 
 void GUI::file_import_exr()
 {
-    import("from-exr");
+    import_from("from-exr", QStringList("EXR files (*.exr)"));
 }
 
 void GUI::file_import_gdal()
 {
-    import("from-gdal");
+    import_from("from-gdal", QStringList("TIFF files (*.tif *.tiff)"));
 }
 
 void GUI::file_import_magick()
 {
-    import("from-magick");
+    import_from("from-magick", QStringList("Typical image files (*.png *.jpg)"));
 }
 
 void GUI::file_import_pfs()
 {
-    import("from-pfs");
+    import_from("from-pfs", QStringList("PFS files (*.pfs)"));
+}
+
+void GUI::file_export_exr()
+{
+    export_to("to-exr", QStringList("EXR files (*.exr)"));
+}
+
+void GUI::file_export_gdal()
+{
+    export_to("to-gdal", QStringList("TIFF files (*.tif *.tiff)"));
+}
+
+void GUI::file_export_magick()
+{
+    export_to("to-magick", QStringList("Typical image files (*.png *.jpg)"));
+}
+
+void GUI::file_export_pfs()
+{
+    export_to("to-pfs", QStringList("PFS files (*.pfs)"));
 }
 
 void GUI::help_about()
@@ -1050,12 +1159,12 @@ extern "C" int gtatool_gui(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::err("GUI failure: %s", e.what());
+        msg::err_txt("GUI failure: %s", e.what());
         retval = 1;
     }
     catch (...)
     {
-        msg::err("GUI failure");
+        msg::err_txt("GUI failure");
         retval = 1;
     }
     return retval;
