@@ -614,7 +614,7 @@ void GUI::file_save()
     try
     {
         cio::rewind(fw->file(), fw->name());
-        FILE *fo = cio::open(fw->name() + ".tmp", "w");
+        FILE *fo = cio::open(fw->name() + ".tmp", "w+");
         for (size_t i = 0; i < fw->headers().size(); i++)
         {
             gta::header dummy_header;
