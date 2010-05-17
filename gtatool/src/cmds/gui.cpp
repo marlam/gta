@@ -831,7 +831,6 @@ void GUI::export_to(const std::string &cmd, const QStringList &filters)
     QString save_file_name = file_save_dialog(cio::to_sys(fw->name()).c_str(), filters);
     if (!save_file_name.isEmpty())
     {
-        FILE *f = NULL;
         try
         {
             // create a file to catch 'permission denied' early
