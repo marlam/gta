@@ -25,6 +25,7 @@
 #include <string>
 #include <cerrno>
 #include <cstring>
+#include <unistd.h>
 #if W32
 #   define WIN32_LEAN_AND_MEAN
 #   define _WIN32_WINNT 0x0502
@@ -43,6 +44,8 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QFileDialog>
+#include <QThread>
+#include <QTimer>
 
 #include <gta/gta.hpp>
 
@@ -674,24 +677,47 @@ QString GUI::file_save_dialog(const QString &existing_name, const QStringList &f
     return file_name;
 }
 
-int GUI::run(const std::string &cmd, const std::vector<std::string> &argv,
+class CmdThread : public QThread
+{
+private:
+    int _cmd_index;
+    int _argc;
+    char **_argv;
+
+public:
+    CmdThread(int cmd_index, int argc, char **argv)
+        : _cmd_index(cmd_index), _argc(argc), _argv(argv)
+    {
+    }
+    ~CmdThread()
+    {
+    }
+
+    int retval;
+    void run()
+    {
+        retval = cmd_run(_cmd_index, _argc, _argv);
+    }
+};
+
+int GUI::run(const std::string &cmd, const std::vector<std::string> &args,
         std::string &std_err, FILE *std_out, FILE *std_in)
 {
     /* prepare */
-    std::vector<char *> real_argv;
-    real_argv.push_back(::strdup(cmd.c_str()));
-    for (size_t i = 0; i < argv.size(); i++)
+    std::vector<char *> argv;
+    argv.push_back(::strdup(cmd.c_str()));
+    for (size_t i = 0; i < args.size(); i++)
     {
-        real_argv.push_back(::strdup(argv[i].c_str()));
+        argv.push_back(::strdup(args[i].c_str()));
     }
-    real_argv.push_back(NULL);
-    for (size_t i = 0; i < real_argv.size() - 1; i++)
+    argv.push_back(NULL);
+    for (size_t i = 0; i < argv.size() - 1; i++)
     {
-        if (!real_argv[i])
+        if (!argv[i])
         {
             for (size_t j = 0; j < i; j++)
             {
-                ::free(real_argv[i]);
+                ::free(argv[i]);
             }
             std_err = ::strerror(ENOMEM);
             return 1;
@@ -712,9 +738,9 @@ int GUI::run(const std::string &cmd, const std::vector<std::string> &argv,
     catch (std::exception &e)
     {
         std_err = e.what();
-        for (size_t i = 0; i < real_argv.size() - 1; i++)
+        for (size_t i = 0; i < argv.size() - 1; i++)
         {
-            ::free(real_argv[i]);
+            ::free(argv[i]);
         }
         return 1;
     }
@@ -728,14 +754,40 @@ int GUI::run(const std::string &cmd, const std::vector<std::string> &argv,
         stdin = std_in;
     }
     msg::set_program_name(msg_prg_name_bak + " " + cmd);
-    msg::set_columns(80);
+    msg::set_columns(60);
     /* run command */
     int cmd_index = cmd_find(cmd.c_str());
     cmd_open(cmd_index);
-    int retval = cmd_run(cmd_index, real_argv.size() - 1, &(real_argv[0]));
-    for (size_t i = 0; i < real_argv.size() - 1; i++)
+    std::string mbox_text = "<p>Running command</p><code>";
+    mbox_text += cmd + " ";
+    for (size_t i = 0; i < args.size(); i++)
     {
-        ::free(real_argv[i]);
+        mbox_text += args[i] + " ";
+    }
+    mbox_text += "</code>";
+    QDialog *mbox = new QDialog(this);
+    mbox->setModal(true);
+    mbox->setWindowTitle("Please wait");
+    QGridLayout *mbox_layout = new QGridLayout;
+    QLabel *mbox_label = new QLabel(mbox_text.c_str());
+    mbox_layout->addWidget(mbox_label, 0, 0);
+    mbox->setLayout(mbox_layout);
+    mbox->show();
+    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+    CmdThread cmd_thread(cmd_index, argv.size() - 1, &(argv[0]));
+    cmd_thread.start();
+    while (!cmd_thread.isFinished())
+    {
+        QCoreApplication::processEvents();
+        ::usleep(10000);
+    }
+    int retval = cmd_thread.retval;
+    QApplication::restoreOverrideCursor();
+    mbox->hide();
+    delete mbox;
+    for (size_t i = 0; i < argv.size() - 1; i++)
+    {
+        ::free(argv[i]);
     }
     cmd_close(cmd_index);
     /* restore environment */
@@ -785,9 +837,7 @@ void GUI::import_from(const std::string &cmd, const QStringList &filters)
                 for (int i = 0; i < open_file_names.size(); i++)
                 {
                     std::string std_err;
-                    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
                     int retval = run(cmd, std::vector<std::string>(1, qPrintable(open_file_names[i])), std_err, f, NULL);
-                    QApplication::restoreOverrideCursor();
                     if (retval != 0)
                     {
                         throw exc(std::string("<p>Import failed.</p><pre>") + std_err + "</pre>");
@@ -837,14 +887,11 @@ void GUI::export_to(const std::string &cmd, const QStringList &filters)
             FILE *f = cio::open(qPrintable(save_file_name), "w");
             cio::close(f, qPrintable(save_file_name));
             // export
-            cio::rewind(fw->file(), fw->name());
             std::string std_err;
             std::vector<std::string> args;
             args.push_back(cio::to_sys(fw->name()));
             args.push_back(qPrintable(save_file_name));
-            QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
             int retval = run(cmd, args, std_err, NULL, NULL);
-            QApplication::restoreOverrideCursor();
             if (retval != 0)
             {
                 throw exc(std::string("<p>Export failed.</p><pre>") + std_err + "</pre>");
@@ -875,7 +922,6 @@ void GUI::open(const std::string &filename)
     try
     {
         FILE *f = cio::open(filename, "r");
-        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
         while (cio::has_more(f, filename))
         {
             off_t offset = cio::tell(f, filename);
@@ -888,7 +934,6 @@ void GUI::open(const std::string &filename)
         if (headers.size() == 0)
         {
             cio::close(f, filename);
-            QApplication::restoreOverrideCursor();
             QMessageBox::critical(this, "Error", "File is empty");
         }
         else
@@ -899,7 +944,6 @@ void GUI::open(const std::string &filename)
             _files_widget->tabBar()->setTabTextColor(_files_widget->indexOf(fw), "black");
             _files_widget->setCurrentWidget(fw);
         }
-        QApplication::restoreOverrideCursor();
     }
     catch (std::exception &e)
     {
@@ -907,7 +951,6 @@ void GUI::open(const std::string &filename)
         {
             delete headers[i];
         }
-        QApplication::restoreOverrideCursor();
         QMessageBox::critical(this, "Error", e.what());
     }
 }
