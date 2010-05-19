@@ -622,7 +622,7 @@ QStringList GUI::file_open_dialog(const QStringList &filters)
     return file_names;
 }
 
-QString GUI::file_save_dialog(const QString &existing_name, const QStringList &filters)
+QString GUI::file_save_dialog(const QString &default_suffix, const QStringList &filters, const QString &existing_name)
 {
     QDir file_dialog_dir;
     if (!existing_name.isEmpty())
@@ -637,23 +637,16 @@ QString GUI::file_save_dialog(const QString &existing_name, const QStringList &f
     file_dialog->setWindowTitle(tr("Save"));
     file_dialog->setAcceptMode(QFileDialog::AcceptSave);
     file_dialog->setFileMode(QFileDialog::AnyFile);
-    if (filters.empty())
+    if (!default_suffix.isEmpty())
     {
-        file_dialog->setDefaultSuffix("gta");
+        file_dialog->setDefaultSuffix(default_suffix);
     }
     if (file_dialog_dir.exists())
     {
         file_dialog->setDirectory(file_dialog_dir);
     }
     QStringList complete_filters;
-    if (!filters.empty())
-    {
-        complete_filters << filters;
-    }
-    else
-    {
-        complete_filters << tr("GTA files (*.gta)");
-    }
+    complete_filters << filters;
     complete_filters << tr("All files (*)");
     file_dialog->setFilters(complete_filters);
     QString file_name;
@@ -827,7 +820,7 @@ void GUI::import_from(const std::string &cmd, const QStringList &filters)
     QStringList open_file_names = file_open_dialog(filters);
     if (open_file_names.size() > 0)
     {
-        QString save_file_name = file_save_dialog();
+        QString save_file_name = file_save_dialog("*.gta", QStringList("GTA files (*.gta)"));
         if (!save_file_name.isEmpty())
         {
             FILE *f = NULL;
@@ -866,7 +859,7 @@ void GUI::import_from(const std::string &cmd, const QStringList &filters)
     }
 }
 
-void GUI::export_to(const std::string &cmd, const QStringList &filters)
+void GUI::export_to(const std::string &cmd, const QString &default_suffix, const QStringList &filters)
 {
     if (_files_widget->count() == 0)
     {
@@ -878,7 +871,7 @@ void GUI::export_to(const std::string &cmd, const QStringList &filters)
         QMessageBox::critical(this, "Error", "File is not saved. Please save it first.");
         return;
     }
-    QString save_file_name = file_save_dialog(cio::to_sys(fw->name()).c_str(), filters);
+    QString save_file_name = file_save_dialog(default_suffix, filters, cio::to_sys(fw->name()).c_str());
     if (!save_file_name.isEmpty())
     {
         try
@@ -1017,7 +1010,8 @@ void GUI::file_save_as()
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
     std::string old_name = fw->name();
     bool old_is_changed = fw->is_changed();
-    QString file_name = file_save_dialog(old_name.length() == 0 ? QString() : cio::to_sys(old_name).c_str());
+    QString file_name = file_save_dialog("gta", QStringList("GTA files (*.gta)"),
+            old_name.length() == 0 ? QString() : cio::to_sys(old_name).c_str());
     if (!file_name.isEmpty())
     {
         fw->set_name(cio::from_sys(qPrintable(file_name)));
@@ -1123,22 +1117,22 @@ void GUI::file_import_pfs()
 
 void GUI::file_export_exr()
 {
-    export_to("to-exr", QStringList("EXR files (*.exr)"));
+    export_to("to-exr", "*.exr", QStringList("EXR files (*.exr)"));
 }
 
 void GUI::file_export_gdal()
 {
-    export_to("to-gdal", QStringList("TIFF files (*.tif *.tiff)"));
+    export_to("to-gdal", "*.tif", QStringList("TIFF files (*.tif *.tiff)"));
 }
 
 void GUI::file_export_magick()
 {
-    export_to("to-magick", QStringList("Typical image files (*.png *.jpg)"));
+    export_to("to-magick", "*.png", QStringList("Typical image files (*.png *.jpg)"));
 }
 
 void GUI::file_export_pfs()
 {
-    export_to("to-pfs", QStringList("PFS files (*.pfs)"));
+    export_to("to-pfs", "*.pfs", QStringList("PFS files (*.pfs)"));
 }
 
 void GUI::help_about()

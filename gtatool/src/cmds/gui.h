@@ -179,11 +179,12 @@ private:
     QDir _last_file_save_as_dir;
 
     QStringList file_open_dialog(const QStringList &filters = QStringList());
-    QString file_save_dialog(const QString &existing_name = QString(), const QStringList &filters = QStringList());
+    QString file_save_dialog(const QString &default_suffix, const QStringList &filters,
+            const QString &existing_name = QString());
     int run(const std::string &cmd, const std::vector<std::string> &argv,
             std::string &std_err, FILE *std_out = NULL, FILE *std_in = NULL);
     void import_from(const std::string &cmd, const QStringList &filters);
-    void export_to(const std::string &cmd, const QStringList &filters);
+    void export_to(const std::string &cmd, const QString &default_suffix, const QStringList &filters);
 
 private slots:
     void file_changed(const std::string &name);
