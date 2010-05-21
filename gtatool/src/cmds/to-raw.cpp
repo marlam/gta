@@ -42,7 +42,8 @@ extern "C" void gtatool_to_raw_help(void)
 {
     msg::req_txt("to-raw [-e|--endianness=little|big] [<input-file>] <output-file>\n"
             "\n"
-            "Converts GTAs to raw binary format.");
+            "Converts GTAs to raw binary format. The default endianness is little.\n"
+            "Example: to-raw data.gta data.raw");
 }
 
 extern "C" int gtatool_to_raw(int argc, char *argv[])
@@ -53,7 +54,7 @@ extern "C" int gtatool_to_raw(int argc, char *argv[])
     std::vector<std::string> endiannesses;
     endiannesses.push_back("little");
     endiannesses.push_back("big");
-    opt::string endian("endianness", 'e', opt::optional, endiannesses);
+    opt::string endian("endianness", 'e', opt::optional, endiannesses, "little");
     options.push_back(&endian);
     std::vector<std::string> arguments;
     if (!opt::parse(argc, argv, options, 1, 2, arguments))
@@ -67,20 +68,13 @@ extern "C" int gtatool_to_raw(int argc, char *argv[])
     }
 
     bool host_endianness;
-    if (endian.values().empty())
+    if (endianness::endianness == endianness::big)
     {
-        host_endianness = true;
+        host_endianness = (endian.value().compare("big") == 0);
     }
     else
     {
-        if (endianness::endianness == endianness::big)
-        {
-            host_endianness = (endian.value().compare("big") == 0);
-        }
-        else
-        {
-            host_endianness = (endian.value().compare("little") == 0);
-        }
+        host_endianness = (endian.value().compare("little") == 0);
     }
 
     FILE *fi = stdin;

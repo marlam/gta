@@ -150,11 +150,11 @@ extern "C" void gtatool_from_raw_help(void)
     msg::req_txt("from-raw -d|--dimensions=<d0,d1,...> -c|--components=<c0,c1,...>\n"
             "    [-e|--endianness=little|big] <input-file> [<output-file>]\n"
             "\n"
-            "Converts raw binary files to GTAs.\n"
-            "Example: from-raw -d 640,480 -c uint8,uint8,uint8 -e little file.raw\n"
+            "Converts raw binary files to GTAs. The default endianness is little.\n"
             "Available component types: int8, uint8, int16, uint16, int32, uint32, "
             "int64, uint64, int128, uint128, float32, float64, float128, cfloat32, "
-            "cfloat64, cfloat128.");
+            "cfloat64, cfloat128.\n"
+            "Example: from-raw -d 640,480 -c uint8,uint8,uint8 -e little file.raw");
 }
 
 extern "C" int gtatool_from_raw(int argc, char *argv[])
@@ -169,7 +169,7 @@ extern "C" int gtatool_from_raw(int argc, char *argv[])
     std::vector<std::string> endiannesses;
     endiannesses.push_back("little");
     endiannesses.push_back("big");
-    opt::val<std::string> endian("endianness", 'e', opt::optional, endiannesses);
+    opt::val<std::string> endian("endianness", 'e', opt::optional, endiannesses, "little");
     options.push_back(&endian);
     std::vector<std::string> arguments;
     if (!opt::parse(argc, argv, options, 1, 2, arguments))
@@ -192,20 +192,13 @@ extern "C" int gtatool_from_raw(int argc, char *argv[])
     }
 
     bool host_endianness;
-    if (endian.values().empty())
+    if (endianness::endianness == endianness::big)
     {
-        host_endianness = true;
+        host_endianness = (endian.value().compare("big") == 0);
     }
     else
     {
-        if (endianness::endianness == endianness::big)
-        {
-            host_endianness = (endian.value().compare("big") == 0);
-        }
-        else
-        {
-            host_endianness = (endian.value().compare("little") == 0);
-        }
+        host_endianness = (endian.value().compare("little") == 0);
     }
 
     FILE *fo = stdout;
