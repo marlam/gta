@@ -566,7 +566,7 @@ error_exit:
             }
             else
             {
-                throw exc("Cannot read from " + (!filename.empty() ? to_sys(filename) : "unexpected end of file"));
+                throw exc("Cannot read from " + (!filename.empty() ? to_sys(filename) : "temporary file"), "unexpected end of file");
             }
         }
     }
