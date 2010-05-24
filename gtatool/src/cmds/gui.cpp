@@ -45,7 +45,8 @@
 #include <QCloseEvent>
 #include <QFileDialog>
 #include <QThread>
-#include <QTimer>
+#include <QLineEdit>
+#include <QRadioButton>
 
 #include <gta/gta.hpp>
 
@@ -526,35 +527,41 @@ GUI::GUI()
         file_import_pfs_action->setEnabled(false);
     }
     file_import_menu->addAction(file_import_pfs_action);
+    QAction *file_import_raw_action = new QAction(tr("from raw data..."), this);
+    connect(file_import_raw_action, SIGNAL(triggered()), this, SLOT(file_import_raw()));
+    file_import_menu->addAction(file_import_raw_action);
     QMenu *file_export_menu = file_menu->addMenu(tr("Export"));
     QAction *file_export_exr_action = new QAction(tr("via EXR..."), this);
     connect(file_export_exr_action, SIGNAL(triggered()), this, SLOT(file_export_exr()));
-    if (!cmd_is_available(cmd_find("from-exr")))
+    if (!cmd_is_available(cmd_find("to-exr")))
     {
         file_export_exr_action->setEnabled(false);
     }
     file_export_menu->addAction(file_export_exr_action);
     QAction *file_export_gdal_action = new QAction(tr("via GDAL..."), this);
     connect(file_export_gdal_action, SIGNAL(triggered()), this, SLOT(file_export_gdal()));
-    if (!cmd_is_available(cmd_find("from-gdal")))
+    if (!cmd_is_available(cmd_find("to-gdal")))
     {
         file_export_gdal_action->setEnabled(false);
     }
     file_export_menu->addAction(file_export_gdal_action);
     QAction *file_export_magick_action = new QAction(tr("via Magick..."), this);
     connect(file_export_magick_action, SIGNAL(triggered()), this, SLOT(file_export_magick()));
-    if (!cmd_is_available(cmd_find("from-magick")))
+    if (!cmd_is_available(cmd_find("to-magick")))
     {
         file_export_magick_action->setEnabled(false);
     }
     file_export_menu->addAction(file_export_magick_action);
     QAction *file_export_pfs_action = new QAction(tr("via PFS..."), this);
     connect(file_export_pfs_action, SIGNAL(triggered()), this, SLOT(file_export_pfs()));
-    if (!cmd_is_available(cmd_find("from-pfs")))
+    if (!cmd_is_available(cmd_find("to-pfs")))
     {
         file_export_pfs_action->setEnabled(false);
     }
     file_export_menu->addAction(file_export_pfs_action);
+    QAction *file_export_raw_action = new QAction(tr("raw data..."), this);
+    connect(file_export_raw_action, SIGNAL(triggered()), this, SLOT(file_export_raw()));
+    file_export_menu->addAction(file_export_raw_action);
     file_menu->addSeparator();
     QAction *quit_action = new QAction(tr("&Quit"), this);
     quit_action->setShortcut(tr("Ctrl+Q"));
@@ -815,12 +822,12 @@ int GUI::run(const std::string &cmd, const std::vector<std::string> &args,
     return retval;
 }
 
-void GUI::import_from(const std::string &cmd, const QStringList &filters)
+void GUI::import_from(const std::string &cmd, const std::vector<std::string> &options, const QStringList &filters)
 {
     QStringList open_file_names = file_open_dialog(filters);
     if (open_file_names.size() > 0)
     {
-        QString save_file_name = file_save_dialog("*.gta", QStringList("GTA files (*.gta)"));
+        QString save_file_name = file_save_dialog("gta", QStringList("GTA files (*.gta)"));
         if (!save_file_name.isEmpty())
         {
             FILE *f = NULL;
@@ -830,7 +837,9 @@ void GUI::import_from(const std::string &cmd, const QStringList &filters)
                 for (int i = 0; i < open_file_names.size(); i++)
                 {
                     std::string std_err;
-                    int retval = run(cmd, std::vector<std::string>(1, qPrintable(open_file_names[i])), std_err, f, NULL);
+                    std::vector<std::string> args = options;
+                    args.push_back(qPrintable(open_file_names[i]));
+                    int retval = run(cmd, args, std_err, f, NULL);
                     if (retval != 0)
                     {
                         throw exc(std::string("<p>Import failed.</p><pre>") + std_err + "</pre>");
@@ -859,7 +868,7 @@ void GUI::import_from(const std::string &cmd, const QStringList &filters)
     }
 }
 
-void GUI::export_to(const std::string &cmd, const QString &default_suffix, const QStringList &filters)
+void GUI::export_to(const std::string &cmd, const std::vector<std::string> &options, const QString &default_suffix, const QStringList &filters)
 {
     if (_files_widget->count() == 0)
     {
@@ -881,7 +890,7 @@ void GUI::export_to(const std::string &cmd, const QString &default_suffix, const
             cio::close(f, qPrintable(save_file_name));
             // export
             std::string std_err;
-            std::vector<std::string> args;
+            std::vector<std::string> args = options;
             args.push_back(cio::to_sys(fw->name()));
             args.push_back(qPrintable(save_file_name));
             int retval = run(cmd, args, std_err, NULL, NULL);
@@ -1092,47 +1101,123 @@ void GUI::file_close_all()
 
 void GUI::file_import_dcmtk()
 {
-    import_from("from-dcmtk", QStringList("DICOM files (*.dcm)"));
+    import_from("from-dcmtk", std::vector<std::string>(), QStringList("DICOM files (*.dcm)"));
 }
 
 void GUI::file_import_exr()
 {
-    import_from("from-exr", QStringList("EXR files (*.exr)"));
+    import_from("from-exr", std::vector<std::string>(), QStringList("EXR files (*.exr)"));
 }
 
 void GUI::file_import_gdal()
 {
-    import_from("from-gdal", QStringList("TIFF files (*.tif *.tiff)"));
+    import_from("from-gdal", std::vector<std::string>(), QStringList("TIFF files (*.tif *.tiff)"));
 }
 
 void GUI::file_import_magick()
 {
-    import_from("from-magick", QStringList("Typical image files (*.png *.jpg)"));
+    import_from("from-magick", std::vector<std::string>(), QStringList("Typical image files (*.png *.jpg)"));
 }
 
 void GUI::file_import_pfs()
 {
-    import_from("from-pfs", QStringList("PFS files (*.pfs)"));
+    import_from("from-pfs", std::vector<std::string>(), QStringList("PFS files (*.pfs)"));
+}
+
+void GUI::file_import_raw()
+{
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Import raw data");
+    QGridLayout *layout = new QGridLayout;
+    QLabel *comp_label = new QLabel("Array element components (comma\nseparated list of the following types:\n"
+            "int{8,16,32,64,128}, uint{8,16,32,64,128}\n"
+            "float{32,64,128}, cfloat{32,64,128}");
+    layout->addWidget(comp_label, 0, 0, 1, 2);
+    QLineEdit *comp_edit = new QLineEdit("");
+    layout->addWidget(comp_edit, 1, 0, 1, 2);
+    QLabel *dim_label = new QLabel("Dimensions (comma separated list):");
+    layout->addWidget(dim_label, 2, 0, 1, 2);
+    QLineEdit *dim_edit = new QLineEdit("");
+    layout->addWidget(dim_edit, 3, 0, 1, 2);
+    QRadioButton *le_button = new QRadioButton("Little endian");
+    layout->addWidget(le_button, 4, 0);
+    le_button->setChecked(true);
+    QRadioButton *be_button = new QRadioButton("Big endian");
+    layout->addWidget(be_button, 4, 1);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 5, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 5, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    std::vector<std::string> options;
+    options.push_back("-c");
+    options.push_back(qPrintable(comp_edit->text().simplified().replace(' ', "")));
+    options.push_back("-d");
+    options.push_back(qPrintable(dim_edit->text().simplified().replace(' ', "")));
+    options.push_back("-e");
+    options.push_back(le_button->isChecked() ? "little" : "big");
+    import_from("from-raw", options, QStringList("Raw files (*.raw *.dat)"));
 }
 
 void GUI::file_export_exr()
 {
-    export_to("to-exr", "*.exr", QStringList("EXR files (*.exr)"));
+    export_to("to-exr", std::vector<std::string>(), "exr", QStringList("EXR files (*.exr)"));
 }
 
 void GUI::file_export_gdal()
 {
-    export_to("to-gdal", "*.tif", QStringList("TIFF files (*.tif *.tiff)"));
+    export_to("to-gdal", std::vector<std::string>(), "tif", QStringList("TIFF files (*.tif *.tiff)"));
 }
 
 void GUI::file_export_magick()
 {
-    export_to("to-magick", "*.png", QStringList("Typical image files (*.png *.jpg)"));
+    export_to("to-magick", std::vector<std::string>(), "png", QStringList("Typical image files (*.png *.jpg)"));
 }
 
 void GUI::file_export_pfs()
 {
-    export_to("to-pfs", "*.pfs", QStringList("PFS files (*.pfs)"));
+    export_to("to-pfs", std::vector<std::string>(), "pfs", QStringList("PFS files (*.pfs)"));
+}
+
+void GUI::file_export_raw()
+{
+    if (_files_widget->count() == 0)
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Export raw data");
+    QGridLayout *layout = new QGridLayout;
+    QRadioButton *le_button = new QRadioButton("Little endian");
+    layout->addWidget(le_button, 0, 0);
+    le_button->setChecked(true);
+    QRadioButton *be_button = new QRadioButton("Big endian");
+    layout->addWidget(be_button, 0, 1);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 1, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 1, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    std::vector<std::string> options;
+    options.push_back("-e");
+    options.push_back(le_button->isChecked() ? "little" : "big");
+    export_to("to-raw", options, "raw", QStringList("Raw files (*.raw *.dat)"));
 }
 
 void GUI::help_about()
