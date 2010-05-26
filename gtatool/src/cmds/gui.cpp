@@ -568,6 +568,17 @@ GUI::GUI()
     connect(quit_action, SIGNAL(triggered()), this, SLOT(close()));
     file_menu->addAction(quit_action);
 
+    QMenu *stream_menu = menuBar()->addMenu(tr("&Stream"));
+    QAction *stream_merge_action = new QAction(tr("&Merge open files..."), this);
+    connect(stream_merge_action, SIGNAL(triggered()), this, SLOT(stream_merge()));
+    stream_menu->addAction(stream_merge_action);
+    QAction *stream_split_action = new QAction(tr("&Split current file..."), this);
+    connect(stream_split_action, SIGNAL(triggered()), this, SLOT(stream_split()));
+    stream_menu->addAction(stream_split_action);
+    QAction *stream_extract_action = new QAction(tr("&Extract current array..."), this);
+    connect(stream_extract_action, SIGNAL(triggered()), this, SLOT(stream_extract()));
+    stream_menu->addAction(stream_extract_action);
+
     QMenu *help_menu = menuBar()->addMenu(tr("&Help"));
     QAction *help_about_action = new QAction(tr("&About"), this);
     connect(help_about_action, SIGNAL(triggered()), this, SLOT(help_about()));
@@ -589,6 +600,36 @@ void GUI::closeEvent(QCloseEvent *event)
     {
         event->ignore();
     }
+}
+
+bool GUI::check_have_file()
+{
+    return (_files_widget->count() != 0);
+}
+
+bool GUI::check_file_saved()
+{
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    if (fw && fw->is_changed())
+    {
+        QMessageBox::critical(this, "Error", "File is not saved. Please save it first.");
+        return false;
+    }
+    return true;
+}
+
+bool GUI::check_all_files_saved()
+{
+    for (int i = 0; i < _files_widget->count(); i++)
+    {
+        FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
+        if (fw->is_changed())
+        {
+            QMessageBox::critical(this, "Error", "Some files are not saved. Please save them first.");
+            return false;
+        }
+    }
+    return true;
 }
 
 void GUI::file_changed(const std::string &name)
@@ -827,7 +868,7 @@ void GUI::import_from(const std::string &cmd, const std::vector<std::string> &op
     QStringList open_file_names = file_open_dialog(filters);
     if (open_file_names.size() > 0)
     {
-        QString save_file_name = file_save_dialog("gta", QStringList("GTA files (*.gta)"));
+        QString save_file_name = file_save_dialog();
         if (!save_file_name.isEmpty())
         {
             FILE *f = NULL;
@@ -870,16 +911,11 @@ void GUI::import_from(const std::string &cmd, const std::vector<std::string> &op
 
 void GUI::export_to(const std::string &cmd, const std::vector<std::string> &options, const QString &default_suffix, const QStringList &filters)
 {
-    if (_files_widget->count() == 0)
+    if (!check_have_file() || !check_file_saved())
     {
         return;
     }
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    if (fw->is_changed())
-    {
-        QMessageBox::critical(this, "Error", "File is not saved. Please save it first.");
-        return;
-    }
     QString save_file_name = file_save_dialog(default_suffix, filters, cio::to_sys(fw->name()).c_str());
     if (!save_file_name.isEmpty())
     {
@@ -968,7 +1004,7 @@ void GUI::file_open()
 
 void GUI::file_save()
 {
-    if (_files_widget->count() == 0)
+    if (!check_have_file())
     {
         return;
     }
@@ -1012,15 +1048,14 @@ void GUI::file_save()
 
 void GUI::file_save_as()
 {
-    if (_files_widget->count() == 0)
+    if (!check_have_file())
     {
         return;
     }
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
     std::string old_name = fw->name();
     bool old_is_changed = fw->is_changed();
-    QString file_name = file_save_dialog("gta", QStringList("GTA files (*.gta)"),
-            old_name.length() == 0 ? QString() : cio::to_sys(old_name).c_str());
+    QString file_name = file_save_dialog();
     if (!file_name.isEmpty())
     {
         fw->set_name(cio::from_sys(qPrintable(file_name)));
@@ -1042,7 +1077,7 @@ void GUI::file_save_as()
 
 void GUI::file_save_all()
 {
-    if (_files_widget->count() == 0)
+    if (!check_have_file())
     {
         return;
     }
@@ -1057,7 +1092,7 @@ void GUI::file_save_all()
 
 void GUI::file_close()
 {
-    if (_files_widget->count() == 0)
+    if (!check_have_file())
     {
         return;
     }
@@ -1189,7 +1224,7 @@ void GUI::file_export_pfs()
 
 void GUI::file_export_raw()
 {
-    if (_files_widget->count() == 0)
+    if (!check_have_file())
     {
         return;
     }
@@ -1218,6 +1253,105 @@ void GUI::file_export_raw()
     options.push_back("-e");
     options.push_back(le_button->isChecked() ? "little" : "big");
     export_to("to-raw", options, "raw", QStringList("Raw files (*.raw *.dat)"));
+}
+
+void GUI::stream_merge()
+{
+    if (!check_have_file() || !check_all_files_saved())
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    for (int i = 0; i < _files_widget->count(); i++)
+    {
+        FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
+        args.push_back(cio::to_sys(fw->name()));
+    }
+    QString save_file_name = file_save_dialog();
+    if (!save_file_name.isEmpty())
+    {
+        try
+        {
+            FILE *f = cio::open(qPrintable(save_file_name), "w");
+            std::string std_err;
+            int retval = run("stream-merge", args, std_err, f, NULL);
+            if (retval != 0)
+            {
+                throw exc(std::string("<p>Merging failed.</p><pre>") + std_err + "</pre>");
+            }
+            cio::close(f, qPrintable(save_file_name));
+        }
+        catch (std::exception &e)
+        {
+            QMessageBox::critical(this, "Error", e.what());
+        }
+    }
+}
+
+void GUI::stream_split()
+{
+    if (!check_have_file() || !check_file_saved())
+    {
+        return;
+    }
+    QMessageBox::information(this, "Split stream",
+            "The arrays will be saved in files 000000000.gta,\n"
+            "000000001.gta, and so on. Please choose a directory.");
+    QFileDialog *file_dialog = new QFileDialog(this);
+    file_dialog->setWindowTitle(tr("Split"));
+    file_dialog->setAcceptMode(QFileDialog::AcceptSave);
+    file_dialog->setFileMode(QFileDialog::DirectoryOnly);
+    if (_last_file_save_as_dir.exists())
+    {
+        file_dialog->setDirectory(_last_file_save_as_dir);
+    }
+    if (file_dialog->exec())
+    {
+        QString dir_name = file_dialog->selectedFiles().at(0);
+        _last_file_save_as_dir = file_dialog->directory();
+        FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+        std::vector<std::string> args;
+        args.push_back(cio::to_sys(fw->name()));
+        args.push_back(std::string(qPrintable(QDir(dir_name).canonicalPath())) + cio::to_sys("/%9N.gta"));
+        std::string std_err;
+        int retval = run("stream-split", args, std_err, NULL, NULL);
+        if (retval != 0)
+        {
+            throw exc(std::string("<p>Splitting failed.</p><pre>") + std_err + "</pre>");
+        }
+    }
+}
+
+void GUI::stream_extract()
+{
+    if (!check_have_file() || !check_file_saved())
+    {
+        return;
+    }
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    int index = fw->arrays_widget()->currentIndex();
+    std::vector<std::string> args;
+    args.push_back(cio::to_sys(fw->name()));
+    args.push_back(str::from(index));
+    QString save_file_name = file_save_dialog();
+    if (!save_file_name.isEmpty())
+    {
+        try
+        {
+            FILE *f = cio::open(qPrintable(save_file_name), "w");
+            std::string std_err;
+            int retval = run("stream-extract", args, std_err, f, NULL);
+            if (retval != 0)
+            {
+                throw exc(std::string("<p>Extracting failed.</p><pre>") + std_err + "</pre>");
+            }
+            cio::close(f, qPrintable(save_file_name));
+        }
+        catch (std::exception &e)
+        {
+            QMessageBox::critical(this, "Error", e.what());
+        }
+    }
 }
 
 void GUI::help_about()

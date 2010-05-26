@@ -156,6 +156,11 @@ public:
         return _offsets;
     }
 
+    MyTabWidget *arrays_widget()
+    {
+        return _arrays_widget;
+    }
+
     bool is_changed() const
     {
         return _is_changed;
@@ -178,8 +183,11 @@ private:
     QDir _last_file_open_dir;
     QDir _last_file_save_as_dir;
 
+    bool check_have_file();
+    bool check_file_saved();
+    bool check_all_files_saved();
     QStringList file_open_dialog(const QStringList &filters = QStringList());
-    QString file_save_dialog(const QString &default_suffix, const QStringList &filters,
+    QString file_save_dialog(const QString &default_suffix = "gta", const QStringList &filters = QStringList("GTA files (*.gta)"),
             const QString &existing_name = QString());
     int run(const std::string &cmd, const std::vector<std::string> &argv,
             std::string &std_err, FILE *std_out = NULL, FILE *std_in = NULL);
@@ -216,6 +224,9 @@ private slots:
     void file_export_magick();
     void file_export_pfs();
     void file_export_raw();
+    void stream_merge();
+    void stream_split();
+    void stream_extract();
     void help_about();
 };
 
