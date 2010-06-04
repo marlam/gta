@@ -164,10 +164,12 @@ int main(int argc, char *argv[])
     _setmode(_fileno(stdout), _O_BINARY);
     _fmode = _O_BINARY;
     setbuf(stderr, NULL);
-#endif
-    msg::set_level(msg::INF);
+    program_name = strrchr(argv[0], '\\');
+#else
     program_name = strrchr(argv[0], '/');
+#endif
     program_name = program_name ? program_name + 1 : argv[0];
+    msg::set_level(msg::INF);
     msg::set_program_name(program_name);
     msg::set_columns_from_env();
     debug::init_crashhandler();
