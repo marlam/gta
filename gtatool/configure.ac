@@ -146,16 +146,23 @@ fi
 AC_DEFINE_UNQUOTED([WITH_NETPBM], [`if test "$netpbm" = "yes"; then echo "1"; else echo "0"; fi`], [Use netpbm?])
 AM_CONDITIONAL([WITH_NETPBM], [test "$netpbm" = "yes"])
 
-dnl ImageMagick (via the MagickWand API)
+dnl ImageMagick
 AC_ARG_WITH([magick],
-    [AS_HELP_STRING([--with-magick], [Enable ImageMagick import/export. Enabled by default if libWand is available.])],
+    [AS_HELP_STRING([--with-magick], [Enable ImageMagick import/export. Enabled by default if libMagick++ is available.])],
     [if test "$withval" = "yes"; then magick="yes"; else magick="no"; fi], [magick="yes"])
 if test "$magick" = "yes"; then
-    AC_LIB_FROMPACKAGE([Wand], [magick])
-    AC_LIB_HAVE_LINKFLAGS([Wand], [Magick], [#include <wand/MagickWand.h>], [MagickWandGenesis();])
-    if test "$HAVE_LIBWAND" != "yes"; then
+    AC_CHECK_HEADER([ImageMagick/magick/magick-config.h], [HAVE_MAGICK_INCSUBDIR=yes], [HAVE_MAGICK_INCSUBDIR=no])
+    if test "$HAVE_MAGICK_INCSUBDIR" = "yes"; then
+        gl_ABSOLUTE_HEADER([ImageMagick/magick/magick-config.h])
+        MAGICK_INCLUDE_DIR=`echo $gl_cv_absolute_ImageMagick_magick_magick_config_h \
+            | sed -e 's/\/magick\/magick-config.h$//' -e 's/^\/\/\//\//'`
+        CPPFLAGS="$CPPFLAGS -isystem $MAGICK_INCLUDE_DIR"
+    fi
+    AC_LIB_FROMPACKAGE([Magick++], [magick])
+    AC_LIB_HAVE_LINKFLAGS([Magick++], [], [#include <Magick++.h>], [Magick::InitializeMagick(0);])
+    if test "$HAVE_LIBMAGICK" != "yes"; then
         magick="no"
-        AC_MSG_WARN([Disabled ImageMagick import/export because libWand was not found.])
+        AC_MSG_WARN([Disabled ImageMagick import/export because libMagick++ was not found.])
     fi
 fi
 AC_DEFINE_UNQUOTED([WITH_MAGICK], [`if test "$magick" = "yes"; then echo "1"; else echo "0"; fi`], [Use magick?])

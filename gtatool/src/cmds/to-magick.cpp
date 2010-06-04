@@ -25,7 +25,7 @@
 #include <string>
 #include <limits>
 
-#include <wand/MagickWand.h>
+#include <Magick++.h>
 
 #include <gta/gta.hpp>
 
@@ -83,280 +83,137 @@ extern "C" int gtatool_to_magick(int argc, char *argv[])
         return 1;
     }
 
-    /* Read GTA header */
-    gta::header *hdr = NULL;
     try
     {
-        hdr = new gta::header();
-        hdr->read_from(fi);
-    }
-    catch (std::exception &e)
-    {
-        msg::err_txt("%s", e.what());
-        return 1;
-    }
-    if (hdr->dimensions() != 2)
-    {
-        msg::err_txt("Only two-dimensional arrays can be exported to images");
-        return 1;
-    }
-    if (hdr->components() < 1 || hdr->components() > 4)
-    {
-        msg::err_txt("Only arrays with 1-4 element components can be exported to images");
-        return 1;
-    }
-    gta::type channel_type = hdr->component_type(0);
-    if (channel_type != gta::uint8 && channel_type != gta::uint16 && channel_type != gta::float32)
-    {
-        msg::err_txt("Only arrays with element component types uint8, uint16, or float32 can be exported to images");
-        return 1;
-    }
-    for (uintmax_t i = 1; i < hdr->components(); i++)
-    {
-        if (hdr->component_type(i) != channel_type)
+        std::vector<Magick::Image> imgs;
+        uintmax_t array_index = 0;
+        while (cio::has_more(fi, filename))
         {
-            msg::err_txt("Only arrays with element components that all have the same type can be exported to images");
-            return 1;
-        }
-    }
-    if (hdr->data_is_chunked() && hdr->data_size() > std::numeric_limits<size_t>::max())
-    {
-        msg::err_txt("Array too large");
-        return 1;
-    }
-    bool has_alpha = (hdr->components() == 2 || hdr->components() == 4);
-    bool is_graylevel = (hdr->components() <= 2);
-
-    /* Create image */
-    MagickWandGenesis();
-    MagickWand *magick_wand = NewMagickWand();
-    PixelWand *magick_pixel_wand = NewPixelWand();
-    if (!magick_wand || !magick_pixel_wand
-            || PixelSetColor(magick_pixel_wand, "none") == MagickFalse
-            || MagickNewImage(magick_wand, hdr->dimension_size(0), hdr->dimension_size(1), magick_pixel_wand) == MagickFalse
-            || MagickSetImageType(magick_wand,
-                ((is_graylevel && !has_alpha) ? GrayscaleType
-                 : (is_graylevel && has_alpha) ? GrayscaleMatteType
-                 : (!is_graylevel && !has_alpha) ? TrueColorType
-                 : TrueColorMatteType)) == MagickFalse
-            || MagickSetImageChannelDepth(magick_wand, AllChannels,
-                (channel_type == gta::uint8 ? 8 : channel_type == gta::uint16 ? 16 : 32)) == MagickFalse
-            || MagickSetImageDepth(magick_wand,
-                (channel_type == gta::uint8 ? 8 : channel_type == gta::uint16 ? 16 : 32)) == MagickFalse)
-    {
-        ExceptionType severity;
-        char *description = MagickGetException(magick_wand, &severity);
-        msg::err_txt("ImageMagick error: %s", *description ? description : "unknown error");
-        description = static_cast<char *>(MagickRelinquishMemory(description));
-        magick_wand = DestroyMagickWand(magick_wand);
-        MagickWandTerminus();
-        return 1;
-    }
-
-    /* Convert the data */
-    uintmax_t component_gray = 4;
-    uintmax_t component_alpha = 4;
-    uintmax_t component_red = 4;
-    uintmax_t component_green = 4;
-    uintmax_t component_blue = 4;
-    if (is_graylevel && !has_alpha)
-    {
-        component_gray = 0;
-    }
-    else if (is_graylevel && has_alpha)
-    {
-        component_gray = 0;
-        component_alpha = 1;
-        for (uintmax_t i = 0; i < hdr->components(); i++)
-        {
-            const char *val = hdr->component_taglist(i).get("INTERPRETATION");
-            if (val && strcmp(val, "LUMINANCE") == 0)
-                component_gray = i;
-            else if (val && strcmp(val, "ALPHA") == 0)
-                component_alpha = i;
-        }
-    }
-    else if (!is_graylevel && !has_alpha)
-    {
-        component_red = 0;
-        component_green = 1;
-        component_blue = 2;
-        for (uintmax_t i = 0; i < hdr->components(); i++)
-        {
-            const char *val = hdr->component_taglist(i).get("INTERPRETATION");
-            if (val && strstr(val, "RED") != 0)
-                component_red = i;
-            else if (val && strstr(val, "GREEN") != 0)
-                component_green = i;
-            else if (val && strstr(val, "BLUE") != 0)
-                component_blue = i;
-        }
-    }
-    else
-    {
-        component_red = 0;
-        component_green = 1;
-        component_blue = 2;
-        component_alpha = 3;
-        for (uintmax_t i = 0; i < hdr->components(); i++)
-        {
-            const char *val = hdr->component_taglist(i).get("INTERPRETATION");
-            if (val && strstr(val, "RED") != 0)
-                component_red = i;
-            else if (val && strstr(val, "GREEN") != 0)
-                component_green = i;
-            else if (val && strstr(val, "BLUE") != 0)
-                component_blue = i;
-            else if (val && strcmp(val, "ALPHA") == 0)
-                component_alpha = i;
-        }
-    }
-
-    /* Convert and write the data */
-    blob data;
-    bool magick_error = false;
-    PixelIterator *magick_it = NewPixelIterator(magick_wand);
-    if (!magick_it)
-    {
-        magick_error = true;
-    }
-    try
-    {
-        if (hdr->data_is_chunked())
-        {
-            data.resize(checked_cast<size_t>(hdr->data_size()));
-            hdr->read_data(fi, data.ptr());
-        }
-        else
-        {
-            data.resize(checked_cast<size_t>(hdr->element_size()),
-                    checked_cast<size_t>(hdr->dimension_size(0)));
-        }
-        void *line = data.ptr();
-        gta::io_state si;
-        for (uintmax_t y = 0; y < hdr->dimension_size(1) && !magick_error; y++)
-        {
-            if (!hdr->data_is_chunked())
+            std::string array_name = filename + " array " + str::from(array_index);
+            gta::header hdr;
+            hdr.read_from(fi);
+            if (hdr.dimensions() != 2)
             {
-                hdr->read_elements(si, fi, hdr->dimension_size(0), line);
+                throw exc(array_name + ": only two-dimensional arrays can be exported to images");
             }
-            unsigned long magick_width = hdr->dimension_size(0);
-            PixelWand **magick_pixels = PixelGetNextIteratorRow(magick_it, &magick_width);
-            if (!magick_pixels)
+            if (hdr.components() < 1 || hdr.components() > 4)
             {
-                magick_error = true;
+                throw exc(array_name + ": only arrays with 1-4 element components can be exported to images");
             }
-            for (uintmax_t x = 0; x < hdr->dimension_size(0) && !magick_error; x++)
+            gta::type channel_type = hdr.component_type(0);
+            if (channel_type != gta::uint8 && channel_type != gta::uint16 && channel_type != gta::float32)
             {
-                if (is_graylevel && !has_alpha)
+                throw exc(array_name + ": only arrays with element component types uint8, uint16, or float32 can be exported to images");
+            }
+            for (uintmax_t i = 1; i < hdr.components(); i++)
+            {
+                if (hdr.component_type(i) != channel_type)
                 {
-                    if (channel_type == gta::uint8)
-                    {
-                        uint8_t *l = static_cast<uint8_t *>(line);
-                        PixelSetRed(magick_pixels[x], static_cast<float>(l[x]) / 255.0f);
-                        PixelSetGreen(magick_pixels[x], static_cast<float>(l[x]) / 255.0f);
-                        PixelSetBlue(magick_pixels[x], static_cast<float>(l[x]) / 255.0f);
-                    }
-                    else if (channel_type == gta::uint16)
-                    {
-                        uint16_t *l = static_cast<uint16_t *>(line);
-                        PixelSetRed(magick_pixels[x], static_cast<float>(l[x]) / 65535.0f);
-                        PixelSetGreen(magick_pixels[x], static_cast<float>(l[x]) / 65535.0f);
-                        PixelSetBlue(magick_pixels[x], static_cast<float>(l[x]) / 65535.0f);
-                    }
-                    else
-                    {
-                        float *l = static_cast<float *>(line);
-                        PixelSetRed(magick_pixels[x], l[x]);
-                        PixelSetGreen(magick_pixels[x], l[x]);
-                        PixelSetBlue(magick_pixels[x], l[x]);
-                    }
-                }
-                else if (is_graylevel && has_alpha)
-                {
-                    if (channel_type == gta::uint8)
-                    {
-                        uint8_t *l = static_cast<uint8_t *>(line);
-                        PixelSetRed(magick_pixels[x], static_cast<float>(l[2 * x + component_gray]) / 255.0f);
-                        PixelSetGreen(magick_pixels[x], static_cast<float>(l[2 * x + component_gray]) / 255.0f);
-                        PixelSetBlue(magick_pixels[x], static_cast<float>(l[2 * x + component_gray]) / 255.0f);
-                        PixelSetAlpha(magick_pixels[x], static_cast<float>(l[2 * x + component_alpha]) / 255.0f);
-                    }
-                    else if (channel_type == gta::uint16)
-                    {
-                        uint16_t *l = static_cast<uint16_t *>(line);
-                        PixelSetRed(magick_pixels[x], static_cast<float>(l[2 * x + component_gray]) / 65535.0f);
-                        PixelSetGreen(magick_pixels[x], static_cast<float>(l[2 * x + component_gray]) / 65535.0f);
-                        PixelSetBlue(magick_pixels[x], static_cast<float>(l[2 * x + component_gray]) / 65535.0f);
-                        PixelSetAlpha(magick_pixels[x], static_cast<float>(l[2 * x + component_alpha]) / 65535.0f);
-                    }
-                    else
-                    {
-                        float *l = static_cast<float *>(line);
-                        PixelSetRed(magick_pixels[x], l[2 * x + component_gray]);
-                        PixelSetGreen(magick_pixels[x], l[2 * x + component_gray]);
-                        PixelSetBlue(magick_pixels[x], l[2 * x + component_gray]);
-                        PixelSetAlpha(magick_pixels[x], l[2 * x + component_alpha]);
-                    }
-                }
-                else if (!is_graylevel && !has_alpha)
-                {
-                    if (channel_type == gta::uint8)
-                    {
-                        uint8_t *l = static_cast<uint8_t *>(line);
-                        PixelSetRed(magick_pixels[x], static_cast<float>(l[3 * x + component_red]) / 255.0f);
-                        PixelSetGreen(magick_pixels[x], static_cast<float>(l[3 * x + component_green]) / 255.0f);
-                        PixelSetBlue(magick_pixels[x], static_cast<float>(l[3 * x + component_blue]) / 255.0f);
-                    }
-                    else if (channel_type == gta::uint16)
-                    {
-                        uint16_t *l = static_cast<uint16_t *>(line);
-                        PixelSetRed(magick_pixels[x], static_cast<float>(l[3 * x + component_red]) / 65535.0f);
-                        PixelSetGreen(magick_pixels[x], static_cast<float>(l[3 * x + component_green]) / 65535.0f);
-                        PixelSetBlue(magick_pixels[x], static_cast<float>(l[3 * x + component_blue]) / 65535.0f);
-                    }
-                    else
-                    {
-                        float *l = static_cast<float *>(line);
-                        PixelSetRed(magick_pixels[x], l[3 * x + component_red]);
-                        PixelSetGreen(magick_pixels[x], l[3 * x + component_green]);
-                        PixelSetBlue(magick_pixels[x], l[3 * x + component_blue]);
-                    }
-                }
-                else
-                {
-                    if (channel_type == gta::uint8)
-                    {
-                        uint8_t *l = static_cast<uint8_t *>(line);
-                        PixelSetRed(magick_pixels[x], static_cast<float>(l[4 * x + component_red]) / 255.0f);
-                        PixelSetGreen(magick_pixels[x], static_cast<float>(l[4 * x + component_green]) / 255.0f);
-                        PixelSetBlue(magick_pixels[x], static_cast<float>(l[4 * x + component_blue]) / 255.0f);
-                        PixelSetAlpha(magick_pixels[x], static_cast<float>(l[4 * x + component_alpha]) / 255.0f);
-                    }
-                    else if (channel_type == gta::uint16)
-                    {
-                        uint16_t *l = static_cast<uint16_t *>(line);
-                        PixelSetRed(magick_pixels[x], static_cast<float>(l[4 * x + component_red]) / 65535.0f);
-                        PixelSetGreen(magick_pixels[x], static_cast<float>(l[4 * x + component_green]) / 65535.0f);
-                        PixelSetBlue(magick_pixels[x], static_cast<float>(l[4 * x + component_blue]) / 65535.0f);
-                        PixelSetAlpha(magick_pixels[x], static_cast<float>(l[4 * x + component_alpha]) / 65535.0f);
-                    }
-                    else
-                    {
-                        float *l = static_cast<float *>(line);
-                        PixelSetRed(magick_pixels[x], l[4 * x + component_red]);
-                        PixelSetGreen(magick_pixels[x], l[4 * x + component_green]);
-                        PixelSetBlue(magick_pixels[x], l[4 * x + component_blue]);
-                        PixelSetAlpha(magick_pixels[x], l[4 * x + component_alpha]);
-                    }
+                    throw exc(array_name + ": only arrays with element components that all have the same type can be exported to images");
                 }
             }
-            (void)PixelSyncIterator(magick_it);
-            if (hdr->data_is_chunked())
+            if (hdr.dimension_size(0) > std::numeric_limits<unsigned long>::max()
+                    || hdr.dimension_size(1) > std::numeric_limits<unsigned long>::max()
+                    || hdr.data_size() > std::numeric_limits<size_t>::max())
             {
-                line = static_cast<char *>(line) + hdr->element_size() * hdr->dimension_size(0);
+                throw exc(array_name + ": array too large");
             }
+            bool has_alpha = (hdr.components() == 2 || hdr.components() == 4);
+            bool is_graylevel = (hdr.components() <= 2);
+            std::string map;
+            if (is_graylevel && !has_alpha)
+            {
+                map = "I";
+            }
+            else if (is_graylevel && has_alpha)
+            {
+                int component_gray = 0;
+                int component_alpha = 1;
+                for (uintmax_t i = 0; i < hdr.components(); i++)
+                {
+                    const char *val = hdr.component_taglist(i).get("INTERPRETATION");
+                    if (val && strcmp(val, "LUMINANCE") == 0)
+                        component_gray = i;
+                    else if (val && strcmp(val, "ALPHA") == 0)
+                        component_alpha = i;
+                }
+                map = "IA";
+                if (component_gray != component_alpha)
+                {
+                    map[component_gray] = 'I';
+                    map[component_alpha] = 'A';
+                }
+            }
+            else if (!is_graylevel && !has_alpha)
+            {
+                int component_red = 0;
+                int component_green = 1;
+                int component_blue = 2;
+                for (uintmax_t i = 0; i < hdr.components(); i++)
+                {
+                    const char *val = hdr.component_taglist(i).get("INTERPRETATION");
+                    if (val && strstr(val, "RED") != 0)
+                        component_red = i;
+                    else if (val && strstr(val, "GREEN") != 0)
+                        component_green = i;
+                    else if (val && strstr(val, "BLUE") != 0)
+                        component_blue = i;
+                }
+                map = "RGB";
+                if (component_red != component_green
+                        && component_red != component_blue
+                        && component_green != component_blue)
+                {
+                    map[component_red] = 'R';
+                    map[component_green] = 'G';
+                    map[component_blue] = 'B';
+                }
+            }
+            else
+            {
+                int component_red = 0;
+                int component_green = 1;
+                int component_blue = 2;
+                int component_alpha = 3;
+                for (uintmax_t i = 0; i < hdr.components(); i++)
+                {
+                    const char *val = hdr.component_taglist(i).get("INTERPRETATION");
+                    if (val && strstr(val, "RED") != 0)
+                        component_red = i;
+                    else if (val && strstr(val, "GREEN") != 0)
+                        component_green = i;
+                    else if (val && strstr(val, "BLUE") != 0)
+                        component_blue = i;
+                    else if (val && strcmp(val, "ALPHA") == 0)
+                        component_alpha = i;
+                }
+                map = "RGBA";
+                if (component_red != component_green
+                        && component_red != component_blue
+                        && component_red != component_alpha
+                        && component_green != component_blue
+                        && component_green != component_alpha
+                        && component_blue != component_alpha)
+                {
+                    map[component_red] = 'R';
+                    map[component_green] = 'G';
+                    map[component_blue] = 'B';
+                    map[component_alpha] = 'A';
+                }
+            }
+            Magick::StorageType storage_type = (channel_type == gta::uint8 ? Magick::CharPixel
+                    : channel_type == gta::uint16 ? Magick::ShortPixel : Magick::FloatPixel);
+            blob data(checked_cast<size_t>(hdr.data_size()));
+            hdr.read_data(fi, data.ptr());
+            imgs.push_back(Magick::Image());
+            imgs.back().read(hdr.dimension_size(0), hdr.dimension_size(1), map.c_str(), storage_type, data.ptr());
+            array_index++;
         }
+        if (fi != stdin)
+        {
+            cio::close(fi);
+        }
+        Magick::writeImages(imgs.begin(), imgs.end(), magick_filename);
     }
     catch (std::exception &e)
     {
@@ -364,31 +221,5 @@ extern "C" int gtatool_to_magick(int argc, char *argv[])
         return 1;
     }
 
-    if (!magick_error)
-    {
-        // FIXME: this crashes when ImageMagick does not recognize the file extension!
-        // FIXME: this always write 16 bpp RGB images, regardless of our settings!
-        magick_error = (MagickWriteImage(magick_wand, magick_filename.c_str()) == MagickFalse);
-    }
-
-    if (magick_error)
-    {
-        ExceptionType severity;
-        char *description = MagickGetException(magick_wand, &severity);
-        msg::err_txt("ImageMagick error: %s", *description ? description : "unknown error");
-        description = static_cast<char *>(MagickRelinquishMemory(description));
-        return 1;
-    }
-    magick_wand = DestroyMagickWand(magick_wand);
-    if (magick_it)
-    {
-        magick_it = DestroyPixelIterator(magick_it);
-    }
-
-    if (fi != stdin)
-    {
-        cio::close(fi);
-    }
-    MagickWandTerminus();
     return 0;
 }

@@ -23,8 +23,9 @@
 #include "config.h"
 
 #include <string>
+#include <list>
 
-#include <wand/MagickWand.h>
+#include <Magick++.h>
 
 #include <gta/gta.hpp>
 
@@ -86,247 +87,101 @@ extern "C" int gtatool_from_magick(int argc, char *argv[])
         return 1;
     }
 
-    MagickWandGenesis();
-    MagickBooleanType magick_r;
-    MagickWand *magick_wand;
-    gta::header *hdr = NULL;
-    gta::type channel_type = gta::uint8;
-    bool has_alpha = false;
-    bool is_graylevel = false;
-    int retval = 0;
-
-    /* Read image */
-    magick_wand = NewMagickWand();
-    magick_r = MagickReadImage(magick_wand, arguments[0].c_str());
-    if (!magick_wand || magick_r == MagickFalse)
-    {
-        ExceptionType severity;
-        char *description = MagickGetException(magick_wand, &severity);
-        msg::err_txt("ImageMagick error: %s", *description ? description : "unknown error");
-        description = static_cast<char *>(MagickRelinquishMemory(description));
-        magick_wand = DestroyMagickWand(magick_wand);
-        MagickWandTerminus();
-        return 1;
-    }
-
-    /* Create a GTA */
     try
     {
-        hdr = new gta::header();
-        if (format.value().empty())
+        std::vector<Magick::Image> imgs;
+        Magick::readImages(&imgs, arguments[0].c_str());
+        for (size_t i = 0; i < imgs.size(); i++)
         {
-            has_alpha = (MagickGetImageType(magick_wand) == GrayscaleMatteType
-                    || MagickGetImageType(magick_wand) == PaletteMatteType
-                    || MagickGetImageType(magick_wand) == TrueColorMatteType
-                    || MagickGetImageType(magick_wand) == ColorSeparationMatteType);
-            is_graylevel = (MagickGetImageType(magick_wand) == BilevelType
-                    || MagickGetImageType(magick_wand) == GrayscaleType
-                    || MagickGetImageType(magick_wand) == GrayscaleMatteType);
-        }
-        else if (format.value().compare("l") == 0)
-        {
-            has_alpha = false;
-            is_graylevel = true;
-        }
-        else if (format.value().compare("la") == 0)
-        {
-            has_alpha = true;
-            is_graylevel = false;
-        }
-        else if (format.value().compare("rgb") == 0)
-        {
-            has_alpha = false;
-            is_graylevel = false;
-        }
-        else
-        {
-            has_alpha = true;
-            is_graylevel = false;
-        }
-        channel_type = (MagickGetImageDepth(magick_wand) <= 8 ? gta::uint8
-                : MagickGetImageDepth(magick_wand) <= 16 ? gta::uint16
-                : gta::float32);
-        if (is_graylevel && !has_alpha)
-        {
-            hdr->set_components(channel_type);
-            hdr->component_taglist(0).set("INTERPRETATION", "GRAY");
-        }
-        else if (is_graylevel && has_alpha)
-        {
-            hdr->set_components(channel_type, channel_type);
-            hdr->component_taglist(0).set("INTERPRETATION", "GRAY");
-            hdr->component_taglist(1).set("INTERPRETATION", "ALPHA");
-        }
-        else if (!is_graylevel && !has_alpha)
-        {
-            hdr->set_components(channel_type, channel_type, channel_type);
-            hdr->component_taglist(0).set("INTERPRETATION", "RED");
-            hdr->component_taglist(1).set("INTERPRETATION", "GREEN");
-            hdr->component_taglist(2).set("INTERPRETATION", "BLUE");
-        }
-        else
-        {
-            hdr->set_components(channel_type, channel_type, channel_type, channel_type);
-            hdr->component_taglist(0).set("INTERPRETATION", "RED");
-            hdr->component_taglist(1).set("INTERPRETATION", "GREEN");
-            hdr->component_taglist(2).set("INTERPRETATION", "BLUE");
-            hdr->component_taglist(3).set("INTERPRETATION", "ALPHA");
-        }
-        hdr->set_dimensions(MagickGetImageWidth(magick_wand), MagickGetImageHeight(magick_wand));
-        msg::inf_txt("%d x %d array, %d element components of type %s",
-                static_cast<int>(hdr->dimension_size(0)),
-                static_cast<int>(hdr->dimension_size(1)),
-                static_cast<int>(hdr->components()),
-                (channel_type == gta::uint8 ? "uint8" : channel_type == gta::uint16 ? "uint16" : "float32"));
-        // TODO: Extract as much meta data as possible and store it in global tags
-        hdr->write_to(fo);
-    }
-    catch (std::exception &e)
-    {
-        msg::err_txt("%s", e.what());
-        magick_wand = DestroyMagickWand(magick_wand);
-        MagickWandTerminus();
-        return 1;
-    }
-
-    /* Convert and write the data */
-    bool magick_error = false;
-    PixelIterator *magick_it = NewPixelIterator(magick_wand);
-    if (!magick_it)
-    {
-        magick_error = true;
-    }
-    try
-    {
-        blob line(checked_cast<size_t>(hdr->element_size()), checked_cast<size_t>(hdr->dimension_size(0)));
-        gta::io_state so;
-        for (uintmax_t y = 0; y < hdr->dimension_size(1) && !magick_error; y++)
-        {
-            unsigned long magick_width = hdr->dimension_size(0);
-            PixelWand **magick_pixels = PixelGetNextIteratorRow(magick_it, &magick_width);
-            if (!magick_pixels)
+            gta::header hdr;
+            gta::type channel_type = (imgs[i].channelDepth(Magick::RedChannel) <= 8 ? gta::uint8
+                    : imgs[i].channelDepth(Magick::RedChannel) <= 16 ? gta::uint16
+                    : gta::float32);        // XXX: this assumes that all channels have the same depth
+            bool has_alpha = false;
+            bool is_graylevel = false;
+            if (format.value().empty())
             {
-                magick_error = true;
+                has_alpha = imgs[i].matte();
+                is_graylevel = (imgs[i].colorSpace() == Magick::GRAYColorspace);
             }
-            for (uintmax_t x = 0; x < hdr->dimension_size(0) && !magick_error; x++)
+            else if (format.value().compare("l") == 0)
             {
-                if (is_graylevel && !has_alpha)
-                {
-                    if (channel_type == gta::uint8)
-                    {
-                        uint8_t *l = line.ptr<uint8_t>();
-                        l[x] = PixelGetRed(magick_pixels[x]) * 255.0;
-                    }
-                    else if (channel_type == gta::uint16)
-                    {
-                        uint16_t *l = line.ptr<uint16_t>();
-                        l[x] = PixelGetRed(magick_pixels[x]) * 65535.0;
-                    }
-                    else
-                    {
-                        float *l = line.ptr<float>();
-                        l[x] = PixelGetRed(magick_pixels[x]);
-                    }
-                }
-                else if (is_graylevel && has_alpha)
-                {
-                    if (channel_type == gta::uint8)
-                    {
-                        uint8_t *l = line.ptr<uint8_t>();
-                        l[2 * x + 0] = PixelGetRed(magick_pixels[x]) * 255.0;
-                        l[2 * x + 1] = PixelGetAlpha(magick_pixels[x]) * 255.0;
-                    }
-                    else if (channel_type == gta::uint16)
-                    {
-                        uint16_t *l = line.ptr<uint16_t>();
-                        l[2 * x + 0] = PixelGetRed(magick_pixels[x]) * 65535.0;
-                        l[2 * x + 1] = PixelGetAlpha(magick_pixels[x]) * 65535.0;
-                    }
-                    else
-                    {
-                        float *l = line.ptr<float>();
-                        l[2 * x + 0] = PixelGetRed(magick_pixels[x]);
-                        l[2 * x + 1] = PixelGetAlpha(magick_pixels[x]);
-                    }
-                }
-                else if (!is_graylevel && !has_alpha)
-                {
-                    if (channel_type == gta::uint8)
-                    {
-                        uint8_t *l = line.ptr<uint8_t>();
-                        l[3 * x + 0] = PixelGetRed(magick_pixels[x]) * 255.0;
-                        l[3 * x + 1] = PixelGetGreen(magick_pixels[x]) * 255.0;
-                        l[3 * x + 2] = PixelGetBlue(magick_pixels[x]) * 255.0;
-                    }
-                    else if (channel_type == gta::uint16)
-                    {
-                        uint16_t *l = line.ptr<uint16_t>();
-                        l[3 * x + 0] = PixelGetRed(magick_pixels[x]) * 65535.0;
-                        l[3 * x + 1] = PixelGetGreen(magick_pixels[x]) * 65535.0;
-                        l[3 * x + 2] = PixelGetBlue(magick_pixels[x]) * 65535.0;
-                    }
-                    else
-                    {
-                        float *l = line.ptr<float>();
-                        l[3 * x + 0] = PixelGetRed(magick_pixels[x]);
-                        l[3 * x + 1] = PixelGetGreen(magick_pixels[x]);
-                        l[3 * x + 2] = PixelGetBlue(magick_pixels[x]);
-                    }
-                }
-                else
-                {
-                    if (channel_type == gta::uint8)
-                    {
-                        uint8_t *l = line.ptr<uint8_t>();
-                        l[4 * x + 0] = PixelGetRed(magick_pixels[x]) * 255.0;
-                        l[4 * x + 1] = PixelGetGreen(magick_pixels[x]) * 255.0;
-                        l[4 * x + 2] = PixelGetBlue(magick_pixels[x]) * 255.0;
-                        l[4 * x + 3] = PixelGetAlpha(magick_pixels[x]) * 255.0;
-                    }
-                    else if (channel_type == gta::uint16)
-                    {
-                        uint16_t *l = line.ptr<uint16_t>();
-                        l[4 * x + 0] = PixelGetRed(magick_pixels[x]) * 65535.0;
-                        l[4 * x + 1] = PixelGetGreen(magick_pixels[x]) * 65535.0;
-                        l[4 * x + 2] = PixelGetBlue(magick_pixels[x]) * 65535.0;
-                        l[4 * x + 3] = PixelGetAlpha(magick_pixels[x]) * 65535.0;
-                    }
-                    else
-                    {
-                        float *l = line.ptr<float>();
-                        l[4 * x + 0] = PixelGetRed(magick_pixels[x]);
-                        l[4 * x + 1] = PixelGetGreen(magick_pixels[x]);
-                        l[4 * x + 2] = PixelGetBlue(magick_pixels[x]);
-                        l[4 * x + 3] = PixelGetAlpha(magick_pixels[x]);
-                    }
-                }
+                has_alpha = false;
+                is_graylevel = true;
             }
-            hdr->write_elements(so, fo, hdr->dimension_size(0), line.ptr());
+            else if (format.value().compare("la") == 0)
+            {
+                has_alpha = true;
+                is_graylevel = false;
+            }
+            else if (format.value().compare("rgb") == 0)
+            {
+                has_alpha = false;
+                is_graylevel = false;
+            }
+            else
+            {
+                has_alpha = true;
+                is_graylevel = false;
+            }
+            if (is_graylevel && !has_alpha)
+            {
+                hdr.set_components(channel_type);
+                hdr.component_taglist(0).set("INTERPRETATION", "GRAY");
+            }
+            else if (is_graylevel && has_alpha)
+            {
+                hdr.set_components(channel_type, channel_type);
+                hdr.component_taglist(0).set("INTERPRETATION", "GRAY");
+                hdr.component_taglist(1).set("INTERPRETATION", "ALPHA");
+            }
+            else if (!is_graylevel && !has_alpha)
+            {
+                hdr.set_components(channel_type, channel_type, channel_type);
+                hdr.component_taglist(0).set("INTERPRETATION", "RED");
+                hdr.component_taglist(1).set("INTERPRETATION", "GREEN");
+                hdr.component_taglist(2).set("INTERPRETATION", "BLUE");
+            }
+            else
+            {
+                hdr.set_components(channel_type, channel_type, channel_type, channel_type);
+                hdr.component_taglist(0).set("INTERPRETATION", "RED");
+                hdr.component_taglist(1).set("INTERPRETATION", "GREEN");
+                hdr.component_taglist(2).set("INTERPRETATION", "BLUE");
+                hdr.component_taglist(3).set("INTERPRETATION", "ALPHA");
+            }
+            hdr.set_dimensions(imgs[i].columns(), imgs[i].rows());
+            msg::inf_txt("%d x %d array, %d element components of type %s",
+                    static_cast<int>(hdr.dimension_size(0)),
+                    static_cast<int>(hdr.dimension_size(1)),
+                    static_cast<int>(hdr.components()),
+                    (channel_type == gta::uint8 ? "uint8" : channel_type == gta::uint16 ? "uint16" : "float32"));
+            //hdr.global_taglist().set("MAGICK/LABEL", imgs[i].label().c_str());
+            //hdr.global_taglist().set("MAGICK/FORMAT", imgs[i].magick().c_str());
+            // TODO: Extract as much meta data as possible and store it in global tags
+            hdr.write_to(fo);
+            /* Convert and write the data */
+            blob data(checked_cast<size_t>(hdr.data_size()));
+            Magick::StorageType storage_type = (channel_type == gta::uint8 ? Magick::CharPixel
+                    : channel_type == gta::uint16 ? Magick::ShortPixel : Magick::FloatPixel);
+            std::string map = (is_graylevel ? "I" : "RGB");
+            if (has_alpha)
+            {
+                map += "A";
+            }
+            imgs[i].write(0, 0, hdr.dimension_size(0), hdr.dimension_size(1), map.c_str(), storage_type, data.ptr());
+            hdr.write_data(fo, data.ptr());
         }
-        if (magick_error)
+        if (fo != stdout)
         {
-            ExceptionType severity;
-            char *description = MagickGetException(magick_wand, &severity);
-            msg::err_txt("ImageMagick error: %s", *description ? description : "unknown error");
-            description = static_cast<char *>(MagickRelinquishMemory(description));
-            retval = 1;
+            cio::close(fo);
         }
     }
     catch (std::exception &e)
     {
         msg::err_txt("%s", e.what());
-        retval = 1;
+        return 1;
     }
 
-    if (magick_it)
-    {
-        magick_it = DestroyPixelIterator(magick_it);
-    }
-    magick_wand = DestroyMagickWand(magick_wand);
-    if (fo != stdout)
-    {
-        cio::close(fo);
-    }
-    MagickWandTerminus();
-    return retval;
+    return 0;
 }
