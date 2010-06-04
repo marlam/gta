@@ -101,12 +101,12 @@ extern "C" int gtatool_to_pfs(int argc, char *argv[])
                         || hdr.component_type(i) == gta::uint64
                         || hdr.component_type(i) == gta::float64)
                 {
-                    msg::wrn_txt("Converting %s to float32 for array element component %llu may lose precision",
+                    msg::wrn_txt("Converting %s to float32 for array element component %s may lose precision",
                             (hdr.component_type(i) == gta::int32 ? "int32"
                              : hdr.component_type(i) == gta::uint32 ? "uint32"
                              : hdr.component_type(i) == gta::int64 ? "int64"
                              : hdr.component_type(i) == gta::uint64 ? "uint64" : "float64"),
-                            static_cast<unsigned long long>(i));
+                            str::from(i).c_str());
                 }
                 else if (hdr.component_type(i) != gta::int8
                         && hdr.component_type(i) != gta::uint8
