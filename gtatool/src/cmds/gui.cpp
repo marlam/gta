@@ -879,7 +879,7 @@ void GUI::import_from(const std::string &cmd, const std::vector<std::string> &op
                 {
                     std::string std_err;
                     std::vector<std::string> args = options;
-                    args.push_back(qPrintable(open_file_names[i]));
+                    args.push_back(cio::to_sys(qPrintable(open_file_names[i])));
                     int retval = run(cmd, args, std_err, f, NULL);
                     if (retval != 0)
                     {
@@ -928,7 +928,7 @@ void GUI::export_to(const std::string &cmd, const std::vector<std::string> &opti
             std::string std_err;
             std::vector<std::string> args = options;
             args.push_back(cio::to_sys(fw->name()));
-            args.push_back(qPrintable(save_file_name));
+            args.push_back(cio::to_sys(qPrintable(save_file_name)));
             int retval = run(cmd, args, std_err, NULL, NULL);
             if (retval != 0)
             {
@@ -1312,7 +1312,7 @@ void GUI::stream_split()
         FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
         std::vector<std::string> args;
         args.push_back(cio::to_sys(fw->name()));
-        args.push_back(std::string(qPrintable(QDir(dir_name).canonicalPath())) + cio::to_sys("/%9N.gta"));
+        args.push_back(cio::to_sys(std::string(qPrintable(QDir(dir_name).canonicalPath())) + "/%9N.gta"));
         std::string std_err;
         int retval = run("stream-split", args, std_err, NULL, NULL);
         if (retval != 0)
