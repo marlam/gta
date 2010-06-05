@@ -1049,9 +1049,9 @@ namespace gta
          * Gets the compression type for the header and data.\n
          * See \a gta_compression_t for more information on compression types.
          */
-        compression get_compression() const throw ()
+        gta::compression compression() const throw ()
         {
-            return static_cast<compression>(gta_get_compression(_header));
+            return static_cast<gta::compression>(gta_get_compression(_header));
         }
 
         /**
@@ -1061,7 +1061,7 @@ namespace gta
          * Sets the compression type for writing the header and data.\n
          * See \a gta_compression_t for more information on compression types.
          */
-        void set_compression(compression compression) throw ()
+        void set_compression(gta::compression compression) throw ()
         {
             gta_set_compression(_header, static_cast<gta_compression_t>(compression));
         }
