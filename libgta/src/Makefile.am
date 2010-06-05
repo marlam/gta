@@ -15,21 +15,20 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = gta.pc
 DISTCLEANFILES = $(pkgconfig_DATA)
 
-# XXX
-# FIXME
-#
-# The libgta.la file causes unnecessary direct linking with liblzma, libbz2,
-# libz. This is bad because the application then unnecessarily depends on the
-# .so versions of these libraries, even though it does not use their interfaces
-# directly. Direct linking with these libraries is only necessary for statically
-# linked applications.
+# When a shared libgta library is built, the libgta.la file causes unnecessary
+# direct linking of the application with liblzma, libbz2, libz. This is bad
+# because the application then unnecessarily depends on the .so versions of
+# these libraries, even though it does not use their interfaces directly. Direct
+# linking with these libraries is only necessary for the static libgta library.
 #
 # Pkg-config solves this by providing both a Libs and Libs.private field, where
 # Libs.private is only used for static linking.
 #
 # As of 2010-04-29, libtool has no fix for this problem. Therefore we just
-# remove the libgta.la file here. Applications that want dynamic linking do not
-# need it, and applications that want static linking can either list the
-# dependencies manually or use pkg-config.
+# remove the libgta.la file by default if a shared library is built. This can
+# be overriden by a configure option (--enable-la-file).
+if INSTALL_LA_FILE
+else
 install-exec-hook:
 	rm $(libdir)/libgta.la
+endif

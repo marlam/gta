@@ -37,6 +37,11 @@ LT_PREREQ([2.2.6])
 LT_INIT([win32-dll])
 
 dnl Switches
+AC_ARG_ENABLE([la-file],
+    [AS_HELP_STRING([--enable-la-file], [Install the .la file. Disabled by default when a shared library is built.])],
+    [if test "$enableval" = "yes"; then install_la_file="yes"; else install_la_file="no"; fi],
+    [if test "$enable_shared" = "yes"; then install_la_file="no"; else install_la_file="yes"; fi])
+AM_CONDITIONAL([INSTALL_LA_FILE], [test "$install_la_file" = "yes"])
 AC_ARG_ENABLE([specification],
     [AS_HELP_STRING([--enable-specification], [Build the specification. Enabled by default if pdflatex is available.])],
     [if test "$enableval" = "yes"; then build_spec="yes"; else build_spec="no"; fi], [build_spec="yes"])
