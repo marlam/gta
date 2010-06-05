@@ -99,7 +99,7 @@ extern "C" int gtatool_merge(int argc, char *argv[])
                 {
                     throw exc(arguments[i] + " array " + str::from(array_index) + ": incompatible array");
                 }
-                for (uintmax_t c = 0; c < hdri[0].dimensions(); c++)
+                for (uintmax_t c = 0; c < hdri[0].components(); c++)
                 {
                     if (hdri[i].component_type(c) != hdri[0].component_type(c)
                             || hdri[i].component_size(c) != hdri[0].component_size(c))
