@@ -608,6 +608,26 @@ GUI::GUI()
     connect(stream_extract_action, SIGNAL(triggered()), this, SLOT(stream_extract()));
     stream_menu->addAction(stream_extract_action);
 
+    QMenu *array_menu = menuBar()->addMenu(tr("&Array"));
+    QAction *array_create_action = new QAction(tr("&Create array..."), this);
+    connect(array_create_action, SIGNAL(triggered()), this, SLOT(array_create()));
+    array_menu->addAction(array_create_action);
+    QAction *array_extract_action = new QAction(tr("&Extract sub-arrays..."), this);
+    connect(array_extract_action, SIGNAL(triggered()), this, SLOT(array_extract()));
+    array_menu->addAction(array_extract_action);
+    QAction *array_fill_action = new QAction(tr("&Fill sub-arrays..."), this);
+    connect(array_fill_action, SIGNAL(triggered()), this, SLOT(array_fill()));
+    array_menu->addAction(array_fill_action);
+    QAction *array_merge_action = new QAction(tr("&Merge arrays from open files..."), this);
+    connect(array_merge_action, SIGNAL(triggered()), this, SLOT(array_merge()));
+    array_menu->addAction(array_merge_action);
+    QAction *array_resize_action = new QAction(tr("&Resize arrays..."), this);
+    connect(array_resize_action, SIGNAL(triggered()), this, SLOT(array_resize()));
+    array_menu->addAction(array_resize_action);
+    QAction *array_set_action = new QAction(tr("&Set sub-arrays from other arrays..."), this);
+    connect(array_set_action, SIGNAL(triggered()), this, SLOT(array_set()));
+    array_menu->addAction(array_set_action);
+
     QMenu *help_menu = menuBar()->addMenu(tr("&Help"));
     QAction *help_about_action = new QAction(tr("&About"), this);
     connect(help_about_action, SIGNAL(triggered()), this, SLOT(help_about()));
@@ -823,8 +843,8 @@ int GUI::run(const std::string &cmd, const std::vector<std::string> &args,
     {
         gtatool_stdin = std_in;
     }
-    msg::set_program_name(msg_prg_name_bak + " " + cmd);
-    msg::set_columns(60);
+    msg::set_program_name(cmd);
+    msg::set_columns(80);
     /* run command */
     int cmd_index = cmd_find(cmd.c_str());
     cmd_open(cmd_index);
@@ -969,6 +989,32 @@ void GUI::export_to(const std::string &cmd, const std::vector<std::string> &opti
             QMessageBox::critical(this, "Error", e.what());
         }
     }
+}
+
+std::string GUI::save_cmd(const std::string &cmd, const std::vector<std::string> &args)
+{
+    bool success = false;
+    QString save_file_name = file_save_dialog();
+    if (!save_file_name.isEmpty())
+    {
+        try
+        {
+            FILE *f = cio::open(qPrintable(save_file_name), "w");
+            std::string std_err;
+            int retval = run(cmd, args, std_err, f, NULL);
+            if (retval != 0)
+            {
+                throw exc(std::string("<p>Command failed.</p><pre>") + std_err + "</pre>");
+            }
+            cio::close(f, qPrintable(save_file_name));
+            success = true;
+        }
+        catch (std::exception &e)
+        {
+            QMessageBox::critical(this, "Error", e.what());
+        }
+    }
+    return success ? qPrintable(save_file_name) : "";
 }
 
 void GUI::open(const std::string &filename)
@@ -1299,25 +1345,7 @@ void GUI::stream_merge()
         FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
         args.push_back(cio::to_sys(fw->name()));
     }
-    QString save_file_name = file_save_dialog();
-    if (!save_file_name.isEmpty())
-    {
-        try
-        {
-            FILE *f = cio::open(qPrintable(save_file_name), "w");
-            std::string std_err;
-            int retval = run("stream-merge", args, std_err, f, NULL);
-            if (retval != 0)
-            {
-                throw exc(std::string("<p>Merging failed.</p><pre>") + std_err + "</pre>");
-            }
-            cio::close(f, qPrintable(save_file_name));
-        }
-        catch (std::exception &e)
-        {
-            QMessageBox::critical(this, "Error", e.what());
-        }
-    }
+    save_cmd("stream-merge", args);
 }
 
 void GUI::stream_split()
@@ -1349,7 +1377,7 @@ void GUI::stream_split()
         int retval = run("stream-split", args, std_err, NULL, NULL);
         if (retval != 0)
         {
-            throw exc(std::string("<p>Splitting failed.</p><pre>") + std_err + "</pre>");
+            throw exc(std::string("<p>Command failed.</p><pre>") + std_err + "</pre>");
         }
     }
 }
@@ -1365,24 +1393,263 @@ void GUI::stream_extract()
     std::vector<std::string> args;
     args.push_back(cio::to_sys(fw->name()));
     args.push_back(str::from(index));
-    QString save_file_name = file_save_dialog();
-    if (!save_file_name.isEmpty())
+    save_cmd("stream-extract", args);
+}
+
+void GUI::array_create()
+{
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Create array");
+    QGridLayout *layout = new QGridLayout;
+    QLabel *comp_label = new QLabel("Array element components (comma\nseparated list of the following types:\n"
+            "int{8,16,32,64,128}, uint{8,16,32,64,128}\n"
+            "float{32,64,128}, cfloat{32,64,128}");
+    layout->addWidget(comp_label, 0, 0, 1, 2);
+    QLineEdit *comp_edit = new QLineEdit("");
+    layout->addWidget(comp_edit, 1, 0, 1, 2);
+    QLabel *dim_label = new QLabel("Dimensions (comma separated list):");
+    layout->addWidget(dim_label, 2, 0, 1, 2);
+    QLineEdit *dim_edit = new QLineEdit("");
+    layout->addWidget(dim_edit, 3, 0, 1, 2);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 4, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 4, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
     {
-        try
-        {
-            FILE *f = cio::open(qPrintable(save_file_name), "w");
-            std::string std_err;
-            int retval = run("stream-extract", args, std_err, f, NULL);
-            if (retval != 0)
-            {
-                throw exc(std::string("<p>Extracting failed.</p><pre>") + std_err + "</pre>");
-            }
-            cio::close(f, qPrintable(save_file_name));
-        }
-        catch (std::exception &e)
-        {
-            QMessageBox::critical(this, "Error", e.what());
-        }
+        return;
+    }
+    std::vector<std::string> args;
+    args.push_back("-c");
+    args.push_back(qPrintable(comp_edit->text().simplified().replace(' ', "")));
+    args.push_back("-d");
+    args.push_back(qPrintable(dim_edit->text().simplified().replace(' ', "")));
+    std::string file_name = save_cmd("create", args);
+    if (!file_name.length() == 0)
+    {
+        open(file_name);
+    }
+}
+
+void GUI::array_extract()
+{
+    if (!check_have_file() || !check_file_saved())
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Extract sub-arrays");
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(new QLabel("Lower indices (comma separated):"), 0, 0, 1, 2);
+    QLineEdit *low_edit = new QLineEdit("");
+    layout->addWidget(low_edit, 1, 0, 1, 2);
+    layout->addWidget(new QLabel("Higher indices (comma separated):"), 2, 0, 1, 2);
+    QLineEdit *high_edit = new QLineEdit("");
+    layout->addWidget(high_edit, 3, 0, 1, 2);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 4, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 4, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    args.push_back("-l");
+    args.push_back(qPrintable(low_edit->text().simplified().replace(' ', "")));
+    args.push_back("-h");
+    args.push_back(qPrintable(high_edit->text().simplified().replace(' ', "")));
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    args.push_back(cio::to_sys(fw->name()));
+    std::string file_name = save_cmd("extract", args);
+    if (!file_name.length() == 0)
+    {
+        open(file_name);
+    }
+}
+
+void GUI::array_fill()
+{
+    if (!check_have_file() || !check_file_saved())
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Fill sub-arrays");
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(new QLabel("Lower indices (comma separated):"), 0, 0, 1, 2);
+    QLineEdit *low_edit = new QLineEdit("");
+    layout->addWidget(low_edit, 1, 0, 1, 2);
+    layout->addWidget(new QLabel("Higher indices (comma separated):"), 2, 0, 1, 2);
+    QLineEdit *high_edit = new QLineEdit("");
+    layout->addWidget(high_edit, 3, 0, 1, 2);
+    layout->addWidget(new QLabel("Component values (comma separated):"), 4, 0, 1, 2);
+    QLineEdit *val_edit = new QLineEdit("");
+    layout->addWidget(val_edit, 5, 0, 1, 2);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 6, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 6, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    args.push_back("-l");
+    args.push_back(qPrintable(low_edit->text().simplified().replace(' ', "")));
+    args.push_back("-h");
+    args.push_back(qPrintable(high_edit->text().simplified().replace(' ', "")));
+    args.push_back("-v");
+    args.push_back(qPrintable(val_edit->text().simplified().replace(' ', "")));
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    args.push_back(cio::to_sys(fw->name()));
+    std::string file_name = save_cmd("fill", args);
+    if (!file_name.length() == 0)
+    {
+        open(file_name);
+    }
+}
+
+void GUI::array_merge()
+{
+    if (!check_have_file() || !check_all_files_saved())
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Merge arrays from open files");
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(new QLabel("Dimension:"), 0, 0, 1, 2);
+    QLineEdit *dim_edit = new QLineEdit("");
+    layout->addWidget(dim_edit, 1, 0, 1, 2);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 2, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 2, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    args.push_back("-d");
+    args.push_back(qPrintable(dim_edit->text().simplified().replace(' ', "")));
+    for (int i = 0; i < _files_widget->count(); i++)
+    {
+        FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
+        args.push_back(cio::to_sys(fw->name()));
+    }
+    std::string file_name = save_cmd("merge", args);
+    if (!file_name.length() == 0)
+    {
+        open(file_name);
+    }
+}
+
+void GUI::array_resize()
+{
+    if (!check_have_file() || !check_file_saved())
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Resize arrays");
+    QGridLayout *layout = new QGridLayout;
+    QLabel *dim_label = new QLabel("New dimensions (comma separated list):");
+    layout->addWidget(dim_label, 0, 0, 1, 2);
+    QLineEdit *dim_edit = new QLineEdit("");
+    layout->addWidget(dim_edit, 1, 0, 1, 2);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 2, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 2, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    args.push_back("-d");
+    args.push_back(qPrintable(dim_edit->text().simplified().replace(' ', "")));
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    args.push_back(cio::to_sys(fw->name()));
+    std::string file_name = save_cmd("resize", args);
+    if (!file_name.length() == 0)
+    {
+        open(file_name);
+    }
+}
+
+void GUI::array_set()
+{
+    if (!check_have_file() || !check_file_saved())
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Set sub-arrays from other arrays");
+    QGridLayout *layout = new QGridLayout;
+    QLabel *indices_label = new QLabel("Place other array at the following indices:");
+    layout->addWidget(indices_label, 0, 0, 1, 2);
+    QLineEdit *indices_edit = new QLineEdit("");
+    layout->addWidget(indices_edit, 1, 0, 1, 2);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 2, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 2, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    QStringList source_file_names = file_open_dialog(QStringList("GTA files (*.gta)"));
+    if (source_file_names.size() < 1)
+    {
+        return;
+    }
+    if (source_file_names.size() > 1)
+    {
+        QMessageBox::critical(this, "Error", "Please choose only one array file.");
+        return;
+    }
+    std::vector<std::string> args;
+    args.push_back("-s");
+    args.push_back(qPrintable(source_file_names[0]));
+    args.push_back("-i");
+    args.push_back(qPrintable(indices_edit->text().simplified().replace(' ', "")));
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    args.push_back(cio::to_sys(fw->name()));
+    std::string file_name = save_cmd("set", args);
+    if (!file_name.length() == 0)
+    {
+        open(file_name);
     }
 }
 

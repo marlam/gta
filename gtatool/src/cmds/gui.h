@@ -196,6 +196,7 @@ private:
             std::string &std_err, FILE *std_out = NULL, FILE *std_in = NULL);
     void import_from(const std::string &cmd, const std::vector<std::string> &options, const QStringList &filters);
     void export_to(const std::string &cmd, const std::vector<std::string> &options, const QString &default_suffix, const QStringList &filters);
+    std::string save_cmd(const std::string &cmd, const std::vector<std::string> &args);
 
 private slots:
     void file_changed(const std::string &name);
@@ -230,6 +231,12 @@ private slots:
     void stream_merge();
     void stream_split();
     void stream_extract();
+    void array_create();
+    void array_extract();
+    void array_fill();
+    void array_merge();
+    void array_resize();
+    void array_set();
     void help_about();
 };
 
