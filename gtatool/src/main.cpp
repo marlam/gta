@@ -215,7 +215,7 @@ int main(int argc, char *argv[])
         }
         else if (!cmd_is_available(cmd_index))
         {
-            msg::err("command not available in this version of %s: %s", PACKAGE_NAME, argv[1]);
+            msg::err("command %s is not available in this version of %s", argv[1], PACKAGE_NAME);
             exitcode = 1;
         }
         else
