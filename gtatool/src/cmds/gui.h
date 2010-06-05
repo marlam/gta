@@ -36,6 +36,7 @@
 #include <QTabWidget>
 #include <QDir>
 #include <QStringList>
+#include <QComboBox>
 
 #include <gta/gta.hpp>
 
@@ -95,9 +96,11 @@ private:
     QLabel *_dimensions_label;
     QLabel *_components_label;
     QLabel *_size_label;
+    QComboBox *_compression_combobox;
     MyTabWidget *_taglists_widget;
 
 private slots:
+    void compression_changed(int index);
     void taglist_changed(gta::header *header, int type, uintmax_t index);
 
 public:

@@ -295,16 +295,45 @@ ArrayWidget::ArrayWidget(gta::header *header, QWidget *parent)
     layout->addWidget(new QLabel("Size:"), 2, 0, 1, 1);
     _size_label = new QLabel("");
     layout->addWidget(_size_label, 2, 1, 1, 3);
+    layout->addWidget(new QLabel("Compression:"), 3, 0, 1, 1);
+    _compression_combobox = new QComboBox();
+    _compression_combobox->setEditable(false);
+    // the order of entries corresponds to the gta_compression_t enumeration
+    _compression_combobox->addItem("none");
+    _compression_combobox->addItem("Zlib default level");
+    _compression_combobox->addItem("Bzip2");
+    _compression_combobox->addItem("XZ");
+    _compression_combobox->addItem("Zlib level 1");
+    _compression_combobox->addItem("Zlib level 2");
+    _compression_combobox->addItem("Zlib level 3");
+    _compression_combobox->addItem("Zlib level 4");
+    _compression_combobox->addItem("Zlib level 5");
+    _compression_combobox->addItem("Zlib level 6");
+    _compression_combobox->addItem("Zlib level 7");
+    _compression_combobox->addItem("Zlib level 8");
+    _compression_combobox->addItem("Zlib level 9");
+    _compression_combobox->setCurrentIndex(header->compression());
+    connect(_compression_combobox, SIGNAL(activated(int)), this, SLOT(compression_changed(int)));
+    layout->addWidget(_compression_combobox, 3, 1, 1, 2);
     _taglists_widget = new MyTabWidget;
-    layout->addWidget(_taglists_widget, 3, 0, 1, 4);
+    layout->addWidget(_taglists_widget, 4, 0, 1, 4);
     update();
-    layout->setRowStretch(6, 1);
+    layout->setRowStretch(7, 1);
     layout->setColumnStretch(3, 1);
     setLayout(layout);
 }
 
 ArrayWidget::~ArrayWidget()
 {
+}
+
+void ArrayWidget::compression_changed(int index)
+{
+    if (index != static_cast<int>(_header->compression()))
+    {
+        _header->set_compression(static_cast<gta::compression>(index));
+        emit changed(_header);
+    }
 }
 
 void ArrayWidget::taglist_changed(gta::header *, int type, uintmax_t index)
@@ -1020,6 +1049,7 @@ void GUI::file_save()
     }
     try
     {
+        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
         cio::rewind(fw->file(), fw->name());
         FILE *fo = cio::open(fw->name() + ".tmp", "w+");
         for (size_t i = 0; i < fw->headers().size(); i++)
@@ -1039,9 +1069,11 @@ void GUI::file_save()
         fo = cio::open(fw->name(), "r");
         fw->saved(fo);
         _files_widget->tabBar()->setTabTextColor(_files_widget->indexOf(fw), "black");
+        QApplication::restoreOverrideCursor();
     }
     catch (std::exception &e)
     {
+        QApplication::restoreOverrideCursor();
         QMessageBox::critical(this, "Error", (std::string("Cannot save file: ") + e.what()).c_str());
     }
 }
