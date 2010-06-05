@@ -28,10 +28,6 @@
 #include <cstring>
 
 #include <getopt.h>
-extern char *optarg;
-extern int optind;
-extern int optopt;
-extern int opterr;
 #undef no_argument
 #undef required_argument
 #undef optional_argument
@@ -137,6 +133,10 @@ namespace opt
         }
         error = false;
         opterr = 0;
+        optind = 1;
+#if HAVE_OPTRESET
+        optreset = 1;
+#endif
         while (!error)
         {
             int optval = getopt_long(argc, argv, shortopts, longopts, NULL);

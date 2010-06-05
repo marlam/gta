@@ -50,6 +50,9 @@ if test "$w32" = "yes"; then
     if test "$WINDRES" = ":"; then
         AC_MSG_ERROR([windres not found])
     fi
+    dnl Define _BSD_SOURCE to get the optreset declaration. We need this
+    dnl because we may use getopt_long for more than one command line.
+    CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE"
 fi
 AM_CONDITIONAL([W32], [test "$w32" = "yes"])
 if test "$w32" = "yes"; then W32=1; else W32=0; fi
@@ -96,6 +99,8 @@ AC_CHECK_FUNCS([iconv_open], [],
          AC_MSG_ERROR([libiconv not found])
      fi
      LIB_ICONV="$LTLIBICONV"])
+AC_CHECK_DECL([optreset], [HAVE_OPTRESET=1], [HAVE_OPTRESET=0], [#include <getopt.h>])
+AC_DEFINE_UNQUOTED([HAVE_OPTRESET], [$HAVE_OPTRESET], [Do we have optreset?])
 AC_CHECK_FUNCS([backtrace sigaction vasprintf mmap link fseeko ftello])
 
 dnl The GTA library
