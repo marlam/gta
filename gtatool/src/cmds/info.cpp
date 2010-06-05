@@ -97,13 +97,33 @@ extern "C" int gtatool_info(int argc, char *argv[])
                 if (hdr.data_size() == 0)
                 {
                     msg::req(finame + " array " + str::from(array) + ":");
-                    msg::req("    empty array");
                 }
                 else
                 {
                     msg::req(finame + " array " + str::from(array) + ": "
                             + str::from(hdr.data_size()) + " bytes ("
                             + str::human_readable_memsize(hdr.data_size()) + ")");
+                }
+                msg::req(std::string("    compression: ") +
+                        (hdr.compression() == gta::none ? "none"
+                         : hdr.compression() == gta::zlib ? "zlib default level"
+                         : hdr.compression() == gta::bzip2 ? "bzip2"
+                         : hdr.compression() == gta::xz ? "xz"
+                         : hdr.compression() == gta::zlib1 ? "zlib level 1"
+                         : hdr.compression() == gta::zlib2 ? "zlib level 2"
+                         : hdr.compression() == gta::zlib3 ? "zlib level 3"
+                         : hdr.compression() == gta::zlib4 ? "zlib level 4"
+                         : hdr.compression() == gta::zlib5 ? "zlib level 5"
+                         : hdr.compression() == gta::zlib6 ? "zlib level 6"
+                         : hdr.compression() == gta::zlib7 ? "zlib level 7"
+                         : hdr.compression() == gta::zlib8 ? "zlib level 8"
+                         : hdr.compression() == gta::zlib9 ? "zlib level 9" : "unknown"));
+                if (hdr.data_size() == 0)
+                {
+                    msg::req("    empty array");
+                }
+                else
+                {
                     msg::req(std::string("    ") + dimensions.str() + " elements of type " + components.str());
                 }
                 for (uintmax_t i = 0; i < hdr.global_taglist().tags(); i++)
