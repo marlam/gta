@@ -88,7 +88,7 @@ extern "C" int gtatool_fill(int argc, char *argv[])
         }
     }
 
-    if (cio::isatty(stdout))
+    if (cio::isatty(gtatool_stdout))
     {
         msg::err_txt("refusing to write to a tty");
         return 1;
@@ -103,7 +103,7 @@ extern "C" int gtatool_fill(int argc, char *argv[])
         do
         {
             std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? stdin : cio::open(finame, "r"));
+            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : cio::open(finame, "r"));
 
             // Loop over all GTAs inside the current file
             uintmax_t array_index = 0;
@@ -140,7 +140,7 @@ extern "C" int gtatool_fill(int argc, char *argv[])
                 // Write the GTA header
                 hdro = hdri;
                 hdro.set_compression(gta::none);
-                hdro.write_to(stdout);
+                hdro.write_to(gtatool_stdout);
                 // Manipulate the GTA data
                 std::vector<uintmax_t> index(hdri.dimensions());
                 blob element(checked_cast<size_t>(hdro.element_size()));
@@ -165,11 +165,11 @@ extern "C" int gtatool_fill(int argc, char *argv[])
                     {
                         memcpy(element.ptr(), v.ptr(), element.size());
                     }
-                    hdro.write_elements(so, stdout, 1, element.ptr());
+                    hdro.write_elements(so, gtatool_stdout, 1, element.ptr());
                 }
                 array_index++;
             }
-            if (fi != stdin)
+            if (fi != gtatool_stdin)
             {
                 cio::close(fi);
             }

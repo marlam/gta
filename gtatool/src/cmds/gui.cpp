@@ -766,8 +766,8 @@ int GUI::run(const std::string &cmd, const std::vector<std::string> &args,
     }
     /* save environment */
     FILE *std_err_bak = msg::file();
-    FILE *std_out_bak = stdout;
-    FILE *std_in_bak = stdin;
+    FILE *std_out_bak = gtatool_stdout;
+    FILE *std_in_bak = gtatool_stdin;
     std::string msg_prg_name_bak = msg::program_name();
     int msg_columns_bak = msg::columns();
     /* modify environment */
@@ -788,11 +788,11 @@ int GUI::run(const std::string &cmd, const std::vector<std::string> &args,
     msg::set_file(std_err_tmp);
     if (std_out)
     {
-        stdout = std_out;
+        gtatool_stdout = std_out;
     }
     if (std_in)
     {
-        stdin = std_in;
+        gtatool_stdin = std_in;
     }
     msg::set_program_name(msg_prg_name_bak + " " + cmd);
     msg::set_columns(60);
@@ -833,8 +833,8 @@ int GUI::run(const std::string &cmd, const std::vector<std::string> &args,
     cmd_close(cmd_index);
     /* restore environment */
     msg::set_file(std_err_bak);
-    stdout = std_out_bak;
-    stdin = std_in_bak;
+    gtatool_stdout = std_out_bak;
+    gtatool_stdin = std_in_bak;
     msg::set_program_name(msg_prg_name_bak);
     msg::set_columns(msg_columns_bak);
     /* read messages */

@@ -25,6 +25,7 @@
 #include <limits>
 #include <sstream>
 #include <cstring>
+#include <cstddef>
 
 #include "str.h"
 #include "msg.h"
@@ -33,6 +34,10 @@
 #include "debug.h"
 
 #include "lib.h"
+
+
+FILE *gtatool_stdin = NULL;
+FILE *gtatool_stdout = NULL;
 
 
 std::string type_to_string(const gta::type t, const uintmax_t size) throw (exc)

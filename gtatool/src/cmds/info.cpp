@@ -68,7 +68,7 @@ extern "C" int gtatool_info(int argc, char *argv[])
         do
         {
             std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? stdin : cio::open(finame, "r"));
+            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : cio::open(finame, "r"));
 
             // Loop over all GTAs inside the current file
             uintmax_t array = 0;
@@ -135,7 +135,7 @@ extern "C" int gtatool_info(int argc, char *argv[])
                 hdr.skip_data(fi);
                 array++;
             }
-            if (fi != stdin)
+            if (fi != gtatool_stdin)
             {
                 cio::close(fi);
             }

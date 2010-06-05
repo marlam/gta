@@ -36,6 +36,8 @@
 #include "debug.h"
 #include "intcheck.h"
 
+#include "lib.h"
+
 
 extern "C" void gtatool_from_magick_help(void)
 {
@@ -67,7 +69,7 @@ extern "C" int gtatool_from_magick(int argc, char *argv[])
         return 0;
     }
 
-    FILE *fo = stdout;
+    FILE *fo = gtatool_stdout;
     std::string filename("standard output");
     try
     {
@@ -172,7 +174,7 @@ extern "C" int gtatool_from_magick(int argc, char *argv[])
             imgs[i].write(0, 0, hdr.dimension_size(0), hdr.dimension_size(1), map.c_str(), storage_type, data.ptr());
             hdr.write_data(fo, data.ptr());
         }
-        if (fo != stdout)
+        if (fo != gtatool_stdout)
         {
             cio::close(fo);
         }

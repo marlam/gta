@@ -35,6 +35,7 @@
 
 #include "lib.h"
 
+
 class tag_command
 {
 private:
@@ -555,7 +556,7 @@ extern "C" int gtatool_tag(int argc, char *argv[])
         return 0;
     }
 
-    if (cio::isatty(stdout))
+    if (cio::isatty(gtatool_stdout))
     {
         msg::err_txt("refusing to write to a tty");
         return 1;
@@ -569,7 +570,7 @@ extern "C" int gtatool_tag(int argc, char *argv[])
         do
         {
             std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? stdin : cio::open(finame, "r"));
+            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : cio::open(finame, "r"));
 
             // Loop over all GTAs inside the current file
             uintmax_t array = 0;
@@ -582,12 +583,12 @@ extern "C" int gtatool_tag(int argc, char *argv[])
                     tag_commands[i].apply(finame, array, hdr);
                 }
                 // Write the GTA header
-                hdr.write_to(stdout);
+                hdr.write_to(gtatool_stdout);
                 // Copy the GTA data
-                hdr.copy_data(fi, hdr, stdout);
+                hdr.copy_data(fi, hdr, gtatool_stdout);
                 array++;
             }
-            if (fi != stdin)
+            if (fi != gtatool_stdin)
             {
                 cio::close(fi);
             }

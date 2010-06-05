@@ -78,7 +78,7 @@ extern "C" int gtatool_create(int argc, char *argv[])
         return 0;
     }
 
-    FILE *fo = stdout;
+    FILE *fo = gtatool_stdout;
     std::string ofilename("standard output");
     try
     {
@@ -124,7 +124,7 @@ extern "C" int gtatool_create(int argc, char *argv[])
                 hdr.write_elements(so, fo, 1, v.ptr());
             }
         }
-        if (fo != stdout)
+        if (fo != gtatool_stdout)
         {
             cio::close(fo);
         }

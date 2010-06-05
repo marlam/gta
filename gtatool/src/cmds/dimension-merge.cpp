@@ -67,7 +67,7 @@ extern "C" int gtatool_dimension_merge(int argc, char *argv[])
         return 0;
     }
 
-    if (cio::isatty(stdout))
+    if (cio::isatty(gtatool_stdout))
     {
         msg::err_txt("refusing to write to a tty");
         return 1;
@@ -147,7 +147,7 @@ extern "C" int gtatool_dimension_merge(int argc, char *argv[])
             {
                 hdro.component_taglist(c) = hdri[0].component_taglist(c);
             }
-            hdro.write_to(stdout);
+            hdro.write_to(gtatool_stdout);
             blob element_buf(checked_cast<size_t>(hdro.element_size()));
             for (size_t i = 0; i < arguments.size(); i++)
             {
@@ -155,7 +155,7 @@ extern "C" int gtatool_dimension_merge(int argc, char *argv[])
                 for (uintmax_t e = 0; e < hdri[i].elements(); e++)
                 {
                     hdri[i].read_elements(si, fi[i], 1, element_buf.ptr());
-                    hdro.write_elements(so, stdout, 1, element_buf.ptr());
+                    hdro.write_elements(so, gtatool_stdout, 1, element_buf.ptr());
                 }
             }
             array_index++;

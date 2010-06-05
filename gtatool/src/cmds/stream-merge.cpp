@@ -33,6 +33,8 @@
 #include "cio.h"
 #include "str.h"
 
+#include "lib.h"
+
 
 extern "C" void gtatool_stream_merge_help(void)
 {
@@ -61,7 +63,7 @@ extern "C" int gtatool_stream_merge(int argc, char *argv[])
         return 0;
     }
 
-    if (cio::isatty(stdout))
+    if (cio::isatty(gtatool_stdout))
     {
         msg::err_txt("refusing to write to a tty");
         return 1;
@@ -75,7 +77,7 @@ extern "C" int gtatool_stream_merge(int argc, char *argv[])
         do
         {
             std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? stdin : cio::open(finame, "r"));
+            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : cio::open(finame, "r"));
 
             // Loop over all GTAs inside the current file
             while (cio::has_more(fi, finame))
@@ -86,11 +88,11 @@ extern "C" int gtatool_stream_merge(int argc, char *argv[])
                 hdro = hdri;
                 hdro.set_compression(gta::none);
                 // Write the GTA header
-                hdro.write_to(stdout);
+                hdro.write_to(gtatool_stdout);
                 // Copy the GTA data
-                hdri.copy_data(fi, hdro, stdout);
+                hdri.copy_data(fi, hdro, gtatool_stdout);
             }
-            if (fi != stdin)
+            if (fi != gtatool_stdin)
             {
                 cio::close(fi);
             }

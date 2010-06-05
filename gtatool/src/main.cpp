@@ -35,6 +35,7 @@
 #include "opt.h"
 #include "debug.h"
 
+#include "lib.h"
 #include "cmds.h"
 
 char *program_name;
@@ -173,6 +174,7 @@ int main(int argc, char *argv[])
     msg::set_program_name(program_name);
     msg::set_columns_from_env();
     debug::init_crashhandler();
+
     if (argc < 2)
     {
         char help[] = "help";
@@ -222,6 +224,8 @@ int main(int argc, char *argv[])
         {
             msg::set_program_name(msg::program_name() + " " + argv[argv_cmd_index]);
             cmd_open(cmd_index);
+            gtatool_stdin = stdin;
+            gtatool_stdout = stdout;
             exitcode = cmd_run(cmd_index, argc - argv_cmd_index, &(argv[argv_cmd_index]));
             cmd_close(cmd_index);
         }

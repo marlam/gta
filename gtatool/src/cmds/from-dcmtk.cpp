@@ -36,6 +36,8 @@
 #include "opt.h"
 #include "debug.h"
 
+#include "lib.h"
+
 
 extern "C" void gtatool_from_dcmtk_help(void)
 {
@@ -60,7 +62,7 @@ extern "C" int gtatool_from_dcmtk(int argc, char *argv[])
         return 0;
     }
 
-    FILE *fo = stdout;
+    FILE *fo = gtatool_stdout;
     std::string ifilename(arguments[0]);
     std::string ofilename("standard output");
     try
@@ -180,7 +182,7 @@ extern "C" int gtatool_from_dcmtk(int argc, char *argv[])
         // Cleanup
         DcmRLEDecoderRegistration::cleanup();
         DJDecoderRegistration::cleanup();
-        if (fo != stdout)
+        if (fo != gtatool_stdout)
         {
             cio::close(fo);
         }

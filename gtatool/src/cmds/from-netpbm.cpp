@@ -33,6 +33,8 @@
 #include "debug.h"
 #include "intcheck.h"
 
+#include "lib.h"
+
 extern "C"
 {
 /* This header must come last because it contains so much junk that
@@ -64,7 +66,7 @@ extern "C" int gtatool_from_netpbm(int argc, char *argv[])
         return 0;
     }
 
-    FILE *fo = stdout;
+    FILE *fo = gtatool_stdout;
     std::string ifilename(arguments[0]);
     std::string ofilename("standard output");
     try
@@ -190,7 +192,7 @@ extern "C" int gtatool_from_netpbm(int argc, char *argv[])
             pnm_freepamrow(tuplerow);
         }
         cio::close(fi);
-        if (fo != stdout)
+        if (fo != gtatool_stdout)
         {
             cio::close(fo);
         }

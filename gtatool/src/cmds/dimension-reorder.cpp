@@ -85,7 +85,7 @@ extern "C" int gtatool_dimension_reorder(int argc, char *argv[])
         }
     }
 
-    if (cio::isatty(stdout))
+    if (cio::isatty(gtatool_stdout))
     {
         msg::err_txt("refusing to write to a tty");
         return 1;
@@ -100,7 +100,7 @@ extern "C" int gtatool_dimension_reorder(int argc, char *argv[])
         do
         {
             std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? stdin : cio::open(finame, "r"));
+            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : cio::open(finame, "r"));
             if (!cio::seekable(fi))
             {
                 throw exc(finame + ": input is not seekable");
@@ -141,7 +141,7 @@ extern "C" int gtatool_dimension_reorder(int argc, char *argv[])
                     }
                 }
                 // Write the GTA header
-                hdro.write_to(stdout);
+                hdro.write_to(gtatool_stdout);
                 // Manipulate the GTA data
                 blob element(checked_cast<size_t>(hdri.element_size()));
                 std::vector<uintmax_t> in_indices(hdri.dimensions());
@@ -162,13 +162,13 @@ extern "C" int gtatool_dimension_reorder(int argc, char *argv[])
                         }
                     }
                     hdri.read_block(fi, data_offset, &(in_indices[0]), &(in_indices[0]), element.ptr());
-                    hdro.write_elements(so, stdout, 1, element.ptr());
+                    hdro.write_elements(so, gtatool_stdout, 1, element.ptr());
                 }
                 cio::seek(fi, data_offset, SEEK_SET, finame);
                 hdri.skip_data(fi);
                 array_index++;
             }
-            if (fi != stdin)
+            if (fi != gtatool_stdin)
             {
                 cio::close(fi);
             }

@@ -35,6 +35,8 @@
 #include "str.h"
 #include "intcheck.h"
 
+#include "lib.h"
+
 
 extern "C" void gtatool_component_extract_help(void)
 {
@@ -75,7 +77,7 @@ extern "C" int gtatool_component_extract(int argc, char *argv[])
         return 1;
     }
 
-    if (cio::isatty(stdout))
+    if (cio::isatty(gtatool_stdout))
     {
         msg::err_txt("refusing to write to a tty");
         return 1;
@@ -90,7 +92,7 @@ extern "C" int gtatool_component_extract(int argc, char *argv[])
         do
         {
             std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? stdin : cio::open(finame, "r"));
+            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : cio::open(finame, "r"));
 
             // Loop over all GTAs inside the current file
             uintmax_t array_index = 0;
@@ -160,7 +162,7 @@ extern "C" int gtatool_component_extract(int argc, char *argv[])
                     hdro.component_taglist(i) = hdri.component_taglist(hdro_comp_indices[i]);
                 }
                 // Write the GTA header
-                hdro.write_to(stdout);
+                hdro.write_to(gtatool_stdout);
                 // Manipulate the GTA data
                 blob element_in(checked_cast<size_t>(hdri.element_size()));
                 blob element_out(checked_cast<size_t>(hdro.element_size()));
@@ -182,11 +184,11 @@ extern "C" int gtatool_component_extract(int argc, char *argv[])
                         component_in_index += hdro.component_size(i);
                         component_out_index += hdro.component_size(i);
                     }
-                    hdro.write_elements(so, stdout, 1, element_out.ptr());
+                    hdro.write_elements(so, gtatool_stdout, 1, element_out.ptr());
                 }
                 array_index++;
             }
-            if (fi != stdin)
+            if (fi != gtatool_stdin)
             {
                 cio::close(fi);
             }

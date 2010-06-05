@@ -37,6 +37,8 @@
 #include "debug.h"
 #include "intcheck.h"
 
+#include "lib.h"
+
 
 extern "C" void gtatool_to_gdal_help(void)
 {
@@ -63,7 +65,7 @@ extern "C" int gtatool_to_gdal(int argc, char *argv[])
         return 0;
     }
 
-    FILE *fi = stdin;
+    FILE *fi = gtatool_stdin;
     std::string ifilename("standard input");
     std::string ofilename(arguments[0]);
     try
@@ -442,7 +444,7 @@ extern "C" int gtatool_to_gdal(int argc, char *argv[])
                 }
             }
         }
-        if (fi != stdin)
+        if (fi != gtatool_stdin)
         {
             cio::close(fi);
         }

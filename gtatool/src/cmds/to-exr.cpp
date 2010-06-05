@@ -41,6 +41,8 @@
 #include "debug.h"
 #include "intcheck.h"
 
+#include "lib.h"
+
 using namespace Imf;
 using namespace Imath;
 
@@ -68,7 +70,7 @@ extern "C" int gtatool_to_exr(int argc, char *argv[])
         return 0;
     }
 
-    FILE *fi = stdin;
+    FILE *fi = gtatool_stdin;
     std::string ifilename("standard input");
     std::string ofilename(arguments[0]);
     try

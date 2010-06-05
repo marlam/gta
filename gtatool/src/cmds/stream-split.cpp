@@ -33,6 +33,8 @@
 #include "cio.h"
 #include "str.h"
 
+#include "lib.h"
+
 
 extern "C" void gtatool_stream_split_help(void)
 {
@@ -107,7 +109,7 @@ extern "C" int gtatool_stream_split(int argc, char *argv[])
         do
         {
             std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? stdin : cio::open(finame, "r"));
+            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : cio::open(finame, "r"));
 
             // Loop over all GTAs inside the current file
             while (cio::has_more(fi, finame))
@@ -132,7 +134,7 @@ extern "C" int gtatool_stream_split(int argc, char *argv[])
                 cio::close(fo, foname);
                 array_index++;
             }
-            if (fi != stdin)
+            if (fi != gtatool_stdin)
             {
                 cio::close(fi);
             }

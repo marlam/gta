@@ -36,6 +36,8 @@
 #include "debug.h"
 #include "intcheck.h"
 
+#include "lib.h"
+
 
 extern "C" void gtatool_from_gdal_help(void)
 {
@@ -60,7 +62,7 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
         return 0;
     }
 
-    FILE *fo = stdout;
+    FILE *fo = gtatool_stdout;
     std::string ifilename(arguments[0]);
     std::string ofilename("standard output");
     try
@@ -334,7 +336,7 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
             }
             hdr.write_elements(so, fo, hdr.dimension_size(0), dataline.ptr());
         }
-        if (fo != stdout)
+        if (fo != gtatool_stdout)
         {
             cio::close(fo);
         }

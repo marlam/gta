@@ -36,6 +36,8 @@
 #include "debug.h"
 #include "intcheck.h"
 
+#include "lib.h"
+
 
 extern "C" void gtatool_to_magick_help(void)
 {
@@ -61,7 +63,7 @@ extern "C" int gtatool_to_magick(int argc, char *argv[])
         return 0;
     }
 
-    FILE *fi = stdin;
+    FILE *fi = gtatool_stdin;
     std::string filename("standard input");
     std::string magick_filename;
     try
@@ -209,7 +211,7 @@ extern "C" int gtatool_to_magick(int argc, char *argv[])
             imgs.back().read(hdr.dimension_size(0), hdr.dimension_size(1), map.c_str(), storage_type, data.ptr());
             array_index++;
         }
-        if (fi != stdin)
+        if (fi != gtatool_stdin)
         {
             cio::close(fi);
         }

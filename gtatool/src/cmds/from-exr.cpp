@@ -41,6 +41,8 @@
 #include "debug.h"
 #include "intcheck.h"
 
+#include "lib.h"
+
 using namespace Imf;
 using namespace Imath;
 
@@ -68,7 +70,7 @@ extern "C" int gtatool_from_exr(int argc, char *argv[])
         return 0;
     }
 
-    FILE *fo = stdout;
+    FILE *fo = gtatool_stdout;
     std::string ifilename(arguments[0]);
     std::string ofilename("standard output");
     try
@@ -132,7 +134,7 @@ extern "C" int gtatool_from_exr(int argc, char *argv[])
         file.readPixels(dw.min.y, dw.max.y);
         hdr.write_to(fo);
         hdr.write_data(fo, data.ptr());
-        if (fo != stdout)
+        if (fo != gtatool_stdout)
         {
             cio::close(fo);
         }

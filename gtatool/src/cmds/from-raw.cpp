@@ -201,7 +201,7 @@ extern "C" int gtatool_from_raw(int argc, char *argv[])
         host_endianness = (endian.value().compare("little") == 0);
     }
 
-    FILE *fo = stdout;
+    FILE *fo = gtatool_stdout;
     std::string ifilename(arguments[0]);
     std::string ofilename("standard output");
     try
@@ -241,7 +241,7 @@ extern "C" int gtatool_from_raw(int argc, char *argv[])
             hdr.write_elements(so, fo, 1, element.ptr());
         }
         cio::close(fi);
-        if (fo != stdout)
+        if (fo != gtatool_stdout)
         {
             cio::close(fo);
         }

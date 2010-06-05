@@ -26,11 +26,21 @@
 #include <string>
 #include <vector>
 #include <cerrno>
+#include <cstdio>
 
 #include <gta/gta.hpp>
 
 #include "exc.h"
 
+
+/* We need to redirect stdin/stdout when calling commands from the GUI.
+ * However, assigning override values to stdin/stdout is not portable because
+ * the standard streams need not be lvalues.
+ * To keep things simple, we only use gtatool_stdin and gtatool_stdout in the
+ * command implementations, and set these variables from main.cpp (command line
+ * interface) and gui.cpp (GUI interface). */
+extern FILE *gtatool_stdin;
+extern FILE *gtatool_stdout;
 
 /* Convert GTA type identifiers to strings and back */
 std::string type_to_string(const gta::type t, const uintmax_t size) throw (exc);

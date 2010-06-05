@@ -77,7 +77,7 @@ extern "C" int gtatool_to_raw(int argc, char *argv[])
         host_endianness = (endian.value().compare("little") == 0);
     }
 
-    FILE *fi = stdin;
+    FILE *fi = gtatool_stdin;
     std::string ifilename("standard input");
     std::string ofilename(arguments[0]);
     try
@@ -115,7 +115,7 @@ extern "C" int gtatool_to_raw(int argc, char *argv[])
             }
             cio::write(element.ptr(), hdr.element_size(), 1, fo, ofilename);
         }
-        if (fi != stdin)
+        if (fi != gtatool_stdin)
         {
             cio::close(fi);
         }
