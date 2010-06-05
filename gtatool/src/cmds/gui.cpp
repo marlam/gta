@@ -86,10 +86,10 @@ TaglistWidget::TaglistWidget(gta::header *header, enum type type, uintmax_t inde
     _tablewidget->verticalHeader()->hide();
     connect(_tablewidget, SIGNAL(itemSelectionChanged()), this, SLOT(selection_changed()));
     connect(_tablewidget, SIGNAL(cellChanged(int, int)), this, SLOT(cell_changed(int, int)));
-    _remove_button = new QPushButton("Remove");
+    _remove_button = new QPushButton("Remove selected tags");
     _remove_button->setEnabled(false);
     connect(_remove_button, SIGNAL(pressed()), this, SLOT(remove()));
-    _add_button = new QPushButton("Add");
+    _add_button = new QPushButton("Add tag");
     connect(_add_button, SIGNAL(pressed()), this, SLOT(add()));
     update();
     QGridLayout *layout = new QGridLayout;
