@@ -27,6 +27,8 @@
 #   include <stdlib.h>
 #   include <io.h>
 #   include <fcntl.h>
+#   include <string.h>
+#   include <strings.h>
 #endif
 
 #include <gta/gta.hpp>
@@ -164,15 +166,17 @@ int main(int argc, char *argv[])
     _fmode = _O_BINARY;
     setbuf(stderr, NULL);
     program_name = strrchr(argv[0], '\\');
+    program_name = program_name ? program_name + 1 : argv[0];
     size_t program_name_len = strlen(program_name);
     if (program_name_len > 4 && strcasecmp(program_name + program_name_len - 4, ".exe") == 0)
     {
+        program_name = strdup(program_name);
         program_name[program_name_len - 4] = '\0';
     }
 #else
     program_name = strrchr(argv[0], '/');
-#endif
     program_name = program_name ? program_name + 1 : argv[0];
+#endif
     msg::set_level(msg::INF);
     msg::set_program_name(program_name);
     msg::set_columns_from_env();
