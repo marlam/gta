@@ -38,8 +38,6 @@
 #include "lib.h"
 #include "cmds.h"
 
-char *program_name;
-
 
 extern "C" void gtatool_version_help(void)
 {
@@ -166,6 +164,11 @@ int main(int argc, char *argv[])
     _fmode = _O_BINARY;
     setbuf(stderr, NULL);
     program_name = strrchr(argv[0], '\\');
+    size_t program_name_len = strlen(program_name);
+    if (program_name_len > 4 && strcasecmp(program_name + program_name_len - 4, ".exe") == 0)
+    {
+        program_name[program_name_len - 4] = '\0';
+    }
 #else
     program_name = strrchr(argv[0], '/');
 #endif

@@ -35,7 +35,7 @@
 
 #include "lib.h"
 
-
+char *program_name = NULL;
 FILE *gtatool_stdin = NULL;
 FILE *gtatool_stdout = NULL;
 

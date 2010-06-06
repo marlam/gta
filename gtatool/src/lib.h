@@ -32,6 +32,8 @@
 
 #include "exc.h"
 
+// The name of the binary of this program.
+extern char *program_name;
 
 /* We need to redirect stdin/stdout when calling commands from the GUI.
  * However, assigning override values to stdin/stdout is not portable because

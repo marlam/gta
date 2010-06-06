@@ -1897,15 +1897,17 @@ void GUI::help_about()
 {
     QMessageBox::about(this, tr("About " PACKAGE_NAME), tr(
                 "<p>This is %1 version %2, using libgta version %3.</p>"
-                "<p>This graphical user interface provides only a limited subset of the functionality of this tool. "
-                "The full functionality is provided by the command line interface.</p>"
-                "<p>See <a href=\"%4\">%5</a> for more information on this software.</p>"
+                "<p>This graphical user interface is a frontend for the command line interface of this tool. "
+                "It provides only a limited subset of the full functionality.</p>"
+                "<p>Use <code>%4 help</code> to get a list of all commands provided by this tool, "
+                "and <code>%4 help &lt;cmd&gt;</code> to get a description of a specific command.</p>"
+                "<p>See <a href=\"%5\">%5</a> for more information on this software.</p>"
                 "<p>Copyright (C) 2010 Martin Lambers.<br>"
                 "This is <a href=\"http://www.gnu.org/philosophy/free-sw.html\">free software</a>. "
                 "You may redistribute copies of it under the terms of the "
                 "<a href=\"http://www.gnu.org/licenses/gpl.html\">GNU General Public License</a>."
                 "There is NO WARRANTY, to the extent permitted by law.</p>")
-            .arg(PACKAGE_NAME).arg(VERSION).arg(gta::version()).arg(PACKAGE_URL).arg(PACKAGE_URL));
+            .arg(PACKAGE_NAME).arg(VERSION).arg(gta::version()).arg(program_name).arg(PACKAGE_URL));
 }
 
 extern int qInitResources();
