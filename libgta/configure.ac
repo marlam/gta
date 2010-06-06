@@ -42,17 +42,6 @@ AC_ARG_ENABLE([la-file],
     [if test "$enableval" = "yes"; then install_la_file="yes"; else install_la_file="no"; fi],
     [if test "$enable_shared" = "yes"; then install_la_file="no"; else install_la_file="yes"; fi])
 AM_CONDITIONAL([INSTALL_LA_FILE], [test "$install_la_file" = "yes"])
-AC_ARG_ENABLE([specification],
-    [AS_HELP_STRING([--enable-specification], [Build the specification. Enabled by default if pdflatex is available.])],
-    [if test "$enableval" = "yes"; then build_spec="yes"; else build_spec="no"; fi], [build_spec="yes"])
-AC_ARG_VAR([PDFLATEX], [Pdflatex command])
-if test "$build_spec" = "yes"; then
-    AC_CHECK_PROGS([PDFLATEX], [pdflatex], [:])
-    if test "$PDFLATEX" = ":"; then
-        build_spec="no"
-        AC_MSG_WARN([Disabled building the specification because pdflatex was not found.])
-    fi
-fi
 AM_CONDITIONAL([BUILD_SPEC], [test "$build_spec" = "yes"])
 AC_ARG_ENABLE([reference],
     [AS_HELP_STRING([--enable-reference], [Build the reference. Enabled by default if doxygen is available.])],

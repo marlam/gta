@@ -4,24 +4,12 @@
 # permitted in any medium without royalty provided the copyright notice and this
 # notice are preserved. This file is offered as-is, without any warranty.
 
-EXTRA_DIST = specification.tex fdl.tex doxyfile.in example.c example.cpp
+EXTRA_DIST = doxyfile.in example.c example.cpp
 
 doc_DATA =
 nodist_doc_DATA =
 nobase_nodist_doc_DATA =
 CLEANFILES =
-
-if BUILD_SPEC
-
-nodist_doc_DATA += specification.pdf
-
-specification.pdf: specification.tex fdl.tex
-	   TEXINPUTS="$(top_srcdir)/doc:" $(PDFLATEX) specification \
-	&& TEXINPUTS="$(top_srcdir)/doc:" $(PDFLATEX) specification
-
-CLEANFILES += specification.aux specification.log $(nodist_doc_DATA)
-
-endif
 
 if BUILD_REF
 

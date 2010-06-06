@@ -1,0 +1,85 @@
+Generic Tagged Arrays: Reserved Tags
+====================================
+
+Tag names that are not defined in this section should be preceded with the two
+characters "X-". If they are some day included in this specification, the "X-"
+prefix is removed. This way, conflicts between existing files and future
+versions of this specification are avoided.
+
+Tag names can use the character '/' to denote tag directories, thereby
+creating tag namespaces. For example, an application FooBar might use tag
+names of the form "X-FOOBAR/COLOR/BACKGROUND" or "X-FOOBAR/AUDIO/BASS",
+effectively creating its private namespace "X-FOOBAR" with the directories
+"COLOR" and "AUDIO".
+
+
+The following tag namespaces are reserved:
+
+- "TIFF/": Reserved for tags defined and used by the Tagged Image File Format;
+  see for example <http://www.awaresystems.be/imaging/tiff.html>. The tag itself
+  is specified using its name (case-independent), e.g. "TIFF/MaxSampleValue".
+  This namespace is also used by extension tags, for example those defined by
+  the GeoTIFF specification <http://trac.osgeo.org/geotiff/>.
+
+- "PFS/": Reserved for tags defined and used by the PFS format; see
+  <http://pfstools.sourceforge.net/documentation.html>.
+
+
+The following tag names are defined for global tags in a GTA file:
+
+- "COPYRIGHT": Copyright information.
+
+- "CREATOR": Creator information.
+
+- "PRODUCER": Producer information (usually the software that produced the array
+  data).
+
+- "DATE": Date associated with the GTA data, in the format specified by RFC 2822
+  Sec. 3.3. Example: "Fri,  4 Dec 2009 22:29:43 +0100 (CET)".
+
+
+The following tag names are defined for dimension tags in a GTA file:
+
+- "INTERPRETATION": This tag describes how the dimension should be interpreted by
+  the application. Currently defined values are
+  - "X": X axis of an euclidean space
+  - "Y": Y axis of an euclidean space
+  - "Z": Z axis of an euclidean space
+  - "T": time axis
+
+- "SAMPLE-DISTANCE": This tag describes the distance of sample points for
+  dimensions with equidistant sampling. The value may be followed by a SI unit,
+  e.g. m for meters. If a SI unit is used, the SAMPLE-DISTANCE tags of all
+  dimensions must use the same unit.
+
+
+The following tag names are defined for component tags in a GTA file:
+
+- "INTERPRETATION": This tag describes how the component should be interpreted
+  by the application. Currently defined values are
+  - "GRAY": Graylevel value for colors
+  - "RED": Red color component of an unspecified color space
+  - "GREEN": Green color component of an unspecified color space
+  - "BLUE": Blue color component of an unspecified color space
+  - "ALPHA": Alpha component for colors
+  - "SRGB/RED": Red color component of the sRGB color space
+  - "SRGB/GREEN": Green color component of the sRGB color space
+  - "SRGB/BLUE": Blue color component of the sRGB color space
+  - "XYZ/X": X color component of the CIE XYZ color space
+  - "XYZ/Y": Y color component of the CIE XYZ color space
+  - "XYZ/Z": Z color component of the CIE XYZ color space
+  - "HSL/H": H color component of the HSL color space
+  - "HSL/S": S color component of the HSL color space
+  - "HSL/L": L color component of the HSL color space
+  - "YCBCR/Y": Y color component of the YCbCr color space
+  - "YCBCR/CB": Cb color component of the YCbCr color space
+  - "YCBCR/CR": Cr color component of the YCbCr color space
+  - "CMYK/C": C color component of the CMYK color space
+  - "CMYK/M": M color component of the CMYK color space
+  - "CMYK/Y": Y color component of the CMYK color space
+  - "CMYK/K": K color component of the CMYK color space
+
+- "UNIT": SI unit symbol that describes the unit for the values of this
+  component. The value can be any SI unit symbol with or without prefix.
+  The value must use UTF-8 characters instead of plain ASCII where applicable,
+  e.g. the middle dot instead of '*'.

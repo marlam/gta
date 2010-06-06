@@ -17,21 +17,37 @@
 \title{The Generic Tagged Array File Format}
 %\author{Martin Lambers}
 \author{~}
-%\date{22.03.2010}%
+%\date{}%
 \date{~}
 \maketitle
 
 \noindent
+{\scriptsize
 Copyright (C) 2010 Martin Lambers\\~\\
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
-Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.  A
-copy of the license is included in the section entitled ``GNU Free
-Documentation License''.
+Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+%A copy of the license is included in the section entitled ``GNU Free
+%Documentation License''.
+}
 
 
-\section{Introduction}
+\phantomsection 
+\addcontentsline{toc}{section}{Changes}
+\section*{Changes}
+
+\begin{itemize}
+\item \textbf{2010-06-06} Various extensions, cleanups, clarifications.
+The list of reserved tags was moved to an external file because it may change
+while the file format itself remains unchanged.
+\item \textbf{2010-04-16} Initial version.
+\end{itemize}
+
+
+\phantomsection 
+\addcontentsline{toc}{section}{Introduction}
+\section*{Introduction}
 
 This document specifies version 1 of the Generic Tagged Array (GTA) file format.
 This file format has the following features:
@@ -46,14 +62,10 @@ This file format has the following features:
 \item Uncompressed GTA files allow easy out-of-core data access
 \end{itemize}
 
-\section{Changes}
 
-\begin{itemize}
-\item \textbf{2010-04-16} Initial version.
-\end{itemize}
+\section{Definitions}
 
-
-\section{Arrays}
+\subsection{Arrays}
 
 An array has zero or more \emph{dimensions}, and a size of at least one in each
 dimension. These dimension sizes determine the number of array elements.
@@ -94,7 +106,8 @@ would have two dimensions, the first with size 640, the second with size 480.
 Each array element would consists of three components, all of type
 \code{GTA\_UINT8}.
 
-\section{Tags}
+
+\subsection{Tags}
 \label{sec:tags}
 
 A \emph{tag} consists of a tag name and a tag value.
@@ -123,24 +136,17 @@ are relevant to this particular component.
 \end{itemize}
 
 An array does not need to have any tags in its tag lists. If it does have
-tags, these are subject to certain rules, see Sec.~\ref{sec:reserved-tags}.
+tags, these are subject to certain rules, see the external documentation about
+reserved tags.
 
 For example, an image might have a global tag list containing the tag
-\code{DATE=Fri,~~4 Dec 2009 22:29:43 +0100 (CET)}, 
+\mbox{\code{DATE=Fri,~~4 Dec 2009 22:29:43 +0100 (CET)}}, 
 a tag list for the first dimension containing the tag \code{INTERPRETATION=X},
 a tag list for the second dimensions containing the tag
 \code{INTERPRETATION=Y}, and three component tag lists, containing the tags
 \code{INTERPRETATION=SRGB/RED}, \code{INTERPRETATION=SRGB/GREEN},
 \code{INTERPRETATION=SRGB/BLUE} respectively.
 
-\section{File Format}
-
-A GTA consists of the GTA header and the GTA data. The GTA header stores
-the list of dimensions, the list of element components, and all tag lists.
-This information is stored in some preceding bytes and one chunk list, as
-defined by the next section.
-
-The GTA data is stored immediately after the header.
 
 \subsection{Chunks}
 
@@ -197,7 +203,17 @@ the number of bytes given in the third header value.
 A \emph{chunk list} is a list of one or more chunks. A chunk with the chunk
 data size zero marks the last chunk in a chunk list.
 
+
+\section{File Format}
+
+A GTA consists of the GTA header and the GTA data. The GTA header stores
+information about the file format, the list of dimensions, the list of element
+components, and all tag lists. See Sec.~\ref{sec:gta-header}.
+The GTA data is stored immediately after the header. See Sec.~\ref{sec:gta-data}.
+
+
 \subsection{GTA Header}
+\label{sec:gta-header}
 
 The first three bytes of a GTA Header are of type \code{GTA\_UINT8} and contain
 the \mbox{UTF-8} codes of the characters \code{G}, \code{T}, and \code{A}.
@@ -260,7 +276,9 @@ single zero-sized chunk must signal the end of the header chunk list.
 
 The GTA array data follows immediately after the header.
 
+
 \subsection{GTA Data}
+\label{sec:gta-data}
 
 The array data itself is stored in a compact form without alignment offsets or
 other fill bytes of any kind. The linear format of a multidimensional array is
@@ -276,101 +294,12 @@ is seekable.
 
 Immediately after the array data, another GTA may follow.
 
-\section{Reserved Tags}
-\label{sec:reserved-tags}
-
-Tags are subject to the technical constraints described in Sec.~\ref{sec:tags}.
-Additionally, tags are subject to some semantic constraints, described in this
-section. Note, however, that tags are entirely optional.
-
-Tag names and values that are not defined in this section should be preceded
-with the two characters \code{X-}. If they are some day included in this
-specification the \code{X-} prefix is removed. This way, conflicts between
-existing files and future versions of this specification are avoided.
-
-Tag names can use the character \code{/} to denote tag directories, thereby
-creating tag namespaces. For example, an application FooBar might use tag
-names of the form \code{X-FOOBAR/COLOR/RED} or \code{X-FOOBAR/AUDIO/BASS},
-effectively creating its private namespace \code{X-FOOBAR} with the
-directories \code{COLOR} and \code{AUDIO}.
-
-The following tag namespaces are reserved:
-\begin{itemize}
-\item \code{TIFF/}: Reserved for tags defined and used by the Tagged Image
-File Format; see for example
-\url{http://www.awaresystems.be/imaging/tiff.html}. The tag itself is
-specified using its name (case-independent), e.g. \code{TIFF/ImageWidth}.
-\item \code{GEOTIFF/}: Reserved for tags defined and used by the
-GeoTIFF specification; see \url{http://trac.osgeo.org/geotiff/}.
-Analogous to \code{TIFF/} tags, specific tags are referenced by their name.
-\item \code{PFS/}: Reserved for tags defined and used by the PFS format; 
-see \url{http://pfstools.sourceforge.net/documentation.html}.
-\end{itemize}
-
-The following tag names are defined for global tags in a GTA file:
-\begin{itemize}
-\item \code{COPYRIGHT}: Copyright information.
-\item \code{CREATOR}: Creator information.
-\item \code{PRODUCER}: Producer information (usually the software that 
-produced the array).
-\item \code{DATE}: Date associated with the GTA data, in the format specified
-by RFC 2822 Sec.~3.3. Example: \code{Fri,  4 Dec 2009 22:29:43 +0100 (CET)}.
-\end{itemize}
-
-The following tag names are defined for component tags in a GTA file:
-\begin{itemize}
-\item \code{INTERPRETATION}: This tag describes how the component should be
-interpreted by the application. Currently defined values are
-	\begin{itemize}
-	\item \code{GRAY}: Graylevel value for colors
-	\item \code{RED}: Red color component of an unspecified color space
-	\item \code{GREEN}: Green color component of an unspecified color space
-	\item \code{BLUE}: Blue color component of an unspecified color space
-	\item \code{ALPHA}: Alpha component for colors
-	\item \code{SRGB/RED}: Red color component of the sRGB color space
-	\item \code{SRGB/GREEN}: Green color component of the sRGB color space
-	\item \code{SRGB/BLUE}: Blue color component of the sRGB color space
-	\item \code{XYZ/X}: X color component of the CIE XYZ color space
-	\item \code{XYZ/Y}: Y color component of the CIE XYZ color space
-	\item \code{XYZ/Z}: Z color component of the CIE XYZ color space
-	\item \code{HSL/H}: H color component of the HSL color space
-	\item \code{HSL/S}: S color component of the HSL color space
-	\item \code{HSL/L}: L color component of the HSL color space
-	\item \code{YCBCR/Y}: Y color component of the YCbCr color space
-	\item \code{YCBCR/CB}: Cb color component of the YCbCr color space
-	\item \code{YCBCR/CR}: Cr color component of the YCbCr color space
-	\item \code{CMYK/C}: C color component of the CMYK color space
-	\item \code{CMYK/M}: M color component of the CMYK color space
-	\item \code{CMYK/Y}: Y color component of the CMYK color space
-	\item \code{CMYK/K}: K color component of the CMYK color space
-	\end{itemize}
-\item \code{UNIT}: SI unit symbol that describes the unit for the values of
-this component. The value can be any SI unit symbol with or without prefix.
-The value must use \mbox{UTF-8} characters instead of plain ASCII where applicable,
-e.g.~the middle dot instead of \code{*}.
-\end{itemize}
-
-The following tag names are defined for dimension tags in a GTA file:
-\begin{itemize}
-\item \code{INTERPRETATION}: This tag describes how the dimension
-should be interpreted by the application. Currently defined values are
-	\begin{itemize}
-	\item \code{X}: X axis of an euclidean space
-	\item \code{Y}: Y axis of an euclidean space
-	\item \code{Z}: Z axis of an euclidean space
-	\item \code{T}: time axis
-	\end{itemize}
-\item \code{SAMPLE-DISTANCE}: This tag describes the distance of sample points
-for dimensions with equidistant sampling. The value may be followed by a SI unit,
-e.g. \code{m} for meters. If a SI unit is used, the \code{SAMPLE-DISTANCE} tags
-of all dimensions must use the same unit.
-\end{itemize}
 
 
-\newpage
-\renewcommand{\large}{\small}
-\renewcommand{\Large}{\normalsize}
-\newcommand{\chapter}[3][\relax]{\section*{#3}\footnotesize}
-\include{fdl}
+%\newpage
+%\renewcommand{\large}{\small}
+%\renewcommand{\Large}{\normalsize}
+%\newcommand{\chapter}[3][\relax]{\section*{#3}\footnotesize}
+%\include{fdl}
 
 \end{document}
