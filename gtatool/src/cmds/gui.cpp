@@ -47,6 +47,7 @@
 #include <QThread>
 #include <QLineEdit>
 #include <QRadioButton>
+#include <QTextCodec>
 
 #include <gta/gta.hpp>
 
@@ -1106,7 +1107,13 @@ void GUI::file_save()
          * has the expected contents. */
         cio::close(fo, fw->name() + ".tmp");
         cio::close(fw->file(), fw->name());
-        cio::remove(fw->name());
+        try
+        {
+            cio::remove(fw->name());
+        }
+        catch (...)
+        {
+        }
         cio::rename(fw->name() + ".tmp", fw->name());
         fo = cio::open(fw->name(), "r");
         fw->saved(fo);
@@ -1700,6 +1707,11 @@ extern "C" int gtatool_gui(int argc, char *argv[])
     int retval = 0;
     try
     {
+        // Set the correct encoding so that qPrintable() returns strings in the
+        // correct locale (and not just latin1).
+        std::string localcharset = str::localcharset();
+        QTextCodec::setCodecForCStrings(QTextCodec::codecForName(localcharset.c_str()));
+        QTextCodec::setCodecForLocale(QTextCodec::codecForName(localcharset.c_str()));
         GUI *gui = new GUI();
         gui->show();
         for (size_t i = 0; i < arguments.size(); i++)
