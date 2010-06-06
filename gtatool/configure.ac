@@ -50,6 +50,10 @@ if test "$w32" = "yes"; then
     if test "$WINDRES" = ":"; then
         AC_MSG_ERROR([windres not found])
     fi
+    AC_CHECK_TOOL([MAKENSIS], [makensis], [:])
+    if test "$MAKENSIS" = ":"; then
+        AC_MSG_WARN([makensis not found: you will not be able to create a W32 installer])
+    fi
     dnl Define _BSD_SOURCE to get the optreset declaration. We need this
     dnl because we may use getopt_long for more than one command line.
     CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE"
