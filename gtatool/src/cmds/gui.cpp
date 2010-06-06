@@ -140,7 +140,7 @@ void TaglistWidget::cell_changed(int row, int column)
     {
         if (column == 0)
         {
-            std::string new_name = _tablewidget->item(row, 0)->text().toUtf8().data();
+            std::string new_name = _tablewidget->item(row, 0)->text().toUtf8().constData();
             if (new_name.length() == 0)
             {
                 _cell_change_add_mode = false;
@@ -154,7 +154,7 @@ void TaglistWidget::cell_changed(int row, int column)
             if (_cell_change_add_mode)
             {
                 _cell_change_add_mode = false;
-                std::string new_value = _tablewidget->item(row, 1)->text().toUtf8().data();
+                std::string new_value = _tablewidget->item(row, 1)->text().toUtf8().constData();
                 if (_type == global)
                 {
                     _header->global_taglist().set(new_name.c_str(), new_value.c_str());
@@ -195,7 +195,7 @@ void TaglistWidget::cell_changed(int row, int column)
         }
         else
         {
-            std::string new_value = _tablewidget->item(row, column)->text().toUtf8().data();
+            std::string new_value = _tablewidget->item(row, column)->text().toUtf8().constData();
             if (_type == global)
             {
                 std::string name = _header->global_taglist().name(index);
@@ -970,10 +970,6 @@ void GUI::export_to(const std::string &cmd, const std::vector<std::string> &opti
     {
         try
         {
-            // create a file to catch 'permission denied' early
-            FILE *f = cio::open(qPrintable(save_file_name), "w");
-            cio::close(f, qPrintable(save_file_name));
-            // export
             std::string std_err;
             std::vector<std::string> args = options;
             args.push_back(cio::to_sys(fw->name()));
