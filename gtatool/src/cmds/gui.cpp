@@ -319,7 +319,7 @@ ArrayWidget::ArrayWidget(gta::header *header, QWidget *parent)
     _taglists_widget = new MyTabWidget;
     layout->addWidget(_taglists_widget, 4, 0, 1, 4);
     update();
-    layout->setRowStretch(7, 1);
+    layout->setRowStretch(4, 1);
     layout->setColumnStretch(3, 1);
     setLayout(layout);
 }
@@ -609,7 +609,7 @@ GUI::GUI()
     connect(stream_extract_action, SIGNAL(triggered()), this, SLOT(stream_extract()));
     stream_menu->addAction(stream_extract_action);
 
-    QMenu *array_menu = menuBar()->addMenu(tr("&Array"));
+    QMenu *array_menu = menuBar()->addMenu(tr("&Arrays"));
     QAction *array_create_action = new QAction(tr("&Create array..."), this);
     connect(array_create_action, SIGNAL(triggered()), this, SLOT(array_create()));
     array_menu->addAction(array_create_action);
@@ -629,10 +629,32 @@ GUI::GUI()
     connect(array_set_action, SIGNAL(triggered()), this, SLOT(array_set()));
     array_menu->addAction(array_set_action);
 
+    QMenu *dimension_menu = menuBar()->addMenu(tr("&Dimensions"));
+    QAction *dimension_add_action = new QAction(tr("&Add dimension to current array..."), this);
+    connect(dimension_add_action, SIGNAL(triggered()), this, SLOT(dimension_add()));
+    dimension_menu->addAction(dimension_add_action);
+    QAction *dimension_extract_action = new QAction(tr("&Extract dimension from current array..."), this);
+    connect(dimension_extract_action, SIGNAL(triggered()), this, SLOT(dimension_extract()));
+    dimension_menu->addAction(dimension_extract_action);
+    QAction *dimension_merge_action = new QAction(tr("&Merge arrays from open files into new dimension..."), this);
+    connect(dimension_merge_action, SIGNAL(triggered()), this, SLOT(dimension_merge()));
+    dimension_menu->addAction(dimension_merge_action);
+    QAction *dimension_reorder_action = new QAction(tr("&Reorder dimensions of current array..."), this);
+    connect(dimension_reorder_action, SIGNAL(triggered()), this, SLOT(dimension_reorder()));
+    dimension_menu->addAction(dimension_reorder_action);
+    QAction *dimension_reverse_action = new QAction(tr("&Reverse dimensions of current array..."), this);
+    connect(dimension_reverse_action, SIGNAL(triggered()), this, SLOT(dimension_reverse()));
+    dimension_menu->addAction(dimension_reverse_action);
+    QAction *dimension_split_action = new QAction(tr("&Split current array along one dimension..."), this);
+    connect(dimension_split_action, SIGNAL(triggered()), this, SLOT(dimension_split()));
+    dimension_menu->addAction(dimension_split_action);
+
     QMenu *help_menu = menuBar()->addMenu(tr("&Help"));
     QAction *help_about_action = new QAction(tr("&About"), this);
     connect(help_about_action, SIGNAL(triggered()), this, SLOT(help_about()));
     help_menu->addAction(help_about_action);
+
+    resize(menuBar()->sizeHint().width(), 200);
 }
 
 GUI::~GUI()
@@ -1536,7 +1558,7 @@ void GUI::array_merge()
     }
     QDialog *dialog = new QDialog(this);
     dialog->setModal(true);
-    dialog->setWindowTitle("Merge arrays from open files");
+    dialog->setWindowTitle("Merge arrays");
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(new QLabel("Dimension:"), 0, 0, 1, 2);
     QLineEdit *dim_edit = new QLineEdit("");
@@ -1614,7 +1636,7 @@ void GUI::array_set()
     }
     QDialog *dialog = new QDialog(this);
     dialog->setModal(true);
-    dialog->setWindowTitle("Set sub-arrays from other arrays");
+    dialog->setWindowTitle("Set sub-arrays");
     QGridLayout *layout = new QGridLayout;
     QLabel *indices_label = new QLabel("Place other array at the following indices:");
     layout->addWidget(indices_label, 0, 0, 1, 2);
@@ -1650,6 +1672,221 @@ void GUI::array_set()
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
     args.push_back(cio::to_sys(fw->name()));
     std::string file_name = save_cmd("set", args);
+    if (!file_name.length() == 0)
+    {
+        open(file_name);
+    }
+}
+
+void GUI::dimension_add()
+{
+    if (!check_have_file() || !check_file_saved())
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Add dimension");
+    QGridLayout *layout = new QGridLayout;
+    QLabel *dim_label = new QLabel("Index of new dimension:");
+    layout->addWidget(dim_label, 0, 0, 1, 2);
+    QLineEdit *dim_edit = new QLineEdit("");
+    layout->addWidget(dim_edit, 1, 0, 1, 2);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 2, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 2, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    args.push_back("-d");
+    args.push_back(qPrintable(dim_edit->text().simplified().replace(' ', "")));
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    args.push_back(cio::to_sys(fw->name()));
+    std::string file_name = save_cmd("dimension-add", args);
+    if (!file_name.length() == 0)
+    {
+        open(file_name);
+    }
+}
+
+void GUI::dimension_extract()
+{
+    if (!check_have_file() || !check_file_saved())
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Extract dimension");
+    QGridLayout *layout = new QGridLayout;
+    QLabel *dim_label = new QLabel("Index of dimension to extract:");
+    layout->addWidget(dim_label, 0, 0, 1, 2);
+    QLineEdit *dim_edit = new QLineEdit("");
+    layout->addWidget(dim_edit, 1, 0, 1, 2);
+    QLabel *index_label = new QLabel("Index inside this dimension:");
+    layout->addWidget(index_label, 2, 0, 1, 2);
+    QLineEdit *index_edit = new QLineEdit("");
+    layout->addWidget(index_edit, 3, 0, 1, 2);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 4, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 4, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    args.push_back("-d");
+    args.push_back(qPrintable(dim_edit->text().simplified().replace(' ', "")));
+    args.push_back("-i");
+    args.push_back(qPrintable(index_edit->text().simplified().replace(' ', "")));
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    args.push_back(cio::to_sys(fw->name()));
+    std::string file_name = save_cmd("dimension-extract", args);
+    if (!file_name.length() == 0)
+    {
+        open(file_name);
+    }
+}
+
+void GUI::dimension_merge()
+{
+    if (!check_have_file() || !check_all_files_saved())
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    for (int i = 0; i < _files_widget->count(); i++)
+    {
+        FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
+        args.push_back(cio::to_sys(fw->name()));
+    }
+    std::string file_name = save_cmd("dimension-merge", args);
+    if (!file_name.length() == 0)
+    {
+        open(file_name);
+    }
+}
+
+void GUI::dimension_reorder()
+{
+    if (!check_have_file() || !check_file_saved())
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Reorder dimensions");
+    QGridLayout *layout = new QGridLayout;
+    QLabel *indices_label = new QLabel("New order of dimensions\n(comma separated list of indices):");
+    layout->addWidget(indices_label, 0, 0, 1, 2);
+    QLineEdit *indices_edit = new QLineEdit("");
+    layout->addWidget(indices_edit, 1, 0, 1, 2);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 2, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 2, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    args.push_back("-i");
+    args.push_back(qPrintable(indices_edit->text().simplified().replace(' ', "")));
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    args.push_back(cio::to_sys(fw->name()));
+    std::string file_name = save_cmd("dimension-reorder", args);
+    if (!file_name.length() == 0)
+    {
+        open(file_name);
+    }
+}
+
+void GUI::dimension_reverse()
+{
+    if (!check_have_file() || !check_file_saved())
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Reverse dimensions");
+    QGridLayout *layout = new QGridLayout;
+    QLabel *indices_label = new QLabel("Dimensions to reverse\n(comma separated list of indices):");
+    layout->addWidget(indices_label, 0, 0, 1, 2);
+    QLineEdit *indices_edit = new QLineEdit("");
+    layout->addWidget(indices_edit, 1, 0, 1, 2);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 2, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 2, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    args.push_back("-i");
+    args.push_back(qPrintable(indices_edit->text().simplified().replace(' ', "")));
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    args.push_back(cio::to_sys(fw->name()));
+    std::string file_name = save_cmd("dimension-reverse", args);
+    if (!file_name.length() == 0)
+    {
+        open(file_name);
+    }
+}
+
+void GUI::dimension_split()
+{
+    if (!check_have_file() || !check_file_saved())
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Split along dimension");
+    QGridLayout *layout = new QGridLayout;
+    QLabel *dim_label = new QLabel("Index of dimension to split at:");
+    layout->addWidget(dim_label, 0, 0, 1, 2);
+    QLineEdit *dim_edit = new QLineEdit("");
+    layout->addWidget(dim_edit, 1, 0, 1, 2);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 2, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 2, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    args.push_back("-d");
+    args.push_back(qPrintable(dim_edit->text().simplified().replace(' ', "")));
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    args.push_back(cio::to_sys(fw->name()));
+    std::string file_name = save_cmd("dimension-split", args);
     if (!file_name.length() == 0)
     {
         open(file_name);

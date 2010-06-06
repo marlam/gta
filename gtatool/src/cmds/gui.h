@@ -237,6 +237,12 @@ private slots:
     void array_merge();
     void array_resize();
     void array_set();
+    void dimension_add();
+    void dimension_extract();
+    void dimension_merge();
+    void dimension_reorder();
+    void dimension_reverse();
+    void dimension_split();
     void help_about();
 };
 
