@@ -41,10 +41,10 @@
 extern "C" void gtatool_dimension_add_help(void)
 {
     msg::req_txt(
-            "dimension-add [-i|--index=<i>] [<files>...]\n"
+            "dimension-add [-d|--dimension=<d>] [<files>...]\n"
             "\n"
             "Increases the dimensionality of the input GTAs by one by adding an additional dimension of size 1 "
-            "at the given dimension index i. The default is to append the new dimension. "
+            "at the given dimension index d. The default is to append the new dimension. "
             "Note that the data of the array remains unchanged.\n"
             "Example: dimension-add slice.gta > thin-volume.gta");
 }
@@ -54,8 +54,8 @@ extern "C" int gtatool_dimension_add(int argc, char *argv[])
     std::vector<opt::option *> options;
     opt::info help("help", '\0', opt::optional);
     options.push_back(&help);
-    opt::val<uintmax_t> index("index", 'i', opt::optional);
-    options.push_back(&index);
+    opt::val<uintmax_t> dimension("dimension", 'd', opt::optional);
+    options.push_back(&dimension);
     std::vector<std::string> arguments;
     if (!opt::parse(argc, argv, options, -1, -1, arguments))
     {
@@ -92,7 +92,7 @@ extern "C" int gtatool_dimension_add(int argc, char *argv[])
                 std::string array_name = finame + " array " + str::from(array_index);
                 // Read the GTA header
                 hdri.read_from(fi);
-                uintmax_t dim = (index.values().empty() ? hdri.dimensions() : index.value());
+                uintmax_t dim = (dimension.values().empty() ? hdri.dimensions() : dimension.value());
                 if (dim > hdri.dimensions())
                 {
                     throw exc(array_name + ": cannot add dimension " + str::from(dim));
