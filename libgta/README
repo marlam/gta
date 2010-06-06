@@ -1,0 +1,13 @@
+Libgta is a portable library that implements the GTA file format. This file
+format has the following features:
+
+* GTAs can store any kind of data in multidimensional arrays
+* GTAs can optionally use simple tags to store rich metadata
+* GTAs are streamable, which allows direct reading from and writing to pipes,
+  network sockets, and other non-seekable media
+* GTAs can use ZLIB, BZIP2, or XZ compression, allowing a tradeoff between
+  compression/decompression speed and compression ratio
+* Uncompressed GTA files allow easy out-of-core data access for very large
+  arrays
+
+See http://www.nongnu.org/gta/ for more information.
