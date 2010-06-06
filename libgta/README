@@ -1,5 +1,5 @@
-Libgta is a portable library that implements the GTA file format. This file
-format has the following features:
+Libgta is a portable library that implements the Generic Tagged Array (GTA) file
+format. This file format has the following features:
 
 * GTAs can store any kind of data in multidimensional arrays
 * GTAs can optionally use simple tags to store rich metadata
