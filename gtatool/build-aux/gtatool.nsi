@@ -26,7 +26,7 @@ Var STARTMENU_FOLDER
 
   !define MUI_ABORTWARNING
   !define MUI_ICON appicon.ico
-  !define MUI_UNICON appicon.ico
+  ;!define MUI_UNICON appicon.ico
  
 ; Pages
 
@@ -80,7 +80,9 @@ Section
     
 ;Create shortcuts
   CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
-  CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\gta gui.lnk" "$INSTDIR\bin\gta.exe" "gui"
+  CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\GTA gui.lnk" "$INSTDIR\bin\gta.exe" "gui"
+  CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
+  WriteINIStr "$SMPROGRAMS\$STARTMENU_FOLDER\Website.url" "InternetShortcut" "URL" "http://www.nongnu.org/gta/"
 !insertmacro MUI_STARTMENU_WRITE_END
 
 ; Add bin directory to the path
@@ -113,7 +115,9 @@ Section "Uninstall"
   Delete $INSTDIR\uninstall.exe
   ; Remove shortcuts, if any
   !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
-  Delete "$SMPROGRAMS\$MUI_TEMP\gta gui.lnk"
+  Delete "$SMPROGRAMS\$MUI_TEMP\GTA gui.lnk"
+  Delete "$SMPROGRAMS\$MUI_TEMP\Website.url"
+  Delete "$SMPROGRAMS\$MUI_TEMP\Uninstall.lnk"
   ;Delete empty start menu parent diretories
   StrCpy $MUI_TEMP "$SMPROGRAMS\$MUI_TEMP"
   startMenuDeleteLoop:

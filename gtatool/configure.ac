@@ -57,7 +57,10 @@ if test "$w32" = "yes"; then
     dnl Define _BSD_SOURCE to get the optreset declaration. We need this
     dnl because we may use getopt_long for more than one command line.
     CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE"
+else
+    MAKENSIS=":"
 fi
+AM_CONDITIONAL([HAVE_MAKENSIS], [test "$MAKENSIS" != ":"])
 AM_CONDITIONAL([W32], [test "$w32" = "yes"])
 if test "$w32" = "yes"; then W32=1; else W32=0; fi
 AC_DEFINE_UNQUOTED([W32], [$W32], [Use W32 API?])

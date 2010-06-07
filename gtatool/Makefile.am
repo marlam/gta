@@ -21,14 +21,17 @@ mydist:
 	TAR_OPTIONS='--owner=0 --group=0 --numeric-owner --mode=u+rw,go+r-w' $(MAKE) dist-bzip2
 
 # Make a W32 installer using NSIS
-w32-installer:
+EXTRA_DIST += build-aux/AddToPath.nsh build-aux/gtatool.nsi
+if HAVE_MAKENSIS
+package-w32:
 	TMPDIR="`mktemp -d`" && \
 	$(MAKE) -C src install-strip prefix="$$TMPDIR" bindir="$$TMPDIR" libdir="$$TMPDIR" && \
-	cp $(top_srcdir)/build-aux/gta.nsi "$$TMPDIR" && \
+	cp $(top_srcdir)/build-aux/gtatool.nsi "$$TMPDIR" && \
 	cp $(top_srcdir)/build-aux/AddToPath.nsh "$$TMPDIR" && \
 	cp $(top_srcdir)/COPYING "$$TMPDIR" && \
 	cp $(top_srcdir)/src/appicon.ico "$$TMPDIR" && \
-	$(MAKENSIS) -DPACKAGE_VERSION="$(PACKAGE_VERSION)" "$$TMPDIR/gta.nsi" && \
+	$(MAKENSIS) -DPACKAGE_VERSION="$(PACKAGE_VERSION)" "$$TMPDIR/gtatool.nsi" && \
 	cp "$$TMPDIR/gtatool-$(PACKAGE_VERSION).exe" . && \
 	chmod 644 gtatool-$(PACKAGE_VERSION).exe && \
 	rm -rf "$$TMPDIR"
+endif
