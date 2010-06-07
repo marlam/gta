@@ -140,13 +140,14 @@ extern "C" int gtatool_component_merge(int argc, char *argv[])
             }
             hdro.write_to(gtatool_stdout);
             blob element_buf(checked_cast<size_t>(hdro.element_size()));
-            gta::io_state si, so;
+            std::vector<gta::io_state> si(arguments.size());
+            gta::io_state so;
             for (uintmax_t e = 0; e < hdro.elements(); e++)
             {
                 void *e = element_buf.ptr();
                 for (size_t i = 0; i < arguments.size(); i++)
                 {
-                    hdri[i].read_elements(si, fi[i], 1, e);
+                    hdri[i].read_elements(si[i], fi[i], 1, e);
                     e = static_cast<void *>(static_cast<char *>(e) + hdri[i].element_size());
                 }
                 hdro.write_elements(so, gtatool_stdout, 1, element_buf.ptr());
