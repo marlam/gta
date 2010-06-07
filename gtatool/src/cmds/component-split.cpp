@@ -49,7 +49,7 @@ extern "C" void gtatool_component_split_help(void)
             "All output arrays will be written into a single stream; if you want separate files, "
             "pipe this stream through the stream-split command.\n"
             "Example:\n"
-            "component-split rgba.gta > seaparte-r-g-b-a-arrays.gta");
+            "component-split rgba.gta > separate-r-g-b-a-arrays.gta");
 }
 
 extern "C" int gtatool_component_split(int argc, char *argv[])
