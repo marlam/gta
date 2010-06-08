@@ -642,12 +642,42 @@ GUI::GUI()
     QAction *dimension_reorder_action = new QAction(tr("&Reorder dimensions of current array..."), this);
     connect(dimension_reorder_action, SIGNAL(triggered()), this, SLOT(dimension_reorder()));
     dimension_menu->addAction(dimension_reorder_action);
-    QAction *dimension_reverse_action = new QAction(tr("&Reverse dimensions of current array..."), this);
+    QAction *dimension_reverse_action = new QAction(tr("Reverse current array in dimensions..."), this);
     connect(dimension_reverse_action, SIGNAL(triggered()), this, SLOT(dimension_reverse()));
     dimension_menu->addAction(dimension_reverse_action);
     QAction *dimension_split_action = new QAction(tr("&Split current array along one dimension..."), this);
     connect(dimension_split_action, SIGNAL(triggered()), this, SLOT(dimension_split()));
     dimension_menu->addAction(dimension_split_action);
+
+    QMenu *component_menu = menuBar()->addMenu(tr("&Components"));
+    QAction *component_add_action = new QAction(tr("&Add components to current array..."), this);
+    connect(component_add_action, SIGNAL(triggered()), this, SLOT(component_add()));
+    component_menu->addAction(component_add_action);
+    QAction *component_compute_action = new QAction(tr("Recompute component values for current array..."), this);
+    connect(component_compute_action, SIGNAL(triggered()), this, SLOT(component_compute()));
+    if (!cmd_is_available(cmd_find("component-compute")))
+    {
+        component_compute_action->setEnabled(false);
+    }
+    component_menu->addAction(component_compute_action);
+    QAction *component_convert_action = new QAction(tr("&Convert component types of current array..."), this);
+    connect(component_convert_action, SIGNAL(triggered()), this, SLOT(component_convert()));
+    component_menu->addAction(component_convert_action);
+    QAction *component_extract_action = new QAction(tr("&Extract components from current array..."), this);
+    connect(component_extract_action, SIGNAL(triggered()), this, SLOT(component_extract()));
+    component_menu->addAction(component_extract_action);
+    QAction *component_merge_action = new QAction(tr("&Merge array components of open files..."), this);
+    connect(component_merge_action, SIGNAL(triggered()), this, SLOT(component_merge()));
+    component_menu->addAction(component_merge_action);
+    QAction *component_reorder_action = new QAction(tr("&Reorder components of current array..."), this);
+    connect(component_reorder_action, SIGNAL(triggered()), this, SLOT(component_reorder()));
+    component_menu->addAction(component_reorder_action);
+    QAction *component_set_action = new QAction(tr("&Set component values for current array..."), this);
+    connect(component_set_action, SIGNAL(triggered()), this, SLOT(component_set()));
+    component_menu->addAction(component_set_action);
+    QAction *component_split_action = new QAction(tr("Split components of current array..."), this);
+    connect(component_split_action, SIGNAL(triggered()), this, SLOT(component_split()));
+    component_menu->addAction(component_split_action);
 
     QMenu *help_menu = menuBar()->addMenu(tr("&Help"));
     QAction *help_about_action = new QAction(tr("&About"), this);
@@ -1887,6 +1917,309 @@ void GUI::dimension_split()
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
     args.push_back(cio::to_sys(fw->name()));
     std::string file_name = save_cmd("dimension-split", args);
+    if (!file_name.length() == 0)
+    {
+        open(file_name);
+    }
+}
+
+void GUI::component_add()
+{
+    if (!check_have_file() || !check_file_saved())
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Add components");
+    QGridLayout *layout = new QGridLayout;
+    QLabel *comp_label = new QLabel("Component types to add (comma\nseparated list of the following types:\n"
+            "int{8,16,32,64,128}, uint{8,16,32,64,128}\n"
+            "float{32,64,128}, cfloat{32,64,128}");
+    layout->addWidget(comp_label, 0, 0, 1, 2);
+    QLineEdit *comp_edit = new QLineEdit("");
+    layout->addWidget(comp_edit, 1, 0, 1, 2);
+    QLabel *index_label = new QLabel("Index at which to insert the components:");
+    layout->addWidget(index_label, 2, 0, 1, 2);
+    QLineEdit *index_edit = new QLineEdit("");
+    layout->addWidget(index_edit, 3, 0, 1, 2);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 4, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 4, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    args.push_back("-c");
+    args.push_back(qPrintable(comp_edit->text().simplified().replace(' ', "")));
+    args.push_back("-i");
+    args.push_back(qPrintable(index_edit->text().simplified().replace(' ', "")));
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    args.push_back(cio::to_sys(fw->name()));
+    std::string file_name = save_cmd("component-add", args);
+    if (!file_name.length() == 0)
+    {
+        open(file_name);
+    }
+}
+
+void GUI::component_compute()
+{
+    if (!check_have_file() || !check_file_saved())
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Recompute component values");
+    QGridLayout *layout = new QGridLayout;
+    QLabel *expression_label = new QLabel("Expression to compute:");
+    layout->addWidget(expression_label, 0, 0, 1, 2);
+    QLineEdit *expression_edit = new QLineEdit("");
+    layout->addWidget(expression_edit, 1, 0, 1, 2);
+    QLabel *help_label = new QLabel(
+            "<p>Modifiable variables:"
+            "<ul><li>c0, c1, ...: Array element components<br>"
+            "(For cfloat types: c0re, c0im, c1re, c1im, ...)</li></ul>"
+            "Non-modifiable variables:"
+            "<ul><li>c: Number of array element components</li>"
+            "<li>d: Number of array dimensions</li>"
+            "<li>d0, d1, ...: Array size in each dimension</li>"
+            "<li>i0, i1, ...: Index of the current array element in each dimension</li></ul>"
+            "Expressions are evaluated using the muParser library.<br>"
+            "See <a href=\"http://muparser.sourceforge.net/mup_features.html\">"
+            "http://muparser.sourceforge.net/mup_features.html</a><br>"
+            "for an overview of available operators and functions.</p>"
+            "<p>All computations use double precision.<br>"
+            "Multiple expressions can be separated by semicolons.</p>");
+    layout->addWidget(help_label, 2, 0, 1, 2);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 3, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 3, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    QStringList expressions = expression_edit->text().split(';');
+    if (expressions.empty())
+    {
+        return;
+    }
+    for (int i = 0; i < expressions.size(); i++)
+    {
+        args.push_back("-e");
+        args.push_back(qPrintable(expressions[i]));
+    }
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    args.push_back(cio::to_sys(fw->name()));
+    std::string file_name = save_cmd("component-compute", args);
+    if (!file_name.length() == 0)
+    {
+        open(file_name);
+    }
+}
+
+void GUI::component_convert()
+{
+    if (!check_have_file() || !check_file_saved())
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Convert component types");
+    QGridLayout *layout = new QGridLayout;
+    QLabel *comp_label = new QLabel("New component types (comma\nseparated list of the following types:\n"
+            "int{8,16,32,64,128}, uint{8,16,32,64,128}\n"
+            "float{32,64,128}, cfloat{32,64,128}");
+    layout->addWidget(comp_label, 0, 0, 1, 2);
+    QLineEdit *comp_edit = new QLineEdit("");
+    layout->addWidget(comp_edit, 1, 0, 1, 2);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 2, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 2, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    args.push_back("-c");
+    args.push_back(qPrintable(comp_edit->text().simplified().replace(' ', "")));
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    args.push_back(cio::to_sys(fw->name()));
+    std::string file_name = save_cmd("component-convert", args);
+    if (!file_name.length() == 0)
+    {
+        open(file_name);
+    }
+}
+
+void GUI::component_extract()
+{
+    if (!check_have_file() || !check_file_saved())
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Extract components");
+    QGridLayout *layout = new QGridLayout;
+    QLabel *index_label = new QLabel("Indices of components to extract:");
+    layout->addWidget(index_label, 0, 0, 1, 2);
+    QLineEdit *index_edit = new QLineEdit("");
+    layout->addWidget(index_edit, 1, 0, 1, 2);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 2, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 2, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    args.push_back("-k");
+    args.push_back(qPrintable(index_edit->text().simplified().replace(' ', "")));
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    args.push_back(cio::to_sys(fw->name()));
+    std::string file_name = save_cmd("component-extract", args);
+    if (!file_name.length() == 0)
+    {
+        open(file_name);
+    }
+}
+
+void GUI::component_merge()
+{
+    if (!check_have_file() || !check_all_files_saved())
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    for (int i = 0; i < _files_widget->count(); i++)
+    {
+        FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
+        args.push_back(cio::to_sys(fw->name()));
+    }
+    std::string file_name = save_cmd("component-merge", args);
+    if (!file_name.length() == 0)
+    {
+        open(file_name);
+    }
+}
+
+void GUI::component_reorder()
+{
+    if (!check_have_file() || !check_file_saved())
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Reorder components");
+    QGridLayout *layout = new QGridLayout;
+    QLabel *indices_label = new QLabel("New order of components\n(comma separated list of indices):");
+    layout->addWidget(indices_label, 0, 0, 1, 2);
+    QLineEdit *indices_edit = new QLineEdit("");
+    layout->addWidget(indices_edit, 1, 0, 1, 2);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 2, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 2, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    args.push_back("-i");
+    args.push_back(qPrintable(indices_edit->text().simplified().replace(' ', "")));
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    args.push_back(cio::to_sys(fw->name()));
+    std::string file_name = save_cmd("component-reorder", args);
+    if (!file_name.length() == 0)
+    {
+        open(file_name);
+    }
+}
+
+void GUI::component_set()
+{
+    if (!check_have_file() || !check_file_saved())
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Set component values");
+    QGridLayout *layout = new QGridLayout;
+    QLabel *indices_label = new QLabel("Indices of components to set\n(comma separated list):");
+    layout->addWidget(indices_label, 0, 0, 1, 2);
+    QLineEdit *indices_edit = new QLineEdit("");
+    layout->addWidget(indices_edit, 1, 0, 1, 2);
+    QLabel *values_label = new QLabel("Values for these components\n(comma separated list):");
+    layout->addWidget(values_label, 2, 0, 1, 2);
+    QLineEdit *values_edit = new QLineEdit("");
+    layout->addWidget(values_edit, 3, 0, 1, 2);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 4, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 4, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    args.push_back("-i");
+    args.push_back(qPrintable(indices_edit->text().simplified().replace(' ', "")));
+    args.push_back("-v");
+    args.push_back(qPrintable(values_edit->text().simplified().replace(' ', "")));
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    args.push_back(cio::to_sys(fw->name()));
+    std::string file_name = save_cmd("component-set", args);
+    if (!file_name.length() == 0)
+    {
+        open(file_name);
+    }
+}
+
+void GUI::component_split()
+{
+    if (!check_have_file() || !check_file_saved())
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    args.push_back(cio::to_sys(fw->name()));
+    std::string file_name = save_cmd("component-split", args);
     if (!file_name.length() == 0)
     {
         open(file_name);

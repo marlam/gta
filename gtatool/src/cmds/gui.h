@@ -243,6 +243,14 @@ private slots:
     void dimension_reorder();
     void dimension_reverse();
     void dimension_split();
+    void component_add();
+    void component_compute();
+    void component_convert();
+    void component_extract();
+    void component_merge();
+    void component_reorder();
+    void component_set();
+    void component_split();
     void help_about();
 };
 
