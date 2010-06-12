@@ -94,13 +94,13 @@ if WITH_MAGICK
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += from-magick.la
 from_magick_la_SOURCES = from-magick.cpp
-from_magick_la_LIBADD = $(LTLIBMAGICK)
+from_magick_la_LIBADD = $(LTLIBMAGICK__)
 pkglib_LTLIBRARIES += to-magick.la
 to_magick_la_SOURCES = to-magick.cpp
-to_magick_la_LIBADD = $(LTLIBMAGICK)
+to_magick_la_LIBADD = $(LTLIBMAGICK__)
 else
 libbuiltin_la_SOURCES += from-magick.cpp to-magick.cpp
-libbuiltin_la_LIBADD += $(LTLIBMAGICK)
+libbuiltin_la_LIBADD += $(LTLIBMAGICK__)
 endif
 endif
 

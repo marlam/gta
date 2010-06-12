@@ -172,7 +172,7 @@ if test "$magick" = "yes"; then
     fi
     AC_LIB_FROMPACKAGE([Magick++], [magick])
     AC_LIB_HAVE_LINKFLAGS([Magick++], [], [#include <Magick++.h>], [Magick::InitializeMagick(0);])
-    if test "$HAVE_LIBMAGICK" != "yes"; then
+    if test "$HAVE_LIBMAGICK__" != "yes"; then
         magick="no"
         AC_MSG_WARN([Disabled ImageMagick import/export because libMagick++ was not found.])
     fi
