@@ -25,12 +25,8 @@
 #include <string>
 #include <limits>
 
-#include <ImfHeader.h>
 #include <ImfChannelList.h>
 #include <ImfInputFile.h>
-#include <ImfOutputFile.h>
-#include <ImfStringAttribute.h>
-#include <ImfStandardAttributes.h>
 
 #include <gta/gta.hpp>
 
