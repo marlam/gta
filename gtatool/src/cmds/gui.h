@@ -121,11 +121,10 @@ class FileWidget : public QWidget
 Q_OBJECT
 
 private:
-    FILE *_f;
-    std::string _name;
+    std::string _file_name;
+    std::string _save_name;
     bool _is_changed;
     std::vector<gta::header *> _headers;
-    std::vector<off_t> _offsets;
     MyTabWidget *_arrays_widget;
 
 private slots:
@@ -133,35 +132,19 @@ private slots:
 
 public:
 
-    FileWidget(FILE *f, const std::string &name,
+    FileWidget(const std::string &file_name, const std::string &save_name,
             const std::vector<gta::header *> &headers,
-            const std::vector<off_t> &offsets,
             QWidget *parent = NULL);
     ~FileWidget();
 
-    FILE *file() const
+    const std::string &file_name() const
     {
-        return _f;
+        return _file_name;
     }
 
-    const std::string &name() const
+    const std::string &save_name() const
     {
-        return _name;
-    }
-
-    const std::vector<gta::header *> &headers() const
-    {
-        return _headers;
-    }
-
-    const std::vector<off_t> &offsets() const
-    {
-        return _offsets;
-    }
-
-    MyTabWidget *arrays_widget()
-    {
-        return _arrays_widget;
+        return _save_name;
     }
 
     bool is_changed() const
@@ -169,12 +152,27 @@ public:
         return _is_changed;
     }
 
-    void saved(FILE *f);
+    bool is_saved() const
+    {
+        return (_file_name.compare(_save_name) == 0 && !_is_changed);
+    }
 
-    void set_name(const std::string &name);
+    const std::vector<gta::header *> &headers() const
+    {
+        return _headers;
+    }
+
+    MyTabWidget *arrays_widget()
+    {
+        return _arrays_widget;
+    }
+
+    void set_file_name(const std::string &file_name);
+
+    void saved_to(const std::string &save_name);
 
 signals:
-    void changed(const std::string &name);
+    void changed(const std::string &file_name, const std::string &save_name);
 };
 
 class GUI : public QMainWindow
@@ -194,12 +192,12 @@ private:
             const QString &existing_name = QString());
     int run(const std::string &cmd, const std::vector<std::string> &argv,
             std::string &std_err, FILE *std_out = NULL, FILE *std_in = NULL);
+    void output_cmd(const std::string &cmd, const std::vector<std::string> &args, const std::string &output_name);
     void import_from(const std::string &cmd, const std::vector<std::string> &options, const QStringList &filters);
     void export_to(const std::string &cmd, const std::vector<std::string> &options, const QString &default_suffix, const QStringList &filters);
-    std::string save_cmd(const std::string &cmd, const std::vector<std::string> &args);
 
 private slots:
-    void file_changed(const std::string &name);
+    void file_changed(const std::string &file_name, const std::string &save_name);
 
 protected:
     void closeEvent(QCloseEvent *event);	
@@ -208,7 +206,7 @@ public:
     GUI();
     ~GUI();
 
-    void open(const std::string &filename);
+    void open(const std::string &file_name, const std::string &save_name);
 
 private slots:
     void file_open();
