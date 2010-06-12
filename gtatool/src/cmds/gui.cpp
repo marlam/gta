@@ -440,6 +440,10 @@ FileWidget::FileWidget(const std::string &file_name, const std::string &save_nam
 
 FileWidget::~FileWidget()
 {
+    if (_save_name.length() > 0 && _save_name.compare(_file_name) != 0)
+    {
+        try { cio::remove(_save_name); } catch (...) {}
+    }
 }
 
 void FileWidget::array_changed(gta::header *header)
@@ -465,13 +469,20 @@ void FileWidget::set_file_name(const std::string &file_name)
 
 void FileWidget::saved_to(const std::string &save_name)
 {
+    if (_save_name.length() > 0 && _save_name.compare(_file_name) != 0)
+    {
+        try { cio::remove(_save_name); } catch (...) {}
+    }
     _save_name = save_name;
     _is_changed = false;
-    for (int i = 0; i < _arrays_widget->count(); i++)
+    if (is_saved())
     {
-        ArrayWidget *aw = reinterpret_cast<ArrayWidget *>(_arrays_widget->widget(i));
-        aw->saved();
-        _arrays_widget->tabBar()->setTabTextColor(i, QColor("black"));
+        for (int i = 0; i < _arrays_widget->count(); i++)
+        {
+            ArrayWidget *aw = reinterpret_cast<ArrayWidget *>(_arrays_widget->widget(i));
+            aw->saved();
+            _arrays_widget->tabBar()->setTabTextColor(i, QColor("black"));
+        }
     }
 }
 
@@ -704,29 +715,58 @@ bool GUI::check_have_file()
     return true;
 }
 
-bool GUI::check_file_saved()
+bool GUI::check_file_unchanged()
 {
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    if (fw && !fw->is_saved())
+    if (!fw)
     {
-        QMessageBox::critical(this, "Error", "File is not saved. Please save it first.");
         return false;
     }
-    return true;
-}
-
-bool GUI::check_all_files_saved()
-{
-    for (int i = 0; i < _files_widget->count(); i++)
+    else if (fw->is_changed())
     {
-        FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
-        if (!fw->is_saved())
+        try
         {
-            QMessageBox::critical(this, "Error", "Some files are not saved. Please save them first.");
+            QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+            FILE *fi = cio::open(fw->save_name(), "r");
+            FILE *save_file;
+            std::string save_name = cio::mktempfile(&save_file, PACKAGE_NAME "-");
+            for (size_t i = 0; i < fw->headers().size(); i++)
+            {
+                gta::header dummy_header;
+                dummy_header.read_from(fi);
+                fw->headers()[i]->write_to(save_file);
+                dummy_header.copy_data(fi, *(fw->headers()[i]), save_file);
+            }
+            cio::close(save_file, save_name);
+            cio::close(fi, fw->file_name());
+            fw->saved_to(save_name);
+            QApplication::restoreOverrideCursor();
+        }
+        catch (std::exception &e)
+        {
+            QApplication::restoreOverrideCursor();
+            QMessageBox::critical(this, "Error", (std::string("Cannot write temporary GTA file: ") + e.what()).c_str());
             return false;
         }
     }
     return true;
+}
+
+bool GUI::check_all_files_unchanged()
+{
+    bool all_unchanged = true;
+    int old_index = _files_widget->currentIndex();
+    for (int i = 0; i < _files_widget->count(); i++)
+    {
+        _files_widget->setCurrentIndex(i);
+        if (!check_file_unchanged())
+        {
+            all_unchanged = false;
+            break;
+        }
+    }
+    _files_widget->setCurrentIndex(old_index);
+    return all_unchanged;
 }
 
 void GUI::file_changed(const std::string &file_name, const std::string &save_name)
@@ -804,12 +844,15 @@ QString GUI::file_save_dialog(const QString &default_suffix, const QStringList &
         for (int i = 0; i < _files_widget->count(); i++)
         {
             FileWidget *existing_fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
-            QFileInfo existing_file_info(cio::to_sys(existing_fw->file_name()).c_str());
-            if (file_info.canonicalFilePath() == existing_file_info.canonicalFilePath())
+            if (existing_fw->file_name().length() > 0)
             {
-                QMessageBox::critical(this, "Error", "This file is currently opened. Close it first.");
-                file_name = QString();
-                break;
+                QFileInfo existing_file_info(cio::to_sys(existing_fw->file_name()).c_str());
+                if (file_info.canonicalFilePath() == existing_file_info.canonicalFilePath())
+                {
+                    QMessageBox::critical(this, "Error", "This file is currently opened. Close it first.");
+                    file_name = QString();
+                    break;
+                }
             }
         }
     }
@@ -992,7 +1035,22 @@ void GUI::import_from(const std::string &cmd, const std::vector<std::string> &op
         {
             std::vector<std::string> args = options;
             args.push_back(cio::to_sys(qPrintable(open_file_names[i])));
-            output_cmd(cmd, args, std::string(qPrintable(open_file_names[i])) + ".gta");
+            std::string output_name(qPrintable(open_file_names[i]));
+            size_t last_slash = output_name.find_last_of('/');
+            size_t last_dot = output_name.find_last_of('.');
+            if (last_dot != std::string::npos && (last_slash == std::string::npos || last_dot > last_slash))
+            {
+                output_name.replace(last_dot, output_name.length() - last_dot, ".gta");
+                while (cio::test_e(output_name))
+                {
+                    output_name.insert(last_dot, "-new");
+                }
+            }
+            else
+            {
+                output_name += ".gta";
+            }
+            output_cmd(cmd, args, output_name);
         }
         catch (std::exception &e)
         {
@@ -1003,7 +1061,7 @@ void GUI::import_from(const std::string &cmd, const std::vector<std::string> &op
 
 void GUI::export_to(const std::string &cmd, const std::vector<std::string> &options, const QString &default_suffix, const QStringList &filters)
 {
-    if (!check_have_file() || !check_file_saved())
+    if (!check_have_file() || !check_file_unchanged())
     {
         return;
     }
@@ -1015,7 +1073,7 @@ void GUI::export_to(const std::string &cmd, const std::vector<std::string> &opti
         {
             std::string std_err;
             std::vector<std::string> args = options;
-            args.push_back(cio::to_sys(fw->file_name()));
+            args.push_back(cio::to_sys(fw->save_name()));
             args.push_back(cio::to_sys(qPrintable(save_file_name)));
             int retval = run(cmd, args, std_err, NULL, NULL);
             if (retval != 0)
@@ -1335,7 +1393,7 @@ void GUI::file_export_raw()
 
 void GUI::stream_merge()
 {
-    if (!check_have_file() || !check_all_files_saved())
+    if (!check_have_file() || !check_all_files_unchanged())
     {
         return;
     }
@@ -1343,14 +1401,14 @@ void GUI::stream_merge()
     for (int i = 0; i < _files_widget->count(); i++)
     {
         FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
-        args.push_back(cio::to_sys(fw->file_name()));
+        args.push_back(cio::to_sys(fw->save_name()));
     }
     output_cmd("stream-merge", args, "");
 }
 
 void GUI::stream_split()
 {
-    if (!check_have_file() || !check_file_saved())
+    if (!check_have_file() || !check_file_unchanged())
     {
         return;
     }
@@ -1371,7 +1429,7 @@ void GUI::stream_split()
         _last_file_save_as_dir = file_dialog->directory();
         FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
         std::vector<std::string> args;
-        args.push_back(cio::to_sys(fw->file_name()));
+        args.push_back(cio::to_sys(fw->save_name()));
         args.push_back(cio::to_sys(std::string(qPrintable(QDir(dir_name).canonicalPath())) + "/%9N.gta"));
         std::string std_err;
         int retval = run("stream-split", args, std_err, NULL, NULL);
@@ -1384,14 +1442,14 @@ void GUI::stream_split()
 
 void GUI::stream_extract()
 {
-    if (!check_have_file() || !check_file_saved())
+    if (!check_have_file() || !check_file_unchanged())
     {
         return;
     }
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
     int index = fw->arrays_widget()->currentIndex();
     std::vector<std::string> args;
-    args.push_back(cio::to_sys(fw->file_name()));
+    args.push_back(cio::to_sys(fw->save_name()));
     args.push_back(str::from(index));
     output_cmd("stream-extract", args, "");
 }
@@ -1434,7 +1492,7 @@ void GUI::array_create()
 
 void GUI::array_extract()
 {
-    if (!check_have_file() || !check_file_saved())
+    if (!check_have_file() || !check_file_unchanged())
     {
         return;
     }
@@ -1466,13 +1524,13 @@ void GUI::array_extract()
     args.push_back("-h");
     args.push_back(qPrintable(high_edit->text().simplified().replace(' ', "")));
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    args.push_back(cio::to_sys(fw->file_name()));
+    args.push_back(cio::to_sys(fw->save_name()));
     output_cmd("extract", args, "");
 }
 
 void GUI::array_fill()
 {
-    if (!check_have_file() || !check_file_saved())
+    if (!check_have_file() || !check_file_unchanged())
     {
         return;
     }
@@ -1509,13 +1567,13 @@ void GUI::array_fill()
     args.push_back("-v");
     args.push_back(qPrintable(val_edit->text().simplified().replace(' ', "")));
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    args.push_back(cio::to_sys(fw->file_name()));
+    args.push_back(cio::to_sys(fw->save_name()));
     output_cmd("fill", args, "");
 }
 
 void GUI::array_merge()
 {
-    if (!check_have_file() || !check_all_files_saved())
+    if (!check_have_file() || !check_all_files_unchanged())
     {
         return;
     }
@@ -1544,14 +1602,14 @@ void GUI::array_merge()
     for (int i = 0; i < _files_widget->count(); i++)
     {
         FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
-        args.push_back(cio::to_sys(fw->file_name()));
+        args.push_back(cio::to_sys(fw->save_name()));
     }
     output_cmd("merge", args, "");
 }
 
 void GUI::array_resize()
 {
-    if (!check_have_file() || !check_file_saved())
+    if (!check_have_file() || !check_file_unchanged())
     {
         return;
     }
@@ -1579,13 +1637,13 @@ void GUI::array_resize()
     args.push_back("-d");
     args.push_back(qPrintable(dim_edit->text().simplified().replace(' ', "")));
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    args.push_back(cio::to_sys(fw->file_name()));
+    args.push_back(cio::to_sys(fw->save_name()));
     output_cmd("resize", args, "");
 }
 
 void GUI::array_set()
 {
-    if (!check_have_file() || !check_file_saved())
+    if (!check_have_file() || !check_file_unchanged())
     {
         return;
     }
@@ -1625,13 +1683,13 @@ void GUI::array_set()
     args.push_back("-i");
     args.push_back(qPrintable(indices_edit->text().simplified().replace(' ', "")));
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    args.push_back(cio::to_sys(fw->file_name()));
+    args.push_back(cio::to_sys(fw->save_name()));
     output_cmd("set", args, "");
 }
 
 void GUI::dimension_add()
 {
-    if (!check_have_file() || !check_file_saved())
+    if (!check_have_file() || !check_file_unchanged())
     {
         return;
     }
@@ -1659,13 +1717,13 @@ void GUI::dimension_add()
     args.push_back("-d");
     args.push_back(qPrintable(dim_edit->text().simplified().replace(' ', "")));
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    args.push_back(cio::to_sys(fw->file_name()));
+    args.push_back(cio::to_sys(fw->save_name()));
     output_cmd("dimension-add", args, "");
 }
 
 void GUI::dimension_extract()
 {
-    if (!check_have_file() || !check_file_saved())
+    if (!check_have_file() || !check_file_unchanged())
     {
         return;
     }
@@ -1699,13 +1757,13 @@ void GUI::dimension_extract()
     args.push_back("-i");
     args.push_back(qPrintable(index_edit->text().simplified().replace(' ', "")));
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    args.push_back(cio::to_sys(fw->file_name()));
+    args.push_back(cio::to_sys(fw->save_name()));
     output_cmd("dimension-extract", args, "");
 }
 
 void GUI::dimension_merge()
 {
-    if (!check_have_file() || !check_all_files_saved())
+    if (!check_have_file() || !check_all_files_unchanged())
     {
         return;
     }
@@ -1713,14 +1771,14 @@ void GUI::dimension_merge()
     for (int i = 0; i < _files_widget->count(); i++)
     {
         FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
-        args.push_back(cio::to_sys(fw->file_name()));
+        args.push_back(cio::to_sys(fw->save_name()));
     }
     output_cmd("dimension-merge", args, "");
 }
 
 void GUI::dimension_reorder()
 {
-    if (!check_have_file() || !check_file_saved())
+    if (!check_have_file() || !check_file_unchanged())
     {
         return;
     }
@@ -1748,13 +1806,13 @@ void GUI::dimension_reorder()
     args.push_back("-i");
     args.push_back(qPrintable(indices_edit->text().simplified().replace(' ', "")));
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    args.push_back(cio::to_sys(fw->file_name()));
+    args.push_back(cio::to_sys(fw->save_name()));
     output_cmd("dimension-reorder", args, "");
 }
 
 void GUI::dimension_reverse()
 {
-    if (!check_have_file() || !check_file_saved())
+    if (!check_have_file() || !check_file_unchanged())
     {
         return;
     }
@@ -1782,13 +1840,13 @@ void GUI::dimension_reverse()
     args.push_back("-i");
     args.push_back(qPrintable(indices_edit->text().simplified().replace(' ', "")));
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    args.push_back(cio::to_sys(fw->file_name()));
+    args.push_back(cio::to_sys(fw->save_name()));
     output_cmd("dimension-reverse", args, "");
 }
 
 void GUI::dimension_split()
 {
-    if (!check_have_file() || !check_file_saved())
+    if (!check_have_file() || !check_file_unchanged())
     {
         return;
     }
@@ -1816,13 +1874,13 @@ void GUI::dimension_split()
     args.push_back("-d");
     args.push_back(qPrintable(dim_edit->text().simplified().replace(' ', "")));
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    args.push_back(cio::to_sys(fw->file_name()));
+    args.push_back(cio::to_sys(fw->save_name()));
     output_cmd("dimension-split", args, "");
 }
 
 void GUI::component_add()
 {
-    if (!check_have_file() || !check_file_saved())
+    if (!check_have_file() || !check_file_unchanged())
     {
         return;
     }
@@ -1858,13 +1916,13 @@ void GUI::component_add()
     args.push_back("-i");
     args.push_back(qPrintable(index_edit->text().simplified().replace(' ', "")));
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    args.push_back(cio::to_sys(fw->file_name()));
+    args.push_back(cio::to_sys(fw->save_name()));
     output_cmd("component-add", args, "");
 }
 
 void GUI::component_compute()
 {
-    if (!check_have_file() || !check_file_saved())
+    if (!check_have_file() || !check_file_unchanged())
     {
         return;
     }
@@ -1916,13 +1974,13 @@ void GUI::component_compute()
         args.push_back(qPrintable(expressions[i]));
     }
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    args.push_back(cio::to_sys(fw->file_name()));
+    args.push_back(cio::to_sys(fw->save_name()));
     output_cmd("component-compute", args, "");
 }
 
 void GUI::component_convert()
 {
-    if (!check_have_file() || !check_file_saved())
+    if (!check_have_file() || !check_file_unchanged())
     {
         return;
     }
@@ -1952,13 +2010,13 @@ void GUI::component_convert()
     args.push_back("-c");
     args.push_back(qPrintable(comp_edit->text().simplified().replace(' ', "")));
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    args.push_back(cio::to_sys(fw->file_name()));
+    args.push_back(cio::to_sys(fw->save_name()));
     output_cmd("component-convert", args, "");
 }
 
 void GUI::component_extract()
 {
-    if (!check_have_file() || !check_file_saved())
+    if (!check_have_file() || !check_file_unchanged())
     {
         return;
     }
@@ -1986,13 +2044,13 @@ void GUI::component_extract()
     args.push_back("-k");
     args.push_back(qPrintable(index_edit->text().simplified().replace(' ', "")));
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    args.push_back(cio::to_sys(fw->file_name()));
+    args.push_back(cio::to_sys(fw->save_name()));
     output_cmd("component-extract", args, "");
 }
 
 void GUI::component_merge()
 {
-    if (!check_have_file() || !check_all_files_saved())
+    if (!check_have_file() || !check_all_files_unchanged())
     {
         return;
     }
@@ -2000,14 +2058,14 @@ void GUI::component_merge()
     for (int i = 0; i < _files_widget->count(); i++)
     {
         FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
-        args.push_back(cio::to_sys(fw->file_name()));
+        args.push_back(cio::to_sys(fw->save_name()));
     }
     output_cmd("component-merge", args, "");
 }
 
 void GUI::component_reorder()
 {
-    if (!check_have_file() || !check_file_saved())
+    if (!check_have_file() || !check_file_unchanged())
     {
         return;
     }
@@ -2035,13 +2093,13 @@ void GUI::component_reorder()
     args.push_back("-i");
     args.push_back(qPrintable(indices_edit->text().simplified().replace(' ', "")));
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    args.push_back(cio::to_sys(fw->file_name()));
+    args.push_back(cio::to_sys(fw->save_name()));
     output_cmd("component-reorder", args, "");
 }
 
 void GUI::component_set()
 {
-    if (!check_have_file() || !check_file_saved())
+    if (!check_have_file() || !check_file_unchanged())
     {
         return;
     }
@@ -2075,19 +2133,19 @@ void GUI::component_set()
     args.push_back("-v");
     args.push_back(qPrintable(values_edit->text().simplified().replace(' ', "")));
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    args.push_back(cio::to_sys(fw->file_name()));
+    args.push_back(cio::to_sys(fw->save_name()));
     output_cmd("component-set", args, "");
 }
 
 void GUI::component_split()
 {
-    if (!check_have_file() || !check_file_saved())
+    if (!check_have_file() || !check_file_unchanged())
     {
         return;
     }
     std::vector<std::string> args;
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    args.push_back(cio::to_sys(fw->file_name()));
+    args.push_back(cio::to_sys(fw->save_name()));
     output_cmd("component-split", args, "");
 }
 

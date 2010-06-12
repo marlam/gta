@@ -185,8 +185,8 @@ private:
     QDir _last_file_save_as_dir;
 
     bool check_have_file();
-    bool check_file_saved();
-    bool check_all_files_saved();
+    bool check_file_unchanged();
+    bool check_all_files_unchanged();
     QStringList file_open_dialog(const QStringList &filters = QStringList());
     QString file_save_dialog(const QString &default_suffix = "gta", const QStringList &filters = QStringList("GTA files (*.gta)"),
             const QString &existing_name = QString());
