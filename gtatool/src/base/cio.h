@@ -137,6 +137,8 @@ namespace cio
     void mkdir_p(const std::string &dirname) throw (exc);
     // rm -r
     void rm_r(const std::string &pathname) throw (exc);
+    // test -e
+    bool test_e(const std::string &pathname) throw (exc);
     // test -f
     bool test_f(const std::string &pathname) throw (exc);
     // test -d

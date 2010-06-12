@@ -922,8 +922,9 @@ error_exit:
         struct stat buf;
         int r = ::stat(to_sys(pathname).c_str(), &buf);
         if (r == 0
-                && (   (mode == 0 && S_ISREG(buf.st_mode))
-                    || (mode == 1 && S_ISDIR(buf.st_mode))))
+                && (mode == 0
+                    || (mode == 1 && S_ISREG(buf.st_mode))
+                    || (mode == 2 && S_ISDIR(buf.st_mode))))
         {
             return true;
         }
@@ -937,14 +938,19 @@ error_exit:
         }
     }
 
-    bool test_f(const std::string &pathname) throw (exc)
+    bool test_e(const std::string &pathname) throw (exc)
     {
         return test(0, pathname);
     }
 
-    bool test_d(const std::string &pathname) throw (exc)
+    bool test_f(const std::string &pathname) throw (exc)
     {
         return test(1, pathname);
+    }
+
+    bool test_d(const std::string &pathname) throw (exc)
+    {
+        return test(2, pathname);
     }
 
     std::string basename(const std::string &name, const std::string &suffix) throw (exc)
