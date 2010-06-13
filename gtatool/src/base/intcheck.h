@@ -41,7 +41,7 @@
  * \return      Casted integer value.
  *
  * Cast the integer value \a x to the given type.
- * If over- oder underflow would occur, this function throws exc(ERANGE).
+ * If over- or underflow would occur, this function throws exc(ERANGE).
  * Example: size_t a = checked_cast<size_t>(b);
  */
 template<typename TO, typename FROM>
@@ -90,7 +90,7 @@ TO checked_cast(FROM x) throw (exc)
  * \return      a + b
  *
  * Return a + b.
- * If over- oder underflow would occur, this function throws exc(ERANGE).
+ * If over- or underflow would occur, this function throws exc(ERANGE).
  */
 template<typename T>
 T checked_add(T a, T b) throw (exc)
@@ -118,7 +118,7 @@ T checked_add(T a, T b) throw (exc)
  * \return      a - b
  *
  * Return a - b.
- * If over- oder underflow would occur, this function throws exc(ERANGE).
+ * If over- or underflow would occur, this function throws exc(ERANGE).
  */
 template<typename T>
 T checked_sub(T a, T b) throw (exc)
@@ -146,7 +146,7 @@ T checked_sub(T a, T b) throw (exc)
  * \return      a * b
  *
  * Return a * b.
- * If over- oder underflow would occur, this function throws exc(ERANGE).
+ * If over- or underflow would occur, this function throws exc(ERANGE).
  */
 template<typename T>
 T checked_mul(T a, T b) throw (exc)
@@ -193,7 +193,7 @@ T checked_mul(T a, T b) throw (exc)
  * \return      a / b
  *
  * Return a / b.
- * If over- oder underflow would occur, this function throws exc(ERANGE).
+ * If over- or underflow would occur, this function throws exc(ERANGE).
  */
 template<typename T>
 T checked_div(T a, T b) throw (exc)
