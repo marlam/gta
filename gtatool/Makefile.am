@@ -31,7 +31,7 @@ package-w32:
 	cp $(top_srcdir)/COPYING "$$TMPDIR" && \
 	cp $(top_srcdir)/src/appicon.ico "$$TMPDIR" && \
 	$(MAKENSIS) -DPACKAGE_VERSION="$(PACKAGE_VERSION)" "$$TMPDIR/gtatool.nsi" && \
-	cp "$$TMPDIR/gtatool-$(PACKAGE_VERSION).exe" . && \
-	chmod 644 gtatool-$(PACKAGE_VERSION).exe && \
+	cp "$$TMPDIR/gtatool-$(PACKAGE_VERSION)-w32.exe" . && \
+	chmod 644 gtatool-$(PACKAGE_VERSION)-w32.exe && \
 	rm -rf "$$TMPDIR"
 endif

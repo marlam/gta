@@ -11,7 +11,7 @@
 Name "gtatool ${PACKAGE_VERSION}"
 
 ; The file to write
-OutFile "gtatool-${PACKAGE_VERSION}.exe"
+OutFile "gtatool-${PACKAGE_VERSION}-w32.exe"
 
 ; The default installation directory
 InstallDir "$PROGRAMFILES\gtatool-${PACKAGE_VERSION}"
