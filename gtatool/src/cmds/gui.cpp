@@ -1109,11 +1109,14 @@ void GUI::open(const std::string &file_name, const std::string &save_name)
         for (int i = 0; i < _files_widget->count(); i++)
         {
             FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
-            QFileInfo existing_file_info(cio::to_sys(fw->file_name()).c_str());
-            if (file_info.canonicalFilePath() == existing_file_info.canonicalFilePath())
+            if (fw->file_name().length() > 0)
             {
-                _files_widget->setCurrentWidget(fw);
-                return;
+                QFileInfo existing_file_info(cio::to_sys(fw->file_name()).c_str());
+                if (file_info.canonicalFilePath() == existing_file_info.canonicalFilePath())
+                {
+                    _files_widget->setCurrentWidget(fw);
+                    return;
+                }
             }
         }
     }
