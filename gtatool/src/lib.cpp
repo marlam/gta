@@ -188,7 +188,7 @@ void type_from_string(const std::string &s, gta::type *t, uintmax_t *size) throw
     }
     else
     {
-        throw exc("Invalid type name " + s);
+        throw exc("invalid type name " + s);
     }
 }
 
