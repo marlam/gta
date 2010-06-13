@@ -935,7 +935,7 @@ int GUI::run(const std::string &cmd, const std::vector<std::string> &args,
     {
         gtatool_stdin = std_in;
     }
-    msg::set_program_name(cmd);
+    msg::set_program_name("");
     msg::set_columns(80);
     /* run command */
     int cmd_index = cmd_find(cmd.c_str());
@@ -1016,7 +1016,20 @@ void GUI::output_cmd(const std::string &cmd, const std::vector<std::string> &arg
         if (retval != 0)
         {
             try { cio::remove(save_name); } catch (...) {}
-            throw exc(std::string("<p>Command failed.</p><pre>") + std_err + "</pre>");
+            std::string errmsg = "<p>Command failed.</p>";
+            /*
+            errmsg += "<p>Command line:</p><pre>";
+            errmsg += cmd + " ";
+            for (size_t i = 0; i < args.size(); i++)
+            {
+                errmsg += args[i] + " ";
+            }
+            errmsg += "</pre>";
+            */
+            errmsg += "<p>Error message:</p><pre>";
+            errmsg += std_err;
+            errmsg += "</pre>";
+            throw exc(errmsg);
         }
         open(output_name, save_name);
     }
