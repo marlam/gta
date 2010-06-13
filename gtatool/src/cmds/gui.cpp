@@ -515,7 +515,7 @@ GUI::GUI()
     connect(file_save_all_action, SIGNAL(triggered()), this, SLOT(file_save_all()));
     file_menu->addAction(file_save_all_action);
     QAction *file_close_action = new QAction(tr("&Close"), this);
-    file_close_action->setShortcut(tr("Ctrl+C"));
+    file_close_action->setShortcut(tr("Ctrl+W"));
     connect(file_close_action, SIGNAL(triggered()), this, SLOT(file_close()));
     file_menu->addAction(file_close_action);
     QAction *file_close_all_action = new QAction(tr("Close all"), this);
