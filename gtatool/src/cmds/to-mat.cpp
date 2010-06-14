@@ -225,7 +225,7 @@ extern "C" int gtatool_to_mat(int argc, char *argv[])
                 }
                 data = &split_data;
             }
-            matvar_t *matvar = Mat_VarCreate(name ? name : array_name.c_str(),
+            matvar_t *matvar = Mat_VarCreate(name ? name : std::string("gta_") + str::from(array_index),
                     class_type, data_type, rank, &(dims[0]), data, opt);
             if (!matvar)
             {
