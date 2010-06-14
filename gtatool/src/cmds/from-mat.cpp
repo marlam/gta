@@ -166,7 +166,7 @@ extern "C" int gtatool_from_mat(int argc, char *argv[])
                      : matvar->data_type == MAT_T_FUNCTION ? "FUNCTION"
                      : matvar->data_type == MAT_T_UNKNOWN ? "UNKNOWN"
                      : "(unknown)");
-                msg::wrn("ignoring variable with type " + type_name + (matvar->isComplex ? " (complex)" : ""));
+                msg::wrn("ignoring variable of type " + type_name + (matvar->isComplex ? " (complex)" : ""));
                 continue;
             }
             hdr.set_components(type);
