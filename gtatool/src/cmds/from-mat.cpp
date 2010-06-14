@@ -97,7 +97,7 @@ extern "C" int gtatool_from_mat(int argc, char *argv[])
             std::vector<uintmax_t> dimensions(checked_cast<size_t>(matvar->rank));
             for (size_t i = 0; i < dimensions.size(); i++)
             {
-                dimensions[i] = checked_cast<uintmax_t>(matvar->dims[i]);
+                dimensions[i] = checked_cast<uintmax_t>(matvar->dims[dimensions.size() - 1 - i]);
             }
             hdr.set_dimensions(dimensions.size(), &(dimensions[0]));
             gta::type type;

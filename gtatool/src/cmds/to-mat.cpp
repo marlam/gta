@@ -178,11 +178,12 @@ extern "C" int gtatool_to_mat(int argc, char *argv[])
             std::vector<int> dims(rank);
             for (uintmax_t i = 0; i < hdr.dimensions(); i++)
             {
-                dims[i] = checked_cast<int>(hdr.dimension_size(i));
+                dims[i] = checked_cast<int>(hdr.dimension_size(hdr.dimensions() - 1 - i));
             }
             if (hdr.dimensions() < 2)
             {
-                dims[1] = 1;
+                dims[1] = dims[0];
+                dims[0] = 1;
             }
             int opt = MEM_CONSERVE;
             if (is_complex)
