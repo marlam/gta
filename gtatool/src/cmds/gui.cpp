@@ -523,81 +523,81 @@ GUI::GUI()
     file_menu->addAction(file_close_all_action);
     file_menu->addSeparator();
     QMenu *file_import_menu = file_menu->addMenu(tr("Import"));
-    QAction *file_import_dcmtk_action = new QAction(tr("via DCMTK..."), this);
+    QAction *file_import_dcmtk_action = new QAction(tr("DICOM files (via DCMTK)..."), this);
     connect(file_import_dcmtk_action, SIGNAL(triggered()), this, SLOT(file_import_dcmtk()));
     if (!cmd_is_available(cmd_find("from-dcmtk")))
     {
         file_import_dcmtk_action->setEnabled(false);
     }
     file_import_menu->addAction(file_import_dcmtk_action);
-    QAction *file_import_exr_action = new QAction(tr("via EXR..."), this);
+    QAction *file_import_exr_action = new QAction(tr("HDR images (via EXR)..."), this);
     connect(file_import_exr_action, SIGNAL(triggered()), this, SLOT(file_import_exr()));
     if (!cmd_is_available(cmd_find("from-exr")))
     {
         file_import_exr_action->setEnabled(false);
     }
     file_import_menu->addAction(file_import_exr_action);
-    QAction *file_import_gdal_action = new QAction(tr("via GDAL..."), this);
+    QAction *file_import_gdal_action = new QAction(tr("Remote Sensing data (via GDAL)..."), this);
     connect(file_import_gdal_action, SIGNAL(triggered()), this, SLOT(file_import_gdal()));
     if (!cmd_is_available(cmd_find("from-gdal")))
     {
         file_import_gdal_action->setEnabled(false);
     }
     file_import_menu->addAction(file_import_gdal_action);
-    QAction *file_import_magick_action = new QAction(tr("via Magick..."), this);
+    QAction *file_import_magick_action = new QAction(tr("Image data (via Magick)..."), this);
     connect(file_import_magick_action, SIGNAL(triggered()), this, SLOT(file_import_magick()));
     if (!cmd_is_available(cmd_find("from-magick")))
     {
         file_import_magick_action->setEnabled(false);
     }
     file_import_menu->addAction(file_import_magick_action);
-    QAction *file_import_mat_action = new QAction(tr("via matio..."), this);
+    QAction *file_import_mat_action = new QAction(tr("MATLAB data (via matio)..."), this);
     connect(file_import_mat_action, SIGNAL(triggered()), this, SLOT(file_import_mat()));
     if (!cmd_is_available(cmd_find("from-mat")))
     {
         file_import_mat_action->setEnabled(false);
     }
     file_import_menu->addAction(file_import_mat_action);
-    QAction *file_import_pfs_action = new QAction(tr("via PFS..."), this);
+    QAction *file_import_pfs_action = new QAction(tr("Floating point data (via PFS)..."), this);
     connect(file_import_pfs_action, SIGNAL(triggered()), this, SLOT(file_import_pfs()));
     if (!cmd_is_available(cmd_find("from-pfs")))
     {
         file_import_pfs_action->setEnabled(false);
     }
     file_import_menu->addAction(file_import_pfs_action);
-    QAction *file_import_raw_action = new QAction(tr("raw data..."), this);
+    QAction *file_import_raw_action = new QAction(tr("Raw data..."), this);
     connect(file_import_raw_action, SIGNAL(triggered()), this, SLOT(file_import_raw()));
     file_import_menu->addAction(file_import_raw_action);
     QMenu *file_export_menu = file_menu->addMenu(tr("Export"));
-    QAction *file_export_exr_action = new QAction(tr("via EXR..."), this);
+    QAction *file_export_exr_action = new QAction(tr("HDR images (via EXR)..."), this);
     connect(file_export_exr_action, SIGNAL(triggered()), this, SLOT(file_export_exr()));
     if (!cmd_is_available(cmd_find("to-exr")))
     {
         file_export_exr_action->setEnabled(false);
     }
     file_export_menu->addAction(file_export_exr_action);
-    QAction *file_export_gdal_action = new QAction(tr("via GDAL..."), this);
+    QAction *file_export_gdal_action = new QAction(tr("Remote Sensing data (via GDAL)..."), this);
     connect(file_export_gdal_action, SIGNAL(triggered()), this, SLOT(file_export_gdal()));
     if (!cmd_is_available(cmd_find("to-gdal")))
     {
         file_export_gdal_action->setEnabled(false);
     }
     file_export_menu->addAction(file_export_gdal_action);
-    QAction *file_export_magick_action = new QAction(tr("via Magick..."), this);
+    QAction *file_export_magick_action = new QAction(tr("Image data (via Magick)..."), this);
     connect(file_export_magick_action, SIGNAL(triggered()), this, SLOT(file_export_magick()));
     if (!cmd_is_available(cmd_find("to-magick")))
     {
         file_export_magick_action->setEnabled(false);
     }
     file_export_menu->addAction(file_export_magick_action);
-    QAction *file_export_pfs_action = new QAction(tr("via PFS..."), this);
+    QAction *file_export_pfs_action = new QAction(tr("Floating point data (via PFS)..."), this);
     connect(file_export_pfs_action, SIGNAL(triggered()), this, SLOT(file_export_pfs()));
     if (!cmd_is_available(cmd_find("to-pfs")))
     {
         file_export_pfs_action->setEnabled(false);
     }
     file_export_menu->addAction(file_export_pfs_action);
-    QAction *file_export_raw_action = new QAction(tr("raw data..."), this);
+    QAction *file_export_raw_action = new QAction(tr("Raw data..."), this);
     connect(file_export_raw_action, SIGNAL(triggered()), this, SLOT(file_export_raw()));
     file_export_menu->addAction(file_export_raw_action);
     file_menu->addSeparator();
