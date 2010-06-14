@@ -219,11 +219,13 @@ private slots:
     void file_import_exr();
     void file_import_gdal();
     void file_import_magick();
+    void file_import_mat();
     void file_import_pfs();
     void file_import_raw();
     void file_export_exr();
     void file_export_gdal();
     void file_export_magick();
+    void file_export_mat();
     void file_export_pfs();
     void file_export_raw();
     void stream_merge();

@@ -95,6 +95,7 @@ CMD_DECL(from_dcmtk)
 CMD_DECL(from_exr)
 CMD_DECL(from_gdal)
 CMD_DECL(from_magick)
+CMD_DECL(from_mat)
 CMD_DECL(from_netpbm)
 CMD_DECL(from_pfs)
 CMD_DECL(from_raw)
@@ -141,6 +142,7 @@ static cmd_t cmds[] =
     CMD_MODULE("from-exr",          conversion, from_exr,          WITH_EXR),
     CMD_MODULE("from-gdal",         conversion, from_gdal,         WITH_GDAL),
     CMD_MODULE("from-magick",       conversion, from_magick,       WITH_MAGICK),
+    CMD_MODULE("from-mat",          conversion, from_mat,          WITH_MAT),
     CMD_MODULE("from-netpbm",       conversion, from_netpbm,       WITH_NETPBM),
     CMD_MODULE("from-pfs",          conversion, from_pfs,          WITH_PFS),
     CMD_STATIC("from-raw",          conversion, from_raw,          true),
@@ -157,6 +159,7 @@ static cmd_t cmds[] =
     CMD_MODULE("to-exr",            conversion, to_exr,            WITH_EXR),
     CMD_MODULE("to-gdal",           conversion, to_gdal,           WITH_GDAL),
     CMD_MODULE("to-magick",         conversion, to_magick,         WITH_MAGICK),
+    CMD_MODULE("to-mat",            conversion, to_mat,            WITH_MAT),
     CMD_MODULE("to-netpbm",         conversion, to_netpbm,         WITH_NETPBM),
     CMD_MODULE("to-pfs",            conversion, to_pfs,            WITH_PFS),
     CMD_STATIC("to-raw",            conversion, to_raw,            true),
