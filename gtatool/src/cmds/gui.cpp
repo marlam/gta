@@ -955,11 +955,14 @@ int GUI::run(const std::string &cmd, const std::vector<std::string> &args,
     int cmd_index = cmd_find(cmd.c_str());
     cmd_open(cmd_index);
     std::string mbox_text = "<p>Running command</p><code>";
-    mbox_text += cmd + " ";
+    mbox_text += cmd;
+    /*
+    mbox_text + " ";
     for (size_t i = 0; i < args.size(); i++)
     {
         mbox_text += args[i] + " ";
     }
+    */
     mbox_text += "</code>";
     QDialog *mbox = new QDialog(this);
     mbox->setModal(true);
@@ -1030,8 +1033,11 @@ void GUI::output_cmd(const std::string &cmd, const std::vector<std::string> &arg
         if (retval != 0)
         {
             try { cio::remove(save_name); } catch (...) {}
-            std::string errmsg = "<p>Command failed.</p>";
+            std::string errmsg = "<p>Command <code>";
+            errmsg += cmd;
+            errmsg += "</code> failed.</p>";
             /*
+            std::string errmsg = "<p>Command failed.</p>";
             errmsg += "<p>Command line:</p><pre>";
             errmsg += cmd + " ";
             for (size_t i = 0; i < args.size(); i++)
