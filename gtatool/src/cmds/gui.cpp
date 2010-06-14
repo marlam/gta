@@ -590,6 +590,13 @@ GUI::GUI()
         file_export_magick_action->setEnabled(false);
     }
     file_export_menu->addAction(file_export_magick_action);
+    QAction *file_export_mat_action = new QAction(tr("MATLAB data (via matio)..."), this);
+    connect(file_export_mat_action, SIGNAL(triggered()), this, SLOT(file_export_mat()));
+    if (!cmd_is_available(cmd_find("to-mat")))
+    {
+        file_export_mat_action->setEnabled(false);
+    }
+    file_export_menu->addAction(file_export_mat_action);
     QAction *file_export_pfs_action = new QAction(tr("Floating point data (via PFS)..."), this);
     connect(file_export_pfs_action, SIGNAL(triggered()), this, SLOT(file_export_pfs()));
     if (!cmd_is_available(cmd_find("to-pfs")))
@@ -1379,6 +1386,11 @@ void GUI::file_export_gdal()
 void GUI::file_export_magick()
 {
     export_to("to-magick", std::vector<std::string>(), "png", QStringList("Typical image files (*.png *.jpg)"));
+}
+
+void GUI::file_export_mat()
+{
+    export_to("to-mat", std::vector<std::string>(), "mat", QStringList("MATLAB files (*.mat)"));
 }
 
 void GUI::file_export_pfs()

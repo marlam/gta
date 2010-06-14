@@ -162,8 +162,11 @@ if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += from-mat.la
 from_mat_la_SOURCES = from-mat.cpp
 from_mat_la_LIBADD = $(LTLIBMATIO)
+pkglib_LTLIBRARIES += to-mat.la
+to_mat_la_SOURCES = to-mat.cpp
+to_mat_la_LIBADD = $(LTLIBMATIO)
 else
-libbuiltin_la_SOURCES += from-mat.cpp
+libbuiltin_la_SOURCES += from-mat.cpp to-mat.cpp
 libbuiltin_la_LIBADD += $(LTLIBMATIO)
 endif
 endif

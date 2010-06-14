@@ -159,6 +159,7 @@ static cmd_t cmds[] =
     CMD_MODULE("to-exr",            conversion, to_exr,            WITH_EXR),
     CMD_MODULE("to-gdal",           conversion, to_gdal,           WITH_GDAL),
     CMD_MODULE("to-magick",         conversion, to_magick,         WITH_MAGICK),
+    CMD_MODULE("to-mat",            conversion, to_mat,            WITH_MAT),
     CMD_MODULE("to-netpbm",         conversion, to_netpbm,         WITH_NETPBM),
     CMD_MODULE("to-pfs",            conversion, to_pfs,            WITH_PFS),
     CMD_STATIC("to-raw",            conversion, to_raw,            true),
