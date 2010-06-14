@@ -82,6 +82,10 @@ extern "C" int gtatool_to_mat(int argc, char *argv[])
 
     try
     {
+        // Open the file for writing to 1) truncate it if it exists and 2) give a
+        // better error message if opening fails
+        cio::close(cio::open(ofilename, "w"), ofilename);
+        // Now open the output file with matio
         mat_t *mat = Mat_Open(ofilename.c_str(), MAT_ACC_RDWR);
         if (!mat)
         {
