@@ -280,6 +280,20 @@ fi
 AC_DEFINE_UNQUOTED([WITH_DCMTK], [`if test "$dcmtk" = "yes"; then echo "1"; else echo "0"; fi`], [Use dcmtk?])
 AM_CONDITIONAL([WITH_DCMTK], [test "$dcmtk" = "yes"])
 
+dnl MATLAB
+AC_ARG_WITH([mat],
+    [AS_HELP_STRING([--with-mat], [Enable MATLAB import/export. Enabled by default if libmatio is available.])],
+    [if test "$withval" = "yes"; then mat="yes"; else mat="no"; fi], [mat="yes"])
+if test "$mat" = "yes"; then
+    AC_LIB_HAVE_LINKFLAGS([matio], [], [#include <matio.h>], [Mat_Open(0, 0);])
+    if test "$HAVE_LIBMATIO" != "yes"; then
+        mat="no"
+        AC_MSG_WARN([Disabled MATLAB import/export because libmatio was not found.])
+    fi
+fi
+AC_DEFINE_UNQUOTED([WITH_MAT], [`if test "$mat" = "yes"; then echo "1"; else echo "0"; fi`], [Use mat?])
+AM_CONDITIONAL([WITH_MAT], [test "$mat" = "yes"])
+
 dnl Qt
 AC_ARG_WITH([qt],
     [AS_HELP_STRING([--with-qt], [Enable Qt GUI. Enabled by default if Qt >= 4.4.3 is available.])],
@@ -356,5 +370,6 @@ echo "to-exr:           " "$exr"
 echo "from-gdal:        " "$gdal"
 echo "to-gdal:          " "$gdal"
 echo "from-dcmtk:       " "$dcmtk"
+echo "from-mat:         " "$mat"
 echo "gui:              " "$qt"
 echo ""

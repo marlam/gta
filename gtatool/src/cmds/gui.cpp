@@ -551,6 +551,13 @@ GUI::GUI()
         file_import_magick_action->setEnabled(false);
     }
     file_import_menu->addAction(file_import_magick_action);
+    QAction *file_import_mat_action = new QAction(tr("via matio..."), this);
+    connect(file_import_mat_action, SIGNAL(triggered()), this, SLOT(file_import_mat()));
+    if (!cmd_is_available(cmd_find("from-mat")))
+    {
+        file_import_mat_action->setEnabled(false);
+    }
+    file_import_menu->addAction(file_import_mat_action);
     QAction *file_import_pfs_action = new QAction(tr("via PFS..."), this);
     connect(file_import_pfs_action, SIGNAL(triggered()), this, SLOT(file_import_pfs()));
     if (!cmd_is_available(cmd_find("from-pfs")))
@@ -1304,6 +1311,11 @@ void GUI::file_import_gdal()
 void GUI::file_import_magick()
 {
     import_from("from-magick", std::vector<std::string>(), QStringList("Typical image files (*.png *.jpg)"));
+}
+
+void GUI::file_import_mat()
+{
+    import_from("from-mat", std::vector<std::string>(), QStringList("MATLAB files (*.mat)"));
 }
 
 void GUI::file_import_pfs()

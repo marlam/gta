@@ -157,6 +157,17 @@ libbuiltin_la_LIBADD += $(LTLIBDCMIMGLE)
 endif
 endif
 
+if WITH_MAT
+if DYNAMIC_MODULES
+pkglib_LTLIBRARIES += from-mat.la
+from_mat_la_SOURCES = from-mat.cpp
+from_mat_la_LIBADD = $(LTLIBMATIO)
+else
+libbuiltin_la_SOURCES += from-mat.cpp
+libbuiltin_la_LIBADD += $(LTLIBMATIO)
+endif
+endif
+
 if WITH_QT
 moc_verbose = $(moc_verbose_$(V))
 moc_verbose_ = $(moc_verbose_$(AM_DEFAULT_VERBOSITY))
