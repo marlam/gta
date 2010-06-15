@@ -861,7 +861,8 @@ QString GUI::file_save_dialog(const QString &default_suffix, const QStringList &
             if (existing_fw->file_name().length() > 0)
             {
                 QFileInfo existing_file_info(cio::to_sys(existing_fw->file_name()).c_str());
-                if (file_info.canonicalFilePath() == existing_file_info.canonicalFilePath())
+                if (existing_file_info.canonicalFilePath().length() > 0
+                        && file_info.canonicalFilePath() == existing_file_info.canonicalFilePath())
                 {
                     QMessageBox::critical(this, "Error", "This file is currently opened. Close it first.");
                     file_name = QString();
