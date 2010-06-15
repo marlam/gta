@@ -45,6 +45,29 @@ extern "C" void gtatool_from_mat_help(void)
             "Converts MATLAB .mat files to GTAs using matio.");
 }
 
+static void reorder_matlab_data(gta::header &dsthdr, void *dst, const gta::header &srchdr, const void *src)
+{
+    dsthdr = srchdr;
+    std::vector<uintmax_t> dstdims(checked_cast<size_t>(srchdr.dimensions()));
+    for (size_t i = 0; i < dstdims.size(); i++)
+    {
+        dstdims[i] = srchdr.dimension_size(dstdims.size() - 1 - i);
+    }
+    dsthdr.set_dimensions(dstdims.size(), &(dstdims[0]));
+    std::vector<uintmax_t> dstindices(checked_cast<size_t>(dsthdr.dimensions()));
+    std::vector<uintmax_t> srcindices(checked_cast<size_t>(srchdr.dimensions()));
+    for (uintmax_t i = 0; i < dsthdr.elements(); i++)
+    {
+        linear_index_to_indices(dsthdr, i, &(dstindices[0]));
+        for (uintmax_t j = 0; j < dsthdr.dimensions(); j++)
+        {
+            srcindices[j] = dstindices[dsthdr.dimensions() - 1 - j];
+        }
+        uintmax_t k = indices_to_linear_index(srchdr, &(srcindices[0]));
+        memcpy(dsthdr.element(dst, i), srchdr.element(src, k), dsthdr.element_size());
+    }
+}
+
 extern "C" int gtatool_from_mat(int argc, char *argv[])
 {
     std::vector<opt::option *> options;
@@ -93,13 +116,13 @@ extern "C" int gtatool_from_mat(int argc, char *argv[])
         matvar_t *matvar;
         while ((matvar = Mat_VarReadNext(mat)))
         {
-            gta::header hdr;
+            gta::header ihdr;
             std::vector<uintmax_t> dimensions(checked_cast<size_t>(matvar->rank));
             for (size_t i = 0; i < dimensions.size(); i++)
             {
-                dimensions[i] = checked_cast<uintmax_t>(matvar->dims[dimensions.size() - 1 - i]);
+                dimensions[i] = checked_cast<uintmax_t>(matvar->dims[i]);
             }
-            hdr.set_dimensions(dimensions.size(), &(dimensions[0]));
+            ihdr.set_dimensions(dimensions.size(), &(dimensions[0]));
             gta::type type;
             if (matvar->data_type == MAT_T_INT8 && !matvar->isComplex)
             {
@@ -169,17 +192,18 @@ extern "C" int gtatool_from_mat(int argc, char *argv[])
                 msg::wrn("ignoring variable of type " + type_name + (matvar->isComplex ? " (complex)" : ""));
                 continue;
             }
-            hdr.set_components(type);
+            ihdr.set_components(type);
             if (matvar->name && matvar->name[0] != '\0')
             {
-                hdr.global_taglist().set("MATLAB/NAME", matvar->name);
+                ihdr.global_taglist().set("MATLAB/NAME", matvar->name);
             }
-            hdr.write_to(fo);
+            gta::header ohdr;
+            blob output_data(checked_cast<size_t>(ihdr.data_size()));
             if (matvar->isComplex)
             {
                 const struct ComplexSplit *split_data = static_cast<const struct ComplexSplit *>(matvar->data);
-                blob fixed_data(checked_cast<size_t>(hdr.data_size()));
-                for (uintmax_t i = 0; i < hdr.elements(); i++)
+                blob fixed_data(checked_cast<size_t>(ihdr.data_size()));
+                for (uintmax_t i = 0; i < ihdr.elements(); i++)
                 {
                     if (type == gta::cfloat32)
                     {
@@ -196,12 +220,14 @@ extern "C" int gtatool_from_mat(int argc, char *argv[])
                         fixed_data.ptr<double>()[2 * i + 1] = im;
                     }
                 }
-                hdr.write_data(fo, fixed_data.ptr());
+                reorder_matlab_data(ohdr, output_data.ptr(), ihdr, fixed_data.ptr());
             }
             else
             {
-                hdr.write_data(fo, matvar->data);
+                reorder_matlab_data(ohdr, output_data.ptr(), ihdr, matvar->data);
             }
+            ohdr.write_to(fo);
+            ohdr.write_data(fo, output_data.ptr());
             Mat_VarFree(matvar);
         }
         if (fo != gtatool_stdout)

@@ -46,6 +46,29 @@ extern "C" void gtatool_to_mat_help(void)
             "Converts GTAs to the MATLB .mat format using matio.");
 }
 
+static void reorder_matlab_data(gta::header &dsthdr, void *dst, const gta::header &srchdr, const void *src)
+{
+    dsthdr = srchdr;
+    std::vector<uintmax_t> dstdims(checked_cast<size_t>(srchdr.dimensions()));
+    for (size_t i = 0; i < dstdims.size(); i++)
+    {
+        dstdims[i] = srchdr.dimension_size(dstdims.size() - 1 - i);
+    }
+    dsthdr.set_dimensions(dstdims.size(), &(dstdims[0]));
+    std::vector<uintmax_t> dstindices(checked_cast<size_t>(dsthdr.dimensions()));
+    std::vector<uintmax_t> srcindices(checked_cast<size_t>(srchdr.dimensions()));
+    for (uintmax_t i = 0; i < dsthdr.elements(); i++)
+    {
+        linear_index_to_indices(dsthdr, i, &(dstindices[0]));
+        for (uintmax_t j = 0; j < dsthdr.dimensions(); j++)
+        {
+            srcindices[j] = dstindices[dsthdr.dimensions() - 1 - j];
+        }
+        uintmax_t k = indices_to_linear_index(srchdr, &(srcindices[0]));
+        memcpy(dsthdr.element(dst, i), srchdr.element(src, k), dsthdr.element_size());
+    }
+}
+
 extern "C" int gtatool_to_mat(int argc, char *argv[])
 {
     std::vector<opt::option *> options;
@@ -82,10 +105,8 @@ extern "C" int gtatool_to_mat(int argc, char *argv[])
 
     try
     {
-        // Open the file for writing to 1) truncate it if it exists and 2) give a
-        // better error message if opening fails
-        cio::close(cio::open(ofilename, "w"), ofilename);
-        // Now open the output file with matio
+        // Remove the output file if it exists so that matio does not append to it
+        try { cio::remove(ofilename); } catch (...) {}
         mat_t *mat = Mat_Open(ofilename.c_str(), MAT_ACC_RDWR);
         if (!mat)
         {
@@ -96,13 +117,13 @@ extern "C" int gtatool_to_mat(int argc, char *argv[])
         while (cio::has_more(fi, ifilename))
         {
             std::string array_name = ifilename + " array " + str::from(array_index);
-            gta::header hdr;
-            hdr.read_from(fi);
-            if (hdr.components() != 1)
+            gta::header ihdr;
+            ihdr.read_from(fi);
+            if (ihdr.components() != 1)
             {
                 throw exc("cannot export " + array_name, "only arrays with a single array element component can be exported to MATLAB");
             }
-            if (hdr.dimensions() == 0)
+            if (ihdr.dimensions() == 0)
             {
                 msg::wrn(array_name + ": ignoring empty array");
                 continue;
@@ -110,7 +131,7 @@ extern "C" int gtatool_to_mat(int argc, char *argv[])
             int class_type;
             int data_type;
             bool is_complex = false;
-            switch (hdr.component_type(0))
+            switch (ihdr.component_type(0))
             {
             case gta::int8:
                 class_type = MAT_C_INT8;
@@ -165,64 +186,67 @@ extern "C" int gtatool_to_mat(int argc, char *argv[])
             default:
                 throw exc("cannot export " + ifilename,
                         std::string("data type ")
-                        + type_to_string(hdr.component_type(0), hdr.component_size(0))
+                        + type_to_string(ihdr.component_type(0), ihdr.component_size(0))
                         + " cannot be exported to MATLAB");
                 break;
             }
-            const char *name = hdr.global_taglist().get("MATLAB/NAME");
-            int rank = checked_cast<int>(hdr.dimensions());
+            blob idata(checked_cast<size_t>(ihdr.data_size()));
+            ihdr.read_data(fi, idata.ptr());
+            gta::header ohdr;
+            blob odata(checked_cast<size_t>(ihdr.data_size()));
+            reorder_matlab_data(ohdr, odata.ptr(), ihdr, idata.ptr());
+            idata.resize(0);
+            const char *name = ohdr.global_taglist().get("MATLAB/NAME");
+            int rank = checked_cast<int>(ohdr.dimensions());
             if (rank < 2)
             {
                 rank = 2;
             }
             std::vector<int> dims(rank);
-            for (uintmax_t i = 0; i < hdr.dimensions(); i++)
+            for (uintmax_t i = 0; i < ohdr.dimensions(); i++)
             {
-                dims[i] = checked_cast<int>(hdr.dimension_size(hdr.dimensions() - 1 - i));
+                dims[i] = checked_cast<int>(ohdr.dimension_size(i));
             }
-            if (hdr.dimensions() < 2)
+            if (ohdr.dimensions() < 2)
             {
-                dims[1] = dims[0];
-                dims[0] = 1;
+                dims[1] = 1;
             }
             int opt = MEM_CONSERVE;
             if (is_complex)
             {
                 opt |= MAT_F_COMPLEX;
             }
-            blob gta_data(checked_cast<size_t>(hdr.data_size()));
-            blob mat_data;
-            hdr.read_data(fi, gta_data.ptr());
-            void *data = gta_data.ptr();
+            void *data = odata.ptr();
+            blob tmp_data;
             struct ComplexSplit split_data;
             if (is_complex)
             {
-                mat_data.resize(checked_cast<size_t>(hdr.data_size()));
-                for (uintmax_t i = 0; i < hdr.elements(); i++)
+                tmp_data.resize(checked_cast<size_t>(ohdr.data_size()));
+                for (uintmax_t i = 0; i < ohdr.elements(); i++)
                 {
                     if (data_type == MAT_T_SINGLE)
                     {
-                        float re = gta_data.ptr<float>()[2 * i + 0];
-                        float im = gta_data.ptr<float>()[2 * i + 1];
-                        mat_data.ptr<float>()[i] = re;
-                        mat_data.ptr<float>()[hdr.elements() + i] = im;
+                        float re = odata.ptr<float>()[2 * i + 0];
+                        float im = odata.ptr<float>()[2 * i + 1];
+                        tmp_data.ptr<float>()[i] = re;
+                        tmp_data.ptr<float>()[ohdr.elements() + i] = im;
                     }
                     else
                     {
-                        double re = gta_data.ptr<double>()[2 * i + 0];
-                        double im = gta_data.ptr<double>()[2 * i + 1];
-                        mat_data.ptr<double>()[i] = re;
-                        mat_data.ptr<double>()[hdr.elements() + i] = im;
+                        double re = odata.ptr<double>()[2 * i + 0];
+                        double im = odata.ptr<double>()[2 * i + 1];
+                        tmp_data.ptr<double>()[i] = re;
+                        tmp_data.ptr<double>()[ohdr.elements() + i] = im;
                     }
                 }
-                split_data.Re = mat_data.ptr();
+                split_data.Re = tmp_data.ptr();
                 if (data_type == MAT_T_SINGLE)
                 {
-                    split_data.Im = mat_data.ptr<float>(hdr.elements());
+                    split_data.Im = tmp_data.ptr<float>(ohdr.elements());
                 }
                 else
                 {
-                    split_data.Im = mat_data.ptr<double>(hdr.elements());
+                    split_data.Im = tmp_data.ptr<double>(ohdr.elements());
                 }
                 data = &split_data;
             }
