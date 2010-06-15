@@ -268,10 +268,20 @@ AC_ARG_WITH([dcmtk],
     [if test "$withval" = "yes"; then dcmtk="yes"; else dcmtk="no"; fi], [dcmtk="yes"])
 if test "$dcmtk" = "yes"; then
     AC_LIB_FROMPACKAGE([dcmimgle], [dcmtk])
-    AC_LIB_HAVE_LINKFLAGS([dcmimgle], [dcmdata dcmjpeg ijg8 ijg12 ijg16 ofstd pthread z],
-    [#define HAVE_CONFIG_H
-     #include <dcmtk/dcmimgle/dcmimage.h>],
-    [DicomImage img(NULL);])
+    case "${target}" in
+    *-*-mingw32*)
+        AC_LIB_HAVE_LINKFLAGS([dcmimgle], [dcmdata dcmjpeg ijg8 ijg12 ijg16 ofstd pthread z ws2_32],
+        [#define HAVE_CONFIG_H
+         #include <dcmtk/dcmimgle/dcmimage.h>],
+        [DicomImage img(NULL);])
+        ;;
+    *)
+        AC_LIB_HAVE_LINKFLAGS([dcmimgle], [dcmdata dcmjpeg ijg8 ijg12 ijg16 ofstd pthread z],
+        [#define HAVE_CONFIG_H
+         #include <dcmtk/dcmimgle/dcmimage.h>],
+        [DicomImage img(NULL);])
+        ;;
+    esac
     if test "$HAVE_LIBDCMIMGLE" != "yes"; then
         dcmtk="no"
         AC_MSG_WARN([Disabled DCMTK import because libdcmimgle was not found.])
@@ -285,7 +295,14 @@ AC_ARG_WITH([mat],
     [AS_HELP_STRING([--with-mat], [Enable MATLAB import/export. Enabled by default if libmatio is available.])],
     [if test "$withval" = "yes"; then mat="yes"; else mat="no"; fi], [mat="yes"])
 if test "$mat" = "yes"; then
-    AC_LIB_HAVE_LINKFLAGS([matio], [], [#include <matio.h>], [Mat_Open(0, 0);])
+    case "${target}" in
+    *-*-mingw32*)
+        AC_LIB_HAVE_LINKFLAGS([matio], [z], [#include <matio.h>], [Mat_Open(0, 0);])
+        ;;
+    *)
+        AC_LIB_HAVE_LINKFLAGS([matio], [], [#include <matio.h>], [Mat_Open(0, 0);])
+        ;;
+    esac
     if test "$HAVE_LIBMATIO" != "yes"; then
         mat="no"
         AC_MSG_WARN([Disabled MATLAB import/export because libmatio was not found.])
