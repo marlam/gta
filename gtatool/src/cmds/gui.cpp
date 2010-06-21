@@ -530,7 +530,7 @@ GUI::GUI()
         file_import_dcmtk_action->setEnabled(false);
     }
     file_import_menu->addAction(file_import_dcmtk_action);
-    QAction *file_import_exr_action = new QAction(tr("HDR images (via EXR)..."), this);
+    QAction *file_import_exr_action = new QAction(tr("EXR HDR images (via OpenEXR)..."), this);
     connect(file_import_exr_action, SIGNAL(triggered()), this, SLOT(file_import_exr()));
     if (!cmd_is_available(cmd_find("from-exr")))
     {
@@ -544,7 +544,7 @@ GUI::GUI()
         file_import_gdal_action->setEnabled(false);
     }
     file_import_menu->addAction(file_import_gdal_action);
-    QAction *file_import_magick_action = new QAction(tr("Image data (via Magick)..."), this);
+    QAction *file_import_magick_action = new QAction(tr("Image data (via ImageMagick)..."), this);
     connect(file_import_magick_action, SIGNAL(triggered()), this, SLOT(file_import_magick()));
     if (!cmd_is_available(cmd_find("from-magick")))
     {
@@ -558,18 +558,21 @@ GUI::GUI()
         file_import_mat_action->setEnabled(false);
     }
     file_import_menu->addAction(file_import_mat_action);
-    QAction *file_import_pfs_action = new QAction(tr("Floating point data (via PFS)..."), this);
+    QAction *file_import_pfs_action = new QAction(tr("PFS floating point data (via PFS)..."), this);
     connect(file_import_pfs_action, SIGNAL(triggered()), this, SLOT(file_import_pfs()));
     if (!cmd_is_available(cmd_find("from-pfs")))
     {
         file_import_pfs_action->setEnabled(false);
     }
     file_import_menu->addAction(file_import_pfs_action);
+    QAction *file_import_rat_action = new QAction(tr("RAT RadarTools data..."), this);
+    connect(file_import_rat_action, SIGNAL(triggered()), this, SLOT(file_import_rat()));
+    file_import_menu->addAction(file_import_rat_action);
     QAction *file_import_raw_action = new QAction(tr("Raw data..."), this);
     connect(file_import_raw_action, SIGNAL(triggered()), this, SLOT(file_import_raw()));
     file_import_menu->addAction(file_import_raw_action);
     QMenu *file_export_menu = file_menu->addMenu(tr("Export"));
-    QAction *file_export_exr_action = new QAction(tr("HDR images (via EXR)..."), this);
+    QAction *file_export_exr_action = new QAction(tr("EXR HDR images (via EXR)..."), this);
     connect(file_export_exr_action, SIGNAL(triggered()), this, SLOT(file_export_exr()));
     if (!cmd_is_available(cmd_find("to-exr")))
     {
@@ -583,7 +586,7 @@ GUI::GUI()
         file_export_gdal_action->setEnabled(false);
     }
     file_export_menu->addAction(file_export_gdal_action);
-    QAction *file_export_magick_action = new QAction(tr("Image data (via Magick)..."), this);
+    QAction *file_export_magick_action = new QAction(tr("Image data (via ImageMagick)..."), this);
     connect(file_export_magick_action, SIGNAL(triggered()), this, SLOT(file_export_magick()));
     if (!cmd_is_available(cmd_find("to-magick")))
     {
@@ -597,13 +600,16 @@ GUI::GUI()
         file_export_mat_action->setEnabled(false);
     }
     file_export_menu->addAction(file_export_mat_action);
-    QAction *file_export_pfs_action = new QAction(tr("Floating point data (via PFS)..."), this);
+    QAction *file_export_pfs_action = new QAction(tr("PFS floating point data (via PFS)..."), this);
     connect(file_export_pfs_action, SIGNAL(triggered()), this, SLOT(file_export_pfs()));
     if (!cmd_is_available(cmd_find("to-pfs")))
     {
         file_export_pfs_action->setEnabled(false);
     }
     file_export_menu->addAction(file_export_pfs_action);
+    QAction *file_export_rat_action = new QAction(tr("RAT RadarTools data..."), this);
+    connect(file_export_rat_action, SIGNAL(triggered()), this, SLOT(file_export_rat()));
+    file_export_menu->addAction(file_export_rat_action);
     QAction *file_export_raw_action = new QAction(tr("Raw data..."), this);
     connect(file_export_raw_action, SIGNAL(triggered()), this, SLOT(file_export_raw()));
     file_export_menu->addAction(file_export_raw_action);
@@ -1133,7 +1139,8 @@ void GUI::open(const std::string &file_name, const std::string &save_name)
             if (fw->file_name().length() > 0)
             {
                 QFileInfo existing_file_info(cio::to_sys(fw->file_name()).c_str());
-                if (file_info.canonicalFilePath() == existing_file_info.canonicalFilePath())
+                if (existing_file_info.canonicalFilePath().length() > 0
+                        && file_info.canonicalFilePath() == existing_file_info.canonicalFilePath())
                 {
                     _files_widget->setCurrentWidget(fw);
                     return;
@@ -1337,6 +1344,11 @@ void GUI::file_import_pfs()
     import_from("from-pfs", std::vector<std::string>(), QStringList("PFS files (*.pfs)"));
 }
 
+void GUI::file_import_rat()
+{
+    import_from("from-rat", std::vector<std::string>(), QStringList("RAT RadarTools files (*.rat)"));
+}
+
 void GUI::file_import_raw()
 {
     QDialog *dialog = new QDialog(this);
@@ -1398,6 +1410,11 @@ void GUI::file_export_magick()
 void GUI::file_export_mat()
 {
     export_to("to-mat", std::vector<std::string>(), "mat", QStringList("MATLAB files (*.mat)"));
+}
+
+void GUI::file_export_rat()
+{
+    export_to("to-rat", std::vector<std::string>(), "rat", QStringList("RAT RadarTools files (*.rat)"));
 }
 
 void GUI::file_export_pfs()
