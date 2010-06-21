@@ -42,7 +42,9 @@ libbuiltin_la_SOURCES = \
 	stream-merge.cpp	\
 	stream-split.cpp	\
 	from-raw.cpp		\
-	to-raw.cpp
+	to-raw.cpp              \
+        from-rat.cpp            \
+        to-rat.cpp
 nodist_libbuiltin_la_SOURCES =
 libbuiltin_la_LIBADD =
 

@@ -98,6 +98,7 @@ CMD_DECL(from_magick)
 CMD_DECL(from_mat)
 CMD_DECL(from_netpbm)
 CMD_DECL(from_pfs)
+CMD_DECL(from_rat)
 CMD_DECL(from_raw)
 CMD_DECL(gui)
 CMD_DECL(help)
@@ -115,6 +116,7 @@ CMD_DECL(to_magick)
 CMD_DECL(to_mat)
 CMD_DECL(to_netpbm)
 CMD_DECL(to_pfs)
+CMD_DECL(to_rat)
 CMD_DECL(to_raw)
 CMD_DECL(uncompress)
 CMD_DECL(version)
@@ -146,6 +148,7 @@ static cmd_t cmds[] =
     CMD_MODULE("from-mat",          conversion, from_mat,          WITH_MAT),
     CMD_MODULE("from-netpbm",       conversion, from_netpbm,       WITH_NETPBM),
     CMD_MODULE("from-pfs",          conversion, from_pfs,          WITH_PFS),
+    CMD_STATIC("from-rat",          conversion, from_rat,          true),
     CMD_STATIC("from-raw",          conversion, from_raw,          true),
     CMD_MODULE("gui",               misc,       gui,               WITH_QT),
     CMD_STATIC("help",              misc,       help,              true),
@@ -163,6 +166,7 @@ static cmd_t cmds[] =
     CMD_MODULE("to-mat",            conversion, to_mat,            WITH_MAT),
     CMD_MODULE("to-netpbm",         conversion, to_netpbm,         WITH_NETPBM),
     CMD_MODULE("to-pfs",            conversion, to_pfs,            WITH_PFS),
+    CMD_STATIC("to-rat",            conversion, to_rat,            true),
     CMD_STATIC("to-raw",            conversion, to_raw,            true),
     CMD_STATIC("uncompress",        array,      uncompress,        true),
     CMD_STATIC("version",           misc,       version,           true),
