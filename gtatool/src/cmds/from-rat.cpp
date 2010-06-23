@@ -48,20 +48,23 @@ extern "C" void gtatool_from_rat_help(void)
 static void reorder_rat_data(gta::header &dsthdr, void *dst, const gta::header &srchdr, const void *src)
 {
     dsthdr = srchdr;
-    std::vector<uintmax_t> dstdims(checked_cast<size_t>(srchdr.dimensions()));
-    for (size_t i = 0; i < dstdims.size(); i++)
-    {
-        dstdims[i] = srchdr.dimension_size(dstdims.size() - 1 - i);
-    }
-    dsthdr.set_dimensions(dstdims.size(), &(dstdims[0]));
     std::vector<uintmax_t> dstindices(checked_cast<size_t>(dsthdr.dimensions()));
     std::vector<uintmax_t> srcindices(checked_cast<size_t>(srchdr.dimensions()));
     for (uintmax_t i = 0; i < dsthdr.elements(); i++)
     {
+        // For arrays with 2 dimensions, we have to mirror the y component.
+        // This code always mirrors the last component; I'm not sure that that's correct.
         linear_index_to_indices(dsthdr, i, &(dstindices[0]));
         for (uintmax_t j = 0; j < dsthdr.dimensions(); j++)
         {
-            srcindices[j] = dsthdr.dimension_size(dsthdr.dimensions() - 1 - j) - 1 - dstindices[dsthdr.dimensions() - 1 - j];
+            if (j == dsthdr.dimensions() - 1)
+            {
+                srcindices[j] = dsthdr.dimension_size(j) - 1 - dstindices[j];
+            }
+            else
+            {
+                srcindices[j] = dstindices[j];
+            }
         }
         uintmax_t k = indices_to_linear_index(srchdr, &(srcindices[0]));
         memcpy(dsthdr.element(dst, i), srchdr.element(src, k), dsthdr.element_size());
@@ -150,7 +153,7 @@ extern "C" int gtatool_from_rat(int argc, char *argv[])
         {
             endianness::swap32(&rat_type);
         }
-        int32_t rat_dummy[4];
+        int32_t rat_dummy[4];   // I have no idea what these fields mean, but it seems they can be ignored.
         cio::read(rat_dummy, sizeof(int32_t), 4, fi, ifilename);
 	char rat_info[80];
         cio::read(rat_info, sizeof(char), 80, fi, ifilename);
