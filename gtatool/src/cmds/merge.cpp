@@ -170,7 +170,7 @@ extern "C" int gtatool_merge(int argc, char *argv[])
             gta::io_state so;
             for (uintmax_t e = 0; e < hdro.elements(); e++)
             {
-                linear_index_to_indices(hdro, e, &(indices[0]));
+                hdro.linear_index_to_indices(e, &(indices[0]));
                 uintmax_t dim = 0;
                 size_t j;
                 for (j = 0; j < arguments.size(); j++)

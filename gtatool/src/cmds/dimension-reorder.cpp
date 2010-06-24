@@ -149,7 +149,7 @@ extern "C" int gtatool_dimension_reorder(int argc, char *argv[])
                 gta::io_state so;
                 for (uintmax_t e = 0; e < hdro.elements(); e++)
                 {
-                    linear_index_to_indices(hdro, e, &(out_indices[0]));
+                    hdro.linear_index_to_indices(e, &(out_indices[0]));
                     for (size_t i = 0; i < out_indices.size(); i++)
                     {
                         if (!indices.value().empty())

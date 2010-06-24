@@ -176,7 +176,7 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
                     {
                         dim_vars[i] = hdri.dimension_size(i);
                     }
-                    linear_index_to_indices(hdri, e, &(index_vars_orig[0]));
+                    hdri.linear_index_to_indices(e, &(index_vars_orig[0]));
                     for (uintmax_t i = 0; i < hdri.dimensions(); i++)
                     {
                         index_vars[i] = index_vars_orig[i];

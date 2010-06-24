@@ -136,7 +136,7 @@ extern "C" int gtatool_dimension_split(int argc, char *argv[])
                 for (uintmax_t e = 0; e < hdri.elements(); e++)
                 {
                     hdri.read_elements(si, fi, 1, element.ptr());
-                    linear_index_to_indices(hdri, e, &(indices[0]));
+                    hdri.linear_index_to_indices(e, &(indices[0]));
                     size_t i = indices[dim];
                     hdros[i].write_elements(sos[i], tmpfiles[i], 1, element.ptr());
                 }

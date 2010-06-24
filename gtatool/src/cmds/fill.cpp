@@ -148,7 +148,7 @@ extern "C" int gtatool_fill(int argc, char *argv[])
                 for (uintmax_t e = 0; e < hdro.elements(); e++)
                 {
                     hdri.read_elements(si, fi, 1, element.ptr());
-                    linear_index_to_indices(hdri, e, &(index[0]));
+                    hdri.linear_index_to_indices(e, &(index[0]));
                     bool replace = true;
                     if (!low.values().empty())
                     {

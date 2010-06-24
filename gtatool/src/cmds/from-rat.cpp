@@ -54,7 +54,7 @@ static void reorder_rat_data(gta::header &dsthdr, void *dst, const gta::header &
     {
         // For arrays with 2 dimensions, we have to mirror the y component.
         // This code always mirrors the last component; I'm not sure that that's correct.
-        linear_index_to_indices(dsthdr, i, &(dstindices[0]));
+        dsthdr.linear_index_to_indices(i, &(dstindices[0]));
         for (uintmax_t j = 0; j < dsthdr.dimensions(); j++)
         {
             if (j == dsthdr.dimensions() - 1)
@@ -66,7 +66,7 @@ static void reorder_rat_data(gta::header &dsthdr, void *dst, const gta::header &
                 srcindices[j] = dstindices[j];
             }
         }
-        uintmax_t k = indices_to_linear_index(srchdr, &(srcindices[0]));
+        uintmax_t k = srchdr.indices_to_linear_index(&(srcindices[0]));
         memcpy(dsthdr.element(dst, i), srchdr.element(src, k), dsthdr.element_size());
         if (endianness::endianness == endianness::little)
         {

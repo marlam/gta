@@ -58,12 +58,12 @@ static void reorder_matlab_data(gta::header &dsthdr, void *dst, const gta::heade
     std::vector<uintmax_t> srcindices(checked_cast<size_t>(srchdr.dimensions()));
     for (uintmax_t i = 0; i < dsthdr.elements(); i++)
     {
-        linear_index_to_indices(dsthdr, i, &(dstindices[0]));
+        dsthdr.linear_index_to_indices(i, &(dstindices[0]));
         for (uintmax_t j = 0; j < dsthdr.dimensions(); j++)
         {
             srcindices[j] = dstindices[dsthdr.dimensions() - 1 - j];
         }
-        uintmax_t k = indices_to_linear_index(srchdr, &(srcindices[0]));
+        uintmax_t k = srchdr.indices_to_linear_index(&(srcindices[0]));
         memcpy(dsthdr.element(dst, i), srchdr.element(src, k), dsthdr.element_size());
     }
 }

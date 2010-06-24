@@ -145,7 +145,7 @@ extern "C" int gtatool_extract(int argc, char *argv[])
                 for (uintmax_t e = 0; e < hdri.elements(); e++)
                 {
                     hdri.read_elements(si, fi, 1, element.ptr());
-                    linear_index_to_indices(hdri, e, &(indices[0]));
+                    hdri.linear_index_to_indices(e, &(indices[0]));
                     bool in_sub_array = true;
                     for (size_t i = 0; i < indices.size(); i++)
                     {

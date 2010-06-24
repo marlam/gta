@@ -144,7 +144,7 @@ extern "C" int gtatool_resize(int argc, char *argv[])
                 gta::io_state si, so;
                 for (uintmax_t linear_out_index = 0; linear_out_index < hdro.elements(); linear_out_index++)
                 {
-                    linear_index_to_indices(hdro, linear_out_index, &(out_index[0]));
+                    hdro.linear_index_to_indices(linear_out_index, &(out_index[0]));
                     bool from_input = true;
                     for (uintmax_t i = 0; i < hdri.dimensions(); i++)
                     {
@@ -170,7 +170,7 @@ extern "C" int gtatool_resize(int argc, char *argv[])
                         {
                             requested_in_index[i] = in_index[i];
                         }
-                        uintmax_t requested_linear_in_index = indices_to_linear_index(hdri, &(requested_in_index[0]));
+                        uintmax_t requested_linear_in_index = hdri.indices_to_linear_index(&(requested_in_index[0]));
                         // elements are guaranteed to be in ascending order
                         for (uintmax_t i = read_in_elements; i <= requested_linear_in_index; i++)
                         {

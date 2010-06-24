@@ -132,7 +132,7 @@ extern "C" int gtatool_dimension_reverse(int argc, char *argv[])
                 gta::io_state so;
                 for (uintmax_t e = 0; e < hdro.elements(); e++)
                 {
-                    linear_index_to_indices(hdro, e, &(ind[0]));
+                    hdro.linear_index_to_indices(e, &(ind[0]));
                     if (!indices.value().empty())
                     {
                         for (size_t i = 0; i < indices.value().size(); i++)

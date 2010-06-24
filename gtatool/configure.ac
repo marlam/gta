@@ -113,12 +113,12 @@ AC_CHECK_FUNCS([backtrace sigaction vasprintf mmap link fseeko ftello])
 dnl The GTA library
 AC_LIB_HAVE_LINKFLAGS([gta], [],
     [#include <gta/gta.h>
-     #if GTA_VERSION_NUMBER < 0x000901
+     #if GTA_VERSION_NUMBER < 0x000902
      # error GTA version too old
      #endif],
     [gta_version(0, 0, 0);])
 if test "$HAVE_LIBGTA" != "yes"; then
-    AC_MSG_ERROR([libgta >= 0.9.1 not found])
+    AC_MSG_ERROR([libgta >= 0.9.2 not found])
 fi
 
 dnl The muParser library

@@ -138,7 +138,7 @@ extern "C" int gtatool_dimension_extract(int argc, char *argv[])
                 for (uintmax_t e = 0; e < hdri.elements(); e++)
                 {
                     hdri.read_elements(si, fi, 1, element.ptr());
-                    linear_index_to_indices(hdri, e, &(indices[0]));
+                    hdri.linear_index_to_indices(e, &(indices[0]));
                     if (indices[dim] == ind)
                     {
                         hdro.write_elements(so, gtatool_stdout, 1, element.ptr());

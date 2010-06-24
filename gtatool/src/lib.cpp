@@ -485,33 +485,6 @@ void swap_element_endianness(const gta::header &header, void *element)
     }
 }
 
-void linear_index_to_indices(const gta::header &header, uintmax_t e, uintmax_t *indices)
-{
-    uintmax_t multiplied_dim_sizes = header.elements();
-    for (uintmax_t i = 0; i < header.dimensions(); i++)
-    {
-        uintmax_t j = header.dimensions() - 1 - i;
-        multiplied_dim_sizes /= header.dimension_size(j);
-        indices[j] = e / multiplied_dim_sizes;
-        e -= indices[j] * multiplied_dim_sizes;
-    }
-}
-
-uintmax_t indices_to_linear_index(const gta::header &header, const uintmax_t *indices)
-{
-    uintmax_t index = 0;
-    uintmax_t dim_product = 1;
-    for (uintmax_t i = 0; i < header.dimensions(); i++)
-    {
-        if (i > 0)
-        {
-            dim_product *= header.dimension_size(i - 1);
-        }
-        index += indices[i] * dim_product;
-    }
-    return index;
-}
-
 std::string from_utf8(const std::string &s)
 {
     const std::string localcharset = str::localcharset();
