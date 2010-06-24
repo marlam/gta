@@ -371,7 +371,6 @@ int main(void)
     r = gta_write_data_to_stream(header, data, f);
     check(r == GTA_OK);
     fclose(f);
-    //remove("test-endianness.tmp");
 
     /* Read the two endianness test files.
      * They were generated with the above code on little and big endian systems
@@ -414,5 +413,6 @@ int main(void)
     gta_deinit_header(le_header);
     gta_deinit_header(be_header);
 
+    remove("test-endianness.tmp");
     return 0;
 }
