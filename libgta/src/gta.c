@@ -3095,20 +3095,37 @@ gta_set_compression(gta_header_t *GTA_RESTRICT header, gta_compression_t compres
  */
 
 
+void
+gta_linear_index_to_indices(const gta_header_t *GTA_RESTRICT header, uintmax_t index, uintmax_t *indices)
+{
+    uintmax_t multiplied_dim_sizes = gta_get_elements(header);
+    for (uintmax_t i = 0; i < gta_get_dimensions(header); i++)
+    {
+        uintmax_t j = gta_get_dimensions(header) - 1 - i;
+        multiplied_dim_sizes /= gta_get_dimension_size(header, j);
+        indices[j] = index / multiplied_dim_sizes;
+        index -= indices[j] * multiplied_dim_sizes;
+    }
+}
+
+uintmax_t
+gta_indices_to_linear_index(const gta_header_t *GTA_RESTRICT header, const uintmax_t *indices)
+{
+    uintmax_t dim_product = 1;
+    uintmax_t index = indices[0];
+    for (uintmax_t i = 1; i < gta_get_dimensions(header); i++)
+    {
+        dim_product *= gta_get_dimension_size(header, i - 1);
+        index += indices[i] * dim_product;
+    }
+    return index;
+}
+
 const void *
 gta_get_element_const(const gta_header_t *GTA_RESTRICT header, const void *GTA_RESTRICT data, const uintmax_t *GTA_RESTRICT indices)
 {
     // We know that size_t does not overflow because all the data is in a buffer
-    size_t index = 0;
-    size_t dim_product = 1;
-    for (uintmax_t i = 0; i < gta_get_dimensions(header); i++)
-    {
-        if (i > 0)
-        {
-            dim_product *= gta_get_dimension_size(header, i - 1);
-        }
-        index += indices[i] * dim_product;
-    }
+    size_t index = gta_indices_to_linear_index(header, indices);
     const char *ptr = data;
     return ptr + index * gta_get_element_size(header);
 }

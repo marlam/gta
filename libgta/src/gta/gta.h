@@ -1021,6 +1021,26 @@ GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
 /*@{*/
 
 /**
+ * \brief               Transform a linear index to array indices.
+ * \param header        The header.
+ * \param index         The linear index.
+ * \param indices       The array indices.
+ */
+extern GTA_EXPORT void
+gta_linear_index_to_indices(const gta_header_t *GTA_RESTRICT header, uintmax_t index, uintmax_t *GTA_RESTRICT indices)
+GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
+
+/**
+ * \brief               Transform array indices to a linear index.
+ * \param header        The header.
+ * \param indices       The array indices.
+ * \return              The linear index.
+ */
+extern GTA_EXPORT uintmax_t
+gta_indices_to_linear_index(const gta_header_t *GTA_RESTRICT header, const uintmax_t *GTA_RESTRICT indices)
+GTA_ATTR_NONNULL_ALL GTA_ATTR_PURE GTA_ATTR_NOTHROW;
+
+/**
  * \brief               Get the address of an array element (non-modifiable).
  * \param header        The header.
  * \param data          The data.
