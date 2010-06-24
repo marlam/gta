@@ -1526,6 +1526,27 @@ namespace gta
         /*@{*/
 
         /**
+         * \brief               Transform a linear index to array indices.
+         * \param index         The linear index.
+         * \param indices       The array indices.
+         */
+        void linear_index_to_indices(uintmax_t index, uintmax_t *indices) const throw ()
+        {
+            gta_linear_index_to_indices(_header, index, indices);
+        }
+
+        /**
+         * \brief               Transform array indices to a linear index.
+         * \param header        The header.
+         * \param indices       The array indices.
+         * \return              The linear index.
+         */
+        uintmax_t indices_to_linear_index(const uintmax_t *indices) const throw ()
+        {
+            return gta_indices_to_linear_index(_header, indices);
+        }
+
+        /**
          * \brief               Get an array element.
          * \param data          Data Buffer.
          * \param indices       Indices for each dimension of the array.
