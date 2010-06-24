@@ -10,7 +10,8 @@ check_PROGRAMS = \
 	taglists	\
 	filedescriptors	\
 	endianness	\
-	blocks
+	blocks		\
+	elements
 
 TESTS = $(check_PROGRAMS)
 
