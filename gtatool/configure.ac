@@ -133,6 +133,7 @@ if test "$muparser" = "yes"; then
             | sed -e 's/\/muParser.h$//' -e 's/^\/\/\//\//'`
         CPPFLAGS="$CPPFLAGS -isystem $MUPARSER_INCLUDE_DIR"
     fi
+    AC_LIB_FROMPACKAGE([muparser], [muparser])
     AC_LIB_HAVE_LINKFLAGS([muparser], [], [#include <muParser.h>], [mu::Parser p;])
     if test "$HAVE_LIBMUPARSER" != "yes"; then
         muparser="no"
@@ -148,6 +149,7 @@ AC_ARG_WITH([netpbm],
     [if test "$withval" = "yes"; then netpbm="yes"; else netpbm="no"; fi], [netpbm="yes"])
 if test "$netpbm" = "yes"; then
     AC_LANG([C])
+    AC_LIB_FROMPACKAGE([netpbm], [netpbm])
     AC_LIB_HAVE_LINKFLAGS([netpbm], [], [#include <pam.h>], [pm_init(0, 0);])
     AC_LANG([C++])
     if test "$HAVE_LIBNETPBM" != "yes"; then
@@ -233,9 +235,10 @@ if test "$gdal" = "yes"; then
         CPPFLAGS="$CPPFLAGS -isystem $GDAL_INCLUDE_DIR"
     fi
     dnl On Debian, libgdal.so is called libgdal1.?.0.so.
+    dnl AC_LIB_FROMPACKAGE([gdal], [gdal])
     AC_LIB_HAVE_LINKFLAGS([gdal], [], [#include <gdal.h>], [GDALAllRegister();])
     if test "$HAVE_LIBGDAL" = "no"; then
-        AC_LIB_FROMPACKAGE([gdal1.6.0], [libgdal])
+        AC_LIB_FROMPACKAGE([gdal1.6.0], [gdal])
         AC_LIB_HAVE_LINKFLAGS([gdal1.6.0], [], [#include <gdal.h>], [GDALAllRegister();])
         HAVE_LIBGDAL="$HAVE_LIBGDAL1_6_0"
         if test "$HAVE_LIBGDAL" = "yes"; then
@@ -245,7 +248,7 @@ if test "$gdal" = "yes"; then
         fi
     fi
     if test "$HAVE_LIBGDAL" = "no"; then
-        AC_LIB_FROMPACKAGE([gdal1.5.0], [libgdal])
+        AC_LIB_FROMPACKAGE([gdal1.5.0], [gdal])
         AC_LIB_HAVE_LINKFLAGS([gdal1.5.0], [], [#include <gdal.h>], [GDALAllRegister();])
         HAVE_LIBGDAL="$HAVE_LIBGDAL1_5_0"
         if test "$HAVE_LIBGDAL" = "yes"; then
@@ -290,11 +293,12 @@ fi
 AC_DEFINE_UNQUOTED([WITH_DCMTK], [`if test "$dcmtk" = "yes"; then echo "1"; else echo "0"; fi`], [Use dcmtk?])
 AM_CONDITIONAL([WITH_DCMTK], [test "$dcmtk" = "yes"])
 
-dnl MATLAB
-AC_ARG_WITH([mat],
-    [AS_HELP_STRING([--with-mat], [Enable MATLAB import/export. Enabled by default if libmatio is available.])],
+dnl MATIO
+AC_ARG_WITH([matio],
+    [AS_HELP_STRING([--with-matio], [Enable MATLAB import/export. Enabled by default if libmatio is available.])],
     [if test "$withval" = "yes"; then mat="yes"; else mat="no"; fi], [mat="yes"])
 if test "$mat" = "yes"; then
+    AC_LIB_FROMPACKAGE([matio], [matio])
     case "${target}" in
     *-*-mingw32*)
         AC_LIB_HAVE_LINKFLAGS([matio], [z], [#include <matio.h>], [Mat_Open(0, 0);])
