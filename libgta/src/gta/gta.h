@@ -59,14 +59,23 @@
  *
  * \section examples Examples
  *
- * - <a href="example-basic.c.html">Introductory example written in C</a>
- * - <a href="example-basic.cpp.html">Introductory example written in C++</a>
+ * Examples written in C:
+ * - <a href="example-basic.c.html">Introductory example</a>
+ * - <a href="example-tags.c.html">Using tags</a>
  *
- * \page example-basic.c Introductory example written in C
+ * Examples written in C++:
+ * - <a href="example-basic.cpp.html">Introductory example</a>
+ * - <a href="example-tags.cpp.html">Using tags</a>
+ *
+ * \page example-basic.c Examples written in C: Introductory example
  * \include example-basic.c
+ * \page example-tags.c Examples written in C: Using tags
+ * \include example-tags.c
  *
- * \page example-basic.cpp Introductory example written in C++
+ * \page example-basic.cpp Examples written in C++: Introductory example
  * \include example-basic.cpp
+ * \page example-tags.cpp Examples written in C++: Using tags
+ * \include example-tags.cpp
  */
 
 

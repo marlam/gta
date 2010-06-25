@@ -7,7 +7,8 @@
 EXTRA_DIST = doxyfile.in
 
 doc_DATA = \
-	example-basic.c example-basic.cpp
+	example-basic.c example-basic.cpp \
+	example-tags.c example-tags.cpp
 
 BUILT_SOURCES =
 nobase_nodist_doc_DATA =
