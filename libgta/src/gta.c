@@ -3211,7 +3211,7 @@ gta_get_component(const gta_header_t *GTA_RESTRICT header, void *GTA_RESTRICT el
 gta_result_t
 gta_read_data(const gta_header_t *GTA_RESTRICT header, void *GTA_RESTRICT data, gta_read_t read_fn, intptr_t userdata)
 {
-    // We now that the data size fits into size_t, because the caller already allocated a buffer for all the data.
+    // We know that the data size fits into size_t, because the caller already allocated a buffer for all the data.
     if (gta_data_is_chunked(header))
     {
         char *data_ptr = data;
@@ -3361,7 +3361,7 @@ gta_skip_data_from_fd(const gta_header_t *GTA_RESTRICT header, int fd)
 gta_result_t
 gta_write_data(const gta_header_t *GTA_RESTRICT header, const void *GTA_RESTRICT data, gta_write_t write_fn, intptr_t userdata)
 {
-    // We now that the data size fits into size_t, because the caller already allocated a buffer for all the data.
+    // We know that the data size fits into size_t, because the caller already allocated a buffer for all the data.
     if (gta_data_is_chunked(header))
     {
         const char *chunk_ptr = data;
