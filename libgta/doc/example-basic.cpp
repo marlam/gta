@@ -12,17 +12,17 @@ int main(void)
     unsigned char *data = NULL;
 
     try {
-        gta::header hdr;
+        gta::header header;
 
         /* Create a GTA that contains an RGB image with 256x128 pixels */
 
-        hdr.set_components(gta::uint8, gta::uint8, gta::uint8);
-        hdr.set_dimensions(256, 128);
-        data = new unsigned char[hdr.data_size()];
+        header.set_components(gta::uint8, gta::uint8, gta::uint8);
+        header.set_dimensions(256, 128);
+        data = new unsigned char[header.data_size()];
         for (uintmax_t y = 0; y < 128; y++) {
             for (uintmax_t x = 0; x < 256; x++) {
                 unsigned char *pixel =
-                    static_cast<unsigned char *>(hdr.element(data, x, y));
+                    static_cast<unsigned char *>(header.element(data, x, y));
                 pixel[0] = x;
                 pixel[1] = 2 * y;
                 pixel[2] = 128;
@@ -30,35 +30,35 @@ int main(void)
         }
 
         /* Set some tags (this is entirely optional) */
-        hdr.component_taglist(0).set("INTERPRETATION", "RED");
-        hdr.component_taglist(1).set("INTERPRETATION", "GREEN");
-        hdr.component_taglist(2).set("INTERPRETATION", "BLUE");
+        header.component_taglist(0).set("INTERPRETATION", "RED");
+        header.component_taglist(1).set("INTERPRETATION", "GREEN");
+        header.component_taglist(2).set("INTERPRETATION", "BLUE");
 
         /* Write the GTA to a file */
         std::ofstream ofs("rgb.gta", std::ios::out | std::ios::binary);
-        hdr.set_compression(gta::bzip2);
-        hdr.write_to(ofs);
-        hdr.write_data(ofs, data);
+        header.set_compression(gta::bzip2);
+        header.write_to(ofs);
+        header.write_data(ofs, data);
         ofs.close();
         delete[] data;
         data = NULL;
 
         /* Reread the same file */
         std::ifstream ifs("rgb.gta", std::ios::in | std::ios::binary);
-        hdr.read_from(ifs);
-        if (hdr.components() != 3
-                || hdr.component_type(0) != gta::uint8
-                || hdr.component_type(1) != gta::uint8
-                || hdr.component_type(2) != gta::uint8) {
+        header.read_from(ifs);
+        if (header.components() != 3
+                || header.component_type(0) != gta::uint8
+                || header.component_type(1) != gta::uint8
+                || header.component_type(2) != gta::uint8) {
             throw std::exception();
         }
-        if (hdr.dimensions() != 2
-                || hdr.dimension_size(0) != 256
-                || hdr.dimension_size(1) != 128) {
+        if (header.dimensions() != 2
+                || header.dimension_size(0) != 256
+                || header.dimension_size(1) != 128) {
             throw std::exception();
         }
-        data = new unsigned char[hdr.data_size()];
-        hdr.read_data(ifs, data);
+        data = new unsigned char[header.data_size()];
+        header.read_data(ifs, data);
     }
     catch (std::exception &e) {
         std::cerr << e.what() << std::endl;
