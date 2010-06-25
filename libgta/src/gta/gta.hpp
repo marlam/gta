@@ -1537,7 +1537,6 @@ namespace gta
 
         /**
          * \brief               Transform array indices to a linear index.
-         * \param header        The header.
          * \param indices       The array indices.
          * \return              The linear index.
          */
