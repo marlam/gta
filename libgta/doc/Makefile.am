@@ -6,7 +6,7 @@
 
 EXTRA_DIST = doxyfile.in
 
-doc_DATA = \
+dist_doc_DATA = \
 	example-basic.c example-basic.cpp \
 	example-tags.c example-tags.cpp
 
