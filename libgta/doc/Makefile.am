@@ -10,15 +10,11 @@ dist_doc_DATA = \
 	example-basic.c example-basic.cpp \
 	example-tags.c example-tags.cpp
 
-BUILT_SOURCES =
-nobase_nodist_doc_DATA =
-CLEANFILES =
-
 if BUILD_REF
 
-BUILT_SOURCES += reference/index.html
-nobase_nodist_doc_DATA += reference/*
-CLEANFILES += reference/*
+BUILT_SOURCES = reference/index.html
+nobase_nodist_doc_DATA = $(wildcard reference/*)
+CLEANFILES = $(wildcard reference/*)
 
 reference/index.html: doxyfile $(top_srcdir)/src/gta/gta.h $(top_srcdir)/src/gta/gta.hpp
 	$(DOXYGEN) doxyfile
