@@ -8,7 +8,9 @@ EXTRA_DIST = doxyfile.in
 
 dist_doc_DATA = \
 	example-basic.c example-basic.cpp \
-	example-tags.c example-tags.cpp
+	example-tags.c example-tags.cpp \
+	example-stream-io.c example-stream-io.cpp \
+	example-block-io.c example-block-io.cpp
 
 if BUILD_REF
 

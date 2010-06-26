@@ -50,10 +50,10 @@
  * and tag lists. There is one global tag list for the whole array, one tag list for each dimension, and one
  * tag list for each element component.\n
  *
- * The data can either be managed completely in memory, or it can be read and written block-wise.
- *
- * Additionally, low-level input/output and data manipulation functions are provided for applications that need to
- * implement their own custom data management.
+ * The array data can be read and written in one of three ways:
+ * - completely in memory (for arrays that are not too big),
+ * - stream-based (for streamable tasks),
+ * - or block-based (for random access to the array data).
  *
  * The library provides interfaces for C and C++. See the <a href="files.html">Files</a> section.
  *
@@ -62,20 +62,32 @@
  * Examples written in C:
  * - <a href="example-basic.c.html">Introductory example</a>
  * - <a href="example-tags.c.html">Using tags</a>
+ * - <a href="example-stream-io.c.html">Stream-based input/output</a>
+ * - <a href="example-block-io.c.html">Block-based input/output</a>
  *
  * Examples written in C++:
  * - <a href="example-basic.cpp.html">Introductory example</a>
  * - <a href="example-tags.cpp.html">Using tags</a>
+ * - <a href="example-stream-io.cpp.html">Stream-based input/output</a>
+ * - <a href="example-block-io.cpp.html">Block-based input/output</a>
  *
  * \page example-basic.c Examples written in C: Introductory example
  * \include example-basic.c
  * \page example-tags.c Examples written in C: Using tags
  * \include example-tags.c
+ * \page example-stream-io.c Examples written in C: Stream-based input/output
+ * \include example-stream-io.c
+ * \page example-block-io.c Examples written in C: Block-based input/output
+ * \include example-block-io.c
  *
  * \page example-basic.cpp Examples written in C++: Introductory example
  * \include example-basic.cpp
  * \page example-tags.cpp Examples written in C++: Using tags
  * \include example-tags.cpp
+ * \page example-stream-io.cpp Examples written in C++: Stream-based input/output
+ * \include example-stream-io.cpp
+ * \page example-block-io.cpp Examples written in C++: Block-based input/output
+ * \include example-block-io.cpp
  */
 
 

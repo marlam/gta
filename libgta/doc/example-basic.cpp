@@ -3,14 +3,13 @@
 #include <iostream>
 #include <fstream>
 #include <exception>
+#include <vector>
 
 #include <gta/gta.hpp>
 
 
 int main(void)
 {
-    unsigned char *data = NULL;
-
     try {
         gta::header header;
 
@@ -18,11 +17,11 @@ int main(void)
 
         header.set_components(gta::uint8, gta::uint8, gta::uint8);
         header.set_dimensions(256, 128);
-        data = new unsigned char[header.data_size()];
+        std::vector<unsigned char> data(header.data_size());
         for (uintmax_t y = 0; y < 128; y++) {
             for (uintmax_t x = 0; x < 256; x++) {
-                unsigned char *pixel =
-                    static_cast<unsigned char *>(header.element(data, x, y));
+                unsigned char *pixel = static_cast<unsigned char *>(
+                        header.element(&(data[0]), x, y));
                 pixel[0] = x;
                 pixel[1] = 2 * y;
                 pixel[2] = 128;
@@ -38,10 +37,8 @@ int main(void)
         std::ofstream ofs("rgb.gta", std::ios::out | std::ios::binary);
         header.set_compression(gta::bzip2);
         header.write_to(ofs);
-        header.write_data(ofs, data);
+        header.write_data(ofs, &(data[0]));
         ofs.close();
-        delete[] data;
-        data = NULL;
 
         /* Reread the same file */
         std::ifstream ifs("rgb.gta", std::ios::in | std::ios::binary);
@@ -57,14 +54,12 @@ int main(void)
                 || header.dimension_size(1) != 128) {
             throw std::exception();
         }
-        data = new unsigned char[header.data_size()];
-        header.read_data(ifs, data);
+        header.read_data(ifs, &(data[0]));
     }
     catch (std::exception &e) {
         std::cerr << e.what() << std::endl;
         return 1;
     }
 
-    delete[] data;
     return 0;
 }
