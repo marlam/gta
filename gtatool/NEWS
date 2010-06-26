@@ -1,2 +1,6 @@
+Version 0.9.2:
+- New commands from-mat/to-mat to import and export MATLAB .mat files.
+- New commands from-rat/to-rat to import and export RAT RadarTools files.
+
 Version 0.9.1:
 - New commands component-split and dimension-split.
