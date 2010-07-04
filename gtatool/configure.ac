@@ -234,9 +234,19 @@ if test "$gdal" = "yes"; then
             | sed -e 's/\/gdal.h$//' -e 's/^\/\/\//\//'`
         CPPFLAGS="$CPPFLAGS -isystem $GDAL_INCLUDE_DIR"
     fi
-    dnl On Debian, libgdal.so is called libgdal1.?.0.so.
-    dnl AC_LIB_FROMPACKAGE([gdal], [gdal])
+    AC_LIB_FROMPACKAGE([gdal], [gdal])
     AC_LIB_HAVE_LINKFLAGS([gdal], [], [#include <gdal.h>], [GDALAllRegister();])
+    dnl On Debian, libgdal.so is called libgdal1.?.0.so.
+    if test "$HAVE_LIBGDAL" = "no"; then
+        AC_LIB_FROMPACKAGE([gdal1.7.0], [gdal])
+        AC_LIB_HAVE_LINKFLAGS([gdal1.7.0], [], [#include <gdal.h>], [GDALAllRegister();])
+        HAVE_LIBGDAL="$HAVE_LIBGDAL1_7_0"
+        if test "$HAVE_LIBGDAL" = "yes"; then
+            LIBGDAL="$LIBGDAL1_7_0"
+            LTLIBGDAL="$LTLIBGDAL1_7_0"
+	    AC_DEFINE_UNQUOTED([HAVE_LIBGDAL], [1], [Define if you have the libgdal library.])
+        fi
+    fi
     if test "$HAVE_LIBGDAL" = "no"; then
         AC_LIB_FROMPACKAGE([gdal1.6.0], [gdal])
         AC_LIB_HAVE_LINKFLAGS([gdal1.6.0], [], [#include <gdal.h>], [GDALAllRegister();])
