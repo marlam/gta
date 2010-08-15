@@ -1029,25 +1029,13 @@ namespace gta
         }
 
         /**
-         * \brief               Check wether input data is stored in chunks.
-         * \return              true or false.
-         *
-         * Returns true if the array data is stored in chunks, which means that it
-         * cannot be accessed by the out-of-core input functions.\n
-         * Note that compressed data is always stored in chunk, while uncompressed
-         * data is usually not stored in chunks.
-         */
-        bool data_is_chunked() const throw ()
-        {
-            return gta_data_is_chunked(_header);
-        }
-
-        /**
          * \brief               Get the compression.
          * \return              The compression type.
          *
          * Gets the compression type for the header and data.\n
-         * See \a gta_compression_t for more information on compression types.
+         * See \a gta_compression_t for more information on compression types.\n
+         * Compressed data is always stored in chunks, while uncompressed
+         * data is never stored in chunks.
          */
         gta::compression compression() const throw ()
         {
@@ -1871,7 +1859,7 @@ namespace gta
         /**
          * \name Read and Write Array Blocks
          *
-         * These functions can only be used if the data is not chunked (see \a header::data_is_chunked())
+         * These functions can only be used if the data is not compressed (see \a header::compression())
          * and the input/output is seekable.\n
          * They are suitable for applications that do not want to store the complete array data in
          * memory.\n

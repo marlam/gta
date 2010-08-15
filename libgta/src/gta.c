@@ -127,7 +127,6 @@ struct gta_internal_taglist_struct
 struct gta_internal_header_struct
 {
     bool host_endianness;
-    bool data_in_chunks;
     gta_compression_t compression;
 
     gta_taglist_t *global_taglist;
@@ -1798,7 +1797,6 @@ gta_init_header(gta_header_t *GTA_RESTRICT *GTA_RESTRICT header)
     }
     gta_header_t *GTA_RESTRICT hdr = *header;
     hdr->host_endianness = true;
-    hdr->data_in_chunks = false;
     hdr->compression = GTA_NONE;
     hdr->global_taglist = malloc(sizeof(gta_taglist_t));
     if (!hdr->global_taglist)
@@ -1832,7 +1830,6 @@ gta_clone_header(gta_header_t *GTA_RESTRICT dst_header,
     }
 
     temp_header->host_endianness = src_header->host_endianness;
-    temp_header->data_in_chunks = src_header->data_in_chunks;
     temp_header->compression = src_header->compression;
     for (uintmax_t i = 0; i < gta_get_tags(src_header->global_taglist); i++)
     {
@@ -2165,7 +2162,6 @@ gta_read_header(gta_header_t *GTA_RESTRICT header, gta_read_t read_fn, intptr_t 
 #else
     temp_header->host_endianness = !big_endian;
 #endif
-    temp_header->data_in_chunks = (firstblock[4] & 0x02);
     if (firstblock[5] != GTA_NONE
             && firstblock[5] != GTA_ZLIB
             && firstblock[5] != GTA_ZLIB1
@@ -2596,10 +2592,6 @@ gta_write_header(const gta_header_t *GTA_RESTRICT header, gta_write_t write_fn, 
 #if WORDS_BIGENDIAN
     firstblock[4] |= 0x01;
 #endif
-    if (header->data_in_chunks)
-    {
-        firstblock[4] |= 0x02;
-    }
     firstblock[5] = header->compression;
     errno = 0;
     r = write_fn(userdata, firstblock, 6, &output_error);
@@ -3095,14 +3087,8 @@ gta_get_data_size(const gta_header_t *GTA_RESTRICT header)
     return gta_get_element_size(header) * gta_get_elements(header);
 }
 
-int
-gta_data_is_chunked(const gta_header_t *GTA_RESTRICT header)
-{
-    return header->data_in_chunks;
-}
-
 gta_compression_t
-gta_get_compression(gta_header_t *GTA_RESTRICT header)
+gta_get_compression(const gta_header_t *GTA_RESTRICT header)
 {
     return header->compression;
 }
@@ -3110,7 +3096,6 @@ gta_get_compression(gta_header_t *GTA_RESTRICT header)
 void
 gta_set_compression(gta_header_t *GTA_RESTRICT header, gta_compression_t compression)
 {
-    header->data_in_chunks = (compression != GTA_NONE);
     header->compression = compression;
 }
 
@@ -3239,7 +3224,7 @@ gta_result_t
 gta_read_data(const gta_header_t *GTA_RESTRICT header, void *GTA_RESTRICT data, gta_read_t read_fn, intptr_t userdata)
 {
     // We know that the data size fits into size_t, because the caller already allocated a buffer for all the data.
-    if (gta_data_is_chunked(header))
+    if (gta_get_compression(header) != GTA_NONE)
     {
         char *data_ptr = data;
         size_t remaining_size = gta_get_data_size(header);
@@ -3317,7 +3302,7 @@ gta_skip_data(const gta_header_t *GTA_RESTRICT header, gta_read_t read_fn, gta_s
 {
     gta_result_t retval;
 
-    if (gta_data_is_chunked(header))
+    if (gta_get_compression(header) != GTA_NONE)
     {
         uintmax_t s = gta_get_data_size(header);
         size_t chunk_size;
@@ -3389,7 +3374,7 @@ gta_result_t
 gta_write_data(const gta_header_t *GTA_RESTRICT header, const void *GTA_RESTRICT data, gta_write_t write_fn, intptr_t userdata)
 {
     // We know that the data size fits into size_t, because the caller already allocated a buffer for all the data.
-    if (gta_data_is_chunked(header))
+    if (gta_get_compression(header) != GTA_NONE)
     {
         const char *chunk_ptr = data;
         size_t remaining_size = gta_get_data_size(header);
@@ -3478,7 +3463,7 @@ gta_copy_data(const gta_header_t *GTA_RESTRICT read_header, gta_read_t read_fn, 
     uintmax_t size = gta_get_data_size(read_header);
     gta_result_t retval = GTA_OK;
 
-    if (gta_data_is_chunked(read_header))
+    if (gta_get_compression(read_header) != GTA_NONE)
     {
         void *chunk = NULL;
         size_t chunk_size = 0;
@@ -3495,7 +3480,7 @@ gta_copy_data(const gta_header_t *GTA_RESTRICT read_header, gta_read_t read_fn, 
                 free(chunk);
                 return GTA_INVALID_DATA;
             }
-            if (gta_data_is_chunked(write_header))
+            if (gta_get_compression(write_header) != GTA_NONE)
             {
                 retval = gta_write_chunk(write_header, chunk, chunk_size, write_fn, write_userdata);
             }
@@ -3537,7 +3522,7 @@ gta_copy_data(const gta_header_t *GTA_RESTRICT read_header, gta_read_t read_fn, 
         {
             return GTA_SYSTEM_ERROR;
         }
-        if (gta_data_is_chunked(write_header))
+        if (gta_get_compression(write_header) != GTA_NONE)
         {
             chunk_size = (size < gta_max_chunk_size ? size : gta_max_chunk_size);
             chunk = malloc(chunk_size);
@@ -3564,7 +3549,7 @@ gta_copy_data(const gta_header_t *GTA_RESTRICT read_header, gta_read_t read_fn, 
                 free(chunk);
                 return GTA_UNEXPECTED_EOF;
             }
-            if (gta_data_is_chunked(write_header))
+            if (gta_get_compression(write_header) != GTA_NONE)
             {
                 retval = gta_write_blob_to_chunk(write_header, write_fn, write_userdata,
                         chunk, chunk_size, &chunk_index, buffer, x);
@@ -3594,7 +3579,7 @@ gta_copy_data(const gta_header_t *GTA_RESTRICT read_header, gta_read_t read_fn, 
             size -= x;
         }
         free(buffer);
-        if (gta_data_is_chunked(write_header))
+        if (gta_get_compression(write_header) != GTA_NONE)
         {
             if (chunk_index > 0)
             {
@@ -3724,7 +3709,7 @@ gta_read_elements(const gta_header_t *GTA_RESTRICT header, gta_io_state_t *GTA_R
         goto exit;
     }
     size_t size = n * s;
-    if (gta_data_is_chunked(header))
+    if (gta_get_compression(header) != GTA_NONE)
     {
         size_t i = 0;
         while (i < size)
@@ -3767,7 +3752,7 @@ gta_read_elements(const gta_header_t *GTA_RESTRICT header, gta_io_state_t *GTA_R
         }
     }
     io_state->counter += n;
-    if (io_state->counter == gta_get_elements(header) && gta_data_is_chunked(header))
+    if (io_state->counter == gta_get_elements(header) && gta_get_compression(header) != GTA_NONE)
     {
         if (io_state->chunk_index != io_state->chunk_size)
         {
@@ -3852,7 +3837,7 @@ gta_write_elements(const gta_header_t *GTA_RESTRICT header, gta_io_state_t *GTA_
         goto exit;
     }
     size_t size = n * s;
-    if (gta_data_is_chunked(header))
+    if (gta_get_compression(header) != GTA_NONE)
     {
         size_t i = 0;
         while (i < size)
@@ -3906,7 +3891,7 @@ gta_write_elements(const gta_header_t *GTA_RESTRICT header, gta_io_state_t *GTA_
         }
     }
     io_state->counter += n;
-    if (io_state->counter == gta_get_elements(header) && gta_data_is_chunked(header))
+    if (io_state->counter == gta_get_elements(header) && gta_get_compression(header) != GTA_NONE)
     {
         // flush chunk and write empty chunk
         if (io_state->chunk_index > 0)
@@ -3985,7 +3970,7 @@ gta_read_block(const gta_header_t *GTA_RESTRICT header, intmax_t data_offset,
         const uintmax_t *GTA_RESTRICT lower_coordinates, const uintmax_t *GTA_RESTRICT higher_coordinates,
         void *GTA_RESTRICT block, gta_read_t read_fn, gta_seek_t seek_fn, intptr_t userdata)
 {
-    if (gta_data_is_chunked(header))
+    if (gta_get_compression(header) != GTA_NONE)
     {
         return GTA_UNSUPPORTED_DATA;
     }
@@ -4086,7 +4071,7 @@ gta_write_block(const gta_header_t *GTA_RESTRICT header, intmax_t data_offset,
         const uintmax_t *GTA_RESTRICT lower_coordinates, const uintmax_t *GTA_RESTRICT higher_coordinates,
         const void *GTA_RESTRICT block, gta_write_t write_fn, gta_seek_t seek_fn, intptr_t userdata)
 {
-    if (gta_data_is_chunked(header))
+    if (gta_get_compression(header) != GTA_NONE)
     {
         return GTA_UNSUPPORTED_DATA;
     }

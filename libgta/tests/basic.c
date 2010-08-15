@@ -144,7 +144,7 @@ int main(void)
     check(gta_get_element_size(header) == 0);
     check(gta_get_dimensions(header) == 0);
     check(gta_get_data_size(header) == 0);
-    check(!gta_data_is_chunked(header));
+    check(gta_get_compression(header) == GTA_NONE);
     r = gta_read_data_from_stream(header, data, f);
     check(r == GTA_OK);
     r = gta_read_header_from_stream(header, f);

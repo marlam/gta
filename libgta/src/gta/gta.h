@@ -659,29 +659,17 @@ gta_get_data_size(const gta_header_t *GTA_RESTRICT header)
 GTA_ATTR_NONNULL_ALL GTA_ATTR_PURE GTA_ATTR_NOTHROW;
 
 /**
- * \brief               Check wether input data is stored in chunks.
- * \param header        The header.
- * \return              true (1) or false (0).
- *
- * Returns true if the array data is stored in chunks, which means that it
- * cannot be accessed by the out-of-core input functions.\n
- * Note that compressed data is always stored in chunk, while uncompressed
- * data is usually not stored in chunks.
- */
-extern GTA_EXPORT int
-gta_data_is_chunked(const gta_header_t *GTA_RESTRICT header)
-GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
-
-/**
  * \brief               Get the compression.
  * \param header        The header.
  * \return              The compression type.
  *
  * Gets the compression type for the header and data.\n
- * See \a gta_compression_t for more information on compression types.
+ * See \a gta_compression_t for more information on compression types.\n
+ * Compressed data is always stored in chunks, while uncompressed
+ * data is never stored in chunks.
  */
 extern GTA_EXPORT gta_compression_t
-gta_get_compression(gta_header_t *GTA_RESTRICT header)
+gta_get_compression(const gta_header_t *GTA_RESTRICT header)
 GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
 
 /**
@@ -1287,7 +1275,7 @@ GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NONNULL_ALL;
  *
  * \name Read and Write Array Blocks
  *
- * These functions can only be used if the data is not chunked (see \a gta_data_is_chunked())
+ * These functions can only be used if the data is not compression (see \a gta_get_compression())
  * and the input/output is seekable.\n
  * They are suitable for applications that do not want to store the complete array data in
  * memory.\n
@@ -1309,7 +1297,7 @@ GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NONNULL_ALL;
  * \param read_fn               The custom input function.
  * \param seek_fn               The custom seek function.
  * \param userdata              A parameter to the custom input function.
- * \return                      \a GTA_OK, \a GTA_UNSUPPORTED_DATA (if the data is chunked), \a GTA_OVERFLOW, \a GTA_UNEXPECTED_EOF, or \a GTA_SYSTEM_ERROR.
+ * \return                      \a GTA_OK, \a GTA_UNSUPPORTED_DATA (if the data is compressed), \a GTA_OVERFLOW, \a GTA_UNEXPECTED_EOF, or \a GTA_SYSTEM_ERROR.
  *
  * Reads the given array block and copies it to the given block buffer, which must be large enough.\n
  * This function modifies the file position indicator of the input.
@@ -1328,7 +1316,7 @@ GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NONNULL_ALL;
  * \param higher_coordinates    Coordinates of the higher corner element of the block.
  * \param block                 The block buffer.
  * \param f                     The stream.
- * \return                      \a GTA_OK, \a GTA_UNSUPPORTED_DATA (if the data is chunked), \a GTA_OVERFLOW, \a GTA_UNEXPECTED_EOF, or \a GTA_SYSTEM_ERROR.
+ * \return                      \a GTA_OK, \a GTA_UNSUPPORTED_DATA (if the data is compressed), \a GTA_OVERFLOW, \a GTA_UNEXPECTED_EOF, or \a GTA_SYSTEM_ERROR.
  *
  * Reads the given array block and copies it to the given block buffer, which must be large enough.\n
  * This function modifies the file position indicator of the input.
@@ -1347,7 +1335,7 @@ GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
  * \param higher_coordinates    Coordinates of the higher corner element of the block.
  * \param block                 The block buffer.
  * \param fd                    The file descriptor.
- * \return                      \a GTA_OK, \a GTA_UNSUPPORTED_DATA (if the data is chunked), \a GTA_OVERFLOW, \a GTA_UNEXPECTED_EOF, or \a GTA_SYSTEM_ERROR.
+ * \return                      \a GTA_OK, \a GTA_UNSUPPORTED_DATA (if the data is compressed), \a GTA_OVERFLOW, \a GTA_UNEXPECTED_EOF, or \a GTA_SYSTEM_ERROR.
  *
  * Reads the given array block and copies it to the given block buffer, which must be large enough.\n
  * This function modifies the file position indicator of the input.
@@ -1368,7 +1356,7 @@ GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
  * \param write_fn              The custom output function.
  * \param seek_fn               The custom seek function.
  * \param userdata              A parameter to the custom output function.
- * \return                      \a GTA_OK, \a GTA_UNSUPPORTED_DATA (if the data is chunked), \a GTA_OVERFLOW, or \a GTA_SYSTEM_ERROR.
+ * \return                      \a GTA_OK, \a GTA_UNSUPPORTED_DATA (if the data is compressed), \a GTA_OVERFLOW, or \a GTA_SYSTEM_ERROR.
  *
  * This function modifies the file position indicator of the output.
  */
@@ -1386,7 +1374,7 @@ GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NONNULL_ALL;
  * \param higher_coordinates    Coordinates of the higher corner element of the block.
  * \param block                 The block buffer.
  * \param f                     The stream.
- * \return                      \a GTA_OK, \a GTA_UNSUPPORTED_DATA (if the data is chunked), \a GTA_OVERFLOW, or \a GTA_SYSTEM_ERROR.
+ * \return                      \a GTA_OK, \a GTA_UNSUPPORTED_DATA (if the data is compressed), \a GTA_OVERFLOW, or \a GTA_SYSTEM_ERROR.
  *
  * This function modifies the file position indicator of the output.
  */
@@ -1404,7 +1392,7 @@ GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
  * \param higher_coordinates    Coordinates of the higher corner element of the block.
  * \param block                 The block buffer.
  * \param fd                    The file descriptor.
- * \return                      \a GTA_OK, \a GTA_UNSUPPORTED_DATA (if the data is chunked), \a GTA_OVERFLOW, \a GTA_SYSTEM_ERROR.
+ * \return                      \a GTA_OK, \a GTA_UNSUPPORTED_DATA (if the data is compressed), \a GTA_OVERFLOW, \a GTA_SYSTEM_ERROR.
  *
  * This function modifies the file position indicator of the output.
  */
