@@ -215,8 +215,6 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
             {
                 hdr.component_taglist(i).set("GDAL/UNIT_TYPE", unit);
             }
-            hdr.component_taglist(i).set("GDAL/COLOR_INTERPRETATION",
-                    GDALGetColorInterpretationName(GDALGetRasterColorInterpretation(band)));
             switch (GDALGetRasterColorInterpretation(band))
             {
             case GCI_GrayIndex:

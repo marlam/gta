@@ -241,173 +241,39 @@ extern "C" int gtatool_to_gdal(int argc, char *argv[])
                 }
             }
             */
-            GDALColorInterp ci;
-            bool have_ci = false;
-            if (hdr.component_taglist(i).get("GDAL/COLOR_INTERPRETATION"))
+            const char *interpretation = hdr.component_taglist(i).get("INTERPRETATION");
+            if (interpretation)
             {
-                const char *interpretation = hdr.component_taglist(i).get("GDAL/COLOR_INTERPRETATION");
-                if (strcmp(interpretation, "Gray") == 0)
-                {
-                    ci = GCI_GrayIndex;
-                    have_ci = true;
-                }
-                else if (strcmp(interpretation, "Red") == 0)
-                {
-                    ci = GCI_RedBand;
-                    have_ci = true;
-                }
-                else if (strcmp(interpretation, "Green") == 0)
-                {
-                    ci = GCI_GreenBand;
-                    have_ci = true;
-                }
-                else if (strcmp(interpretation, "Blue") == 0)
-                {
-                    ci = GCI_BlueBand;
-                    have_ci = true;
-                }
-                else if (strcmp(interpretation, "Alpha") == 0)
-                {
-                    ci = GCI_AlphaBand;
-                    have_ci = true;
-                }
-                else if (strcmp(interpretation, "Hue") == 0)
-                {
-                    ci = GCI_HueBand;
-                    have_ci = true;
-                }
-                else if (strcmp(interpretation, "Saturation") == 0)
-                {
-                    ci = GCI_SaturationBand;
-                    have_ci = true;
-                }
-                else if (strcmp(interpretation, "Lightness") == 0)
-                {
-                    ci = GCI_LightnessBand;
-                    have_ci = true;
-                }
-                else if (strcmp(interpretation, "Cyan") == 0)
-                {
-                    ci = GCI_CyanBand;
-                    have_ci = true;
-                }
-                else if (strcmp(interpretation, "Magenta") == 0)
-                {
-                    ci = GCI_MagentaBand;
-                    have_ci = true;
-                }
-                else if (strcmp(interpretation, "Yellow") == 0)
-                {
-                    ci = GCI_YellowBand;
-                    have_ci = true;
-                }
-                else if (strcmp(interpretation, "Black") == 0)
-                {
-                    ci = GCI_BlackBand;
-                    have_ci = true;
-                }
-                else if (strcmp(interpretation, "YCbCr_Y") == 0)
-                {
-                    ci = GCI_YCbCr_YBand;
-                    have_ci = true;
-                }
-                else if (strcmp(interpretation, "YCbCr_Cb") == 0)
-                {
-                    ci = GCI_YCbCr_CbBand;
-                    have_ci = true;
-                }
-                else if (strcmp(interpretation, "YCbCr_Cr") == 0)
-                {
-                    ci = GCI_YCbCr_CrBand;
-                    have_ci = true;
-                }
-                else
-                {
-                    msg::wrn_txt(std::string("GTA component ") + str::from(i) + " contains invalid GDAL/COLOR_INTERPRETATION information");
-                }
-            }
-            else if (hdr.component_taglist(i).get("INTERPRETATION"))
-            {
-                const char *interpretation = hdr.component_taglist(i).get("INTERPRETATION");
                 if (strcmp(interpretation, "GRAY") == 0)
-                {
-                    ci = GCI_GrayIndex;
-                    have_ci = true;
-                }
+                    GDALSetRasterColorInterpretation(band, GCI_GrayIndex);
                 else if (strcmp(interpretation, "RED") == 0)
-                {
-                    ci = GCI_RedBand;
-                    have_ci = true;
-                }
+                    GDALSetRasterColorInterpretation(band, GCI_RedBand);
                 else if (strcmp(interpretation, "GREEN") == 0)
-                {
-                    ci = GCI_GreenBand;
-                    have_ci = true;
-                }
+                    GDALSetRasterColorInterpretation(band, GCI_GreenBand);
                 else if (strcmp(interpretation, "BLUE") == 0)
-                {
-                    ci = GCI_BlueBand;
-                    have_ci = true;
-                }
+                    GDALSetRasterColorInterpretation(band, GCI_BlueBand);
                 else if (strcmp(interpretation, "ALPHA") == 0)
-                {
-                    ci = GCI_AlphaBand;
-                    have_ci = true;
-                }
+                    GDALSetRasterColorInterpretation(band, GCI_AlphaBand);
                 else if (strcmp(interpretation, "HSL/H") == 0)
-                {
-                    ci = GCI_HueBand;
-                    have_ci = true;
-                }
+                    GDALSetRasterColorInterpretation(band, GCI_HueBand);
                 else if (strcmp(interpretation, "HSL/S") == 0)
-                {
-                    ci = GCI_SaturationBand;
-                    have_ci = true;
-                }
+                    GDALSetRasterColorInterpretation(band, GCI_SaturationBand);
                 else if (strcmp(interpretation, "HSL/L") == 0)
-                {
-                    ci = GCI_LightnessBand;
-                    have_ci = true;
-                }
+                    GDALSetRasterColorInterpretation(band, GCI_LightnessBand);
                 else if (strcmp(interpretation, "CMYK/C") == 0)
-                {
-                    ci = GCI_CyanBand;
-                    have_ci = true;
-                }
+                    GDALSetRasterColorInterpretation(band, GCI_CyanBand);
                 else if (strcmp(interpretation, "CMYK/M") == 0)
-                {
-                    ci = GCI_MagentaBand;
-                    have_ci = true;
-                }
+                    GDALSetRasterColorInterpretation(band, GCI_MagentaBand);
                 else if (strcmp(interpretation, "CMYK/Y") == 0)
-                {
-                    ci = GCI_YellowBand;
-                    have_ci = true;
-                }
+                    GDALSetRasterColorInterpretation(band, GCI_YellowBand);
                 else if (strcmp(interpretation, "CMYK/K") == 0)
-                {
-                    ci = GCI_BlackBand;
-                    have_ci = true;
-                }
+                    GDALSetRasterColorInterpretation(band, GCI_BlackBand);
                 else if (strcmp(interpretation, "YCBCR/Y") == 0)
-                {
-                    ci = GCI_YCbCr_YBand;
-                    have_ci = true;
-                }
+                    GDALSetRasterColorInterpretation(band, GCI_YCbCr_YBand);
                 else if (strcmp(interpretation, "YCBCR/CB") == 0)
-                {
-                    ci = GCI_YCbCr_CbBand;
-                    have_ci = true;
-                }
+                    GDALSetRasterColorInterpretation(band, GCI_YCbCr_CbBand);
                 else if (strcmp(interpretation, "YCBCR/CR") == 0)
-                {
-                    ci = GCI_YCbCr_CrBand;
-                    have_ci = true;
-                }
-            }
-            if (have_ci)
-            {
-                GDALSetRasterColorInterpretation(band, ci);
+                    GDALSetRasterColorInterpretation(band, GCI_YCbCr_CrBand);
             }
         }
         dataline.resize(checked_cast<size_t>(hdr.element_size()), checked_cast<size_t>(hdr.dimension_size(0)));
