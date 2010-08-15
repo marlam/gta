@@ -172,8 +172,8 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
                 msg::inf_txt("Band %s: Converting GDT_CInt16 to gta::cfloat32", str::from(i + 1).c_str());
                 break;
             case GDT_CInt32:
-                type = gta::cfloat32;
-                msg::inf_txt("Band %s: Converting GDT_CInt16 to gta::cfloat32", str::from(i + 1).c_str());
+                type = gta::cfloat64;
+                msg::inf_txt("Band %s: Converting GDT_CInt32 to gta::cfloat64", str::from(i + 1).c_str());
                 break;
             case GDT_CFloat32:
                 type = gta::cfloat32;
