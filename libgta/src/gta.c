@@ -982,6 +982,15 @@ gta_read_chunk(const gta_header_t *GTA_RESTRICT header,
     }
     if (compression != GTA_NONE
             && compression != GTA_ZLIB
+            && compression != GTA_ZLIB1
+            && compression != GTA_ZLIB2
+            && compression != GTA_ZLIB3
+            && compression != GTA_ZLIB4
+            && compression != GTA_ZLIB5
+            && compression != GTA_ZLIB6
+            && compression != GTA_ZLIB7
+            && compression != GTA_ZLIB8
+            && compression != GTA_ZLIB9
             && compression != GTA_BZIP2
             && compression != GTA_XZ)
     {
@@ -1132,6 +1141,15 @@ gta_skip_chunk(const gta_header_t *GTA_RESTRICT header, size_t *chunk_size,
     }
     if (compression != GTA_NONE
             && compression != GTA_ZLIB
+            && compression != GTA_ZLIB1
+            && compression != GTA_ZLIB2
+            && compression != GTA_ZLIB3
+            && compression != GTA_ZLIB4
+            && compression != GTA_ZLIB5
+            && compression != GTA_ZLIB6
+            && compression != GTA_ZLIB7
+            && compression != GTA_ZLIB8
+            && compression != GTA_ZLIB9
             && compression != GTA_BZIP2
             && compression != GTA_XZ)
     {
@@ -2150,6 +2168,15 @@ gta_read_header(gta_header_t *GTA_RESTRICT header, gta_read_t read_fn, intptr_t 
     temp_header->data_in_chunks = (firstblock[4] & 0x02);
     if (firstblock[5] != GTA_NONE
             && firstblock[5] != GTA_ZLIB
+            && firstblock[5] != GTA_ZLIB1
+            && firstblock[5] != GTA_ZLIB2
+            && firstblock[5] != GTA_ZLIB3
+            && firstblock[5] != GTA_ZLIB4
+            && firstblock[5] != GTA_ZLIB5
+            && firstblock[5] != GTA_ZLIB6
+            && firstblock[5] != GTA_ZLIB7
+            && firstblock[5] != GTA_ZLIB8
+            && firstblock[5] != GTA_ZLIB9
             && firstblock[5] != GTA_BZIP2
             && firstblock[5] != GTA_XZ)
     {
