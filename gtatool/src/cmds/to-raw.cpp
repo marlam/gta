@@ -100,7 +100,7 @@ extern "C" int gtatool_to_raw(int argc, char *argv[])
         FILE *fo = cio::open(ofilename, "w");
         gta::header hdr;
         hdr.read_from(fi);
-        if (hdr.data_is_chunked())
+        if (hdr.compression() != gta::none)
         {
             throw exc("Cannot export " + ifilename, "Currently only uncompressed GTAs can be exported to raw files");
         }

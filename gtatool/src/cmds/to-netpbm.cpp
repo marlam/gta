@@ -118,7 +118,7 @@ extern "C" int gtatool_to_netpbm(int argc, char *argv[])
                     throw exc("Cannot export " + ifilename, "Only arrays with element components that have a single type can be exported via NetPBM");
                 }
             }
-            if (hdr.data_is_chunked())
+            if (hdr.compression() != gta::none)
             {
                 throw exc("Cannot export " + ifilename, "Currently only uncompressed GTAs can be exported via NetPBM");
             }

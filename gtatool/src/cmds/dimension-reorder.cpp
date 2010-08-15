@@ -114,7 +114,7 @@ extern "C" int gtatool_dimension_reorder(int argc, char *argv[])
                 std::string array_name = finame + " array " + str::from(array_index);
                 // Read the GTA header
                 hdri.read_from(fi);
-                if (hdri.data_is_chunked())
+                if (hdri.compression() != gta::none)
                 {
                     throw exc(array_name + ": array is compressed");
                 }

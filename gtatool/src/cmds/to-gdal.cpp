@@ -154,7 +154,7 @@ extern "C" int gtatool_to_gdal(int argc, char *argv[])
             throw exc("Cannot export " + ifilename, "Array element component type not supported by GDAL");
             break;
         }
-        if (hdr.data_is_chunked())
+        if (hdr.compression() != gta::none)
         {
             throw exc("Cannot export " + ifilename, "Currently only uncompressed GTAs can be exported");
         }

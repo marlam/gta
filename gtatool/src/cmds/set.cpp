@@ -84,7 +84,7 @@ extern "C" int gtatool_set(int argc, char *argv[])
             throw exc(source.value() + " is not seekable");
         }
         hdrs.read_from(fs);
-        if (hdrs.data_is_chunked())
+        if (hdrs.compression() != gta::none)
         {
             throw exc(source.value() + ": GTA is compressed");
         }
