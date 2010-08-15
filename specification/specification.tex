@@ -230,7 +230,8 @@ header and in the data. (The array element component type \code{GTA\_BLOB} is sp
 it must be independent of byte ordering, so that it is valid regardless of this
 flag.)
 
-The second lowest bit flag must be ignored for compatibility reasons.
+The second lowest bit flag must be ignored for compatibility reasons when
+reading a GTA, and it must be unset (0) when writing a GTA.
 
 All six remaining bit flags are reserved and must currently always be unset (0).
 
