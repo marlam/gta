@@ -56,7 +56,7 @@ This file format has the following features:
 \item GTA files can use simple tags to describe the data
 \item GTA files are streamable, which allows direct reading from and
 	writing to pipes, network sockets, or other non-seekable media
-\item GTA files can use ZLIB, BZIP2, or XZ compression, 
+\item GTA files can optionally use ZLIB, BZIP2, or XZ compression,
 	allowing a tradeoff between compression/decompression speed and
 	compression ratio
 \item Uncompressed GTA files allow easy out-of-core data access
@@ -237,11 +237,14 @@ All six remaining bit flags are reserved and must currently always be unset (0).
 
 The sixth byte in the header is of type \code{GTA\_UINT8} and contains a hint on
 the compression type of the GTA. It must contain one of the values defined in
-Tab.~\ref{tab:compression}.  An application can store the users choice of
-compression method in this hint value, so that other tools can reproduce the
-compression after altering parts of a GTA. However, this value is just a hint!
-Compressed data is always stored in chunks, and each chunk defines its own
-compression method.
+Tab.~\ref{tab:compression}.
+If this value if \code{GTA\_NONE}, then the GTA data must not be stored in chunks.
+If this value is not \code{GTA\_NONE}, then the GTA data must be stored in
+chunks. In this case, each chunk defines its own compression method, which may
+differ from the method indicated by this value.
+An application can store the users choice of compression method in this hint
+value, so that other tools can reproduce the compression after altering parts of
+a GTA.
 
 At byte 7 of the header, a chunk list starts. This chunk list contains the
 information described in the next paragraphs.
