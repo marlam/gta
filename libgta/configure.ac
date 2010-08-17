@@ -76,18 +76,24 @@ gl_INIT
 dnl Compression libraries
 AC_LIB_HAVE_LINKFLAGS([z], [], [#include <zlib.h>], [zlibVersion();])
 if test "$HAVE_LIBZ" != "yes"; then
-    AC_MSG_ERROR([libz not found])
+    AC_MSG_WARN([libz not found])
+    AC_MSG_WARN([libz is provided by zlib; Debian package: libz-dev])
 fi
 AC_LIB_HAVE_LINKFLAGS([bz2], [],
     [#define BZ_IMPORT
      #include <bzlib.h>],
     [BZ2_bzlibVersion();])
 if test "$HAVE_LIBBZ2" != "yes"; then
-    AC_MSG_ERROR([libbz2 not found])
+    AC_MSG_WARN([libbz2 not found])
+    AC_MSG_WARN([libbz2 is provided by bzip2; Debian package: libbz2-dev])
 fi
 AC_LIB_HAVE_LINKFLAGS([lzma], [], [#include <lzma.h>], [lzma_version_string();])
 if test "$HAVE_LIBLZMA" != "yes"; then
-    AC_MSG_ERROR([liblzma not found])
+    AC_MSG_WARN([liblzma not found])
+    AC_MSG_WARN([liblzma is provided by xz; Debian package: liblzma-dev])
+fi
+if test "$HAVE_LIBZ" != "yes" -o "$HAVE_LIBBZ2" != "yes" -o "$HAVE_LIBLZMA" != "yes"; then
+    AC_MSG_ERROR([Required libraries were not found. See messages above.])
 fi
 
 dnl libgta package version
