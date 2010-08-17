@@ -2592,6 +2592,11 @@ gta_write_header(const gta_header_t *GTA_RESTRICT header, gta_write_t write_fn, 
 #if WORDS_BIGENDIAN
     firstblock[4] |= 0x01;
 #endif
+    if (header->compression != GTA_NONE)
+    {
+        // This is only here so that libgta versions <= 0.9.2 can read files created by this libgta version.
+        firstblock[4] |= 0x02;
+    }
     firstblock[5] = header->compression;
     errno = 0;
     r = write_fn(userdata, firstblock, 6, &output_error);
