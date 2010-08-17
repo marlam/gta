@@ -1,4 +1,4 @@
-specification.pdf: specification.tex fdl.tex
+specification.pdf: specification.tex fdl.tex gta-header.pdf
 	pdflatex specification
 	pdflatex specification
 

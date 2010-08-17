@@ -4,6 +4,7 @@
 \documentclass[a4paper,11pt]{article}
 \usepackage[english]{babel}
 \usepackage{mathptmx}
+\usepackage{graphicx}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{hyperref}
@@ -38,6 +39,10 @@ Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
 \section*{Changes}
 
 \begin{itemize}
+\item \textbf{2010-08-17} Remove the meaning of the second lowest bit in the
+flag byte of the header. The same information can be extracted from the sixth
+header byte instead. This allows to simplify the libgta API. Compatibility with
+older libgta versions is retained.
 \item \textbf{2010-06-06} Various extensions, cleanups, clarifications.
 The list of reserved tags was moved to an external file because it may change
 while the file format itself remains unchanged.
@@ -215,7 +220,18 @@ The GTA data is stored immediately after the header. See Sec.~\ref{sec:gta-data}
 \subsection{GTA Header}
 \label{sec:gta-header}
 
-The first three bytes of a GTA Header are of type \code{GTA\_UINT8} and contain
+Each GTA starts with a header. The first six bytes of the header identify the
+GTA version and properties. See Fig.~\ref{fig:gta-header}.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=\textwidth]{gta-header.pdf}
+\end{center}
+\caption{The first six bytes of a GTA header.}
+\label{fig:gta-header}
+\end{figure}
+
+The first three bytes of a GTA header are of type \code{GTA\_UINT8} and contain
 the \mbox{UTF-8} codes of the characters \code{G}, \code{T}, and \code{A}.
 
 The fourth byte is of type \code{GTA\_UINT8} and contains the GTA file format
@@ -230,21 +246,25 @@ header and in the data. (The array element component type \code{GTA\_BLOB} is sp
 it must be independent of byte ordering, so that it is valid regardless of this
 flag.)
 
-The second lowest bit flag must be ignored for compatibility reasons when
-reading a GTA, and it must be unset (0) when writing a GTA.
+The second lowest bit used to have a meaning in previous versions of this
+specification. For compatibility reasons, this flag must be ignored when
+reading a GTA. When writing a GTA, it must be unset (0) if the value
+\code{GTA\_NONE} is stored in the sixth header byte (described below), and it
+must be set (1) otherwise.
 
 All six remaining bit flags are reserved and must currently always be unset (0).
 
-The sixth byte in the header is of type \code{GTA\_UINT8} and contains a hint on
-the compression type of the GTA. It must contain one of the values defined in
-Tab.~\ref{tab:compression}.
-If this value if \code{GTA\_NONE}, then the GTA data must not be stored in chunks.
-If this value is not \code{GTA\_NONE}, then the GTA data must be stored in
-chunks. In this case, each chunk defines its own compression method, which may
-differ from the method indicated by this value.
-An application can store the users choice of compression method in this hint
-value, so that other tools can reproduce the compression after altering parts of
-a GTA.
+The sixth byte in the header is of type \code{GTA\_UINT8} and contains a
+recommendation for the compression type of the GTA, which must be one of the
+values defined in Tab.~\ref{tab:compression}.
+
+If this value if \code{GTA\_NONE}, then the GTA data must not be stored in
+chunks. If this value is not \code{GTA\_NONE}, then the GTA data must be stored
+in chunks.
+
+This value sets the recommended compression method for all following chunks
+in the GTA (header or data), but note that each chunk uses its own compression
+method which may differ from this recommendation.
 
 At byte 7 of the header, a chunk list starts. This chunk list contains the
 information described in the next paragraphs.
@@ -289,8 +309,9 @@ the same as that of a C array when the first dimension is specified last
 (row-major for two-dimensional data). The following is an example for a
 three-dimensional array: \code{element\_type array[size2][size1][size0]}.
 
-The array data is either stored in a chunk list (if the corresponding flag in
-the header is set) or as-is.
+The array data is stored as-is if the compression method recommended in
+sixth byte of the header is \code{GTA\_NONE}. Otherwise, it is stored in a chunk
+list.
 
 When stored as-is, individual data elements can easily be accessed if the input
 is seekable.
