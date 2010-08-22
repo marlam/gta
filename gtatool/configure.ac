@@ -22,7 +22,7 @@ dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 dnl Autotools init stuff
 AC_PREREQ([2.65])
-AC_INIT([gtatool], [0.9.2], [marlam@marlam.de], [gtatool], [http://www.nongnu.org/gta/])
+AC_INIT([gtatool], [0.9.3], [marlam@marlam.de], [gtatool], [http://www.nongnu.org/gta/])
 AC_CONFIG_SRCDIR([src/main.cpp])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
@@ -113,12 +113,12 @@ AC_CHECK_FUNCS([backtrace sigaction vasprintf mmap link fseeko ftello])
 dnl The GTA library
 AC_LIB_HAVE_LINKFLAGS([gta], [],
     [#include <gta/gta.h>
-     #if GTA_VERSION_NUMBER < 0x000902
+     #if GTA_VERSION_NUMBER < 0x000903
      # error GTA version too old
      #endif],
     [gta_version(0, 0, 0);])
 if test "$HAVE_LIBGTA" != "yes"; then
-    AC_MSG_ERROR([libgta >= 0.9.2 not found])
+    AC_MSG_ERROR([libgta >= 0.9.3 not found])
 fi
 
 dnl The muParser library
