@@ -108,7 +108,7 @@ template<typename T>
 static inline std::string float_to_str(T x)
 {
     std::ostringstream os;
-    os.precision(std::numeric_limits<T>::digits10 + 2);
+    os.precision(std::numeric_limits<T>::digits10 + 1);
     os << x;
     return os.str();
 }
