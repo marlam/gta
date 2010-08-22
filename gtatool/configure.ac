@@ -93,7 +93,7 @@ LIBS="$SAVED_LIBS"
 AC_ARG_ENABLE([dynamic-modules],
     [AS_HELP_STRING([--enable-dynamic-modules], [Enable dynamic loadable modules. Enabled by default if dlopen() is available.])],
     [if test "$enableval" = "yes"; then dynamic_modules="yes"; else dynamic_modules="no "; fi], 
-    [if test "$ac_cv_func_dlopen" = "no "; then dynamic_modules="no "; else dynamic_modules="yes"; fi])
+    [if test "$ac_cv_func_dlopen" = "no"; then dynamic_modules="no "; else dynamic_modules="yes"; fi])
 AC_DEFINE_UNQUOTED([DYNAMIC_MODULES], [`if test "$dynamic_modules" = "yes"; then echo "1"; else echo "0"; fi`], [Use dynamic modules?])
 AM_CONDITIONAL([DYNAMIC_MODULES], [test "$dynamic_modules" = "yes"])
 
