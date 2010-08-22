@@ -23,6 +23,7 @@
 #include "config.h"
 
 #include <string>
+#include <cstring>
 
 #include <gdal.h>
 #include <cpl_conv.h>
@@ -175,6 +176,10 @@ extern "C" int gtatool_to_gdal(int argc, char *argv[])
         {
             throw exc("Cannot export " + ifilename, "GDAL failed to create a data set");
         }
+        if (hdr.global_taglist().get("DESCRIPTION"))
+        {
+            GDALSetDescription(dataset, hdr.global_taglist().get("DESCRIPTION"));
+        }
         if (hdr.global_taglist().get("GDAL/GEO_TRANSFORM"))
         {
             double geo_transform[6];
@@ -193,20 +198,64 @@ extern "C" int gtatool_to_gdal(int argc, char *argv[])
                 msg::wrn_txt("GTA contains invalid GDAL/PROJECTION information");
             }
         }
-        for (uintmax_t t = 0; t < hdr.global_taglist().tags(); t++)
+        for (uintmax_t i = 0; i < hdr.global_taglist().tags(); i++)
         {
-            std::string name(hdr.global_taglist().name(t));
-            if (name.length() > 14 && name.compare(0, 14, "GDAL/METADATA/") == 0)
+            const char *tag_name = hdr.global_taglist().name(i);
+            if (strncmp(tag_name, "GDAL/META/", 10 ) == 0)
             {
-                if (GDALSetMetadataItem(dataset, name.substr(14).c_str(), hdr.global_taglist().value(t), NULL) != CE_None)
+                const char *domain_end = strchr(tag_name + 10, '/' );
+                if (domain_end && domain_end - (tag_name + 10) > 0)
                 {
-                    msg::wrn_txt("GTA contains invalid GDAL/METADATA/* information");
+                    std::string domain = std::string(tag_name + 10).substr(0, domain_end - (tag_name + 10));
+                    const char *name = tag_name + 10 + domain.length() + 1;
+                    const char *value = hdr.global_taglist().value(i);
+                    GDALSetMetadataItem(dataset, name, value,
+                            domain == "DEFAULT" ? NULL : domain.c_str());
+                }
+            }
+        }
+        if (hdr.global_taglist().get("GDAL/GCP_COUNT"))
+        {
+            int gcp_count = str::to<int>(hdr.global_taglist().get("GDAL/GCP_COUNT"));
+            if (gcp_count > 0)
+            {
+                std::vector<GDAL_GCP> gcps;
+                gcps.resize(gcp_count);
+                for( int i = 0; i < gcp_count; i++ )
+                {
+                    gcps[i].dfGCPPixel = 0.0;
+                    gcps[i].dfGCPLine = 0.0;
+                    gcps[i].dfGCPX = 0.0;
+                    gcps[i].dfGCPY = 0.0;
+                    gcps[i].dfGCPZ = 0.0;
+                    gcps[i].pszId = strdup(str::from(i).c_str());
+                    const char *info = hdr.global_taglist().get((std::string("GDAL/GCP") + str::from(i) + "_INFO").c_str());
+                    gcps[i].pszInfo = strdup(info ? info : "");
+                    const char *gcp = hdr.global_taglist().get((std::string("GDAL/GCP") + str::from(i)).c_str());
+                    if (gcp)
+                    {
+                        if (sscanf(gcp, "%lf %lf %lf %lf %lf",
+                                    &gcps[i].dfGCPPixel, &gcps[i].dfGCPLine, &gcps[i].dfGCPX, &gcps[i].dfGCPY, &gcps[i].dfGCPZ) != 5)
+                        {
+                            msg::wrn_txt("GTA contains invalid GDAL/GCP%d information", i);
+                        }
+                    }
+                    if (GDALSetGCPs(dataset, gcp_count, &(gcps[0]),
+                                hdr.global_taglist().get("GDAL/GCP_PROJECTION") ?
+                                hdr.global_taglist().get("GDAL/GCP_PROJECTION") : "") != CE_None)
+                    {
+                        msg::wrn_txt("GTA contains invalid GCP information");
+                    }
                 }
             }
         }
         for (uintmax_t i = 0; i < hdr.components(); i++)
         {
             band = GDALGetRasterBand(dataset, i + 1);
+            if (hdr.component_taglist(i).get("DESCRIPTION"))
+            {
+                GDALSetDescription(band, hdr.component_taglist(i).get("DESCRIPTION"));
+            }
             double value;
             if (hdr.component_taglist(i).get("GDAL/OFFSET"))
             {
@@ -224,23 +273,40 @@ extern "C" int gtatool_to_gdal(int argc, char *argv[])
                     msg::wrn_txt(std::string("GTA component ") + str::from(i) + " contains invalid GDAL/SCALE information");
                 }
             }
-            if (hdr.component_taglist(i).get("GDAL/NO_DATA_VALUE"))
+            if (hdr.component_taglist(i).get("NO_DATA_VALUE"))
             {
-                if (sscanf(hdr.component_taglist(i).get("GDAL/NO_DATA_VALUE"), "%lf", &value) != 1
+                if (sscanf(hdr.component_taglist(i).get("NO_DATA_VALUE"), "%lf", &value) != 1
                         || GDALSetRasterNoDataValue(band, value) != CE_None)
                 {
-                    msg::wrn_txt(std::string("GTA component ") + str::from(i) + " contains invalid GDAL/NO_DATA_VALUE information");
+                    msg::wrn_txt(std::string("GTA component ") + str::from(i) + " contains invalid NO_DATA_VALUE information");
                 }
             }
-            /* FIXME: There is no GDALSetRasterUnitType() function?!
-            if (hdr.component_taglist(i).get("GDAL/UNIT_TYPE"))
+#if GDAL_VERSION_NUM >= 1800
+            /* GDALSetRasterUnitType() is not available before GDAL 1.8.0 */
+            if (hdr.component_taglist(i).get("UNIT"))
             {
-                if (GDALSetRasterUnitType(band, hdr.component_taglist(i).get("GDAL/UNIT_TYPE")) != CE_None)
+                if (GDALSetRasterUnitType(band, hdr.component_taglist(i).get("UNIT")) != CE_None)
                 {
-                    msg::wrn_txt(std::string("GTA component ") + str::from(i) + " contains invalid GDAL/UNIT_TYPE information");
+                    msg::wrn_txt(std::string("GTA component ") + str::from(i) + " contains invalid UNIT information");
                 }
             }
-            */
+#endif
+            int category_count = 0;
+            if (hdr.component_taglist(i).get("GDAL/CATEGORY_COUNT")
+                    && (category_count = str::to<int>(hdr.component_taglist(i).get("GDAL/CATEGORY_COUNT"))) > 0)
+            {
+                std::vector<char *> category_names(category_count + 1);
+                for (int j = 0; j < category_count; j++)
+                {
+                    const char *name = hdr.component_taglist(i).get((std::string("GDAL/CATEGORY") + str::from(j)).c_str());
+                    category_names[j] = strdup(name ? name : "");
+                }
+                category_names[category_names.size() - 1] = NULL;
+                if (GDALSetRasterCategoryNames(band, &(category_names[0])) != CE_None)
+                {
+                    msg::wrn_txt(std::string("Cannot set category names for GTA component ") + str::from(i));
+                }
+            }
             const char *interpretation = hdr.component_taglist(i).get("INTERPRETATION");
             if (interpretation)
             {

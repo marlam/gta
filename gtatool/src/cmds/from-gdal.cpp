@@ -92,7 +92,6 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
         blob dataline;
         // GDAL
         GDALDatasetH dataset;
-        GDALDriverH driver;
         GDALRasterBandH band;
         double geo_transform[6];
         char **metadata;
@@ -103,18 +102,22 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
         {
             throw exc("Cannot import " + ifilename, "file does not seem to be in a format supported by GDAL");
         }
-        driver = GDALGetDatasetDriver(dataset);
+        if (GDALGetRasterXSize(dataset) < 1 || GDALGetRasterYSize(dataset) < 1)
+        {
+            throw exc("Cannot import " + ifilename, "invalid dimensions");
+        }
         hdr.set_dimensions(GDALGetRasterXSize(dataset), GDALGetRasterYSize(dataset));
-        hdr.dimension_taglist(0).set("INTERPRETATION", "X");
-        hdr.dimension_taglist(1).set("INTERPRETATION", "Y");
-        if (GDALGetProjectionRef(dataset))
+        std::string description = GDALGetDescription(dataset);
+        if (description.length() > 0)
+        {
+            hdr.global_taglist().set("DESCRIPTION", description.c_str());
+        }
+        if (GDALGetProjectionRef(dataset) && GDALGetProjectionRef(dataset)[0])
         {
             hdr.global_taglist().set("GDAL/PROJECTION", GDALGetProjectionRef(dataset));
         }
         if (GDALGetGeoTransform(dataset, geo_transform) == CE_None)
         {
-            hdr.global_taglist().set("GDAL/ORIGIN", (str::from(geo_transform[0]) + " " + str::from(geo_transform[3])).c_str());
-            hdr.global_taglist().set("GDAL/PIXEL_SIZE", (str::from(geo_transform[1]) + " " + str::from(geo_transform[5])).c_str());
             hdr.global_taglist().set("GDAL/GEO_TRANSFORM",
                     (str::from(geo_transform[0]) + " "
                      + str::from(geo_transform[1]) + " "
@@ -123,19 +126,45 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
                      + str::from(geo_transform[4]) + " "
                      + str::from(geo_transform[5])).c_str());
         }
-        metadata = GDALGetMetadata(dataset, NULL);
-        if (metadata)
+        std::vector<std::string> metadata_domains;
+        metadata_domains.push_back("DEFAULT");
+        metadata_domains.push_back("RCP");
+        for (size_t d = 0; d < metadata_domains.size(); d++)
         {
-            for (int i = 0; metadata[i] != NULL; i++)
+            metadata = GDALGetMetadata(dataset, metadata_domains[d] == "DEFAULT" ? NULL : metadata_domains[d].c_str());
+            if (metadata)
             {
-                std::string s(metadata[i]);
-                size_t e = s.find('=');
-                if (e != std::string::npos && e != 0)
+                for (size_t i = 0; metadata[i]; i++)
                 {
-                    hdr.global_taglist().set(
-                            (std::string("GDAL/METADATA/") + s.substr(0, e)).c_str(),
-                        s.substr(e + 1).c_str());
+                    std::string s(metadata[i]);
+                    size_t e = s.find('=');
+                    if (e != std::string::npos && e != 0)
+                    {
+                        hdr.global_taglist().set(
+                                (std::string("GDAL/META/") + metadata_domains[d] + '/' + s.substr(0, e)).c_str(),
+                                s.substr(e + 1).c_str());
+                    }
                 }
+            }
+        }
+        if (GDALGetGCPCount(dataset) > 0)
+        {
+            hdr.global_taglist().set("GDAL/GCP_COUNT", str::from(GDALGetGCPCount(dataset)).c_str());
+            hdr.global_taglist().set("GDAL/GCP_PROJECTION", GDALGetGCPProjection(dataset));
+            const GDAL_GCP *gcps = GDALGetGCPs(dataset);
+            for (int i = 0; i < GDALGetGCPCount(dataset); i++)
+            {
+                if (gcps[i].pszInfo && gcps[i].pszInfo[0])
+                {
+                    hdr.global_taglist().set((std::string("GDAL/GCP") + str::from(i) + "_INFO").c_str(),
+                            gcps[i].pszInfo);
+                }
+                hdr.global_taglist().set((std::string("GDAL/GCP") + str::from(i)).c_str(),
+                        (str::from(gcps[i].dfGCPPixel) + " "
+                        + str::from(gcps[i].dfGCPLine) + " "
+                        + str::from(gcps[i].dfGCPX) + " "
+                        + str::from(gcps[i].dfGCPY) + " "
+                        + str::from(gcps[i].dfGCPZ)).c_str());
             }
         }
         components = GDALGetRasterCount(dataset);
@@ -193,8 +222,52 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
         for (uintmax_t i = 0; i < components; i++)
         {
             band = GDALGetRasterBand(dataset, i + 1);
+            std::string band_description = GDALGetDescription(band);
+            if (band_description.length() > 0)
+            {
+                hdr.component_taglist(i).set("DESCRIPTION", band_description.c_str());
+            }
+            for (size_t d = 0; d < metadata_domains.size(); d++)
+            {
+                metadata = GDALGetMetadata(band, metadata_domains[d] == "DEFAULT" ? NULL : metadata_domains[d].c_str());
+                if (metadata)
+                {
+                    for (size_t i = 0; metadata[i]; i++)
+                    {
+                        std::string s(metadata[i]);
+                        size_t e = s.find('=');
+                        if (e != std::string::npos && e != 0)
+                        {
+                            hdr.component_taglist(i).set(
+                                    (std::string("GDAL/META/") + metadata_domains[d] + '/' + s.substr(0, e)).c_str(),
+                                    s.substr(e + 1).c_str());
+                        }
+                    }
+                }
+            }
+            char **category_names = GDALGetRasterCategoryNames(band);
+            if (category_names)
+            {
+                size_t i;
+                for (i = 0; category_names[i]; i++)
+                {
+                    hdr.component_taglist(i).set((std::string("GDAL/CATEGORY") + str::from(i)).c_str(),
+                            category_names[i]);
+                }
+                hdr.component_taglist(i).set("GDAL/CATEGORY_COUNT", str::from(i).c_str());
+            }
             int success;
             double value;
+            value = GDALGetRasterMinimum(band, &success);
+            if (success)
+            {
+                hdr.component_taglist(i).set("GDAL/MIN_VALUE", str::from(value).c_str());
+            }
+            value = GDALGetRasterMaximum(band, &success);
+            if (success)
+            {
+                hdr.component_taglist(i).set("GDAL/MAX_VALUE", str::from(value).c_str());
+            }
             value = GDALGetRasterOffset(band, &success);
             if (success)
             {
@@ -208,12 +281,12 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
             value = GDALGetRasterNoDataValue(band, &success);
             if (success)
             {
-                hdr.component_taglist(i).set("GDAL/NO_DATA_VALUE", str::from(value).c_str());
+                hdr.component_taglist(i).set("NO_DATA_VALUE", str::from(value).c_str());
             }
             const char *unit = GDALGetRasterUnitType(band);
             if (unit && unit[0])
             {
-                hdr.component_taglist(i).set("GDAL/UNIT_TYPE", unit);
+                hdr.component_taglist(i).set("UNIT", unit);
             }
             switch (GDALGetRasterColorInterpretation(band))
             {
