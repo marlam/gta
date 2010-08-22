@@ -29,8 +29,6 @@ The following tag namespaces are reserved:
 
 The following tag names are defined for global tags in a GTA file:
 
-- "COPYRIGHT": Copyright information.
-
 - "CREATOR": Creator information.
 
 - "PRODUCER": Producer information (usually the software that produced the array
@@ -38,6 +36,10 @@ The following tag names are defined for global tags in a GTA file:
 
 - "DATE": Date associated with the GTA data, in the format specified by RFC 2822
   Sec. 3.3. Example: "Fri,  4 Dec 2009 22:29:43 +0100 (CET)".
+
+- "DESCRIPTION": Human readable description of the content.
+
+- "COPYRIGHT": Copyright information.
 
 
 The following tag names are defined for dimension tags in a GTA file:
@@ -80,6 +82,8 @@ The following tag names are defined for component tags in a GTA file:
   - "CMYK/M": M color component of the CMYK color space
   - "CMYK/Y": Y color component of the CMYK color space
   - "CMYK/K": K color component of the CMYK color space
+
+- "DESCRIPTION": Human readable description of the component.
 
 - "UNIT": SI unit symbol that describes the unit for the values of this
   component. The value can be any SI unit symbol with or without prefix.
