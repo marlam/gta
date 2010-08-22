@@ -39,7 +39,7 @@
 extern "C" void gtatool_compress_help(void)
 {
     msg::req_txt(
-            "compress [--method=zlib[1-9]|bzip2|xz] [<files>...]\n"
+            "compress [-m|--method=zlib[1-9]|bzip2|xz] [<files>...]\n"
             "\n"
             "Compresses GTAs. The default method is bzip2.\n"
             "The zlib method can optionally be followed by the compression level (1-9). If no level is specified, "
@@ -64,7 +64,7 @@ extern "C" int gtatool_compress(int argc, char *argv[])
     methods.push_back("zlib9");
     methods.push_back("bzip2");
     methods.push_back("xz");
-    opt::val<std::string> method("method", '\0', opt::optional, methods, "bzip2");
+    opt::val<std::string> method("method", 'm', opt::optional, methods, "bzip2");
     options.push_back(&method);
     std::vector<std::string> arguments;
     if (!opt::parse(argc, argv, options, -1, -1, arguments))
