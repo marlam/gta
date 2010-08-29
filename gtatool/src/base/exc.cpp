@@ -73,7 +73,6 @@ exc::exc() throw ()
 }
 
 exc::exc(const std::string &when, int sys_errno, const std::string &what) throw ()
-    : std::exception()
 {
     create(when.c_str(), sys_errno, what.c_str());
     if (!empty())
@@ -83,7 +82,6 @@ exc::exc(const std::string &when, int sys_errno, const std::string &what) throw 
 }
 
 exc::exc(const std::string &when, const std::string &what) throw ()
-    : std::exception()
 {
     create(when.c_str(), 0, what.c_str());
     if (!empty())
@@ -93,7 +91,6 @@ exc::exc(const std::string &when, const std::string &what) throw ()
 }
 
 exc::exc(int sys_errno) throw ()
-    : std::exception()
 {
     create("", sys_errno, "");
     if (!empty())
@@ -134,10 +131,4 @@ int exc::sys_errno() const throw ()
 const char *exc::what() const throw ()
 {
     return _str;
-}
-
-std::ostream &operator<<(std::ostream &os, const exc &e)
-{
-    os << e.what();
-    return os;
 }

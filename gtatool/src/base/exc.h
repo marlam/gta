@@ -32,7 +32,6 @@
 
 #include <exception>
 #include <string>
-#include <ostream>
 
 /**
  * Error and exception handling.
@@ -54,13 +53,10 @@ class exc : public std::exception
         exc(int sys_errno) throw ();
         exc(const exc &e) throw ();
         exc(const std::exception &e) throw ();
-        ~exc() throw () {}
 
         bool empty() const throw ();
         int sys_errno() const throw ();
-        const char *what() const throw ();
-
-        friend std::ostream &operator<<(std::ostream &os, const exc &e);
+        virtual const char *what() const throw ();
 };
 
 #endif
