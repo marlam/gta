@@ -78,29 +78,11 @@ extern "C" int gtatool_create(int argc, char *argv[])
         return 0;
     }
 
-    FILE *fo = gtatool_stdout;
-    std::string ofilename("standard output");
     try
     {
-        if (arguments.size() == 1)
-        {
-            ofilename = arguments[0];
-            fo = cio::open(ofilename, "w");
-        }
-        if (cio::isatty(fo))
-        {
-            throw exc("refusing to write to a tty");
-        }
-    }
-    catch (std::exception &e)
-    {
-        msg::err_txt("%s", e.what());
-        return 1;
-    }
-
-    try
-    {
+        array_loop_t array_loop(std::vector<std::string>(), arguments.size() == 1 ? arguments[0] : "");
         gta::header hdr;
+        std::string name;
         hdr.set_dimensions(dimensions.value().size(), &(dimensions.value()[0]));
         std::vector<gta::type> comp_types;
         std::vector<uintmax_t> comp_sizes;
@@ -117,17 +99,15 @@ extern "C" int gtatool_create(int argc, char *argv[])
         }
         for (uintmax_t i = 0; i < n.value(); i++)
         {
-            hdr.write_to(fo);
-            gta::io_state so;
+            array_loop.write(hdr, name);
+            element_loop_t element_loop = array_loop.element_loop(gta::header(), hdr);
             for (uintmax_t j = 0; j < hdr.elements(); j++)
             {
-                hdr.write_elements(so, fo, 1, v.ptr());
+                element_loop.write(v.ptr());
             }
+            element_loop.finish();
         }
-        if (fo != gtatool_stdout)
-        {
-            cio::close(fo);
-        }
+        array_loop.finish();
     }
     catch (std::exception &e)
     {

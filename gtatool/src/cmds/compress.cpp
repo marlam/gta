@@ -90,43 +90,19 @@ extern "C" int gtatool_compress(int argc, char *argv[])
          : method.value().compare("bzip2") == 0 ? gta::bzip2
          : gta::xz);
 
-    if (cio::isatty(gtatool_stdout))
-    {
-        msg::err_txt("refusing to write to a tty");
-        return 1;
-    }
-
     try
     {
-        gta::header hdri;
-        gta::header hdro;
-        // Loop over all input files
-        size_t arg = 0;
-        do
+        array_loop_t array_loop(arguments, "");
+        gta::header hdri, hdro;
+        std::string namei, nameo;
+        while (array_loop.read(hdri, namei))
         {
-            std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : cio::open(finame, "r"));
-
-            // Loop over all GTAs inside the current file
-            while (cio::has_more(fi, finame))
-            {
-                // Read the GTA header
-                hdri.read_from(fi);
-                // Set compression
-                hdro = hdri;
-                hdro.set_compression(compression);
-                // Write the GTA header
-                hdro.write_to(gtatool_stdout);
-                // Copy the GTA data
-                hdri.copy_data(fi, hdro, gtatool_stdout);
-            }
-            if (fi != gtatool_stdin)
-            {
-                cio::close(fi);
-            }
-            arg++;
+            hdro = hdri;
+            hdro.set_compression(compression);
+            array_loop.write(hdro, nameo);
+            array_loop.copy_data(hdri, hdro);
         }
-        while (arg < arguments.size());
+        array_loop.finish();
     }
     catch (std::exception &e)
     {

@@ -78,19 +78,23 @@ extern "C" int gtatool_merge(int argc, char *argv[])
 
     try
     {
+        std::vector<std::string> arg0;
+        arg0.push_back(arguments[0]);
+        array_loop_t array_loop(arg0, "");
         std::vector<FILE *> fi(arguments.size());
-        for (size_t i = 0; i < arguments.size(); i++)
+        fi[0] = NULL;
+        for (size_t i = 1; i < arguments.size(); i++)
         {
             fi[i] = cio::open(arguments[i], "r");
         }
         std::vector<gta::header> hdri(arguments.size());
+        std::string namei;
         uintmax_t array_index = 0;
-        while (cio::has_more(fi[0], arguments[0]))
+        while (array_loop.read(hdri[0], namei))
         {
-            hdri[0].read_from(fi[0]);
             if (dimension.value() >= hdri[0].dimensions())
             {
-                throw exc(arguments[0] + " array " + str::from(array_index) + ": array has no dimension " + str::from(dimension.value()));
+                throw exc(namei + ": array has no dimension " + str::from(dimension.value()));
             }
             for (size_t i = 1; i < arguments.size(); i++)
             {
@@ -124,6 +128,7 @@ extern "C" int gtatool_merge(int argc, char *argv[])
                 }
             }
             gta::header hdro;
+            std::string nameo;
             hdro.global_taglist() = hdri[0].global_taglist();
             std::vector<uintmax_t> hdro_dim_sizes;
             for (uintmax_t d = 0; d < hdri[0].dimensions(); d++)
@@ -163,11 +168,17 @@ extern "C" int gtatool_merge(int argc, char *argv[])
             {
                 hdro.component_taglist(c) = hdri[0].component_taglist(c);
             }
-            hdro.write_to(gtatool_stdout);
+            array_loop.write(hdro, nameo);
             blob element_buf(checked_cast<size_t>(hdro.element_size()));
             std::vector<uintmax_t> indices(hdro.dimensions());
-            std::vector<gta::io_state> si(arguments.size());
-            gta::io_state so;
+            std::vector<element_loop_t> element_loops(arguments.size());
+            element_loops[0] = array_loop.element_loop(hdri[0], hdro);
+            for (size_t i = 1; i < element_loops.size(); i++)
+            {
+                element_loops[i] = element_loop_t(hdri[i],
+                        arguments[i] + " array " + str::from(array_index), fi[i],
+                        gta::header(), "", NULL);
+            }
             for (uintmax_t e = 0; e < hdro.elements(); e++)
             {
                 hdro.linear_index_to_indices(e, &(indices[0]));
@@ -181,11 +192,12 @@ extern "C" int gtatool_merge(int argc, char *argv[])
                         break;
                     }
                 }
-                hdri[j].read_elements(si[j], fi[j], 1, element_buf.ptr());
-                hdro.write_elements(so, gtatool_stdout, 1, element_buf.ptr());
+                element_loops[0].write(element_loops[j].read());
             }
+            element_loops[0].finish();
             array_index++;
         }
+        array_loop.finish();
         for (size_t i = 1; i < arguments.size(); i++)
         {
             if (cio::has_more(fi[i], arguments[i]))
@@ -193,7 +205,7 @@ extern "C" int gtatool_merge(int argc, char *argv[])
                 msg::wrn_txt("ignoring additional array(s) from %s", arguments[i].c_str());
             }
         }
-        for (size_t i = 0; i < arguments.size(); i++)
+        for (size_t i = 1; i < arguments.size(); i++)
         {
             cio::close(fi[i], arguments[i]);
         }

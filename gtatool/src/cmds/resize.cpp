@@ -78,125 +78,99 @@ extern "C" int gtatool_resize(int argc, char *argv[])
         return 1;
     }
 
-    if (cio::isatty(gtatool_stdout))
-    {
-        msg::err_txt("refusing to write to a tty");
-        return 1;
-    }
-
     try
     {
-        gta::header hdri;
-        gta::header hdro;
-        // Loop over all input files
-        size_t arg = 0;
-        do
+        array_loop_t array_loop(arguments, "");
+        gta::header hdri, hdro;
+        std::string namei, nameo;
+        while (array_loop.read(hdri, namei))
         {
-            std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : cio::open(finame, "r"));
-
-            // Loop over all GTAs inside the current file
-            uintmax_t array_index = 0;
-            while (cio::has_more(fi, finame))
+            if (hdri.dimensions() != dimensions.value().size())
             {
-                // Determine the name of the array for error messages
-                std::string array_name = finame + " array " + str::from(array_index);
-                // Read the GTA header
-                hdri.read_from(fi);
-                // Determine compatibility
-                if (hdri.dimensions() != dimensions.value().size())
+                throw exc(namei + ": array has incompatible number of dimensions");
+            }
+            blob v(checked_cast<size_t>(hdri.element_size()));
+            if (value.values().empty())
+            {
+                memset(v.ptr(), 0, hdri.element_size());
+            }
+            else
+            {
+                std::vector<gta::type> comp_types;
+                std::vector<uintmax_t> comp_sizes;
+                for (uintmax_t i = 0; i < hdri.components(); i++)
                 {
-                    throw exc(array_name + ": array has incompatible number of dimensions");
-                }
-                blob v(checked_cast<size_t>(hdri.element_size()));
-                if (value.values().empty())
-                {
-                    memset(v.ptr(), 0, hdri.element_size());
-                }
-                else
-                {
-                    std::vector<gta::type> comp_types;
-                    std::vector<uintmax_t> comp_sizes;
-                    for (uintmax_t i = 0; i < hdri.components(); i++)
+                    comp_types.push_back(hdri.component_type(i));
+                    if (hdri.component_type(i) == gta::blob)
                     {
-                        comp_types.push_back(hdri.component_type(i));
-                        if (hdri.component_type(i) == gta::blob)
-                        {
-                            comp_sizes.push_back(hdri.component_size(i));
-                        }
+                        comp_sizes.push_back(hdri.component_size(i));
                     }
-                    valuelist_from_string(value.value(), comp_types, comp_sizes, v.ptr());
                 }
-                // Write the GTA header
-                hdro = hdri;
-                hdro.set_compression(gta::none);
-                hdro.set_dimensions(hdri.dimensions(), &(dimensions.value()[0]));
+                valuelist_from_string(value.value(), comp_types, comp_sizes, v.ptr());
+            }
+            hdro = hdri;
+            hdro.set_compression(gta::none);
+            hdro.set_dimensions(hdri.dimensions(), &(dimensions.value()[0]));
+            for (uintmax_t i = 0; i < hdri.dimensions(); i++)
+            {
+                hdro.dimension_taglist(i) = hdri.dimension_taglist(i);
+            }
+            array_loop.write(hdro, nameo);
+
+            element_loop_t element_loop = array_loop.element_loop(hdri, hdro);
+            uintmax_t read_in_elements = 0;
+            std::vector<intmax_t> in_index(hdri.dimensions());
+            std::vector<uintmax_t> out_index(hdro.dimensions());
+            for (uintmax_t linear_out_index = 0; linear_out_index < hdro.elements(); linear_out_index++)
+            {
+                hdro.linear_index_to_indices(linear_out_index, &(out_index[0]));
+                bool from_input = true;
                 for (uintmax_t i = 0; i < hdri.dimensions(); i++)
                 {
-                    hdro.dimension_taglist(i) = hdri.dimension_taglist(i);
-                }
-                hdro.write_to(gtatool_stdout);
-                // Manipulate the GTA data
-                blob element(checked_cast<size_t>(hdri.element_size()));
-                uintmax_t read_in_elements = 0;
-                std::vector<intmax_t> in_index(hdri.dimensions());
-                std::vector<uintmax_t> out_index(hdro.dimensions());
-                gta::io_state si, so;
-                for (uintmax_t linear_out_index = 0; linear_out_index < hdro.elements(); linear_out_index++)
-                {
-                    hdro.linear_index_to_indices(linear_out_index, &(out_index[0]));
-                    bool from_input = true;
-                    for (uintmax_t i = 0; i < hdri.dimensions(); i++)
+                    if (!index.values().empty())
                     {
-                        if (!index.values().empty())
-                        {
-                            // cannot over- or underflow due to the restrictions on
-                            // the dimensions and index options.
-                            in_index[i] = out_index[i] - index.value()[i];
-                        }
-                        else
-                        {
-                            in_index[i] = out_index[i];
-                        }
-                        if (in_index[i] < 0 || static_cast<uintmax_t>(in_index[i]) >= hdri.dimension_size(i))
-                        {
-                            from_input = false;
-                        }
-                    }
-                    if (from_input)
-                    {
-                        std::vector<uintmax_t> requested_in_index(in_index.size());
-                        for (size_t i = 0; i < requested_in_index.size(); i++)
-                        {
-                            requested_in_index[i] = in_index[i];
-                        }
-                        uintmax_t requested_linear_in_index = hdri.indices_to_linear_index(&(requested_in_index[0]));
-                        // elements are guaranteed to be in ascending order
-                        for (uintmax_t i = read_in_elements; i <= requested_linear_in_index; i++)
-                        {
-                            hdri.read_elements(si, fi, 1, element.ptr());
-                        }
-                        read_in_elements = requested_linear_in_index + 1;
+                        // cannot over- or underflow due to the restrictions on
+                        // the dimensions and index options.
+                        in_index[i] = out_index[i] - index.value()[i];
                     }
                     else
                     {
-                        memcpy(element.ptr(), v.ptr(), element.size());
+                        in_index[i] = out_index[i];
                     }
-                    hdro.write_elements(so, gtatool_stdout, 1, element.ptr());
+                    if (in_index[i] < 0 || static_cast<uintmax_t>(in_index[i]) >= hdri.dimension_size(i))
+                    {
+                        from_input = false;
+                    }
                 }
-                for (uintmax_t i = read_in_elements; i < hdri.elements(); i++)
+                const void *src = NULL;
+                if (from_input)
                 {
-                    hdri.read_elements(si, fi, 1, element.ptr());
+                    std::vector<uintmax_t> requested_in_index(in_index.size());
+                    for (size_t i = 0; i < requested_in_index.size(); i++)
+                    {
+                        requested_in_index[i] = in_index[i];
+                    }
+                    uintmax_t requested_linear_in_index = hdri.indices_to_linear_index(&(requested_in_index[0]));
+                    // elements are guaranteed to be in ascending order
+                    for (uintmax_t i = read_in_elements; i <= requested_linear_in_index; i++)
+                    {
+                        src = element_loop.read();
+                    }
+                    read_in_elements = requested_linear_in_index + 1;
                 }
-                array_index++;
+                else
+                {
+                    src = v.ptr();
+                }
+                element_loop.write(src);
             }
-            if (fi != gtatool_stdin)
+            for (uintmax_t i = read_in_elements; i < hdri.elements(); i++)
             {
-                cio::close(fi);
+                element_loop.read();
             }
-            arg++;
+            element_loop.finish();
         }
-        while (arg < arguments.size());
+        array_loop.finish();
     }
     catch (std::exception &e)
     {

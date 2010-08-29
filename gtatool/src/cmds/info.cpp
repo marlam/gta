@@ -62,106 +62,89 @@ extern "C" int gtatool_info(int argc, char *argv[])
 
     try
     {
+        array_loop_t array_loop(arguments, "");
         gta::header hdr;
-        // Loop over all input files
-        size_t arg = 0;
-        do
+        std::string name;
+        while (array_loop.read(hdr, name))
         {
-            std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : cio::open(finame, "r"));
-
-            // Loop over all GTAs inside the current file
-            uintmax_t array = 0;
-            while (cio::has_more(fi, finame))
+            std::stringstream dimensions;
+            for (uintmax_t i = 0; i < hdr.dimensions(); i++)
             {
-                // Read the GTA header and print information
-                hdr.read_from(fi);
-                std::stringstream dimensions;
-                for (uintmax_t i = 0; i < hdr.dimensions(); i++)
+                dimensions << hdr.dimension_size(i);
+                if (i < hdr.dimensions() - 1)
                 {
-                    dimensions << hdr.dimension_size(i);
-                    if (i < hdr.dimensions() - 1)
-                    {
-                        dimensions << "x";
-                    }
+                    dimensions << "x";
                 }
-                std::stringstream components;
-                for (uintmax_t i = 0; i < hdr.components(); i++)
+            }
+            std::stringstream components;
+            for (uintmax_t i = 0; i < hdr.components(); i++)
+            {
+                components << type_to_string(hdr.component_type(i), hdr.component_size(i));
+                if (i < hdr.components() - 1)
                 {
-                    components << type_to_string(hdr.component_type(i), hdr.component_size(i));
-                    if (i < hdr.components() - 1)
-                    {
-                        components << ",";
-                    }
+                    components << ",";
                 }
-                if (hdr.data_size() == 0)
-                {
-                    msg::req(finame + " array " + str::from(array) + ":");
-                }
-                else
-                {
-                    msg::req(finame + " array " + str::from(array) + ": "
-                            + str::from(hdr.data_size()) + " bytes ("
-                            + str::human_readable_memsize(hdr.data_size()) + ")");
-                }
-                msg::req(std::string("    compression: ") +
-                        (hdr.compression() == gta::none ? "none"
-                         : hdr.compression() == gta::zlib ? "zlib default level"
-                         : hdr.compression() == gta::bzip2 ? "bzip2"
-                         : hdr.compression() == gta::xz ? "xz"
-                         : hdr.compression() == gta::zlib1 ? "zlib level 1"
-                         : hdr.compression() == gta::zlib2 ? "zlib level 2"
-                         : hdr.compression() == gta::zlib3 ? "zlib level 3"
-                         : hdr.compression() == gta::zlib4 ? "zlib level 4"
-                         : hdr.compression() == gta::zlib5 ? "zlib level 5"
-                         : hdr.compression() == gta::zlib6 ? "zlib level 6"
-                         : hdr.compression() == gta::zlib7 ? "zlib level 7"
-                         : hdr.compression() == gta::zlib8 ? "zlib level 8"
-                         : hdr.compression() == gta::zlib9 ? "zlib level 9" : "unknown"));
-                if (hdr.data_size() == 0)
-                {
-                    msg::req("    empty array");
-                }
-                else
-                {
-                    msg::req(std::string("    ") + dimensions.str() + " elements of type " + components.str());
-                }
-                for (uintmax_t i = 0; i < hdr.global_taglist().tags(); i++)
+            }
+            if (hdr.data_size() == 0)
+            {
+                msg::req(name + ":");
+            }
+            else
+            {
+                msg::req(name + ": "
+                        + str::from(hdr.data_size()) + " bytes ("
+                        + str::human_readable_memsize(hdr.data_size()) + ")");
+            }
+            msg::req(std::string("    compression: ") +
+                    (hdr.compression() == gta::none ? "none"
+                     : hdr.compression() == gta::zlib ? "zlib default level"
+                     : hdr.compression() == gta::bzip2 ? "bzip2"
+                     : hdr.compression() == gta::xz ? "xz"
+                     : hdr.compression() == gta::zlib1 ? "zlib level 1"
+                     : hdr.compression() == gta::zlib2 ? "zlib level 2"
+                     : hdr.compression() == gta::zlib3 ? "zlib level 3"
+                     : hdr.compression() == gta::zlib4 ? "zlib level 4"
+                     : hdr.compression() == gta::zlib5 ? "zlib level 5"
+                     : hdr.compression() == gta::zlib6 ? "zlib level 6"
+                     : hdr.compression() == gta::zlib7 ? "zlib level 7"
+                     : hdr.compression() == gta::zlib8 ? "zlib level 8"
+                     : hdr.compression() == gta::zlib9 ? "zlib level 9" : "unknown"));
+            if (hdr.data_size() == 0)
+            {
+                msg::req("    empty array");
+            }
+            else
+            {
+                msg::req(std::string("    ") + dimensions.str() + " elements of type " + components.str());
+            }
+            for (uintmax_t i = 0; i < hdr.global_taglist().tags(); i++)
+            {
+                msg::req(std::string("        ")
+                        + from_utf8(hdr.global_taglist().name(i)) + "=" + from_utf8(hdr.global_taglist().value(i)));
+            }
+            for (uintmax_t i = 0; i < hdr.dimensions(); i++)
+            {
+                msg::req(std::string("    dimension ") + str::from(i) + ": " + str::from(hdr.dimension_size(i)));
+                for (uintmax_t j = 0; j < hdr.dimension_taglist(i).tags(); j++)
                 {
                     msg::req(std::string("        ")
-                            + from_utf8(hdr.global_taglist().name(i)) + "=" + from_utf8(hdr.global_taglist().value(i)));
+                            + from_utf8(hdr.dimension_taglist(i).name(j)) + "=" + from_utf8(hdr.dimension_taglist(i).value(j)));
                 }
-                for (uintmax_t i = 0; i < hdr.dimensions(); i++)
-                {
-                    msg::req(std::string("    dimension ") + str::from(i) + ": " + str::from(hdr.dimension_size(i)));
-                    for (uintmax_t j = 0; j < hdr.dimension_taglist(i).tags(); j++)
-                    {
-                        msg::req(std::string("        ")
-                                + from_utf8(hdr.dimension_taglist(i).name(j)) + "=" + from_utf8(hdr.dimension_taglist(i).value(j)));
-                    }
-                }
-                for (uintmax_t i = 0; i < hdr.components(); i++)
-                {
-                    msg::req(std::string("    element component ") + str::from(i) + ": "
-                            + type_to_string(hdr.component_type(i), hdr.component_size(i)) + ", "
-                            + str::human_readable_memsize(hdr.component_size(i)));
-                    for (uintmax_t j = 0; j < hdr.component_taglist(i).tags(); j++)
-                    {
-                        msg::req(std::string("        ")
-                                + from_utf8(hdr.component_taglist(i).name(j)) + "=" + from_utf8(hdr.component_taglist(i).value(j)));
-                    }
-                }
-                // Skip the GTA data
-                hdr.skip_data(fi);
-                array++;
             }
-            if (fi != gtatool_stdin)
+            for (uintmax_t i = 0; i < hdr.components(); i++)
             {
-                cio::close(fi);
+                msg::req(std::string("    element component ") + str::from(i) + ": "
+                        + type_to_string(hdr.component_type(i), hdr.component_size(i)) + ", "
+                        + str::human_readable_memsize(hdr.component_size(i)));
+                for (uintmax_t j = 0; j < hdr.component_taglist(i).tags(); j++)
+                {
+                    msg::req(std::string("        ")
+                            + from_utf8(hdr.component_taglist(i).name(j)) + "=" + from_utf8(hdr.component_taglist(i).value(j)));
+                }
             }
-            arg++;
+            array_loop.skip_data(hdr);
         }
-        while (arg < arguments.size());
+        array_loop.finish();
     }
     catch (std::exception &e)
     {

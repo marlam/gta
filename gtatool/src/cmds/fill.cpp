@@ -88,94 +88,63 @@ extern "C" int gtatool_fill(int argc, char *argv[])
         }
     }
 
-    if (cio::isatty(gtatool_stdout))
-    {
-        msg::err_txt("refusing to write to a tty");
-        return 1;
-    }
-
     try
     {
-        gta::header hdri;
-        gta::header hdro;
-        // Loop over all input files
-        size_t arg = 0;
-        do
+        array_loop_t array_loop(arguments, "");
+        gta::header hdri, hdro;
+        std::string namei, nameo;
+        while (array_loop.read(hdri, namei))
         {
-            std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : cio::open(finame, "r"));
+            if (!low.values().empty() && low.value().size() != hdri.dimensions())
+            {
+                throw exc(namei + ": array has incompatible number of dimensions");
+            }
+            blob v(checked_cast<size_t>(hdri.element_size()));
+            if (value.values().empty())
+            {
+                memset(v.ptr(), 0, hdri.element_size());
+            }
+            else
+            {
+                std::vector<gta::type> comp_types;
+                std::vector<uintmax_t> comp_sizes;
+                for (uintmax_t i = 0; i < hdri.components(); i++)
+                {
+                    comp_types.push_back(hdri.component_type(i));
+                    if (hdri.component_type(i) == gta::blob)
+                    {
+                        comp_sizes.push_back(hdri.component_size(i));
+                    }
+                }
+                valuelist_from_string(value.value(), comp_types, comp_sizes, v.ptr());
+            }
+            hdro = hdri;
+            hdro.set_compression(gta::none);
+            array_loop.write(hdro, nameo);
 
-            // Loop over all GTAs inside the current file
-            uintmax_t array_index = 0;
-            while (cio::has_more(fi, finame))
+            element_loop_t element_loop = array_loop.element_loop(hdri, hdro);
+            std::vector<uintmax_t> index(hdri.dimensions());
+            for (uintmax_t e = 0; e < hdro.elements(); e++)
             {
-                // Determine the name of the array for error messages
-                std::string array_name = finame + " array " + str::from(array_index);
-                // Read the GTA header
-                hdri.read_from(fi);
-                // Determine compatibility and read value
-                if (!low.values().empty() && low.value().size() != hdri.dimensions())
+                const void *src = element_loop.read();
+                hdro.linear_index_to_indices(e, &(index[0]));
+                bool replace = true;
+                if (!low.values().empty())
                 {
-                    throw exc(array_name + ": array has incompatible number of dimensions");
-                }
-                blob v(checked_cast<size_t>(hdri.element_size()));
-                if (value.values().empty())
-                {
-                    memset(v.ptr(), 0, hdri.element_size());
-                }
-                else
-                {
-                    std::vector<gta::type> comp_types;
-                    std::vector<uintmax_t> comp_sizes;
-                    for (uintmax_t i = 0; i < hdri.components(); i++)
+                    for (size_t i = 0; i < index.size(); i++)
                     {
-                        comp_types.push_back(hdri.component_type(i));
-                        if (hdri.component_type(i) == gta::blob)
+                        if (index[i] < low.value()[i] || index[i] > high.value()[i])
                         {
-                            comp_sizes.push_back(hdri.component_size(i));
+                            replace = false;
+                            break;
                         }
                     }
-                    valuelist_from_string(value.value(), comp_types, comp_sizes, v.ptr());
                 }
-                // Write the GTA header
-                hdro = hdri;
-                hdro.set_compression(gta::none);
-                hdro.write_to(gtatool_stdout);
-                // Manipulate the GTA data
-                std::vector<uintmax_t> index(hdri.dimensions());
-                blob element(checked_cast<size_t>(hdro.element_size()));
-                gta::io_state si, so;
-                for (uintmax_t e = 0; e < hdro.elements(); e++)
-                {
-                    hdri.read_elements(si, fi, 1, element.ptr());
-                    hdri.linear_index_to_indices(e, &(index[0]));
-                    bool replace = true;
-                    if (!low.values().empty())
-                    {
-                        for (size_t i = 0; i < index.size(); i++)
-                        {
-                            if (index[i] < low.value()[i] || index[i] > high.value()[i])
-                            {
-                                replace = false;
-                                break;
-                            }
-                        }
-                    }
-                    if (replace)
-                    {
-                        memcpy(element.ptr(), v.ptr(), element.size());
-                    }
-                    hdro.write_elements(so, gtatool_stdout, 1, element.ptr());
-                }
-                array_index++;
+                element_loop.write(replace ? v.ptr() : src);
             }
-            if (fi != gtatool_stdin)
-            {
-                cio::close(fi);
-            }
-            arg++;
+            element_loop.finish();
         }
-        while (arg < arguments.size());
+        array_loop.finish();
     }
     catch (std::exception &e)
     {

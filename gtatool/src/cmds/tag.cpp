@@ -70,9 +70,8 @@ public:
     {
     }
 
-    void apply(const std::string &filename, uintmax_t gta_index, gta::header &hdr) throw (std::exception)
+    void apply(gta::header &hdr, const std::string &array_name) throw (std::exception)
     {
-        std::string array_name = filename + " array " + str::from(gta_index);
         switch (_cmd)
         {
         case GET_GLOBAL:
@@ -556,45 +555,23 @@ extern "C" int gtatool_tag(int argc, char *argv[])
         return 0;
     }
 
-    if (cio::isatty(gtatool_stdout))
-    {
-        msg::err_txt("refusing to write to a tty");
-        return 1;
-    }
-
     try
     {
-        gta::header hdr;
-        // Loop over all input files
-        size_t arg = 0;
-        do
+        array_loop_t array_loop(arguments, "");
+        gta::header hdri, hdro;
+        std::string namei, nameo;
+        while (array_loop.read(hdri, namei))
         {
-            std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : cio::open(finame, "r"));
-
-            // Loop over all GTAs inside the current file
-            uintmax_t array = 0;
-            while (cio::has_more(fi, finame))
+            hdro = hdri;
+            hdro.set_compression(gta::none);
+            for (uintmax_t i = 0; i < tag_commands.size(); i++)
             {
-                // Read the GTA header and apply tag commands
-                hdr.read_from(fi);
-                for (uintmax_t i = 0; i < tag_commands.size(); i++)
-                {
-                    tag_commands[i].apply(finame, array, hdr);
-                }
-                // Write the GTA header
-                hdr.write_to(gtatool_stdout);
-                // Copy the GTA data
-                hdr.copy_data(fi, hdr, gtatool_stdout);
-                array++;
+                tag_commands[i].apply(hdro, namei);
             }
-            if (fi != gtatool_stdin)
-            {
-                cio::close(fi);
-            }
-            arg++;
+            array_loop.write(hdro, nameo);
+            array_loop.copy_data(hdri, hdro);
         }
-        while (arg < arguments.size());
+        array_loop.finish();
     }
     catch (std::exception &e)
     {
