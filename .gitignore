@@ -8,3 +8,7 @@ src/Makefile.in
 *.swp
 *~
 *.info
+*.aux
+*.out
+*.log
+*.pdf
