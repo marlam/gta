@@ -14,7 +14,7 @@ $GTA create -d 5,5,5 -c uint32 "$TMPD"/a.gta
 
 $GTA uncompress --help 2> "$TMPD"/help.txt
 
-for i in zlib bzip2 xz; do
+for i in zlib bzip2 xz zlib1 zlib2 zlib3 zlib4 zlib5 zlib6 zlib7 zlib8 zlib9; do
 	$GTA compress --method=$i "$TMPD"/a.gta > "$TMPD"/a-$i.gta
 	$GTA uncompress "$TMPD"/a-$i.gta > "$TMPD"/a-$i-u.gta
 	cmp "$TMPD"/a.gta "$TMPD"/a-$i-u.gta

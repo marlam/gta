@@ -5,13 +5,18 @@
 # notice are preserved. This file is offered as-is, without any warranty.
 
 TESTS = \
-	gta-help.sh \
-	gta-version.sh \
-	gta-create.sh \
 	gta-compress.sh \
-	gta-uncompress.sh \
+	gta-create.sh \
+	gta-extract.sh \
+	gta-fill.sh \
+	gta-help.sh \
+	gta-info.sh \
+	gta-merge.sh \
+	gta-resize.sh \
+	gta-set.sh \
 	gta-tag.sh \
-	gta-info.sh
+	gta-uncompress.sh \
+	gta-version.sh
 
 EXTRA_DIST = $(TESTS)
 

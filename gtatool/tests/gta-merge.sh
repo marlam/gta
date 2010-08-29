@@ -10,14 +10,12 @@ set -e
 
 TMPD="`mktemp -d tmp-\`basename $0 .sh\`.XXXXXX`"
 
-$GTA create -d 10,10 -c uint8 "$TMPD"/a.gta
+$GTA create -d 10,10 -c uint8 -v 42 "$TMPD"/a.gta
+$GTA create -d 10,10 -c uint8 -v 42 "$TMPD"/b.gta
+$GTA create -d 10,10 -c uint8 -v 42 "$TMPD"/c.gta
+$GTA create -d 10,30 -c uint8 -v 42 "$TMPD"/abc.gta
 
-$GTA compress --help 2> "$TMPD"/help.txt
-
-for i in zlib bzip2 xz zlib1 zlib2 zlib3 zlib4 zlib5 zlib6 zlib7 zlib8 zlib9; do
-	$GTA compress --method=$i "$TMPD"/a.gta > "$TMPD"/a-$i.gta
-	$GTA uncompress "$TMPD"/a-$i.gta > "$TMPD"/a-$i-u.gta
-	cmp "$TMPD"/a.gta "$TMPD"/a-$i-u.gta
-done
+$GTA merge -d 1 "$TMPD"/a.gta "$TMPD"/b.gta "$TMPD"/c.gta > "$TMPD"/d.gta
+cmp "$TMPD"/abc.gta "$TMPD"/d.gta
 
 rm -r "$TMPD"
