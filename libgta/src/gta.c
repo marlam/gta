@@ -58,6 +58,9 @@
 #   define lseek(fd, offset, whence) _lseeki64(fd, offset, whence)
 #endif
 
+/* Define OFF_MAX (maximum value in off_t). */
+#define OFF_MAX (sizeof(off_t) == sizeof(long long) ? LLONG_MAX \
+        : sizeof(off_t) == sizeof(long) ? LONG_MAX : INT_MAX)
 
 /*
  *
@@ -227,7 +230,7 @@ void gta_seek_stream(intptr_t userdata, intmax_t offset, int whence, int *GTA_RE
 {
     FILE *f = (FILE *)userdata;
     int r;
-    if ((intmax_t)((off_t)offset) != offset)
+    if (offset > OFF_MAX)
     {
         errno = EOVERFLOW;
         *error = true;
@@ -307,7 +310,7 @@ void gta_seek_fd(intptr_t userdata, intmax_t offset, int whence, int *GTA_RESTRI
 {
     int fd = (int)userdata;
     int r;
-    if ((intmax_t)((off_t)offset) != offset)
+    if (offset > OFF_MAX)
     {
         errno = EOVERFLOW;
         *error = true;
