@@ -31,6 +31,7 @@
 #include <gta/gta.hpp>
 
 #include "exc.h"
+#include "blob.h"
 
 // The name of the binary of this program.
 extern char *program_name;
@@ -63,5 +64,85 @@ void swap_element_endianness(const gta::header &header, void *element);
 /* Convert strings between the local character set and UTF-8, in a fail-safe way */
 std::string from_utf8(const std::string &s);
 std::string to_utf8(const std::string &s);
+
+/* Loop over all input and output array elements.
+ * This loop provides input/output buffering for filtering commands that
+ * work on array element level. */
+class element_loop_t
+{
+private:
+    static const size_t _max_iobuf_size;
+
+    gta::header _header_in;
+    std::string _name_in;
+    FILE *_file_in;
+    gta::header _header_out;
+    std::string _name_out;
+    FILE *_file_out;
+
+    gta::io_state _state_in;
+    uintmax_t _element_index_in;
+    blob _buf_in;
+    uintmax_t _buf_elements_in;
+    uintmax_t _buf_index_in;
+    gta::io_state _state_out;
+    uintmax_t _element_index_out;
+    blob _buf_out;
+    uintmax_t _buf_elements_out;
+    uintmax_t _buf_index_out;
+
+public:
+    element_loop_t() throw ();
+    element_loop_t(const gta::header &header_in, const std::string &name_in, FILE *file_in,
+            const gta::header &header_out, const std::string &name_out, FILE *file_out) throw (exc);
+    ~element_loop_t();
+
+    void *read() throw (exc);
+    void write(const void *element) throw (exc);
+
+    void finish() throw (exc);
+};
+
+/* Loop over all input and output arrays.
+ * The input arrays usually come from multiple files, or possibly an input stream
+ * if the list of files is empty. This input stream is usually stdin.
+ * The output arrays usually go into a single stream (often stdout).
+ * This loop is general enough to be usable by all filtering commands. */
+class array_loop_t
+{
+private:
+    static const std::string _stdin_name;
+    static const std::string _stdout_name;
+
+    const std::vector<std::string> _filenames_in;
+    const std::string _filename_out;
+
+    FILE *_file_in;
+    FILE *_file_out;
+    size_t _filename_index;
+    uintmax_t _file_index_in;
+    uintmax_t _index_in;
+    uintmax_t _index_out;
+    std::string _array_name_in;
+    std::string _array_name_out;
+
+    const std::string &filename_in() throw ();
+    const std::string &filename_out() throw ();
+
+public:
+    array_loop_t(const std::vector<std::string> &filenames_in,
+            const std::string &filename_out) throw (exc);
+    ~array_loop_t();
+
+    bool read(gta::header &header_in, std::string &name_in) throw (exc);
+
+    void write(const gta::header &header_out, std::string &name_out) throw (exc);
+
+    void skip_data(const gta::header &header_in) throw (exc);
+    void copy_data(const gta::header &header_in, const gta::header &header_out) throw (exc);
+    element_loop_t element_loop(const gta::header &header_in, const gta::header &header_out) throw (exc);
+
+    void finish() throw (exc);
+};
 
 #endif

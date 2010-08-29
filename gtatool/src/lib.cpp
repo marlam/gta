@@ -28,6 +28,7 @@
 #include <cstddef>
 
 #include "str.h"
+#include "cio.h"
 #include "msg.h"
 #include "intcheck.h"
 #include "endianness.h"
@@ -517,4 +518,278 @@ std::string to_utf8(const std::string &s)
         debug::crash();
     }
     return r;
+}
+
+const size_t element_loop_t::_max_iobuf_size = 1024 * 1024;
+
+element_loop_t::element_loop_t() throw ()
+    : _header_in(), _name_in(), _file_in(NULL),
+    _header_out(), _name_out(), _file_out(NULL),
+    _state_in(), _element_index_in(0), _buf_in(), _buf_elements_in(0), _buf_index_in(0),
+    _state_out(), _element_index_out(0), _buf_out(), _buf_elements_out(0), _buf_index_out(0)
+{
+}
+
+element_loop_t::element_loop_t(
+        const gta::header &header_in, const std::string &name_in, FILE *file_in,
+        const gta::header &header_out, const std::string &name_out, FILE *file_out) throw (exc)
+    : _header_in(header_in), _name_in(name_in), _file_in(file_in),
+    _header_out(header_out), _name_out(name_out), _file_out(file_out),
+    _state_in(), _element_index_in(0), _buf_in(), _buf_elements_in(0), _buf_index_in(0),
+    _state_out(), _element_index_out(0), _buf_out(), _buf_elements_out(0), _buf_index_out(0)
+{
+}
+
+element_loop_t::~element_loop_t()
+{
+}
+
+void *element_loop_t::read() throw (exc)
+{
+    if (_buf_index_in == _buf_elements_in)
+    {
+        uintmax_t max_elements = _max_iobuf_size / checked_cast<size_t>(_header_in.element_size()) + 1;
+        uintmax_t elements = std::min(max_elements, _header_in.elements() - _element_index_in);
+        size_t buf_size = elements * _header_in.element_size();    // cannot overflow here anymore
+        if (_buf_in.size() < buf_size)
+        {
+            _buf_in.resize(buf_size);
+        }
+        try
+        {
+            _header_in.read_elements(_state_in, _file_in, elements, _buf_in.ptr());
+        }
+        catch (std::exception &e)
+        {
+            throw exc(_name_in + ": " + e.what());
+        }
+        _buf_elements_in = elements;
+        _buf_index_in = 0;
+    }
+    void *p = _buf_in.ptr(_buf_index_in * static_cast<size_t>(_header_in.element_size()));
+    _buf_index_in++;
+    _element_index_in++;
+    return p;
+}
+
+void element_loop_t::write(const void *element) throw (exc)
+{
+    if (_buf_index_out == _buf_elements_out)
+    {
+        try
+        {
+            _header_out.write_elements(_state_out, _file_out, _buf_elements_out, _buf_out.ptr());
+        }
+        catch (std::exception &e)
+        {
+            throw exc(_name_out + ": " + e.what());
+        }
+        uintmax_t max_elements = _max_iobuf_size / checked_cast<size_t>(_header_out.element_size()) + 1;
+        uintmax_t elements = std::min(max_elements, _header_out.elements() - _element_index_out);
+        size_t buf_size = elements * _header_out.element_size();    // cannot overflow here anymore
+        if (_buf_out.size() < buf_size)
+        {
+            _buf_out.resize(buf_size);
+        }
+        _buf_elements_out = elements;
+        _buf_index_out = 0;
+    }
+    memcpy(_buf_out.ptr(_buf_index_out * static_cast<size_t>(_header_out.element_size())),
+            element, _header_out.element_size());
+    _buf_index_out++;
+    _element_index_out++;
+}
+
+void element_loop_t::finish() throw (exc)
+{
+    // flush output buffer
+    if (_buf_index_out > 0)
+    {
+        try
+        {
+            _header_out.write_elements(_state_out, _file_out, _buf_index_out, _buf_out.ptr());
+        }
+        catch (std::exception &e)
+        {
+            throw exc(_name_out + ": " + e.what());
+        }
+    }
+}
+
+const std::string array_loop_t::_stdin_name = "standard input";
+const std::string array_loop_t::_stdout_name = "standard output";
+
+array_loop_t::array_loop_t(const std::vector<std::string> &filenames_in,
+        const std::string &filename_out) throw (exc)
+    : _filenames_in(filenames_in), _filename_out(filename_out),
+    _file_in(NULL), _file_out(NULL),
+    _filename_index(0), _file_index_in(0),
+    _index_in(0), _index_out(0),
+    _array_name_in(), _array_name_out()
+{
+    if (_filenames_in.size() == 0)
+    {
+        _file_in = gtatool_stdin;
+    }
+    else
+    {
+        _file_in = cio::open(_filenames_in.at(_filename_index), "r");
+    }
+    try
+    {
+        if (_filename_out.length() == 0)
+        {
+            _file_out = gtatool_stdout;
+        }
+        else
+        {
+            _file_out = cio::open(_filename_out, "w");
+        }
+    }
+    catch (exc &e)
+    {
+        if (_file_in && _file_in != gtatool_stdin)
+        {
+            try { cio::close(_file_in, filename_in()); } catch (...) { }
+        }
+        throw (e);
+    }
+}
+
+array_loop_t::~array_loop_t()
+{
+    if (_file_in && _file_in != gtatool_stdin)
+    {
+        try
+        {
+            cio::close(_file_in, filename_in());
+        }
+        catch (...)
+        {
+        }
+    }
+    if (_file_out && _file_out != gtatool_stdout)
+    {
+        try
+        {
+            cio::close(_file_out, filename_out());
+        }
+        catch (...)
+        {
+        }
+    }
+}
+
+void array_loop_t::finish() throw (exc)
+{
+    if (_file_out && _file_out != gtatool_stdout)
+    {
+        FILE *f = _file_out;
+        const std::string &name = filename_out();
+        _file_out = NULL;
+        cio::close(f, name);
+    }
+    if (_file_in && _file_in != gtatool_stdin)
+    {
+        FILE *f = _file_in;
+        const std::string &name = filename_in();
+        _file_in = NULL;
+        cio::close(f, name);
+    }
+}
+
+const std::string &array_loop_t::filename_in() throw ()
+{
+    return (_file_in == gtatool_stdin ? _stdin_name : _filenames_in[_filename_index]);
+}
+
+const std::string &array_loop_t::filename_out() throw ()
+{
+    return (_file_out == gtatool_stdout ? _stdout_name : _filename_out);
+}
+
+bool array_loop_t::read(gta::header &header_in, std::string &name_in) throw (exc)
+{
+    while (!cio::has_more(_file_in))
+    {
+        if (_filenames_in.size() == 0)
+        {
+            return false;
+        }
+        else
+        {
+            FILE *f = _file_in;
+            _file_in = NULL;
+            cio::close(f, filename_in());
+            if (_filename_index + 1 == _filenames_in.size())
+            {
+                return false;
+            }
+            _filename_index++;
+            _file_in = cio::open(_filenames_in.at(_filename_index), "r");
+            _file_index_in = 0;
+        }
+    }
+    _array_name_in = filename_in() + " array " + str::from(_file_index_in);
+    name_in = _array_name_in;
+    try
+    {
+        header_in.read_from(_file_in);
+    }
+    catch (std::exception &e)
+    {
+        throw exc(_array_name_in + ": " + e.what());
+    }
+    _file_index_in++;
+    _index_in++;
+    return true;
+}
+
+void array_loop_t::write(const gta::header &header_out, std::string &name_out) throw (exc)
+{
+    if (cio::isatty(_file_out))
+    {
+        throw exc("refusing to write to a tty");
+    }
+    _array_name_out = filename_out() + " array " + str::from(_index_out);
+    name_out = _array_name_out;
+    try
+    {
+        header_out.write_to(_file_out);
+    }
+    catch (std::exception &e)
+    {
+        throw exc(_array_name_out + ": " + e.what());
+    }
+    _index_out++;
+}
+
+void array_loop_t::skip_data(const gta::header &header_in) throw (exc)
+{
+    try
+    {
+        header_in.skip_data(_file_in);
+    }
+    catch (std::exception &e)
+    {
+        throw exc(_array_name_in + ": " + e.what());
+    }
+}
+
+void array_loop_t::copy_data(const gta::header &header_in, const gta::header &header_out) throw (exc)
+{
+    try
+    {
+        header_in.copy_data(_file_in, header_out, _file_out);
+    }
+    catch (std::exception &e)
+    {
+        throw exc(_array_name_in + ": " + e.what());
+    }
+}
+
+element_loop_t array_loop_t::element_loop(const gta::header &header_in, const gta::header &header_out) throw (exc)
+{
+    return element_loop_t(header_in, _array_name_in, _file_in,
+            header_out, _array_name_out, _file_out);
 }
