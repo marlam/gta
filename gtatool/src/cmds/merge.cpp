@@ -78,42 +78,38 @@ extern "C" int gtatool_merge(int argc, char *argv[])
 
     try
     {
-        std::vector<std::string> arg0;
-        arg0.push_back(arguments[0]);
-        array_loop_t array_loop(arg0, "");
-        std::vector<FILE *> fi(arguments.size());
-        fi[0] = NULL;
-        for (size_t i = 1; i < arguments.size(); i++)
-        {
-            fi[i] = cio::open(arguments[i], "r");
-        }
+        std::vector<array_loop_t> array_loops(arguments.size());
         std::vector<gta::header> hdri(arguments.size());
-        std::string namei;
-        uintmax_t array_index = 0;
-        while (array_loop.read(hdri[0], namei))
+        std::vector<std::string> namei(arguments.size());
+
+        for (size_t i = 0; i < arguments.size(); i++)
+        {
+            array_loops[i].start(arguments[i], "");
+        }
+        while (array_loops[0].read(hdri[0], namei[0]))
         {
             if (dimension.value() >= hdri[0].dimensions())
             {
-                throw exc(namei + ": array has no dimension " + str::from(dimension.value()));
+                throw exc(namei[0] + ": array has no dimension " + str::from(dimension.value()));
             }
             for (size_t i = 1; i < arguments.size(); i++)
             {
-                hdri[i].read_from(fi[i]);
+                array_loops[i].read(hdri[i], namei[i]);
                 if (hdri[i].components() != hdri[0].components())
                 {
-                    throw exc(arguments[i] + " array " + str::from(array_index) + ": incompatible array");
+                    throw exc(namei[i] + ": incompatible array");
                 }
                 for (uintmax_t c = 0; c < hdri[0].components(); c++)
                 {
                     if (hdri[i].component_type(c) != hdri[0].component_type(c)
                             || hdri[i].component_size(c) != hdri[0].component_size(c))
                     {
-                        throw exc(arguments[i] + " array " + str::from(array_index) + ": incompatible array");
+                        throw exc(namei[i] + ": incompatible array");
                     }
                 }
                 if (hdri[i].dimensions() != hdri[0].dimensions())
                 {
-                    throw exc(arguments[i] + " array " + str::from(array_index) + ": incompatible array");
+                    throw exc(namei[i] + ": incompatible array");
                 }
                 for (uintmax_t d = 0; d < hdri[0].dimensions(); d++)
                 {
@@ -123,7 +119,7 @@ extern "C" int gtatool_merge(int argc, char *argv[])
                     }
                     if (hdri[i].dimension_size(d) != hdri[0].dimension_size(d))
                     {
-                        throw exc(arguments[i] + " array " + str::from(array_index) + ": incompatible array");
+                        throw exc(namei[i] + ": incompatible array");
                     }
                 }
             }
@@ -168,16 +164,13 @@ extern "C" int gtatool_merge(int argc, char *argv[])
             {
                 hdro.component_taglist(c) = hdri[0].component_taglist(c);
             }
-            array_loop.write(hdro, nameo);
+            array_loops[0].write(hdro, nameo);
             blob element_buf(checked_cast<size_t>(hdro.element_size()));
             std::vector<uintmax_t> indices(hdro.dimensions());
             std::vector<element_loop_t> element_loops(arguments.size());
-            element_loops[0] = array_loop.element_loop(hdri[0], hdro);
-            for (size_t i = 1; i < element_loops.size(); i++)
+            for (size_t i = 0; i < element_loops.size(); i++)
             {
-                element_loops[i] = element_loop_t(hdri[i],
-                        arguments[i] + " array " + str::from(array_index), fi[i],
-                        gta::header(), "", NULL);
+                array_loops[i].start_element_loop(element_loops[i], hdri[i], hdro);
             }
             for (uintmax_t e = 0; e < hdro.elements(); e++)
             {
@@ -194,20 +187,19 @@ extern "C" int gtatool_merge(int argc, char *argv[])
                 }
                 element_loops[0].write(element_loops[j].read());
             }
-            element_loops[0].finish();
-            array_index++;
+            for (size_t i = 0; i < element_loops.size(); i++)
+            {
+                element_loops[i].finish();
+            }
         }
-        array_loop.finish();
+        array_loops[0].finish();
         for (size_t i = 1; i < arguments.size(); i++)
         {
-            if (cio::has_more(fi[i], arguments[i]))
+            if (array_loops[i].read(hdri[i], namei[i]))
             {
                 msg::wrn_txt("ignoring additional array(s) from %s", arguments[i].c_str());
             }
-        }
-        for (size_t i = 1; i < arguments.size(); i++)
-        {
-            cio::close(fi[i], arguments[i]);
+            array_loops[i].finish();
         }
     }
     catch (std::exception &e)

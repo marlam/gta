@@ -93,9 +93,10 @@ private:
 
 public:
     element_loop_t() throw ();
-    element_loop_t(const gta::header &header_in, const std::string &name_in, FILE *file_in,
-            const gta::header &header_out, const std::string &name_out, FILE *file_out) throw (exc);
     ~element_loop_t();
+
+    void start(const gta::header &header_in, const std::string &name_in, FILE *file_in,
+            const gta::header &header_out, const std::string &name_out, FILE *file_out) throw (exc);
 
     void *read() throw (exc);
     void write(const void *element) throw (exc);
@@ -114,8 +115,8 @@ private:
     static const std::string _stdin_name;
     static const std::string _stdout_name;
 
-    const std::vector<std::string> _filenames_in;
-    const std::string _filename_out;
+    std::vector<std::string> _filenames_in;
+    std::string _filename_out;
 
     FILE *_file_in;
     FILE *_file_out;
@@ -130,9 +131,17 @@ private:
     const std::string &filename_out() throw ();
 
 public:
-    array_loop_t(const std::vector<std::string> &filenames_in,
-            const std::string &filename_out) throw (exc);
+    array_loop_t() throw ();
     ~array_loop_t();
+
+    void start(const std::vector<std::string> &filenames_in,
+            const std::string &filename_out) throw (exc);
+    void start(const std::string &filename_in, const std::string &filename_out) throw (exc)
+    {
+        std::vector<std::string> v(1);
+        v[0] = filename_in;
+        start(v, filename_out);
+    }
 
     bool read(gta::header &header_in, std::string &name_in) throw (exc);
 
@@ -140,7 +149,7 @@ public:
 
     void skip_data(const gta::header &header_in) throw (exc);
     void copy_data(const gta::header &header_in, const gta::header &header_out) throw (exc);
-    element_loop_t element_loop(const gta::header &header_in, const gta::header &header_out) throw (exc);
+    void start_element_loop(element_loop_t &element_loop, const gta::header &header_in, const gta::header &header_out) throw (exc);
 
     void finish() throw (exc);
 };

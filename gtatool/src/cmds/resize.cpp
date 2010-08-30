@@ -57,8 +57,7 @@ extern "C" int gtatool_resize(int argc, char *argv[])
     options.push_back(&help);
     opt::tuple<uintmax_t> dimensions("dimensions", 'd', opt::required, 1, std::numeric_limits<intmax_t>::max() / 2 - 1);
     options.push_back(&dimensions);
-    opt::tuple<intmax_t> index("index", 'i', opt::optional,
-            std::numeric_limits<intmax_t>::min() / 2 + 1, std::numeric_limits<intmax_t>::max() / 2 - 1);
+    opt::tuple<intmax_t> index("index", 'i', opt::optional);
     options.push_back(&index);
     opt::string value("value", 'v', opt::optional);
     options.push_back(&value);
@@ -80,9 +79,10 @@ extern "C" int gtatool_resize(int argc, char *argv[])
 
     try
     {
-        array_loop_t array_loop(arguments, "");
+        array_loop_t array_loop;
         gta::header hdri, hdro;
         std::string namei, nameo;
+        array_loop.start(arguments, "");
         while (array_loop.read(hdri, namei))
         {
             if (hdri.dimensions() != dimensions.value().size())
@@ -117,10 +117,11 @@ extern "C" int gtatool_resize(int argc, char *argv[])
             }
             array_loop.write(hdro, nameo);
 
-            element_loop_t element_loop = array_loop.element_loop(hdri, hdro);
+            element_loop_t element_loop;
             uintmax_t read_in_elements = 0;
             std::vector<intmax_t> in_index(hdri.dimensions());
             std::vector<uintmax_t> out_index(hdro.dimensions());
+            array_loop.start_element_loop(element_loop, hdri, hdro);
             for (uintmax_t linear_out_index = 0; linear_out_index < hdro.elements(); linear_out_index++)
             {
                 hdro.linear_index_to_indices(linear_out_index, &(out_index[0]));
@@ -129,9 +130,7 @@ extern "C" int gtatool_resize(int argc, char *argv[])
                 {
                     if (!index.values().empty())
                     {
-                        // cannot over- or underflow due to the restrictions on
-                        // the dimensions and index options.
-                        in_index[i] = out_index[i] - index.value()[i];
+                        in_index[i] = checked_sub(checked_cast<intmax_t>(out_index[i]), index.value()[i]);
                     }
                     else
                     {

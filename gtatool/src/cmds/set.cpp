@@ -54,7 +54,7 @@ extern "C" int gtatool_set(int argc, char *argv[])
     std::vector<opt::option *> options;
     opt::info help("help", '\0', opt::optional);
     options.push_back(&help);
-    opt::tuple<intmax_t> index("index", 'i', opt::optional, 0, std::numeric_limits<intmax_t>::max());
+    opt::tuple<intmax_t> index("index", 'i', opt::optional);
     options.push_back(&index);
     opt::string source("source", 's', opt::required);
     options.push_back(&source);
@@ -71,43 +71,39 @@ extern "C" int gtatool_set(int argc, char *argv[])
 
     try
     {
-        gta::header hdrs;
-        FILE *fs = cio::open(source.value(), "r");
-        if (!cio::seekable(fs))
-        {
-            throw exc(source.value() + " is not seekable");
-        }
-        hdrs.read_from(fs);
-        if (hdrs.compression() != gta::none)
-        {
-            throw exc(source.value() + ": GTA is compressed");
-        }
-        if (!index.value().empty())
-        {
-            if (index.value().size() != hdrs.dimensions())
-            {
-                throw exc("index and source GTA have incompatible number of dimensions");
-            }
-        }
-        uintmax_t source_data_offset = cio::tell(fs, source.value());
-
-        array_loop_t array_loop(arguments, "");
+        array_loop_t array_loop;
         gta::header hdri, hdro;
         std::string namei, nameo;
+        array_loop.start(arguments, "");
         while (array_loop.read(hdri, namei))
         {
-            if (hdri.dimensions() != hdrs.dimensions())
+            array_loop_t array_loop_src;
+            gta::header hdr_src;
+            std::string name_src;
+            array_loop_src.start(source.value(), "");
+            if (!array_loop_src.read(hdr_src, name_src))
+            {
+                throw exc(source.value() + " is empty");
+            }
+            if (!index.value().empty())
+            {
+                if (index.value().size() != hdr_src.dimensions())
+                {
+                    throw exc(name_src + ": incompatible with given index");
+                }
+            }
+            if (hdri.dimensions() != hdr_src.dimensions())
             {
                 throw exc(namei + ": incompatible number of dimensions");
             }
-            if (hdri.components() != hdrs.components())
+            if (hdri.components() != hdr_src.components())
             {
                 throw exc(namei + ": incompatible element components");
             }
             for (uintmax_t i = 0; i < hdri.components(); i++)
             {
-                if (hdri.component_type(i) != hdrs.component_type(i)
-                        || hdri.component_size(i) != hdrs.component_size(i))
+                if (hdri.component_type(i) != hdr_src.component_type(i)
+                        || hdri.component_size(i) != hdr_src.component_size(i))
                 {
                     throw exc(namei + ": incompatible element components");
                 }
@@ -116,39 +112,57 @@ extern "C" int gtatool_set(int argc, char *argv[])
             hdro.set_compression(gta::none);
             array_loop.write(hdro, nameo);
 
-            element_loop_t element_loop = array_loop.element_loop(hdri, hdro);
-            blob element(checked_cast<size_t>(hdrs.element_size()));
-            std::vector<uintmax_t> in_index(hdri.dimensions());
-            std::vector<uintmax_t> start_index(hdri.dimensions());
-            for (size_t i = 0; i < start_index.size(); i++)
+            element_loop_t element_loop;
+            element_loop_t element_loop_src;
+            uintmax_t read_src_elements = 0;
+            std::vector<intmax_t> src_index(hdr_src.dimensions());
+            std::vector<uintmax_t> out_index(hdro.dimensions());
+            array_loop.start_element_loop(element_loop, hdri, hdro);
+            array_loop_src.start_element_loop(element_loop_src, hdr_src, gta::header());
+            for (uintmax_t linear_out_index = 0; linear_out_index < hdro.elements(); linear_out_index++)
             {
-                start_index[i] = (index.value().empty() ? 0 : index.value()[i]);
-            }
-            std::vector<uintmax_t> source_index(hdrs.dimensions());
-            for (uintmax_t e = 0; e < hdro.elements(); e++)
-            {
-                const void *src = element_loop.read();
-                hdri.linear_index_to_indices(e, &(in_index[0]));
-                bool replace = true;
-                for (size_t i = 0; i < in_index.size(); i++)
+                hdro.linear_index_to_indices(linear_out_index, &(out_index[0]));
+                bool from_src = true;
+                for (uintmax_t i = 0; i < hdr_src.dimensions(); i++)
                 {
-                    if (in_index[i] < start_index[i] || in_index[i] >= start_index[i] + hdrs.dimension_size(i))
+                    if (!index.values().empty())
                     {
-                        replace = false;
-                        break;
+                        src_index[i] = checked_sub(checked_cast<intmax_t>(out_index[i]), index.value()[i]);
                     }
                     else
                     {
-                        source_index[i] = in_index[i] - start_index[i];
+                        src_index[i] = out_index[i];
+                    }
+                    if (src_index[i] < 0 || static_cast<uintmax_t>(src_index[i]) >= hdr_src.dimension_size(i))
+                    {
+                        from_src = false;
                     }
                 }
-                if (replace)
+                const void *src = element_loop.read();
+                if (from_src)
                 {
-                    hdrs.read_block(fs, source_data_offset, &(source_index[0]), &(source_index[0]), element.ptr());
+                    std::vector<uintmax_t> requested_src_index(src_index.size());
+                    for (size_t i = 0; i < requested_src_index.size(); i++)
+                    {
+                        requested_src_index[i] = src_index[i];
+                    }
+                    uintmax_t requested_linear_src_index = hdr_src.indices_to_linear_index(&(requested_src_index[0]));
+                    // elements are guaranteed to be in ascending order
+                    for (uintmax_t i = read_src_elements; i <= requested_linear_src_index; i++)
+                    {
+                        src = element_loop_src.read();
+                    }
+                    read_src_elements = requested_linear_src_index + 1;
                 }
-                element_loop.write(replace ? element.ptr() : src);
+                element_loop.write(src);
             }
             element_loop.finish();
+            for (uintmax_t i = read_src_elements; i < hdr_src.elements(); i++)
+            {
+                element_loop_src.read();
+            }
+            element_loop_src.finish();
+            array_loop_src.finish();
         }
         array_loop.finish();
     }

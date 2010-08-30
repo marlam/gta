@@ -62,9 +62,10 @@ extern "C" int gtatool_uncompress(int argc, char *argv[])
 
     try
     {
-        array_loop_t array_loop(arguments, "");
+        array_loop_t array_loop;
         gta::header hdri, hdro;
         std::string namei, nameo;
+        array_loop.start(arguments, "");
         while (array_loop.read(hdri, namei))
         {
             hdro = hdri;

@@ -90,9 +90,10 @@ extern "C" int gtatool_fill(int argc, char *argv[])
 
     try
     {
-        array_loop_t array_loop(arguments, "");
+        array_loop_t array_loop;
         gta::header hdri, hdro;
         std::string namei, nameo;
+        array_loop.start(arguments, "");
         while (array_loop.read(hdri, namei))
         {
             if (!low.values().empty() && low.value().size() != hdri.dimensions())
@@ -122,8 +123,9 @@ extern "C" int gtatool_fill(int argc, char *argv[])
             hdro.set_compression(gta::none);
             array_loop.write(hdro, nameo);
 
-            element_loop_t element_loop = array_loop.element_loop(hdri, hdro);
+            element_loop_t element_loop;
             std::vector<uintmax_t> index(hdri.dimensions());
+            array_loop.start_element_loop(element_loop, hdri, hdro);
             for (uintmax_t e = 0; e < hdro.elements(); e++)
             {
                 const void *src = element_loop.read();

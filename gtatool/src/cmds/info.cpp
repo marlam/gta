@@ -62,9 +62,10 @@ extern "C" int gtatool_info(int argc, char *argv[])
 
     try
     {
-        array_loop_t array_loop(arguments, "");
+        array_loop_t array_loop;
         gta::header hdr;
         std::string name;
+        array_loop.start(arguments, "");
         while (array_loop.read(hdr, name))
         {
             std::stringstream dimensions;

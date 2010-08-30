@@ -80,7 +80,7 @@ extern "C" int gtatool_create(int argc, char *argv[])
 
     try
     {
-        array_loop_t array_loop(std::vector<std::string>(), arguments.size() == 1 ? arguments[0] : "");
+        array_loop_t array_loop;
         gta::header hdr;
         std::string name;
         hdr.set_dimensions(dimensions.value().size(), &(dimensions.value()[0]));
@@ -97,10 +97,12 @@ extern "C" int gtatool_create(int argc, char *argv[])
         {
             valuelist_from_string(value.value(), comp_types, comp_sizes, v.ptr());
         }
+        array_loop.start(std::vector<std::string>(), arguments.size() == 1 ? arguments[0] : "");
         for (uintmax_t i = 0; i < n.value(); i++)
         {
             array_loop.write(hdr, name);
-            element_loop_t element_loop = array_loop.element_loop(gta::header(), hdr);
+            element_loop_t element_loop;
+            array_loop.start_element_loop(element_loop, gta::header(), hdr);
             for (uintmax_t j = 0; j < hdr.elements(); j++)
             {
                 element_loop.write(v.ptr());

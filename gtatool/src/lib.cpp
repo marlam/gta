@@ -530,18 +530,30 @@ element_loop_t::element_loop_t() throw ()
 {
 }
 
-element_loop_t::element_loop_t(
-        const gta::header &header_in, const std::string &name_in, FILE *file_in,
-        const gta::header &header_out, const std::string &name_out, FILE *file_out) throw (exc)
-    : _header_in(header_in), _name_in(name_in), _file_in(file_in),
-    _header_out(header_out), _name_out(name_out), _file_out(file_out),
-    _state_in(), _element_index_in(0), _buf_in(), _buf_elements_in(0), _buf_index_in(0),
-    _state_out(), _element_index_out(0), _buf_out(), _buf_elements_out(0), _buf_index_out(0)
+element_loop_t::~element_loop_t()
 {
 }
 
-element_loop_t::~element_loop_t()
+void element_loop_t::start(
+        const gta::header &header_in, const std::string &name_in, FILE *file_in,
+        const gta::header &header_out, const std::string &name_out, FILE *file_out) throw (exc)
 {
+    _header_in = header_in;
+    _name_in = name_in;
+    _file_in = file_in;
+    _header_out = header_out;
+    _name_out = name_out;
+    _file_out = file_out;
+    _state_in = gta::io_state();
+    _element_index_in = 0;
+    _buf_in.resize(0);
+    _buf_elements_in = 0;
+    _buf_index_in = 0;
+    _state_out = gta::io_state();
+    _element_index_out = 0;
+    _buf_out.resize(0);
+    _buf_elements_out = 0;
+    _buf_index_out = 0;
 }
 
 void *element_loop_t::read() throw (exc)
@@ -619,41 +631,13 @@ void element_loop_t::finish() throw (exc)
 const std::string array_loop_t::_stdin_name = "standard input";
 const std::string array_loop_t::_stdout_name = "standard output";
 
-array_loop_t::array_loop_t(const std::vector<std::string> &filenames_in,
-        const std::string &filename_out) throw (exc)
-    : _filenames_in(filenames_in), _filename_out(filename_out),
+array_loop_t::array_loop_t() throw ()
+    : _filenames_in(), _filename_out(),
     _file_in(NULL), _file_out(NULL),
     _filename_index(0), _file_index_in(0),
     _index_in(0), _index_out(0),
     _array_name_in(), _array_name_out()
 {
-    if (_filenames_in.size() == 0)
-    {
-        _file_in = gtatool_stdin;
-    }
-    else
-    {
-        _file_in = cio::open(_filenames_in.at(_filename_index), "r");
-    }
-    try
-    {
-        if (_filename_out.length() == 0)
-        {
-            _file_out = gtatool_stdout;
-        }
-        else
-        {
-            _file_out = cio::open(_filename_out, "w");
-        }
-    }
-    catch (exc &e)
-    {
-        if (_file_in && _file_in != gtatool_stdin)
-        {
-            try { cio::close(_file_in, filename_in()); } catch (...) { }
-        }
-        throw (e);
-    }
 }
 
 array_loop_t::~array_loop_t()
@@ -677,6 +661,37 @@ array_loop_t::~array_loop_t()
         catch (...)
         {
         }
+    }
+}
+
+void array_loop_t::start(const std::vector<std::string> &filenames_in,
+        const std::string &filename_out) throw (exc)
+{
+    _filenames_in = filenames_in;
+    _filename_out = filename_out;
+    _file_in = NULL;
+    _file_out = NULL;
+    _filename_index = 0;
+    _file_index_in = 0;
+    _index_in = 0;
+    _index_out = 0;
+    _array_name_in = "";
+    _array_name_out = "";
+    if (_filenames_in.size() == 0)
+    {
+        _file_in = gtatool_stdin;
+    }
+    else
+    {
+        _file_in = cio::open(_filenames_in[0], "r");
+    }
+    if (_filename_out.length() == 0)
+    {
+        _file_out = gtatool_stdout;
+    }
+    else
+    {
+        _file_out = cio::open(_filename_out, "w");
     }
 }
 
@@ -788,8 +803,9 @@ void array_loop_t::copy_data(const gta::header &header_in, const gta::header &he
     }
 }
 
-element_loop_t array_loop_t::element_loop(const gta::header &header_in, const gta::header &header_out) throw (exc)
+void array_loop_t::start_element_loop(element_loop_t &element_loop,
+        const gta::header &header_in, const gta::header &header_out) throw (exc)
 {
-    return element_loop_t(header_in, _array_name_in, _file_in,
+    element_loop.start(header_in, _array_name_in, _file_in,
             header_out, _array_name_out, _file_out);
 }
