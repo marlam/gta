@@ -225,7 +225,7 @@ namespace cio
     // drive letter (or UNC name?) to be truly absolute. Fix this if it
     // becomes a problem.
 
-    std::string to_sys(const std::string &pathname) throw (exc)
+    std::string to_sys(const std::string &pathname)
     {
         std::string s(pathname);
         size_t l = s.length();
@@ -254,7 +254,7 @@ namespace cio
         return s;
     }
 
-    std::string from_sys(const std::string &pathname) throw (exc)
+    std::string from_sys(const std::string &pathname)
     {
         std::string s(pathname);
         size_t l = s.length();
@@ -278,7 +278,7 @@ namespace cio
     }
 #endif
 
-    FILE *open(const std::string &filename, const std::string &mode, const int flags) throw (exc)
+    FILE *open(const std::string &filename, const std::string &mode, const int flags)
     {
         if (flags == 0)
         {
@@ -312,7 +312,7 @@ namespace cio
         }
     }
 
-    void close(FILE *f, const std::string &filename) throw (exc)
+    void close(FILE *f, const std::string &filename)
     {
         if (::fclose(f) != 0)
         {
@@ -471,7 +471,7 @@ error_exit:
         return dir;
     }
 
-    FILE *tempfile(const std::string &base) throw (exc)
+    FILE *tempfile(const std::string &base)
     {
         FILE *f;
 
@@ -483,7 +483,7 @@ error_exit:
         return f;
     }
 
-    std::string mktempfile(FILE **f, const std::string &base, const std::string &dir) throw (exc)
+    std::string mktempfile(FILE **f, const std::string &base, const std::string &dir)
     {
         char *filename;
         real_mktemp(dir.empty() ? default_tmpdir() : to_sys(dir).c_str(),
@@ -497,7 +497,7 @@ error_exit:
         return from_sys(s);
     }
 
-    std::string mktempdir(const std::string &base, const std::string &dir) throw (exc)
+    std::string mktempdir(const std::string &base, const std::string &dir)
     {
         char *dirname;
         real_mktemp(dir.empty() ? default_tmpdir() : to_sys(dir).c_str(),
@@ -511,7 +511,7 @@ error_exit:
         return from_sys(s);
     }
 
-    void disable_buffering(FILE *f, const std::string &filename) throw (exc)
+    void disable_buffering(FILE *f, const std::string &filename)
     {
         if (::setvbuf(f, NULL, _IONBF, 0) != 0)
         {
@@ -519,7 +519,7 @@ error_exit:
         }
     }
 
-    static bool lock(int mode, FILE *f, const std::string &filename) throw (exc)
+    static bool lock(int mode, FILE *f, const std::string &filename)
     {
         int fd = fileno(f);     // Do not use ::fileno(f); fileno might be a macro
         bool success;
@@ -544,17 +544,17 @@ error_exit:
         return success;
     }
 
-    bool readlock(FILE *f, const std::string &filename) throw (exc)
+    bool readlock(FILE *f, const std::string &filename)
     {
         return lock(0, f, filename);
     }
 
-    bool writelock(FILE *f, const std::string &filename) throw (exc)
+    bool writelock(FILE *f, const std::string &filename)
     {
         return lock(1, f, filename);
     }
 
-    void read(void *dest, size_t s, size_t n, FILE *f, const std::string &filename) throw (exc)
+    void read(void *dest, size_t s, size_t n, FILE *f, const std::string &filename)
     {
         size_t r;
 
@@ -571,7 +571,7 @@ error_exit:
         }
     }
 
-    void write(const void *dest, size_t s, size_t n, FILE *f, const std::string &filename) throw (exc)
+    void write(const void *dest, size_t s, size_t n, FILE *f, const std::string &filename)
     {
         if (::fwrite(dest, s, n, f) != n)
         {
@@ -579,7 +579,7 @@ error_exit:
         }
     }
 
-    void flush(FILE *f, const std::string &filename) throw (exc)
+    void flush(FILE *f, const std::string &filename)
     {
         if (::fflush(f) != 0)
         {
@@ -592,7 +592,7 @@ error_exit:
         return (::ftello(f) != -1);
     }
 
-    void seek(FILE *f, off_t offset, int whence, const std::string &filename) throw (exc)
+    void seek(FILE *f, off_t offset, int whence, const std::string &filename)
     {
         if (::fseeko(f, offset, whence) != 0)
         {
@@ -600,12 +600,12 @@ error_exit:
         }
     }
 
-    void rewind(FILE *f, const std::string &filename) throw (exc)
+    void rewind(FILE *f, const std::string &filename)
     {
         seek(f, 0, SEEK_SET, filename);
     }
 
-    off_t tell(FILE *f, const std::string &filename) throw (exc)
+    off_t tell(FILE *f, const std::string &filename)
     {
         off_t o;
 
@@ -616,7 +616,7 @@ error_exit:
         return o;
     }
 
-    int getc(FILE *f, const std::string &filename) throw (exc)
+    int getc(FILE *f, const std::string &filename)
     {
         int c = ::fgetc(f);
         if (c == EOF && ferror(f))
@@ -626,7 +626,7 @@ error_exit:
         return c;
     }
 
-    void ungetc(int c, FILE *f, const std::string &filename) throw (exc)
+    void ungetc(int c, FILE *f, const std::string &filename)
     {
         if (::ungetc(c, f) == EOF)
         {
@@ -634,7 +634,7 @@ error_exit:
         }
     }
 
-    bool has_more(FILE *f, const std::string &filename) throw (exc)
+    bool has_more(FILE *f, const std::string &filename)
     {
         int c = getc(f, filename);
         if (c == EOF)
@@ -648,7 +648,7 @@ error_exit:
         }
     }
 
-    std::string readline(FILE *f, const std::string &filename) throw (exc)
+    std::string readline(FILE *f, const std::string &filename)
     {
         std::string line;
         char c;
@@ -669,7 +669,7 @@ error_exit:
         return ::isatty(fileno(f));
     }
 
-    void *map(FILE *f, off_t offset, size_t length, const std::string &filename) throw (exc)
+    void *map(FILE *f, off_t offset, size_t length, const std::string &filename)
     {
 #if HAVE_MMAP
 
@@ -699,7 +699,7 @@ error_exit:
 #endif
     }
 
-    void unmap(void *start, size_t length, const std::string &filename) throw (exc)
+    void unmap(void *start, size_t length, const std::string &filename)
     {
 #if HAVE_MMAP
 
@@ -716,7 +716,7 @@ error_exit:
 #endif
     }
 
-    void link(const std::string &oldfilename, const std::string &newfilename) throw (exc)
+    void link(const std::string &oldfilename, const std::string &newfilename)
     {
         if (::link(to_sys(oldfilename).c_str(), to_sys(newfilename).c_str()) != 0)
         {
@@ -724,7 +724,7 @@ error_exit:
         }
     }
 
-    void unlink(const std::string &filename) throw (exc)
+    void unlink(const std::string &filename)
     {
         if (::unlink(to_sys(filename).c_str()) != 0)
         {
@@ -732,7 +732,7 @@ error_exit:
         }
     }
 
-    void mkdir(const std::string &dirname) throw (exc)
+    void mkdir(const std::string &dirname)
     {
         if (::mkdir(to_sys(dirname).c_str(), S_IRWXU | S_IRWXG | S_IRWXO) != 0)
         {
@@ -740,7 +740,7 @@ error_exit:
         }
     }
 
-    void rmdir(const std::string &dirname) throw (exc)
+    void rmdir(const std::string &dirname)
     {
         if (::rmdir(to_sys(dirname).c_str()) != 0)
         {
@@ -748,7 +748,7 @@ error_exit:
         }
     }
 
-    void remove(const std::string &pathname) throw (exc)
+    void remove(const std::string &pathname)
     {
         if (test_d(pathname))
         {
@@ -760,7 +760,7 @@ error_exit:
         }
     }
 
-    void rename(const std::string &old_path, const std::string &new_path) throw (exc)
+    void rename(const std::string &old_path, const std::string &new_path)
     {
         // TODO: work around W32 bug: rename cannot replace existing files
         if (::rename(to_sys(old_path).c_str(), to_sys(new_path).c_str()) != 0)
@@ -769,7 +769,7 @@ error_exit:
         }
     }
 
-    void mkdir_p(const std::string &prefix, const std::string &dirname) throw (exc)
+    void mkdir_p(const std::string &prefix, const std::string &dirname)
     {
         std::string p(to_sys(prefix));
         int pl = p.length();
@@ -851,12 +851,12 @@ error_exit:
         }
     }
 
-    void mkdir_p(const std::string &dirname) throw (exc)
+    void mkdir_p(const std::string &dirname)
     {
         mkdir_p(std::string(), dirname);
     }
 
-    void rm_r(const std::string &pathname) throw (exc)
+    void rm_r(const std::string &pathname)
     {
         std::list<std::string> pathlist;
         std::list<std::string>::iterator it;
@@ -917,7 +917,7 @@ error_exit:
         }
     }
 
-    static bool test(int mode, const std::string &pathname) throw (exc)
+    static bool test(int mode, const std::string &pathname)
     {
         struct stat buf;
         int r = ::stat(to_sys(pathname).c_str(), &buf);
@@ -938,22 +938,22 @@ error_exit:
         }
     }
 
-    bool test_e(const std::string &pathname) throw (exc)
+    bool test_e(const std::string &pathname)
     {
         return test(0, pathname);
     }
 
-    bool test_f(const std::string &pathname) throw (exc)
+    bool test_f(const std::string &pathname)
     {
         return test(1, pathname);
     }
 
-    bool test_d(const std::string &pathname) throw (exc)
+    bool test_d(const std::string &pathname)
     {
         return test(2, pathname);
     }
 
-    std::string basename(const std::string &name, const std::string &suffix) throw (exc)
+    std::string basename(const std::string &name, const std::string &suffix)
     {
         std::string base(name);
         size_t slash = name.find_last_of('/');

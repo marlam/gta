@@ -61,8 +61,8 @@ namespace cio
 #   undef off_t
 #   define off_t off64_t
     // Convert sane path names to and from Windows path names.
-    std::string to_sys(const std::string &pathname) throw (exc);
-    std::string from_sys(const std::string &pathname) throw (exc);
+    std::string to_sys(const std::string &pathname);
+    std::string from_sys(const std::string &pathname);
 #else
     // On all other systems, these inline functions should be optimized away by the compiler:
     inline const std::string &to_sys(const std::string &pathname) { return pathname; }
@@ -70,41 +70,41 @@ namespace cio
 #endif
 
     // fopen / fclose replacements
-    FILE *open(const std::string &filename, const std::string &mode, const int flags = 0) throw (exc);
-    void close(FILE *f, const std::string &filename = std::string("")) throw (exc);
+    FILE *open(const std::string &filename, const std::string &mode, const int flags = 0);
+    void close(FILE *f, const std::string &filename = std::string(""));
 
     // temporary files and directories
-    FILE *tempfile(const std::string &base = std::string("")) throw (exc);
-    std::string mktempfile(FILE **f, const std::string &base = std::string(""), const std::string &dir = std::string("")) throw (exc);
-    std::string mktempdir(const std::string &base = std::string(""), const std::string &dir = std::string("")) throw (exc);
+    FILE *tempfile(const std::string &base = std::string(""));
+    std::string mktempfile(FILE **f, const std::string &base = std::string(""), const std::string &dir = std::string(""));
+    std::string mktempdir(const std::string &base = std::string(""), const std::string &dir = std::string(""));
 
     // buffering
-    void disable_buffering(FILE *f, const std::string &filename = std::string("")) throw (exc);
+    void disable_buffering(FILE *f, const std::string &filename = std::string(""));
 
     // advisory locks (for the whole file)
-    bool readlock(FILE *f, const std::string &filename = std::string("")) throw (exc);
-    bool writelock(FILE *f, const std::string &filename = std::string("")) throw (exc);
+    bool readlock(FILE *f, const std::string &filename = std::string(""));
+    bool writelock(FILE *f, const std::string &filename = std::string(""));
 
     // fread and fwrite replacements
-    void read(void *dest, size_t s, size_t n, FILE *f, const std::string &filename = std::string("")) throw (exc);
-    void write(const void *src, size_t s, size_t n, FILE *f, const std::string &filename = std::string("")) throw (exc);
+    void read(void *dest, size_t s, size_t n, FILE *f, const std::string &filename = std::string(""));
+    void write(const void *src, size_t s, size_t n, FILE *f, const std::string &filename = std::string(""));
 
     // flush
-    void flush(FILE *f, const std::string &filename = std::string("")) throw (exc);
+    void flush(FILE *f, const std::string &filename = std::string(""));
 
     // fseek and ftello replacements
     bool seekable(FILE *f) throw ();
-    void seek(FILE *f, off_t offset, int whence, const std::string &filename = std::string("")) throw (exc);
-    void rewind(FILE *f, const std::string &filename = std::string("")) throw (exc);
-    off_t tell(FILE *f, const std::string &filename = std::string("")) throw (exc);
+    void seek(FILE *f, off_t offset, int whence, const std::string &filename = std::string(""));
+    void rewind(FILE *f, const std::string &filename = std::string(""));
+    off_t tell(FILE *f, const std::string &filename = std::string(""));
 
     // fgetc/ungetc replacements
-    int getc(FILE *f, const std::string &filename = std::string("")) throw (exc);
-    void ungetc(int c, FILE *f, const std::string &filename = std::string("")) throw (exc);
-    bool has_more(FILE *f, const std::string &filename = std::string("")) throw (exc);
+    int getc(FILE *f, const std::string &filename = std::string(""));
+    void ungetc(int c, FILE *f, const std::string &filename = std::string(""));
+    bool has_more(FILE *f, const std::string &filename = std::string(""));
 
     // read lines from a textfile; removes \n
-    std::string readline(FILE *f, const std::string &filename = std::string("")) throw (exc);
+    std::string readline(FILE *f, const std::string &filename = std::string(""));
 
     // isatty
     bool isatty(FILE *f) throw ();
@@ -114,37 +114,37 @@ namespace cio
     // - Mapping happens always with MAP_PRIVATE, PROT_READ
     // - The region of the file must exist; it is not automatically created
     // - The length argument must be the same for both functions
-    void *map(FILE *f, off_t offset, size_t length, const std::string &filename = std::string("")) throw (exc);
-    void unmap(void *start, size_t length, const std::string &filename = std::string("")) throw (exc);
+    void *map(FILE *f, off_t offset, size_t length, const std::string &filename = std::string(""));
+    void unmap(void *start, size_t length, const std::string &filename = std::string(""));
 
     // hard links
-    void link(const std::string &oldfilename, const std::string &newfilename) throw (exc);
-    void unlink(const std::string &filename) throw (exc);
+    void link(const std::string &oldfilename, const std::string &newfilename);
+    void unlink(const std::string &filename);
 
     // mkdir and rmdir replacements
-    void mkdir(const std::string &dirname) throw (exc);
-    void rmdir(const std::string &dirname) throw (exc);
+    void mkdir(const std::string &dirname);
+    void rmdir(const std::string &dirname);
 
     // remove a file or directory
-    void remove(const std::string &pathname) throw (exc);
+    void remove(const std::string &pathname);
 
     // rename a file
-    void rename(const std::string &old_path, const std::string &new_path) throw (exc);
+    void rename(const std::string &old_path, const std::string &new_path);
 
     // replacements for shell utilities:
     // mkdir -p  (with a variant that assumes that a given prefix already exists)
-    void mkdir_p(const std::string &prefix, const std::string &dirname) throw (exc);
-    void mkdir_p(const std::string &dirname) throw (exc);
+    void mkdir_p(const std::string &prefix, const std::string &dirname);
+    void mkdir_p(const std::string &dirname);
     // rm -r
-    void rm_r(const std::string &pathname) throw (exc);
+    void rm_r(const std::string &pathname);
     // test -e
-    bool test_e(const std::string &pathname) throw (exc);
+    bool test_e(const std::string &pathname);
     // test -f
-    bool test_f(const std::string &pathname) throw (exc);
+    bool test_f(const std::string &pathname);
     // test -d
-    bool test_d(const std::string &pathname) throw (exc);
+    bool test_d(const std::string &pathname);
     // basename name [suffix]
-    std::string basename(const std::string &name, const std::string &suffix = std::string("")) throw (exc);
+    std::string basename(const std::string &name, const std::string &suffix = std::string(""));
 };
 
 #endif

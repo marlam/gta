@@ -45,7 +45,7 @@
  * Example: size_t a = checked_cast<size_t>(b);
  */
 template<typename TO, typename FROM>
-TO checked_cast(FROM x) throw (exc)
+TO checked_cast(FROM x)
 {
     // The goal of this case differentiation is to
     // a) help the compiler to optimize unnecessary checks away
@@ -93,7 +93,7 @@ TO checked_cast(FROM x) throw (exc)
  * If over- or underflow would occur, this function throws exc(ERANGE).
  */
 template<typename T>
-T checked_add(T a, T b) throw (exc)
+T checked_add(T a, T b)
 {
     if (b < static_cast<T>(1))
     {
@@ -121,7 +121,7 @@ T checked_add(T a, T b) throw (exc)
  * If over- or underflow would occur, this function throws exc(ERANGE).
  */
 template<typename T>
-T checked_sub(T a, T b) throw (exc)
+T checked_sub(T a, T b)
 {
     if (b < static_cast<T>(1))
     {
@@ -149,7 +149,7 @@ T checked_sub(T a, T b) throw (exc)
  * If over- or underflow would occur, this function throws exc(ERANGE).
  */
 template<typename T>
-T checked_mul(T a, T b) throw (exc)
+T checked_mul(T a, T b)
 {
     if (std::numeric_limits<T>::is_signed)
     {
@@ -196,7 +196,7 @@ T checked_mul(T a, T b) throw (exc)
  * If over- or underflow would occur, this function throws exc(ERANGE).
  */
 template<typename T>
-T checked_div(T a, T b) throw (exc)
+T checked_div(T a, T b)
 {
     if (b == 0
             || (std::numeric_limits<T>::is_signed

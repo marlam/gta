@@ -47,7 +47,7 @@ private:
     size_t _size;
     void *_ptr;
 
-    static void *alloc(size_t s) throw (exc)
+    static void *alloc(size_t s)
     {
         void *ptr = ::malloc(s);
         if (s != 0 && !ptr)
@@ -57,7 +57,7 @@ private:
         return ptr;
     }
 
-    static void *realloc(void *p, size_t s) throw (exc)
+    static void *realloc(void *p, size_t s)
     {
         void *ptr = ::realloc(p, s);
         if (s != 0 && !ptr)
@@ -74,33 +74,33 @@ public:
     {
     }
 
-    blob(size_t s) throw (exc)
+    blob(size_t s)
         : _size(s), _ptr(alloc(_size))
     {
     }
 
-    blob(size_t s, size_t n) throw (exc)
+    blob(size_t s, size_t n)
         : _size(checked_mul(s, n)), _ptr(alloc(_size))
     {
     }
 
-    blob(size_t s, size_t n0, size_t n1) throw (exc)
+    blob(size_t s, size_t n0, size_t n1)
         : _size(checked_mul(checked_mul(s, n0), n1)), _ptr(alloc(_size))
     {
     }
 
-    blob(size_t s, size_t n0, size_t n1, size_t n2) throw (exc)
+    blob(size_t s, size_t n0, size_t n1, size_t n2)
         : _size(checked_mul(checked_mul(s, n0), checked_mul(n1, n2))), _ptr(alloc(_size))
     {
     }
 
-    blob(const blob &b) throw (exc)
+    blob(const blob &b)
         : _size(b._size), _ptr(alloc(_size))
     {
         memcpy(_ptr, b._ptr, _size);
     }
 
-    const blob &operator=(const blob &b) throw (exc)
+    const blob &operator=(const blob &b)
     {
         void *ptr = alloc(b.size());
         memcpy(ptr, b.ptr(), b.size());
@@ -115,25 +115,25 @@ public:
         ::free(_ptr);
     }
 
-    void resize(size_t s) throw (exc)
+    void resize(size_t s)
     {
         _ptr = realloc(_ptr, s);
         _size = s;
     }
 
-    void resize(size_t s, size_t n) throw (exc)
+    void resize(size_t s, size_t n)
     {
         _ptr = realloc(_ptr, checked_mul(s, n));
         _size = s;
     }
 
-    void resize(size_t s, size_t n0, size_t n1) throw (exc)
+    void resize(size_t s, size_t n0, size_t n1)
     {
         _ptr = realloc(_ptr, checked_mul(checked_mul(s, n0), n1));
         _size = s;
     }
 
-    void resize(size_t s, size_t n0, size_t n1, size_t n2) throw (exc)
+    void resize(size_t s, size_t n0, size_t n1, size_t n2)
     {
         _ptr = realloc(_ptr, checked_mul(checked_mul(s, n0), checked_mul(n1, n2)));
         _size = s;

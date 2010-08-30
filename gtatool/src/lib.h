@@ -46,16 +46,16 @@ extern FILE *gtatool_stdin;
 extern FILE *gtatool_stdout;
 
 /* Convert GTA type identifiers to strings and back */
-std::string type_to_string(const gta::type t, const uintmax_t size) throw (exc);
-void type_from_string(const std::string &s, gta::type *t, uintmax_t *size) throw (exc);
+std::string type_to_string(const gta::type t, const uintmax_t size);
+void type_from_string(const std::string &s, gta::type *t, uintmax_t *size);
 
 /* Read list of comma-separated types from a string */
-void typelist_from_string(const std::string &s, std::vector<gta::type> *types, std::vector<uintmax_t> *sizes) throw (exc);
+void typelist_from_string(const std::string &s, std::vector<gta::type> *types, std::vector<uintmax_t> *sizes);
 
 /* Read list of comma-separated values from a string */
-void value_from_string(const std::string &s, const gta::type t, const uintmax_t size, void *value) throw (exc);
+void value_from_string(const std::string &s, const gta::type t, const uintmax_t size, void *value);
 void valuelist_from_string(const std::string &s, const std::vector<gta::type> &types,
-        const std::vector<uintmax_t> &sizes, void *valuelist) throw (exc);
+        const std::vector<uintmax_t> &sizes, void *valuelist);
 
 /* Swap the endianness of a GTA element/component */
 void swap_component_endianness(const gta::header &header, uintmax_t i, void *component);
@@ -96,12 +96,12 @@ public:
     ~element_loop_t();
 
     void start(const gta::header &header_in, const std::string &name_in, FILE *file_in,
-            const gta::header &header_out, const std::string &name_out, FILE *file_out) throw (exc);
+            const gta::header &header_out, const std::string &name_out, FILE *file_out);
 
-    void *read() throw (exc);
-    void write(const void *element) throw (exc);
+    void *read();
+    void write(const void *element);
 
-    void finish() throw (exc);
+    void finish();
 };
 
 /* Loop over all input and output arrays.
@@ -135,8 +135,8 @@ public:
     ~array_loop_t();
 
     void start(const std::vector<std::string> &filenames_in,
-            const std::string &filename_out) throw (exc);
-    void start(const std::string &filename_in, const std::string &filename_out) throw (exc)
+            const std::string &filename_out);
+    void start(const std::string &filename_in, const std::string &filename_out)
     {
         std::vector<std::string> v;
         if (filename_in.length() > 0)
@@ -146,16 +146,16 @@ public:
         start(v, filename_out);
     }
 
-    bool read(gta::header &header_in, std::string &name_in) throw (exc);
+    bool read(gta::header &header_in, std::string &name_in);
 
-    void write(const gta::header &header_out, std::string &name_out) throw (exc);
+    void write(const gta::header &header_out, std::string &name_out);
 
-    void skip_data(const gta::header &header_in) throw (exc);
-    void copy_data(const gta::header &header_in, const gta::header &header_out) throw (exc);
-    void copy_data(const gta::header &header_in, const array_loop_t &array_loop_out, gta::header &header_out) throw (exc);
-    void start_element_loop(element_loop_t &element_loop, const gta::header &header_in, const gta::header &header_out) throw (exc);
+    void skip_data(const gta::header &header_in);
+    void copy_data(const gta::header &header_in, const gta::header &header_out);
+    void copy_data(const gta::header &header_in, const array_loop_t &array_loop_out, gta::header &header_out);
+    void start_element_loop(element_loop_t &element_loop, const gta::header &header_in, const gta::header &header_out);
 
-    void finish() throw (exc);
+    void finish();
 };
 
 #endif

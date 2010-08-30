@@ -65,12 +65,12 @@ public:
         UNSET_ALL
     };
 
-    tag_command(int cmd, uintmax_t index, bool index_all, const std::string &name, const std::string &value)
+    tag_command(int cmd, uintmax_t index, bool index_all, const std::string &name, const std::string &value) throw ()
         : _cmd(cmd), _index(index), _index_all(index_all), _name(name), _value(value)
     {
     }
 
-    void apply(gta::header &hdr, const std::string &array_name) throw (std::exception)
+    void apply(gta::header &hdr, const std::string &array_name)
     {
         switch (_cmd)
         {

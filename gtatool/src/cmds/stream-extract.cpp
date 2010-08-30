@@ -63,7 +63,7 @@ typedef struct
     uintmax_t b;
 } range_t;
 
-static range_t to_range(const std::string &s) throw (exc)
+static range_t to_range(const std::string &s)
 {
     range_t r;
     size_t minus = s.find_first_of('-');
@@ -90,7 +90,7 @@ static range_t to_range(const std::string &s) throw (exc)
     return r;
 }
 
-static std::vector<range_t> to_rangelist(const std::string &s) throw (exc)
+static std::vector<range_t> to_rangelist(const std::string &s)
 {
     std::vector<range_t> list;
     size_t from = 0;
@@ -111,7 +111,7 @@ static bool cmp_ranges(range_t r1, range_t r2)
 }
 
 /* Merges overlapping ranges and sorts them in ascending order of their start values. */
-static void normalize(std::vector<range_t> &rangelist) throw (exc)
+static void normalize(std::vector<range_t> &rangelist)
 {
     std::sort(rangelist.begin(), rangelist.end(), cmp_ranges);
 

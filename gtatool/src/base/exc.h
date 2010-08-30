@@ -25,6 +25,17 @@
  * \file exc.h
  *
  * Error and exception handling.
+ *
+ * This should be used as follows:
+ *
+ * 1. Throw *only* objects derived from std::exception!
+ * 2. Catch *only* objects of type std::exception, and catch by reference!
+ * 3. Only mark functions with an exception specification if they can never
+ *    throw exceptions, i.e. only ever use the exception specification 'throw ()'.
+ * 4. Assume that all functions not explicitly marked with 'throw ()' can throw
+ *    exceptions of type std::exception (see rule 1). Using the specification
+ *    'throw (std::exception)' in this case would not be useful and would only
+ *    lead to extra try/catch block insertion by the compiler).
  */
 
 #ifndef EXC_H

@@ -41,7 +41,7 @@ FILE *gtatool_stdin = NULL;
 FILE *gtatool_stdout = NULL;
 
 
-std::string type_to_string(const gta::type t, const uintmax_t size) throw (exc)
+std::string type_to_string(const gta::type t, const uintmax_t size)
 {
     std::string s;
     switch (t)
@@ -101,7 +101,7 @@ std::string type_to_string(const gta::type t, const uintmax_t size) throw (exc)
     return s;
 }
 
-void type_from_string(const std::string &s, gta::type *t, uintmax_t *size) throw (exc)
+void type_from_string(const std::string &s, gta::type *t, uintmax_t *size)
 {
     if (s.compare(0, 4, "blob") == 0)
     {
@@ -193,7 +193,7 @@ void type_from_string(const std::string &s, gta::type *t, uintmax_t *size) throw
     }
 }
 
-void typelist_from_string(const std::string &s, std::vector<gta::type> *types, std::vector<uintmax_t> *sizes) throw (exc)
+void typelist_from_string(const std::string &s, std::vector<gta::type> *types, std::vector<uintmax_t> *sizes)
 {
     size_t i = 0;
     do
@@ -214,7 +214,7 @@ void typelist_from_string(const std::string &s, std::vector<gta::type> *types, s
     while (i < std::string::npos);
 }
 
-void value_from_string(const std::string &s, const gta::type t, const uintmax_t size, void *value) throw (exc)
+void value_from_string(const std::string &s, const gta::type t, const uintmax_t size, void *value)
 {
     std::istringstream is(s);
     switch (t)
@@ -360,7 +360,7 @@ void value_from_string(const std::string &s, const gta::type t, const uintmax_t 
 }
 
 void valuelist_from_string(const std::string &s, const std::vector<gta::type> &types,
-        const std::vector<uintmax_t> &sizes, void *valuelist) throw (exc)
+        const std::vector<uintmax_t> &sizes, void *valuelist)
 {
     size_t i = 0;
     size_t blob_index = 0;
@@ -494,7 +494,7 @@ std::string from_utf8(const std::string &s)
     {
         r = str::convert(s, "UTF-8", localcharset);
     }
-    catch (exc)
+    catch (...)
     {
         r = std::string("(not representable in charset ") + localcharset + std::string(")");
     }
@@ -509,7 +509,7 @@ std::string to_utf8(const std::string &s)
     {
         r = str::convert(s, localcharset, "UTF-8");
     }
-    catch (exc &e)
+    catch (std::exception &e)
     {
         /* This should never happen: everything that can be entered by the user should
          * be representable in UTF-8. Crash the program and let's see if this ever gets
@@ -536,7 +536,7 @@ element_loop_t::~element_loop_t()
 
 void element_loop_t::start(
         const gta::header &header_in, const std::string &name_in, FILE *file_in,
-        const gta::header &header_out, const std::string &name_out, FILE *file_out) throw (exc)
+        const gta::header &header_out, const std::string &name_out, FILE *file_out)
 {
     _header_in = header_in;
     _name_in = name_in;
@@ -556,7 +556,7 @@ void element_loop_t::start(
     _buf_index_out = 0;
 }
 
-void *element_loop_t::read() throw (exc)
+void *element_loop_t::read()
 {
     if (_buf_index_in == _buf_elements_in)
     {
@@ -584,7 +584,7 @@ void *element_loop_t::read() throw (exc)
     return p;
 }
 
-void element_loop_t::write(const void *element) throw (exc)
+void element_loop_t::write(const void *element)
 {
     if (_buf_index_out == _buf_elements_out)
     {
@@ -612,7 +612,7 @@ void element_loop_t::write(const void *element) throw (exc)
     _element_index_out++;
 }
 
-void element_loop_t::finish() throw (exc)
+void element_loop_t::finish()
 {
     // flush output buffer
     if (_buf_index_out > 0)
@@ -665,7 +665,7 @@ array_loop_t::~array_loop_t()
 }
 
 void array_loop_t::start(const std::vector<std::string> &filenames_in,
-        const std::string &filename_out) throw (exc)
+        const std::string &filename_out)
 {
     _filenames_in = filenames_in;
     _filename_out = filename_out;
@@ -695,7 +695,7 @@ void array_loop_t::start(const std::vector<std::string> &filenames_in,
     }
 }
 
-void array_loop_t::finish() throw (exc)
+void array_loop_t::finish()
 {
     if (_file_out && _file_out != gtatool_stdout)
     {
@@ -723,7 +723,7 @@ const std::string &array_loop_t::filename_out() throw ()
     return (_file_out == gtatool_stdout ? _stdout_name : _filename_out);
 }
 
-bool array_loop_t::read(gta::header &header_in, std::string &name_in) throw (exc)
+bool array_loop_t::read(gta::header &header_in, std::string &name_in)
 {
     while (!cio::has_more(_file_in))
     {
@@ -760,7 +760,7 @@ bool array_loop_t::read(gta::header &header_in, std::string &name_in) throw (exc
     return true;
 }
 
-void array_loop_t::write(const gta::header &header_out, std::string &name_out) throw (exc)
+void array_loop_t::write(const gta::header &header_out, std::string &name_out)
 {
     if (cio::isatty(_file_out))
     {
@@ -779,7 +779,7 @@ void array_loop_t::write(const gta::header &header_out, std::string &name_out) t
     _index_out++;
 }
 
-void array_loop_t::skip_data(const gta::header &header_in) throw (exc)
+void array_loop_t::skip_data(const gta::header &header_in)
 {
     try
     {
@@ -791,7 +791,7 @@ void array_loop_t::skip_data(const gta::header &header_in) throw (exc)
     }
 }
 
-void array_loop_t::copy_data(const gta::header &header_in, const gta::header &header_out) throw (exc)
+void array_loop_t::copy_data(const gta::header &header_in, const gta::header &header_out)
 {
     try
     {
@@ -803,7 +803,7 @@ void array_loop_t::copy_data(const gta::header &header_in, const gta::header &he
     }
 }
 
-void array_loop_t::copy_data(const gta::header &header_in, const array_loop_t &array_loop_out, gta::header &header_out) throw (exc)
+void array_loop_t::copy_data(const gta::header &header_in, const array_loop_t &array_loop_out, gta::header &header_out)
 {
     try
     {
@@ -816,7 +816,7 @@ void array_loop_t::copy_data(const gta::header &header_in, const array_loop_t &a
 }
 
 void array_loop_t::start_element_loop(element_loop_t &element_loop,
-        const gta::header &header_in, const gta::header &header_out) throw (exc)
+        const gta::header &header_in, const gta::header &header_out)
 {
     element_loop.start(header_in, _array_name_in, _file_in,
             header_out, _array_name_out, _file_out);

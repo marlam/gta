@@ -64,21 +64,21 @@ namespace str
     std::string from(long double x);
 
     /* Convert a string to one of the basic data types */
-    template<typename T> T to(const std::string &s) throw (exc);
-    template<> bool to<bool>(const std::string &s) throw (exc);
-    template<> signed char to<signed char>(const std::string &s) throw (exc);
-    template<> unsigned char to<unsigned char>(const std::string &s) throw (exc);
-    template<> short to<short>(const std::string &s) throw (exc);
-    template<> unsigned short to<unsigned short>(const std::string &s) throw (exc);
-    template<> int to<int>(const std::string &s) throw (exc);
-    template<> unsigned int to<unsigned int>(const std::string &s) throw (exc);
-    template<> long to<long>(const std::string &s) throw (exc);
-    template<> unsigned long to<unsigned long>(const std::string &s) throw (exc);
-    template<> long long to<long long>(const std::string &s) throw (exc);
-    template<> unsigned long long to<unsigned long long>(const std::string &s) throw (exc);
-    template<> float to<float>(const std::string &s) throw (exc);
-    template<> double to<double>(const std::string &s) throw (exc);
-    template<> long double to<long double>(const std::string &s) throw (exc);
+    template<typename T> T to(const std::string &s);
+    template<> bool to<bool>(const std::string &s);
+    template<> signed char to<signed char>(const std::string &s);
+    template<> unsigned char to<unsigned char>(const std::string &s);
+    template<> short to<short>(const std::string &s);
+    template<> unsigned short to<unsigned short>(const std::string &s);
+    template<> int to<int>(const std::string &s);
+    template<> unsigned int to<unsigned int>(const std::string &s);
+    template<> long to<long>(const std::string &s);
+    template<> unsigned long to<unsigned long>(const std::string &s);
+    template<> long long to<long long>(const std::string &s);
+    template<> unsigned long long to<unsigned long long>(const std::string &s);
+    template<> float to<float>(const std::string &s);
+    template<> double to<double>(const std::string &s);
+    template<> long double to<long double>(const std::string &s);
 
     /* Create std::strings printf-like */
     std::string vasprintf(const char *format, va_list args) AFP(1, 0);
@@ -99,7 +99,7 @@ namespace str
     std::string localcharset();
 
     /* Convert a string from one character set to another */
-    std::string convert(const std::string &src, const std::string &from_charset, const std::string &to_charset) throw (exc);
+    std::string convert(const std::string &src, const std::string &from_charset, const std::string &to_charset);
 }
 
 #endif
