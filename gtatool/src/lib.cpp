@@ -803,6 +803,18 @@ void array_loop_t::copy_data(const gta::header &header_in, const gta::header &he
     }
 }
 
+void array_loop_t::copy_data(const gta::header &header_in, const array_loop_t &array_loop_out, gta::header &header_out) throw (exc)
+{
+    try
+    {
+        header_in.copy_data(_file_in, header_out, array_loop_out._file_out);
+    }
+    catch (std::exception &e)
+    {
+        throw exc(_array_name_in + ": " + e.what());
+    }
+}
+
 void array_loop_t::start_element_loop(element_loop_t &element_loop,
         const gta::header &header_in, const gta::header &header_out) throw (exc)
 {

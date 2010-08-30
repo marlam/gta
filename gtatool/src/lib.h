@@ -152,15 +152,10 @@ public:
 
     void skip_data(const gta::header &header_in) throw (exc);
     void copy_data(const gta::header &header_in, const gta::header &header_out) throw (exc);
+    void copy_data(const gta::header &header_in, const array_loop_t &array_loop_out, gta::header &header_out) throw (exc);
     void start_element_loop(element_loop_t &element_loop, const gta::header &header_in, const gta::header &header_out) throw (exc);
 
     void finish() throw (exc);
-
-    // Required for stream-split:
-    FILE *file_in()
-    {
-        return _file_in;
-    }
 };
 
 #endif

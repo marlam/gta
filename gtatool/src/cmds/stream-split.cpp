@@ -113,7 +113,6 @@ extern "C" int gtatool_stream_split(int argc, char *argv[])
         uintmax_t array_index = 0;
         while (array_loop.read(hdri, namei))
         {
-            // Open the output file
             std::string array_index_str = str::from(array_index);
             if (array_index_str.length() < min_width)
             {
@@ -121,14 +120,13 @@ extern "C" int gtatool_stream_split(int argc, char *argv[])
             }
             std::string foname = tmpl;
             foname.replace(seq_start, seq_length, array_index_str);
-            FILE *fo = cio::open(foname, "w");                
-            // Write the GTA header
+            array_loop_t array_loop_out;
+            array_loop_out.start("", foname);
             hdro = hdri;
             hdro.set_compression(gta::none);
-            hdro.write_to(fo);
-            // Copy the GTA data
-            hdri.copy_data(array_loop.file_in(), hdro, fo);
-            cio::close(fo, foname);
+            array_loop_out.write(hdro, nameo);
+            array_loop.copy_data(hdri, array_loop_out, hdro);
+            array_loop_out.finish();
             array_index++;
         }
         array_loop.finish();
