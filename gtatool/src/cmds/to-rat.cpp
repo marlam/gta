@@ -121,7 +121,7 @@ extern "C" int gtatool_to_rat(int argc, char *argv[])
             ihdr.read_from(fi);
             if (ihdr.components() != 1)
             {
-                throw exc("cannot export " + array_name, "only arrays with a single array element component can be exported to RAT RadarTools");
+                throw exc("cannot export " + array_name + ": only arrays with a single array element component can be exported to RAT RadarTools");
             }
             if (ihdr.dimensions() == 0)
             {

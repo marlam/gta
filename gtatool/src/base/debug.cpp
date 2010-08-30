@@ -55,7 +55,7 @@ namespace debug
 
     static void exception_crash()
     {
-        msg::err("Uncaught exception.");
+        msg::err("Unexpected exception.");
         crash();
     }
 

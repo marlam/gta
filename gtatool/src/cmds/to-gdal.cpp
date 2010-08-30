@@ -103,23 +103,23 @@ extern "C" int gtatool_to_gdal(int argc, char *argv[])
         hdr.read_from(fi);
         if (hdr.dimensions() != 2)
         {
-            throw exc("Cannot export " + ifilename, "Only two-dimensional arrays can be exported to images");
+            throw exc("cannot export " + ifilename + ": only two-dimensional arrays can be exported to images");
         }
         if (hdr.dimension_size(0) > static_cast<uintmax_t>(std::numeric_limits<int>::max())
                 || hdr.dimension_size(1) > static_cast<uintmax_t>(std::numeric_limits<int>::max()))
         {
-            throw exc("Cannot export " + ifilename, "Array too large");
+            throw exc("cannot export " + ifilename + ": array too large");
         }
         if (hdr.components() < 1 || hdr.components() >= static_cast<uintmax_t>(std::numeric_limits<int>::max()))
         {
-            throw exc("Cannot export " + ifilename, "Unsupported number of components");
+            throw exc("cannot export " + ifilename + ": unsupported number of components");
         }
         type = hdr.component_type(0);
         for (uintmax_t i = 1; i < hdr.components(); i++)
         {
             if (hdr.component_type(i) != type)
             {
-                throw exc("Cannot export " + ifilename, "Array element components differ in type");
+                throw exc("cannot export " + ifilename + ": array element components differ in type");
             }
         }
         switch (type)
@@ -152,29 +152,29 @@ extern "C" int gtatool_to_gdal(int argc, char *argv[])
             gdal_type = GDT_CFloat64;
             break;
         default:
-            throw exc("Cannot export " + ifilename, "Array element component type not supported by GDAL");
+            throw exc("cannot export " + ifilename + ": array element component type not supported by GDAL");
             break;
         }
         if (hdr.compression() != gta::none)
         {
-            throw exc("Cannot export " + ifilename, "Currently only uncompressed GTAs can be exported");
+            throw exc("cannot export " + ifilename + ": currently only uncompressed GTAs can be exported");
         }
         driver = GDALGetDriverByName(format.value().c_str());
         if (!driver)
         {
-            throw exc("Cannot export " + ifilename, std::string("GDAL does not know the format ") + format.value());
+            throw exc("cannot export " + ifilename + ": GDAL does not know the format " + format.value());
         }
         driver_metadata = GDALGetMetadata(driver, NULL);
         if (!CSLFetchBoolean(driver_metadata, GDAL_DCAP_CREATE, FALSE))
         {
-            throw exc("Cannot export " + ifilename, std::string("The GDAL format driver ") 
-                    + format.value() + std::string(" does not support the creation of files with the Create() method"));
+            throw exc("cannot export " + ifilename + ": the GDAL format driver "
+                    + format.value() + " does not support the creation of files with the Create() method");
         }
         dataset = GDALCreate(driver, ofilename.c_str(), hdr.dimension_size(0), hdr.dimension_size(1), 
                 hdr.components(), gdal_type, driver_options);
         if (!dataset)
         {
-            throw exc("Cannot export " + ifilename, "GDAL failed to create a data set");
+            throw exc("cannot export " + ifilename + ": GDAL failed to create a data set");
         }
         if (hdr.global_taglist().get("DESCRIPTION"))
         {

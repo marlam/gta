@@ -89,11 +89,11 @@ extern "C" int gtatool_to_pfs(int argc, char *argv[])
             hdr.read_from(fi);
             if (hdr.dimensions() != 2)
             {
-                throw exc("Cannot export " + ifilename, "Only two-dimensional arrays can be exported to images");
+                throw exc("cannot export " + ifilename + ": only two-dimensional arrays can be exported to images");
             }
             if (hdr.components() < 1)
             {
-                throw exc("Cannot export " + ifilename, "Array has no components");
+                throw exc("cannot export " + ifilename + ": array has no components");
             }
             for (uintmax_t i = 0; i < hdr.components(); i++)
             {
@@ -103,7 +103,7 @@ extern "C" int gtatool_to_pfs(int argc, char *argv[])
                         || hdr.component_type(i) == gta::uint64
                         || hdr.component_type(i) == gta::float64)
                 {
-                    msg::wrn_txt("Converting %s to float32 for array element component %s may lose precision",
+                    msg::wrn_txt("converting %s to float32 for array element component %s may lose precision",
                             (hdr.component_type(i) == gta::int32 ? "int32"
                              : hdr.component_type(i) == gta::uint32 ? "uint32"
                              : hdr.component_type(i) == gta::int64 ? "int64"
@@ -116,13 +116,13 @@ extern "C" int gtatool_to_pfs(int argc, char *argv[])
                         && hdr.component_type(i) != gta::uint16
                         && hdr.component_type(i) != gta::float32)
                 {
-                    throw exc("Cannot export " + ifilename, "Array contains unexportable element component types");
+                    throw exc("cannot export " + ifilename + ": array contains unexportable element component types");
                 }
             }
             if (hdr.dimension_size(0) > static_cast<uintmax_t>(std::numeric_limits<int>::max())
                     || hdr.dimension_size(1) > static_cast<uintmax_t>(std::numeric_limits<int>::max()))
             {
-                throw exc("Cannot export " + ifilename, "Array too large");
+                throw exc("cannot export " + ifilename + ": array too large");
             }
 
             pfs::DOMIO pfsio;

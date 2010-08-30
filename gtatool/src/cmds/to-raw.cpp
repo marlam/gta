@@ -102,7 +102,7 @@ extern "C" int gtatool_to_raw(int argc, char *argv[])
         hdr.read_from(fi);
         if (hdr.compression() != gta::none)
         {
-            throw exc("Cannot export " + ifilename, "Currently only uncompressed GTAs can be exported to raw files");
+            throw exc("cannot export " + ifilename + ": currently only uncompressed GTAs can be exported to raw files");
         }
         blob element(checked_cast<size_t>(hdr.element_size()));
         gta::io_state si;

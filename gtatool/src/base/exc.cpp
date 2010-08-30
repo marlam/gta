@@ -30,97 +30,90 @@
 #include "exc.h"
 
 
-void exc::create(const char *when, int sys_errno, const char *what) throw ()
-{
-    _str[0] = '\0';
-    _sys_errno = sys_errno;
-    size_t i = 0;
-    if (when[0] != '\0')
-    {
-        strncpy(_str, when, _strbufsize);
-        _str[_strbufsize - 1] = '\0';
-        i = strlen(_str);
-    }
-    if (what[0] != '\0')
-    {
-        if (when[0] != '\0')
-        {
-            strncpy(_str + i, ": ", _strbufsize - i);
-            _str[_strbufsize - 1] = '\0';
-            i = strlen(_str);
-        }
-        strncpy(_str + i, what, _strbufsize - i);
-        _str[_strbufsize - 1] = '\0';
-    }
-    else if (sys_errno != 0)
-    {
-        if (when[0] != '\0')
-        {
-            strncpy(_str + i, ": ", _strbufsize - i);
-            _str[_strbufsize - 1] = '\0';
-            i = strlen(_str);
-        }
-        strncpy(_str + i, ::strerror(_sys_errno), _strbufsize - i);
-        _str[_strbufsize - 1] = '\0';
-    }
-}
+const char *exc::_fallback_str = strerror(ENOMEM);
 
 exc::exc() throw ()
-    : std::exception()
+    : _fallback(false), _str(), _sys_errno(0)
 {
-    _str[0] = '\0';
-    _sys_errno = 0;
 }
 
-exc::exc(const std::string &when, int sys_errno, const std::string &what) throw ()
+exc::exc(const std::string &what, int sys_errno) throw ()
+    : _fallback(false), _sys_errno(sys_errno)
 {
-    create(when.c_str(), sys_errno, what.c_str());
-    if (!empty())
+    try
     {
-        msg::dbg("Exception: %s", _str);
+        _str = what;
     }
-}
-
-exc::exc(const std::string &when, const std::string &what) throw ()
-{
-    create(when.c_str(), 0, what.c_str());
+    catch (...)
+    {
+        _fallback = true;
+        _sys_errno = ENOMEM;
+    }
     if (!empty())
     {
-        msg::dbg("Exception: %s", _str);
+        msg::dbg("Exception: %s", _str.c_str());
     }
 }
 
 exc::exc(int sys_errno) throw ()
+    : _fallback(false), _sys_errno(sys_errno)
 {
-    create("", sys_errno, "");
+    try
+    {
+        _str = strerror(_sys_errno);
+    }
+    catch (...)
+    {
+        _fallback = true;
+        _sys_errno = ENOMEM;
+    }
     if (!empty())
     {
-        msg::dbg("Exception: %s", _str);
+        msg::dbg("Exception: %s", _str.c_str());
     }
 }
 
 exc::exc(const exc &e) throw ()
-    : std::exception()
+    : _fallback(e._fallback), _sys_errno(e._sys_errno)
 {
-    strcpy(_str, e._str);
+    try
+    {
+        _str = e._str;
+    }
+    catch (...)
+    {
+        _fallback = true;
+        _sys_errno = ENOMEM;
+    }
 }
 
 exc::exc(const std::exception &e) throw ()
-    : std::exception()
+    : _fallback(false), _sys_errno(0)
 {
     // TODO: Avoid the crappy what() strings; ideally translate them to errnos.
     // E.g. std::bad_alloc -> ENOMEM.
-    strncpy(_str, e.what(), _strbufsize);
-    _str[_strbufsize - 1] = '\0';
+    try
+    {
+        _str = e.what();
+    }
+    catch (...)
+    {
+        _fallback = true;
+        _sys_errno = ENOMEM;
+    }
     if (!empty())
     {
-        msg::dbg("Exception: %s", _str);
+        msg::dbg("Exception: %s", _str.c_str());
     }
+}
+
+exc::~exc() throw ()
+{
 }
 
 bool exc::empty() const throw ()
 {
-    return (_str[0] == '\0' && _sys_errno == 0);
+    return (_str.length() == 0 && _sys_errno == 0 && !_fallback);
 }
 
 int exc::sys_errno() const throw ()
@@ -130,5 +123,5 @@ int exc::sys_errno() const throw ()
 
 const char *exc::what() const throw ()
 {
-    return _str;
+    return (_fallback ? _fallback_str : _str.c_str());
 }

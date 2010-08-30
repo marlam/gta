@@ -118,7 +118,7 @@ void type_from_string(const std::string &s, gta::type *t, uintmax_t *size)
         }
         if (x % 8 != 0)
         {
-            throw exc(std::string("invalid blob size in ") + s, std::string("must be a multiple of 8"));
+            throw exc(std::string("invalid blob size in ") + s + ": must be a multiple of 8");
         }
         *size = x / 8;
         *t = gta::blob;

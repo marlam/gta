@@ -108,12 +108,12 @@ extern "C" int gtatool_from_netpbm(int argc, char *argv[])
 
             if (inpam.width < 1 || inpam.height < 1 || inpam.depth < 1)
             {
-                throw exc("Cannot import " + ifilename, "unsupported image dimensions");
+                throw exc("cannot import " + ifilename + ": unsupported image dimensions");
             }
             if (inpam.bytes_per_sample != 1 && inpam.bytes_per_sample != 2
                     && inpam.bytes_per_sample != 4 && inpam.bytes_per_sample != 8)
             {
-                throw exc("Cannot import " + ifilename, "unsupported number of bytes per sample");
+                throw exc("cannot import " + ifilename + ": unsupported number of bytes per sample");
             }
 
             hdr.set_dimensions(inpam.width, inpam.height);

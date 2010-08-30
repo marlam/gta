@@ -90,11 +90,11 @@ extern "C" int gtatool_to_exr(int argc, char *argv[])
         hdr.read_from(fi);
         if (hdr.dimensions() != 2)
         {
-            throw exc("Cannot export " + ifilename, "Only two-dimensional arrays can be exported to images");
+            throw exc("cannot export " + ifilename + ": only two-dimensional arrays can be exported to images");
         }
         if (hdr.components() < 1 || hdr.components() > 4)
         {
-            throw exc("Cannot export " + ifilename, "Only arrays with 1-4 element components can be exported to images");
+            throw exc("cannot export " + ifilename + ": only arrays with 1-4 element components can be exported to images");
         }
         for (uintmax_t i = 0; i < hdr.components(); i++)
         {
@@ -104,7 +104,7 @@ extern "C" int gtatool_to_exr(int argc, char *argv[])
                     || hdr.component_type(i) == gta::uint64
                     || hdr.component_type(i) == gta::float64)
             {
-                msg::wrn_txt(std::string("Converting ")
+                msg::wrn_txt(std::string("converting ")
                         + (hdr.component_type(i) == gta::int32 ? "int32"
                          : hdr.component_type(i) == gta::uint32 ? "uint32"
                          : hdr.component_type(i) == gta::int64 ? "int64"
@@ -117,14 +117,14 @@ extern "C" int gtatool_to_exr(int argc, char *argv[])
                     && hdr.component_type(i) != gta::uint16
                     && hdr.component_type(i) != gta::float32)
             {
-                    throw exc("Cannot export " + ifilename, "Array contains unexportable element component types");
+                    throw exc("cannot export " + ifilename + ": array contains unexportable element component types");
             }
         }
         if (hdr.dimension_size(0) > static_cast<uintmax_t>(std::numeric_limits<int>::max())
                 || hdr.dimension_size(1) > static_cast<uintmax_t>(std::numeric_limits<int>::max())
                 || hdr.data_size() > std::numeric_limits<size_t>::max())
         {
-            throw exc("Cannot export " + ifilename, "Array too large");
+            throw exc("cannot export " + ifilename + ": array too large");
         }
         blob data(checked_cast<size_t>(hdr.data_size()));
         hdr.read_data(fi, data.ptr());

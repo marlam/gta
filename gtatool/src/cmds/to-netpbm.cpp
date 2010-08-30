@@ -95,32 +95,32 @@ extern "C" int gtatool_to_netpbm(int argc, char *argv[])
             hdr.read_from(fi);
             if (hdr.dimensions() != 2)
             {
-                throw exc("Cannot export " + ifilename, "Only two-dimensional arrays can be exported via NetPBM");
+                throw exc("cannot export " + ifilename + ": only two-dimensional arrays can be exported via NetPBM");
             }
             if (hdr.dimension_size(0) > static_cast<uintmax_t>(std::numeric_limits<int>::max())
                     || hdr.dimension_size(1) > static_cast<uintmax_t>(std::numeric_limits<int>::max()))
             {
-                throw exc("Cannot export " + ifilename, "Array too large");
+                throw exc("cannot export " + ifilename + ": array too large");
             }
             if (hdr.components() < 1 || hdr.components() > 4)
             {
-                throw exc("Cannot export " + ifilename, "Only arrays with 1-4 element components can be exported via NetPBM");
+                throw exc("cannot export " + ifilename + ": only arrays with 1-4 element components can be exported via NetPBM");
             }
             gta::type type = hdr.component_type(0);
             if (type != gta::uint8 && type != gta::uint16 && type != gta::uint32 && type != gta::uint64)
             {
-                throw exc("Cannot export " + ifilename, "Only arrays with unsigned integer element components can be exported via NetPBM");
+                throw exc("cannot export " + ifilename + ": only arrays with unsigned integer element components can be exported via NetPBM");
             }
             for (uintmax_t i = 1; i < hdr.components(); i++)
             {
                 if (hdr.component_type(i) != type)
                 {
-                    throw exc("Cannot export " + ifilename, "Only arrays with element components that have a single type can be exported via NetPBM");
+                    throw exc("cannot export " + ifilename + ": only arrays with element components that have a single type can be exported via NetPBM");
                 }
             }
             if (hdr.compression() != gta::none)
             {
-                throw exc("Cannot export " + ifilename, "Currently only uncompressed GTAs can be exported via NetPBM");
+                throw exc("cannot export " + ifilename + ": currently only uncompressed GTAs can be exported via NetPBM");
             }
 
             struct pam outpam;

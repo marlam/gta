@@ -121,7 +121,7 @@ extern "C" int gtatool_to_mat(int argc, char *argv[])
             ihdr.read_from(fi);
             if (ihdr.components() != 1)
             {
-                throw exc("cannot export " + array_name, "only arrays with a single array element component can be exported to MATLAB");
+                throw exc("cannot export " + array_name + ": only arrays with a single array element component can be exported to MATLAB");
             }
             if (ihdr.dimensions() == 0)
             {
@@ -184,8 +184,7 @@ extern "C" int gtatool_to_mat(int argc, char *argv[])
                 is_complex = true;
                 break;
             default:
-                throw exc("cannot export " + ifilename,
-                        std::string("data type ")
+                throw exc("cannot export " + ifilename + ": data type "
                         + type_to_string(ihdr.component_type(0), ihdr.component_size(0))
                         + " cannot be exported to MATLAB");
                 break;

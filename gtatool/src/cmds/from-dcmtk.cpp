@@ -92,17 +92,17 @@ extern "C" int gtatool_from_dcmtk(int argc, char *argv[])
         OFCondition cond = dfile->loadFile(ifilename.c_str(), EXS_Unknown, EGL_withoutGL, DCM_MaxReadLength, ERM_autoDetect);
         if (cond.bad())
         {
-            throw exc("Cannot import " + ifilename, cond.text());
+            throw exc("cannot import " + ifilename + ": " + cond.text());
         }
         E_TransferSyntax xfer = dfile->getDataset()->getOriginalXfer();
         DicomImage *di = new DicomImage(dfile, xfer, CIF_MayDetachPixelData | CIF_TakeOverExternalDataset);
         if (!di)
         {
-            throw exc("Cannot import " + ifilename, ENOMEM);
+            throw exc("cannot import " + ifilename + ": " + strerror(ENOMEM));
         }
         if (di->getStatus() != EIS_Normal)
         {
-            throw exc("Cannot import " + ifilename, DicomImage::getString(di->getStatus()));
+            throw exc("cannot import " + ifilename + ": " + DicomImage::getString(di->getStatus()));
         }
         di->hideAllOverlays();
 
@@ -142,7 +142,7 @@ extern "C" int gtatool_from_dcmtk(int argc, char *argv[])
             }
             else
             {
-                throw exc("Cannot import " + ifilename, "unsupported depth value " + str::from(di->getDepth()));
+                throw exc("cannot import " + ifilename + ": unsupported depth value " + str::from(di->getDepth()));
             }
             if (di->isMonochrome())
             {
@@ -172,7 +172,7 @@ extern "C" int gtatool_from_dcmtk(int argc, char *argv[])
             const void *data = di->getOutputData(bits, frame, 0);
             if (!data)
             {
-                throw exc("Cannot import " + ifilename, "failed to render frame " + str::from(frame));
+                throw exc("cannot import " + ifilename + ": failed to render frame " + str::from(frame));
             }
 
             // Save GTA

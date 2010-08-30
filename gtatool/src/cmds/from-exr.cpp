@@ -95,7 +95,7 @@ extern "C" int gtatool_from_exr(int argc, char *argv[])
         int height = dw.max.y - dw.min.y + 1;
         if (width < 1 || height < 1)
         {
-            throw exc("Cannot import " + ifilename, "unsupported image dimensions");
+            throw exc("cannot import " + ifilename + ": unsupported image dimensions");
         }
         const ChannelList &channellist = file.header().channels();
         uintmax_t channels = 0;
@@ -105,7 +105,7 @@ extern "C" int gtatool_from_exr(int argc, char *argv[])
         }
         if (channels < 1 || channels > 4)
         {
-            throw exc("Cannot import " + ifilename, "unsupported number of channels");
+            throw exc("cannot import " + ifilename + ": unsupported number of channels");
         }
         gta::header hdr;
         hdr.set_dimensions(width, height);
@@ -115,7 +115,7 @@ extern "C" int gtatool_from_exr(int argc, char *argv[])
         hdr.set_components(channels, types, NULL);
         if (hdr.data_size() > std::numeric_limits<size_t>::max())
         {
-            throw exc("Cannot import " + ifilename, "Image too large");
+            throw exc("cannot import " + ifilename + ": image too large");
         }
         blob data(checked_cast<size_t>(hdr.data_size()));
         FrameBuffer framebuffer;

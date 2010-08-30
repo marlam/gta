@@ -100,11 +100,11 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
         GDALAllRegister();
         if (!(dataset = GDALOpen(ifilename.c_str(), GA_ReadOnly)))
         {
-            throw exc("Cannot import " + ifilename, "file does not seem to be in a format supported by GDAL");
+            throw exc("cannot import " + ifilename + ": file does not seem to be in a format supported by GDAL");
         }
         if (GDALGetRasterXSize(dataset) < 1 || GDALGetRasterYSize(dataset) < 1)
         {
-            throw exc("Cannot import " + ifilename, "invalid dimensions");
+            throw exc("cannot import " + ifilename + ": invalid dimensions");
         }
         hdr.set_dimensions(GDALGetRasterXSize(dataset), GDALGetRasterYSize(dataset));
         std::string description = GDALGetDescription(dataset);
@@ -212,7 +212,7 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
                 break;
             case GDT_Unknown:
             default:
-                throw exc("Cannot import " + ifilename, "file contains data of unknown type");
+                throw exc("cannot import " + ifilename + ": file contains data of unknown type");
                 break;
             }
             *types.ptr<gta::type>(i) = type;
@@ -384,7 +384,7 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
                     gdal_type = GDT_CFloat64;
                     break;
                 default:
-                    throw exc("Cannot import " + ifilename, "Bug: impossible component type");
+                    throw exc("cannot import " + ifilename + ": bug: impossible component type");
                     break;
                 }
                 band = GDALGetRasterBand(dataset, i + 1);

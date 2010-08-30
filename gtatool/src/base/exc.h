@@ -28,14 +28,20 @@
  *
  * This should be used as follows:
  *
- * 1. Throw *only* objects derived from std::exception!
- * 2. Catch *only* objects of type std::exception, and catch by reference!
+ * 1. Throw only objects derived from std::exception.
+ * 2. Catch only objects of type std::exception, and catch by reference.
+ *    In almost all cases, the information given by std::exception::what() is
+ *    all you need. If you are not interested in any information from the
+ *    exception, use 'catch (...)'. Only catch other types if you absolutely
+ *    have to, e.g. when dealing with external libraries.
  * 3. Only mark functions with an exception specification if they can never
  *    throw exceptions, i.e. only ever use the exception specification 'throw ()'.
  * 4. Assume that all functions not explicitly marked with 'throw ()' can throw
  *    exceptions of type std::exception (see rule 1). Using the specification
  *    'throw (std::exception)' in this case would not be useful and would only
- *    lead to extra try/catch block insertion by the compiler).
+ *    lead to extra try/catch block insertion by the compiler, so do not do it.
+ * 5. Do not throw exceptions from a constructor. This only leads to headaches.
+ *    If you have to, add a init() or start() member function instead.
  */
 
 #ifndef EXC_H
@@ -51,19 +57,20 @@
 class exc : public std::exception
 {
     private:
-        static const size_t _strbufsize = 256;
-        char _str[_strbufsize];
+        static const char *_fallback_str;
+        bool _fallback;
+        std::string _str;
         int _sys_errno;
 
         void create(const char *when, int sys_errno, const char *what) throw ();
 
     public:
         exc() throw ();
-        exc(const std::string &when, int sys_errno = 0, const std::string &what = std::string()) throw ();
-        exc(const std::string &when, const std::string &what) throw ();
+        exc(const std::string &what, int sys_errno = 0) throw ();
         exc(int sys_errno) throw ();
         exc(const exc &e) throw ();
         exc(const std::exception &e) throw ();
+        ~exc() throw ();
 
         bool empty() const throw ();
         int sys_errno() const throw ();
