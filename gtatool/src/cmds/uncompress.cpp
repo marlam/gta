@@ -75,7 +75,7 @@ extern "C" int gtatool_uncompress(int argc, char *argv[])
         }
         array_loop.finish();
     }
-    catch (exc &e)
+    catch (std::exception &e)
     {
         msg::err_txt("%s", e.what());
         return 1;
