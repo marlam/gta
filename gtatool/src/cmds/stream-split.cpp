@@ -39,7 +39,7 @@
 extern "C" void gtatool_stream_split_help(void)
 {
     msg::req_txt(
-            "stream-split [<files...>] [<template>]\n"
+            "stream-split [<template>] [<files...>]\n"
             "\n"
             "Writes the input arrays into separate files, using a file name template.\n"
             "The template must contain the sequence %%[n]N, which will be replaced by the "
@@ -47,7 +47,7 @@ extern "C" void gtatool_stream_split_help(void)
             "number of digits in the index number; small indices will be padded with zeroes. "
             "The default template is %%9N.gta.\n"
             "Example:\n"
-            "stream-split 129-arrays.gta array-%%3N.gta");
+            "stream-split array-%%3N.gta 129-arrays.gta");
 }
 
 extern "C" int gtatool_stream_split(int argc, char *argv[])
@@ -75,8 +75,8 @@ extern "C" int gtatool_stream_split(int argc, char *argv[])
         }
         else
         {
-            tmpl = arguments.back();
-            arguments.pop_back();
+            tmpl = arguments.front();
+            arguments.erase(arguments.begin());
         }
         size_t seq_start = tmpl.find_first_of('%');
         if (seq_start == std::string::npos)
@@ -96,51 +96,42 @@ extern "C" int gtatool_stream_split(int argc, char *argv[])
         }
         else
         {        
-            if (sscanf(tmpl.substr(seq_start + 1, seq_length - 2).c_str(), "%u", &min_width) != 1)
+            try
+            {
+                min_width = str::to<unsigned int>(tmpl.substr(seq_start + 1, seq_length - 2));
+            }
+            catch (...)
             {
                 throw exc("the template argument does not contain the sequence %[n]N");
             }
         }
 
+        array_loop_t array_loop;
         gta::header hdri, hdro;
-        // Loop over all input files
-        size_t arg = 0;
+        std::string namei, nameo;
+        array_loop.start(arguments, "");
         uintmax_t array_index = 0;
-        do
+        while (array_loop.read(hdri, namei))
         {
-            std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : cio::open(finame, "r"));
-
-            // Loop over all GTAs inside the current file
-            while (cio::has_more(fi, finame))
+            // Open the output file
+            std::string array_index_str = str::from(array_index);
+            if (array_index_str.length() < min_width)
             {
-                // Read the GTA header
-                hdri.read_from(fi);
-                // Open the output file
-                std::string array_index_str = str::from(array_index);
-                if (array_index_str.length() < min_width)
-                {
-                    array_index_str.insert(0, min_width - array_index_str.length(), '0');
-                }
-                std::string foname = tmpl;
-                foname.replace(seq_start, seq_length, array_index_str);
-                FILE *fo = cio::open(foname, "w");                
-                // Write the GTA header
-                hdro = hdri;
-                hdro.set_compression(gta::none);
-                hdro.write_to(fo);
-                // Copy the GTA data
-                hdri.copy_data(fi, hdro, fo);
-                cio::close(fo, foname);
-                array_index++;
+                array_index_str.insert(0, min_width - array_index_str.length(), '0');
             }
-            if (fi != gtatool_stdin)
-            {
-                cio::close(fi);
-            }
-            arg++;
+            std::string foname = tmpl;
+            foname.replace(seq_start, seq_length, array_index_str);
+            FILE *fo = cio::open(foname, "w");                
+            // Write the GTA header
+            hdro = hdri;
+            hdro.set_compression(gta::none);
+            hdro.write_to(fo);
+            // Copy the GTA data
+            hdri.copy_data(array_loop.file_in(), hdro, fo);
+            cio::close(fo, foname);
+            array_index++;
         }
-        while (arg < arguments.size());
+        array_loop.finish();
     }
     catch (std::exception &e)
     {

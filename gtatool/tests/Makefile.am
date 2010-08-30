@@ -9,14 +9,18 @@ TESTS = \
 	gta-create.sh \
 	gta-extract.sh \
 	gta-fill.sh \
-	gta-help.sh \
 	gta-info.sh \
 	gta-merge.sh \
 	gta-resize.sh \
 	gta-set.sh \
 	gta-tag.sh \
 	gta-uncompress.sh \
+	gta-stream-extract.sh \
+	gta-stream-merge.sh \
+	gta-stream-split.sh \
+	gta-help.sh \
 	gta-version.sh
+
 
 EXTRA_DIST = $(TESTS)
 

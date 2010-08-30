@@ -138,8 +138,11 @@ public:
             const std::string &filename_out) throw (exc);
     void start(const std::string &filename_in, const std::string &filename_out) throw (exc)
     {
-        std::vector<std::string> v(1);
-        v[0] = filename_in;
+        std::vector<std::string> v;
+        if (filename_in.length() > 0)
+        {
+            v.push_back(filename_in);
+        }
         start(v, filename_out);
     }
 
@@ -152,6 +155,12 @@ public:
     void start_element_loop(element_loop_t &element_loop, const gta::header &header_in, const gta::header &header_out) throw (exc);
 
     void finish() throw (exc);
+
+    // Required for stream-split:
+    FILE *file_in()
+    {
+        return _file_in;
+    }
 };
 
 #endif

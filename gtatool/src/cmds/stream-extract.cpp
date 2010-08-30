@@ -42,7 +42,7 @@
 extern "C" void gtatool_stream_extract_help(void)
 {
     msg::req_txt(
-            "stream-extract [-d|--drop] [<files...>] <range1>[,<range2>[,...]]\n"
+            "stream-extract [-d|--drop] <range1>[,<range2>[,...]] [<files...>]\n"
             "\n"
             "Selects arrays from the input stream of arrays and writes them to standard output. "
             "Other arrays are discarded.\n"
@@ -52,7 +52,7 @@ extern "C" void gtatool_stream_extract_help(void)
             "If --drop is used, the selection is inverted: the selected arrays are discarded and all others "
             "written to standard output.\n"
             "Example:\n"
-            "stream-extract many-arrays.gta 1-3,9-15 > subset.gta");
+            "stream-extract 1-3,9-15 many-arrays.gta > subset.gta");
 }
 
 /* The code to hangle range lists was partially taken from cvtool-1.0.0 on 2010-05-14. */
@@ -186,69 +186,47 @@ extern "C" int gtatool_stream_extract(int argc, char *argv[])
     std::vector<range_t> rangelist;
     try
     {
-        rangelist = to_rangelist(arguments.back());
+        rangelist = to_rangelist(arguments.front());
         normalize(rangelist);
-        arguments.pop_back();
+        arguments.erase(arguments.begin());
     }
-    catch (exc)
+    catch (...)
     {
         msg::err_txt("invalid range list");
         return 1;
     }
 
-    if (cio::isatty(gtatool_stdout))
-    {
-        msg::err_txt("refusing to write to a tty");
-        return 1;
-    }
-
     try
     {
+        array_loop_t array_loop;
         gta::header hdri, hdro;
-        // Loop over all input files
-        size_t arg = 0;
+        std::string namei, nameo;
         uintmax_t array_index = 0;
         size_t rangelist_index = 0;
         uintmax_t dropcounter = 0;
-        do
+        array_loop.start(arguments, "");
+        while (array_loop.read(hdri, namei))
         {
-            std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : cio::open(finame, "r"));
-
-            // Loop over all GTAs inside the current file
-            while (cio::has_more(fi, finame))
+            bool keep = in_range(rangelist, &rangelist_index, array_index);
+            if (drop.value())
             {
-                // Read the GTA header
-                hdri.read_from(fi);
-                // Determine whether to keep or drop the array
-                bool keep = in_range(rangelist, &rangelist_index, array_index);
-                if (drop.value())
-                {
-                    keep = !keep;
-                }
-                // Write the GTA header
-                if (keep)
-                {
-                    hdro = hdri;
-                    hdro.set_compression(gta::none);
-                    hdro.write_to(gtatool_stdout);
-                    // Copy the GTA data
-                    hdri.copy_data(fi, hdro, gtatool_stdout);
-                }
-                else
-                {
-                    hdri.skip_data(fi);
-                    dropcounter++;
-                }
-                array_index++;
+                keep = !keep;
             }
-            if (fi != gtatool_stdin)
+            if (keep)
             {
-                cio::close(fi);
+                hdro = hdri;
+                hdro.set_compression(gta::none);
+                array_loop.write(hdro, nameo);
+                array_loop.copy_data(hdri, hdro);
             }
-            arg++;
+            else
+            {
+                array_loop.skip_data(hdri);
+                dropcounter++;
+            }
+            array_index++;
         }
-        while (arg < arguments.size());
+        array_loop.finish();
         msg::dbg_txt(str::from(array_index) + " arrays processed, "
                 + str::from(array_index - dropcounter) + " kept, "
                 + str::from(dropcounter) + " dropped");
