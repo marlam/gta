@@ -15,4 +15,3 @@ libbase_la_SOURCES = \
 	opt.h opt.cpp \
 	endianness.h \
 	blob.h
-AM_CPPFLAGS = -I$(top_srcdir)/gnulib -I$(top_srcdir)/base
