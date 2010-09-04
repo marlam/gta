@@ -134,7 +134,7 @@ namespace opt
         error = false;
         opterr = 0;
         optind = 1;
-#if HAVE_OPTRESET
+#if defined HAVE_DECL_OPTRESET && HAVE_DECL_OPTRESET
         optreset = 1;
 #endif
         while (!error)

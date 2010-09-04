@@ -106,8 +106,7 @@ AC_CHECK_FUNCS([iconv_open], [],
          AC_MSG_ERROR([libiconv not found])
      fi
      LIB_ICONV="$LTLIBICONV"])
-AC_CHECK_DECL([optreset], [HAVE_OPTRESET=1], [HAVE_OPTRESET=0], [#include <getopt.h>])
-AC_DEFINE_UNQUOTED([HAVE_OPTRESET], [$HAVE_OPTRESET], [Do we have optreset?])
+AC_CHECK_DECLS([optreset], [#include <getopt.h>])
 AC_CHECK_FUNCS([backtrace sigaction vasprintf mmap link fseeko ftello])
 
 dnl The GTA library
