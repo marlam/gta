@@ -142,7 +142,8 @@ extern "C" int gtatool_dimension_split(int argc, char *argv[])
                 tmploop.write(hdros[i], nameos[i]);
                 tmploop.copy_data(hdros[i], hdros[i]);
                 tmploop.finish();
-                cio::close(tmpfiles[i]);
+                cio::close(tmpfiles[i], tmpfilenames[i]);
+                cio::remove(tmpfilenames[i]);
             }
         }
         array_loop.finish();
