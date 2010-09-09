@@ -67,81 +67,57 @@ extern "C" int gtatool_dimension_add(int argc, char *argv[])
         return 0;
     }
 
-    if (cio::isatty(gtatool_stdout))
-    {
-        msg::err_txt("refusing to write to a tty");
-        return 1;
-    }
-
     try
     {
-        gta::header hdri;
-        gta::header hdro;
-        // Loop over all input files
-        size_t arg = 0;
-        do
+        array_loop_t array_loop;
+        gta::header hdri, hdro;
+        std::string namei, nameo;
+        array_loop.start(arguments, "");
+        while (array_loop.read(hdri, namei))
         {
-            std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : cio::open(finame, "r"));
-
-            // Loop over all GTAs inside the current file
-            uintmax_t array_index = 0;
-            while (cio::has_more(fi, finame))
+            uintmax_t dim = (dimension.values().empty() ? hdri.dimensions() : dimension.value());
+            if (dim > hdri.dimensions())
             {
-                // Determine the name of the array for error messages
-                std::string array_name = finame + " array " + str::from(array_index);
-                // Read the GTA header
-                hdri.read_from(fi);
-                uintmax_t dim = (dimension.values().empty() ? hdri.dimensions() : dimension.value());
-                if (dim > hdri.dimensions())
-                {
-                    throw exc(array_name + ": cannot add dimension " + str::from(dim));
-                }
-                // Determine the new dimensions
-                std::vector<uintmax_t> dim_sizes;
-                for (uintmax_t i = 0; i < hdri.dimensions(); i++)
-                {
-                    if (i == dim)
-                    {
-                        dim_sizes.push_back(1);
-                    }
-                    dim_sizes.push_back(hdri.dimension_size(i));
-                }
-                if (dim == hdri.dimensions())
+                throw exc(namei + ": cannot add dimension " + str::from(dim));
+            }
+            // Determine the new dimensions
+            std::vector<uintmax_t> dim_sizes;
+            for (uintmax_t i = 0; i < hdri.dimensions(); i++)
+            {
+                if (i == dim)
                 {
                     dim_sizes.push_back(1);
                 }
-                hdro = hdri;
-                hdro.set_compression(gta::none);
-                hdro.set_dimensions(dim_sizes.size(), &(dim_sizes[0]));
-                uintmax_t hdro_dim = 0;
-                for (uintmax_t i = 0; i < hdri.dimensions(); i++)
-                {
-                    if (i == dim)
-                    {
-                        hdro_dim++;
-                    }
-                    hdro.dimension_taglist(hdro_dim++) = hdri.dimension_taglist(i);
-                }
-                // Write the GTA header
-                hdro.write_to(gtatool_stdout);
-                // Manipulate the GTA data
-                blob element(checked_cast<size_t>(hdri.element_size()));
-                gta::io_state si, so;
-                for (uintmax_t e = 0; e < hdri.elements(); e++)
-                {
-                    hdri.read_elements(si, fi, 1, element.ptr());
-                    hdro.write_elements(so, gtatool_stdout, 1, element.ptr());
-                }
-                array_index++;
+                dim_sizes.push_back(hdri.dimension_size(i));
             }
-            if (fi != gtatool_stdin)
+            if (dim == hdri.dimensions())
             {
-                cio::close(fi);
+                dim_sizes.push_back(1);
             }
-            arg++;
+            hdro = hdri;
+            hdro.set_compression(gta::none);
+            hdro.set_dimensions(dim_sizes.size(), &(dim_sizes[0]));
+            uintmax_t hdro_dim = 0;
+            for (uintmax_t i = 0; i < hdri.dimensions(); i++)
+            {
+                if (i == dim)
+                {
+                    hdro_dim++;
+                }
+                hdro.dimension_taglist(hdro_dim++) = hdri.dimension_taglist(i);
+            }
+            // Write the GTA header
+            array_loop.write(hdro, nameo);
+            // Write the GTA data
+            element_loop_t element_loop;
+            array_loop.start_element_loop(element_loop, hdri, hdro);
+            for (uintmax_t i = 0; i < hdri.elements(); i++)
+            {
+                element_loop.write(element_loop.read());
+            }
+            element_loop.finish();
         }
-        while (arg < arguments.size());
+        array_loop.finish();
     }
     catch (std::exception &e)
     {

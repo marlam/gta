@@ -70,89 +70,63 @@ extern "C" int gtatool_dimension_extract(int argc, char *argv[])
         return 0;
     }
 
-    if (cio::isatty(gtatool_stdout))
-    {
-        msg::err_txt("refusing to write to a tty");
-        return 1;
-    }
-
     try
     {
-        gta::header hdri;
-        gta::header hdro;
-        // Loop over all input files
-        size_t arg = 0;
-        do
+        array_loop_t array_loop;
+        gta::header hdri, hdro;
+        std::string namei, nameo;
+        array_loop.start(arguments, "");
+        while (array_loop.read(hdri, namei))
         {
-            std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : cio::open(finame, "r"));
-
-            // Loop over all GTAs inside the current file
-            uintmax_t array_index = 0;
-            while (cio::has_more(fi, finame))
+            if (hdri.dimensions() == 0)
             {
-                // Determine the name of the array for error messages
-                std::string array_name = finame + " array " + str::from(array_index);
-                // Read the GTA header
-                hdri.read_from(fi);
-                if (hdri.dimensions() == 0)
-                {
-                    throw exc(array_name + ": array has zero dimensions");
-                }
-                uintmax_t dim = (dimension.values().empty() ? hdri.dimensions() - 1 : dimension.value());
-                if (dim >= hdri.dimensions())
-                {
-                    throw exc(array_name + ": array has no dimension " + str::from(dim));
-                }
-                uintmax_t ind = (index.values().empty() ? hdri.dimension_size(dim) - 1: index.value());
-                if (ind >= hdri.dimension_size(dim))
-                {
-                    throw exc(array_name + ": array dimension " + str::from(dim) + " has no index " + str::from(ind));
-                }
-                // Determine the new dimensions
-                std::vector<uintmax_t> dim_sizes;
-                for (uintmax_t i = 0; i < hdri.dimensions(); i++)
-                {
-                    if (i != dim)
-                    {
-                        dim_sizes.push_back(hdri.dimension_size(i));
-                    }
-                }
-                hdro = hdri;
-                hdro.set_compression(gta::none);
-                hdro.set_dimensions(dim_sizes.size(), dim_sizes.size() > 0 ? &(dim_sizes[0]) : NULL);
-                uintmax_t hdro_dim = 0;
-                for (uintmax_t i = 0; i < hdri.dimensions(); i++)
-                {
-                    if (i != dim)
-                    {
-                        hdro.dimension_taglist(hdro_dim++) = hdri.dimension_taglist(i);
-                    }
-                }
-                // Write the GTA header
-                hdro.write_to(gtatool_stdout);
-                // Manipulate the GTA data
-                blob element(checked_cast<size_t>(hdri.element_size()));
-                std::vector<uintmax_t> indices(hdro.dimensions());
-                gta::io_state si, so;
-                for (uintmax_t e = 0; e < hdri.elements(); e++)
-                {
-                    hdri.read_elements(si, fi, 1, element.ptr());
-                    hdri.linear_index_to_indices(e, &(indices[0]));
-                    if (indices[dim] == ind)
-                    {
-                        hdro.write_elements(so, gtatool_stdout, 1, element.ptr());
-                    }
-                }
-                array_index++;
+                throw exc(namei + ": array has zero dimensions");
             }
-            if (fi != gtatool_stdin)
+            uintmax_t dim = (dimension.values().empty() ? hdri.dimensions() - 1 : dimension.value());
+            if (dim >= hdri.dimensions())
             {
-                cio::close(fi);
+                throw exc(namei + ": array has no dimension " + str::from(dim));
             }
-            arg++;
+            uintmax_t ind = (index.values().empty() ? hdri.dimension_size(dim) - 1: index.value());
+            if (ind >= hdri.dimension_size(dim))
+            {
+                throw exc(namei + ": array dimension " + str::from(dim) + " has no index " + str::from(ind));
+            }
+            std::vector<uintmax_t> dim_sizes;
+            for (uintmax_t i = 0; i < hdri.dimensions(); i++)
+            {
+                if (i != dim)
+                {
+                    dim_sizes.push_back(hdri.dimension_size(i));
+                }
+            }
+            hdro = hdri;
+            hdro.set_compression(gta::none);
+            hdro.set_dimensions(dim_sizes.size(), dim_sizes.size() > 0 ? &(dim_sizes[0]) : NULL);
+            uintmax_t hdro_dim = 0;
+            for (uintmax_t i = 0; i < hdri.dimensions(); i++)
+            {
+                if (i != dim)
+                {
+                    hdro.dimension_taglist(hdro_dim++) = hdri.dimension_taglist(i);
+                }
+            }
+            array_loop.write(hdro, nameo);
+            element_loop_t element_loop;
+            array_loop.start_element_loop(element_loop, hdri, hdro);
+            std::vector<uintmax_t> indices(hdri.dimensions());
+            for (uintmax_t i = 0; i < hdri.elements(); i++)
+            {
+                void *e = element_loop.read();
+                hdri.linear_index_to_indices(i, &(indices[0]));
+                if (indices[dim] == ind)
+                {
+                    element_loop.write(e);
+                }
+            }
+            element_loop.finish();
         }
-        while (arg < arguments.size());
+        array_loop.finish();
     }
     catch (std::exception &e)
     {

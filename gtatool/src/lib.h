@@ -127,9 +127,6 @@ private:
     std::string _array_name_in;
     std::string _array_name_out;
 
-    const std::string &filename_in() throw ();
-    const std::string &filename_out() throw ();
-
 public:
     array_loop_t() throw ();
     ~array_loop_t();
@@ -154,6 +151,14 @@ public:
     void copy_data(const gta::header &header_in, const gta::header &header_out);
     void copy_data(const gta::header &header_in, const array_loop_t &array_loop_out, gta::header &header_out);
     void start_element_loop(element_loop_t &element_loop, const gta::header &header_in, const gta::header &header_out);
+
+    FILE *file_in() const throw ()
+    {
+        return _file_in;
+    }
+
+    const std::string &filename_in() throw ();
+    const std::string &filename_out() throw ();
 
     void finish();
 };

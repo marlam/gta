@@ -78,83 +78,59 @@ extern "C" int gtatool_dimension_reverse(int argc, char *argv[])
         }
     }
 
-    if (cio::isatty(gtatool_stdout))
-    {
-        msg::err_txt("refusing to write to a tty");
-        return 1;
-    }
-
     try
     {
-        gta::header hdri;
-        gta::header hdro;
-        // Loop over all input files
-        size_t arg = 0;
-        do
+        array_loop_t array_loop;
+        gta::header hdri, hdro;
+        std::string namei, nameo;
+        array_loop.start(arguments, "");
+        while (array_loop.read(hdri, namei))
         {
-            std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : cio::open(finame, "r"));
-            if (!cio::seekable(fi))
+            if (!cio::seekable(array_loop.file_in()))
             {
-                throw exc(finame + ": input is not seekable");
+                throw exc(array_loop.filename_in() + ": input is not seekable");
             }
-
-            // Loop over all GTAs inside the current file
-            uintmax_t array_index = 0;
-            while (cio::has_more(fi, finame))
+            if (hdri.compression() != gta::none)
             {
-                // Determine the name of the array for error messages
-                std::string array_name = finame + " array " + str::from(array_index);
-                // Read the GTA header
-                hdri.read_from(fi);
-                if (hdri.compression() != gta::none)
+                throw exc(namei + ": array is compressed");
+            }
+            if (!indices.value().empty())
+            {
+                for (size_t i = 0; i < indices.value().size(); i++)
                 {
-                    throw exc(array_name + ": array is compressed");
+                    if (indices.value()[i] >= hdri.dimensions())
+                    {
+                        throw exc(namei + ": array has no dimension " + str::from(indices.value()[i]));
+                    }
                 }
+            }
+            uintmax_t data_offset = cio::tell(array_loop.file_in(), array_loop.filename_in());
+            hdro = hdri;
+            hdro.set_compression(gta::none);
+            array_loop.write(hdro, nameo);
+            element_loop_t element_loop;
+            array_loop.start_element_loop(element_loop, hdri, hdro);
+            blob element(checked_cast<size_t>(hdri.element_size()));
+            std::vector<uintmax_t> ind(hdro.dimensions());
+            for (uintmax_t e = 0; e < hdro.elements(); e++)
+            {
+                hdro.linear_index_to_indices(e, &(ind[0]));
                 if (!indices.value().empty())
                 {
                     for (size_t i = 0; i < indices.value().size(); i++)
                     {
-                        if (indices.value()[i] >= hdri.dimensions())
-                        {
-                            throw exc(array_name + ": array has no dimension " + str::from(indices.value()[i]));
-                        }
+                        uintmax_t j = indices.value()[i];
+                        ind[j] = hdri.dimension_size(j) - 1 - ind[j];
                     }
                 }
-                uintmax_t data_offset = cio::tell(fi, finame);
-                // Write the GTA header
-                hdro = hdri;
-                hdro.set_compression(gta::none);
-                hdro.write_to(gtatool_stdout);
-                // Manipulate the GTA data
-                blob element(checked_cast<size_t>(hdri.element_size()));
-                std::vector<uintmax_t> ind(hdro.dimensions());
-                gta::io_state so;
-                for (uintmax_t e = 0; e < hdro.elements(); e++)
-                {
-                    hdro.linear_index_to_indices(e, &(ind[0]));
-                    if (!indices.value().empty())
-                    {
-                        for (size_t i = 0; i < indices.value().size(); i++)
-                        {
-                            uintmax_t j = indices.value()[i];
-                            ind[j] = hdri.dimension_size(j) - 1 - ind[j];
-                        }
-                    }
-                    hdri.read_block(fi, data_offset, &(ind[0]), &(ind[0]), element.ptr());
-                    hdro.write_elements(so, gtatool_stdout, 1, element.ptr());
-                }
-                cio::seek(fi, data_offset, SEEK_SET, finame);
-                hdri.skip_data(fi);
-                array_index++;
+                hdri.read_block(array_loop.file_in(), data_offset, &(ind[0]), &(ind[0]), element.ptr());
+                element_loop.write(element.ptr());
             }
-            if (fi != gtatool_stdin)
-            {
-                cio::close(fi);
-            }
-            arg++;
+            element_loop.finish();
+            cio::seek(array_loop.file_in(), data_offset, SEEK_SET, array_loop.filename_in());
+            array_loop.skip_data(hdri);
         }
-        while (arg < arguments.size());
+        array_loop.finish();
     }
     catch (std::exception &e)
     {

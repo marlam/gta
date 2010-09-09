@@ -5,6 +5,8 @@
 # notice are preserved. This file is offered as-is, without any warranty.
 
 TESTS = \
+	gta-help.sh \
+	gta-version.sh \
 	gta-compress.sh \
 	gta-create.sh \
 	gta-extract.sh \
@@ -15,12 +17,15 @@ TESTS = \
 	gta-set.sh \
 	gta-tag.sh \
 	gta-uncompress.sh \
+	gta-dimension-add.sh \
+	gta-dimension-extract.sh \
+	gta-dimension-merge.sh \
+	gta-dimension-reorder.sh \
+	gta-dimension-reverse.sh \
+	gta-dimension-split.sh \
 	gta-stream-extract.sh \
 	gta-stream-merge.sh \
-	gta-stream-split.sh \
-	gta-help.sh \
-	gta-version.sh
-
+	gta-stream-split.sh
 
 EXTRA_DIST = $(TESTS)
 

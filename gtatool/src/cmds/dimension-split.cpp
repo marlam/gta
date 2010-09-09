@@ -71,92 +71,81 @@ extern "C" int gtatool_dimension_split(int argc, char *argv[])
         return 0;
     }
 
-    if (cio::isatty(gtatool_stdout))
-    {
-        msg::err_txt("refusing to write to a tty");
-        return 1;
-    }
-
     try
     {
-        gta::header hdri;
-        // Loop over all input files
-        size_t arg = 0;
-        do
+        array_loop_t array_loop;
+        gta::header hdri, hdro;
+        std::string namei, nameo;
+        array_loop.start(arguments, "");
+        while (array_loop.read(hdri, namei))
         {
-            std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : cio::open(finame, "r"));
-
-            // Loop over all GTAs inside the current file
-            uintmax_t array_index = 0;
-            while (cio::has_more(fi, finame))
+            uintmax_t dim = (dimension.values().empty() ? hdri.dimensions() - 1 : dimension.value());
+            if (dim >= hdri.dimensions())
             {
-                // Determine the name of the array for error messages
-                std::string array_name = finame + " array " + str::from(array_index);
-                // Read the GTA header
-                hdri.read_from(fi);
-                uintmax_t dim = (dimension.values().empty() ? hdri.dimensions() - 1 : dimension.value());
-                if (dim >= hdri.dimensions())
+                throw exc(namei + ": array has no dimension " + str::from(dim));
+            }
+            // Determine the new dimensions
+            std::vector<uintmax_t> dim_sizes;
+            for (uintmax_t i = 0; i < hdri.dimensions(); i++)
+            {
+                if (i != dim)
                 {
-                    throw exc(array_name + ": array has no dimension " + str::from(dim));
+                    dim_sizes.push_back(hdri.dimension_size(i));
                 }
-                // Determine the new dimensions
-                std::vector<uintmax_t> dim_sizes;
-                for (uintmax_t i = 0; i < hdri.dimensions(); i++)
+            }
+            // Define the GTA headers and create temporary files
+            std::vector<gta::header> hdros(checked_cast<size_t>(hdri.dimension_size(dim)));
+            std::vector<std::string> nameos(hdros.size());
+            std::vector<FILE *> tmpfiles(hdros.size());
+            std::vector<std::string> tmpfilenames(hdros.size());
+            std::vector<array_loop_t> tmpaloops(hdros.size());
+            std::vector<element_loop_t> tmpeloops(hdros.size());
+            std::vector<std::string> tmpnameos(hdros.size());
+            for (size_t i = 0; i < hdros.size(); i++)
+            {
+                hdros[i] = hdri;
+                hdros[i].set_compression(gta::none);
+                hdros[i].set_dimensions(dim_sizes.size(), dim_sizes.size() > 0 ? &(dim_sizes[0]) : NULL);
+                uintmax_t hdro_dim = 0;
+                for (uintmax_t j = 0; j < hdri.dimensions(); j++)
                 {
-                    if (i != dim)
+                    if (j != dim)
                     {
-                        dim_sizes.push_back(hdri.dimension_size(i));
+                        hdros[i].dimension_taglist(hdro_dim) = hdri.dimension_taglist(j);
+                        hdro_dim++;
                     }
                 }
-                // Define the GTA headers and create temporary files
-                std::vector<gta::header> hdros(checked_cast<size_t>(hdri.dimension_size(dim)));
-                std::vector<FILE *> tmpfiles(hdros.size());
-                for (size_t i = 0; i < hdros.size(); i++)
-                {
-                    hdros[i] = hdri;
-                    hdros[i].set_compression(gta::none);
-                    hdros[i].set_dimensions(dim_sizes.size(), dim_sizes.size() > 0 ? &(dim_sizes[0]) : NULL);
-                    uintmax_t hdro_dim = 0;
-                    for (uintmax_t j = 0; j < hdri.dimensions(); j++)
-                    {
-                        if (j != dim)
-                        {
-                            hdros[i].dimension_taglist(hdro_dim) = hdri.dimension_taglist(j);
-                            hdro_dim++;
-                        }
-                    }
-                    tmpfiles[i] = cio::tempfile(PACKAGE_NAME);
-                }
-                // Write the GTA data to temporary files
-                blob element(checked_cast<size_t>(hdri.element_size()));
-                std::vector<uintmax_t> indices(hdri.dimensions());
-                gta::io_state si;
-                std::vector<gta::io_state> sos(hdros.size());
-                for (uintmax_t e = 0; e < hdri.elements(); e++)
-                {
-                    hdri.read_elements(si, fi, 1, element.ptr());
-                    hdri.linear_index_to_indices(e, &(indices[0]));
-                    size_t i = indices[dim];
-                    hdros[i].write_elements(sos[i], tmpfiles[i], 1, element.ptr());
-                }
-                // Combine the GTA data to a single output stream
-                for (size_t i = 0; i < hdros.size(); i++)
-                {
-                    hdros[i].write_to(gtatool_stdout);
-                    cio::rewind(tmpfiles[i]);
-                    hdros[i].copy_data(tmpfiles[i], hdros[i], gtatool_stdout);
-                    cio::close(tmpfiles[i]);
-                }
-                array_index++;
+                tmpfilenames[i] = cio::mktempfile(&(tmpfiles[i]), PACKAGE_NAME);
+                tmpaloops[i].start("", tmpfilenames[i]);
+                tmpaloops[i].start_element_loop(tmpeloops[i], hdri, hdros[i]);
             }
-            if (fi != gtatool_stdin)
+            // Write the GTA data to temporary files
+            element_loop_t element_loop;
+            array_loop.start_element_loop(element_loop, hdri, hdro);
+            blob element(checked_cast<size_t>(hdri.element_size()));
+            std::vector<uintmax_t> indices(hdri.dimensions());
+            for (uintmax_t i = 0; i < hdri.elements(); i++)
             {
-                cio::close(fi);
+                void *e = element_loop.read();
+                hdri.linear_index_to_indices(i, &(indices[0]));
+                size_t j = indices[dim];
+                tmpeloops[j].write(e);
             }
-            arg++;
+            element_loop.finish();
+            // Combine the GTA data to a single output stream
+            for (size_t i = 0; i < hdros.size(); i++)
+            {
+                tmpeloops[i].finish();
+                tmpaloops[i].finish();
+                array_loop_t tmploop;
+                tmploop.start(tmpfilenames[i], "");
+                tmploop.write(hdros[i], nameos[i]);
+                tmploop.copy_data(hdros[i], hdros[i]);
+                tmploop.finish();
+                cio::close(tmpfiles[i]);
+            }
         }
-        while (arg < arguments.size());
+        array_loop.finish();
     }
     catch (std::exception &e)
     {

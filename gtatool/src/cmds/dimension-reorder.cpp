@@ -85,96 +85,71 @@ extern "C" int gtatool_dimension_reorder(int argc, char *argv[])
         }
     }
 
-    if (cio::isatty(gtatool_stdout))
-    {
-        msg::err_txt("refusing to write to a tty");
-        return 1;
-    }
-
     try
     {
-        gta::header hdri;
-        gta::header hdro;
-        // Loop over all input files
-        size_t arg = 0;
-        do
+        array_loop_t array_loop;
+        gta::header hdri, hdro;
+        std::string namei, nameo;
+        array_loop.start(arguments, "");
+        while (array_loop.read(hdri, namei))
         {
-            std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : cio::open(finame, "r"));
-            if (!cio::seekable(fi))
+            if (!cio::seekable(array_loop.file_in()))
             {
-                throw exc(finame + ": input is not seekable");
+                throw exc(array_loop.filename_in() + ": input is not seekable");
             }
-
-            // Loop over all GTAs inside the current file
-            uintmax_t array_index = 0;
-            while (cio::has_more(fi, finame))
+            if (hdri.compression() != gta::none)
             {
-                // Determine the name of the array for error messages
-                std::string array_name = finame + " array " + str::from(array_index);
-                // Read the GTA header
-                hdri.read_from(fi);
-                if (hdri.compression() != gta::none)
-                {
-                    throw exc(array_name + ": array is compressed");
-                }
-                if (!indices.value().empty() && hdri.dimensions() != indices.value().size())
-                {
-                    throw exc(array_name + ": array has " + str::from(hdri.dimensions())
-                            + " dimensions while list of indices has " + str::from(indices.value().size()));
-                }
-                uintmax_t data_offset = cio::tell(fi, finame);
-                // Reorder the dimensions
-                hdro = hdri;
-                hdro.set_compression(gta::none);
-                if (!indices.value().empty())
-                {
-                    std::vector<uintmax_t> dim_sizes;
-                    for (size_t i = 0; i < indices.value().size(); i++)
-                    {
-                        dim_sizes.push_back(hdri.dimension_size(indices.value()[i]));
-                    }
-                    hdro.set_dimensions(dim_sizes.size(), &(dim_sizes[0]));
-                    for (size_t i = 0; i < indices.value().size(); i++)
-                    {
-                        hdro.dimension_taglist(i) = hdri.dimension_taglist(indices.value()[i]);
-                    }
-                }
-                // Write the GTA header
-                hdro.write_to(gtatool_stdout);
-                // Manipulate the GTA data
-                blob element(checked_cast<size_t>(hdri.element_size()));
-                std::vector<uintmax_t> in_indices(hdri.dimensions());
-                std::vector<uintmax_t> out_indices(hdro.dimensions());
-                gta::io_state so;
-                for (uintmax_t e = 0; e < hdro.elements(); e++)
-                {
-                    hdro.linear_index_to_indices(e, &(out_indices[0]));
-                    for (size_t i = 0; i < out_indices.size(); i++)
-                    {
-                        if (!indices.value().empty())
-                        {
-                            in_indices[indices.value()[i]] = out_indices[i];
-                        }
-                        else
-                        {
-                            in_indices[i] = out_indices[i];
-                        }
-                    }
-                    hdri.read_block(fi, data_offset, &(in_indices[0]), &(in_indices[0]), element.ptr());
-                    hdro.write_elements(so, gtatool_stdout, 1, element.ptr());
-                }
-                cio::seek(fi, data_offset, SEEK_SET, finame);
-                hdri.skip_data(fi);
-                array_index++;
+                throw exc(namei + ": array is compressed");
             }
-            if (fi != gtatool_stdin)
+            if (!indices.value().empty() && hdri.dimensions() != indices.value().size())
             {
-                cio::close(fi);
+                throw exc(namei + ": array has " + str::from(hdri.dimensions())
+                        + " dimensions while list of indices has " + str::from(indices.value().size()));
             }
-            arg++;
+            uintmax_t data_offset = cio::tell(array_loop.file_in(), array_loop.filename_in());
+            hdro = hdri;
+            hdro.set_compression(gta::none);
+            if (!indices.value().empty())
+            {
+                std::vector<uintmax_t> dim_sizes;
+                for (size_t i = 0; i < indices.value().size(); i++)
+                {
+                    dim_sizes.push_back(hdri.dimension_size(indices.value()[i]));
+                }
+                hdro.set_dimensions(dim_sizes.size(), &(dim_sizes[0]));
+                for (size_t i = 0; i < indices.value().size(); i++)
+                {
+                    hdro.dimension_taglist(i) = hdri.dimension_taglist(indices.value()[i]);
+                }
+            }
+            array_loop.write(hdro, nameo);
+            element_loop_t element_loop;
+            array_loop.start_element_loop(element_loop, hdri, hdro);
+            blob element(checked_cast<size_t>(hdri.element_size()));
+            std::vector<uintmax_t> in_indices(hdri.dimensions());
+            std::vector<uintmax_t> out_indices(hdro.dimensions());
+            for (uintmax_t e = 0; e < hdro.elements(); e++)
+            {
+                hdro.linear_index_to_indices(e, &(out_indices[0]));
+                for (size_t i = 0; i < out_indices.size(); i++)
+                {
+                    if (!indices.value().empty())
+                    {
+                        in_indices[indices.value()[i]] = out_indices[i];
+                    }
+                    else
+                    {
+                        in_indices[i] = out_indices[i];
+                    }
+                }
+                hdri.read_block(array_loop.file_in(), data_offset, &(in_indices[0]), &(in_indices[0]), element.ptr());
+                element_loop.write(element.ptr());
+            }
+            element_loop.finish();
+            cio::seek(array_loop.file_in(), data_offset, SEEK_SET, array_loop.filename_in());
+            array_loop.skip_data(hdri);
         }
-        while (arg < arguments.size());
+        array_loop.finish();
     }
     catch (std::exception &e)
     {
