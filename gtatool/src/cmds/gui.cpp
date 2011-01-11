@@ -4,7 +4,8 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+ * Copyright (C) 2010, 2011
+ * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -288,13 +289,16 @@ ArrayWidget::ArrayWidget(gta::header *header, QWidget *parent)
 {
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(new QLabel("Dimensions:"), 0, 0, 1, 1);
-    _dimensions_label = new QLabel("");
+    _dimensions_label = new QLineEdit("");
+    _dimensions_label->setReadOnly(true);
     layout->addWidget(_dimensions_label, 0, 1, 1, 3);
     layout->addWidget(new QLabel("Components:"), 1, 0, 1, 1);
-    _components_label = new QLabel("");
+    _components_label = new QLineEdit("");
+    _components_label->setReadOnly(true);
     layout->addWidget(_components_label, 1, 1, 1, 3);
     layout->addWidget(new QLabel("Size:"), 2, 0, 1, 1);
-    _size_label = new QLabel("");
+    _size_label = new QLineEdit("");
+    _size_label->setReadOnly(true);
     layout->addWidget(_size_label, 2, 1, 1, 3);
     layout->addWidget(new QLabel("Compression:"), 3, 0, 1, 1);
     _compression_combobox = new QComboBox();
