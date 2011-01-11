@@ -2229,7 +2229,7 @@ void GUI::help_about()
                 "<p>Copyright (C) 2010 Martin Lambers.<br>"
                 "This is <a href=\"http://www.gnu.org/philosophy/free-sw.html\">free software</a>. "
                 "You may redistribute copies of it under the terms of the "
-                "<a href=\"http://www.gnu.org/licenses/gpl.html\">GNU General Public License</a>."
+                "<a href=\"http://www.gnu.org/licenses/gpl.html\">GNU General Public License</a>. "
                 "There is NO WARRANTY, to the extent permitted by law.</p>")
             .arg(PACKAGE_NAME).arg(VERSION).arg(gta::version()).arg(program_name).arg(PACKAGE_URL));
 }
