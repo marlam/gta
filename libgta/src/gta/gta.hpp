@@ -35,6 +35,7 @@
 #include <exception>
 #include <istream>
 #include <ostream>
+#include <vector>
 #include <limits>
 #include <cerrno>
 #include <cstring>
@@ -258,24 +259,17 @@ namespace gta
 
         gta_taglist_t *_taglist;
 
+        void set(gta_taglist_t *taglist)
+        {
+            _taglist = taglist;
+        }
+
     public:
 
         /** \cond INTERNAL */
-        taglist(const gta_taglist_t *taglist) throw ()
-            : _taglist(const_cast<gta_taglist_t *>(taglist))
+        taglist() throw ()
+            : _taglist(NULL)
         {
-        }
-        taglist(gta_taglist_t *taglist) throw ()
-            : _taglist(taglist)
-        {
-        }
-        taglist(const taglist &taglist) throw (exception)
-        {
-            gta_result_t r = gta_clone_taglist(_taglist, taglist._taglist);
-            if (r != GTA_OK)
-            {
-                throw exception("cannot clone GTA tag list", static_cast<gta::result>(r));
-            }
         }
         /** \endcond */
 
@@ -375,6 +369,7 @@ namespace gta
             return *this;
         }
 
+        friend class header;
     };
 
     /**
@@ -707,6 +702,39 @@ namespace gta
     private:
 
         gta_header_t *_header;
+        taglist _global_taglist;
+        std::vector<taglist> _dimension_taglists;
+        std::vector<taglist> _component_taglists;
+
+        void reset_global_taglist()
+        {
+            _global_taglist.set(gta_get_global_taglist(_header));
+        }
+
+        void reset_component_taglists()
+        {
+            _component_taglists.resize(gta_get_components(_header));
+            for (uintmax_t i = 0; i < _component_taglists.size(); i++)
+            {
+                _component_taglists[i].set(gta_get_component_taglist(_header, i));
+            }
+        }
+
+        void reset_dimension_taglists()
+        {
+            _dimension_taglists.resize(gta_get_dimensions(_header));
+            for (size_t i = 0; i < _dimension_taglists.size(); i++)
+            {
+                _dimension_taglists[i].set(gta_get_dimension_taglist(_header, i));
+            }
+        }
+
+        void reset_taglists()
+        {
+            reset_global_taglist();
+            reset_component_taglists();
+            reset_dimension_taglists();
+        }
 
     public:
 
@@ -726,6 +754,7 @@ namespace gta
             {
                 throw exception("cannot initialize GTA header", static_cast<gta::result>(r));
             }
+            reset_taglists();
         }
 
         /**
@@ -746,6 +775,7 @@ namespace gta
             {
                 throw exception("cannot clone GTA header", static_cast<gta::result>(r));
             }
+            reset_taglists();
         }
 
         /**
@@ -770,6 +800,7 @@ namespace gta
             {
                 throw exception("cannot clone GTA header", static_cast<gta::result>(r));
             }
+            reset_taglists();
             return *this;
         }
 
@@ -792,6 +823,7 @@ namespace gta
             {
                 throw exception("cannot read GTA header", static_cast<gta::result>(r));
             }
+            reset_taglists();
         }
 
         /**
@@ -806,6 +838,7 @@ namespace gta
             {
                 throw exception("cannot read GTA header", static_cast<gta::result>(r));
             }
+            reset_taglists();
         }
 
         /**
@@ -819,6 +852,7 @@ namespace gta
             {
                 throw exception("cannot read GTA header", static_cast<gta::result>(r));
             }
+            reset_taglists();
         }
 
         /**
@@ -832,6 +866,7 @@ namespace gta
             {
                 throw exception("cannot read GTA header", static_cast<gta::result>(r));
             }
+            reset_taglists();
         }
 
         /**
@@ -899,18 +934,18 @@ namespace gta
          * \brief       Get the global tag list.
          * \return      The global tag list.
          */
-        const taglist global_taglist() const throw ()
+        const taglist &global_taglist() const throw ()
         {
-            return taglist(gta_get_global_taglist_const(_header));
+            return _global_taglist;
         }
 
         /**
          * \brief       Get the global tag list.
          * \return      The global tag list.
          */
-        taglist global_taglist() throw ()
+        taglist &global_taglist() throw ()
         {
-            return taglist(gta_get_global_taglist(_header));
+            return _global_taglist;
         }
 
         /**
@@ -956,9 +991,9 @@ namespace gta
          * \param i     The component index.
          * \return      The tag list of the component.
          */
-        const taglist component_taglist(uintmax_t i) const throw ()
+        const taglist &component_taglist(uintmax_t i) const throw ()
         {
-            return taglist(gta_get_component_taglist(_header, i));
+            return _component_taglists[i];
         }
 
         /**
@@ -966,9 +1001,9 @@ namespace gta
          * \param i     The component index.
          * \return      The tag list of the component.
          */
-        taglist component_taglist(uintmax_t i) throw ()
+        taglist &component_taglist(uintmax_t i) throw ()
         {
-            return taglist(gta_get_component_taglist(_header, i));
+            return _component_taglists[i];
         }
 
         /**
@@ -995,9 +1030,9 @@ namespace gta
          * \param i     The dimension index.
          * \return      The tag list of the dimension.
          */
-        const taglist dimension_taglist(uintmax_t i) const throw ()
+        const taglist &dimension_taglist(uintmax_t i) const throw ()
         {
-            return taglist(gta_get_dimension_taglist(_header, i));
+            return _dimension_taglists[i];
         }
 
         /**
@@ -1005,9 +1040,9 @@ namespace gta
          * \param i     The dimension index.
          * \return      The tag list of the dimension.
          */
-        taglist dimension_taglist(uintmax_t i) throw ()
+        taglist &dimension_taglist(uintmax_t i) throw ()
         {
-            return taglist(gta_get_dimension_taglist(_header, i));
+            return _dimension_taglists[i];
         }
 
         /**
@@ -1082,6 +1117,7 @@ namespace gta
             {
                 throw exception("cannot set GTA components", static_cast<gta::result>(r));
             }
+            reset_component_taglists();
         }
 
         /**
@@ -1098,6 +1134,7 @@ namespace gta
             {
                 throw exception("cannot set GTA components", static_cast<gta::result>(r));
             }
+            reset_component_taglists();
         }
 
         /**
@@ -1117,6 +1154,7 @@ namespace gta
             {
                 throw exception("cannot set GTA components", static_cast<gta::result>(r));
             }
+            reset_component_taglists();
         }
 
         /**
@@ -1138,6 +1176,7 @@ namespace gta
             {
                 throw exception("cannot set GTA components", static_cast<gta::result>(r));
             }
+            reset_component_taglists();
         }
 
         /**
@@ -1161,6 +1200,7 @@ namespace gta
             {
                 throw exception("cannot set GTA components", static_cast<gta::result>(r));
             }
+            reset_component_taglists();
         }
 
         /**
@@ -1178,6 +1218,7 @@ namespace gta
             {
                 throw exception("cannot set GTA dimensions", static_cast<gta::result>(r));
             }
+            reset_dimension_taglists();
         }
 
         /**
@@ -1192,6 +1233,7 @@ namespace gta
             {
                 throw exception("cannot set GTA dimensions", static_cast<gta::result>(r));
             }
+            reset_dimension_taglists();
         }
 
         /**
@@ -1207,6 +1249,7 @@ namespace gta
             {
                 throw exception("cannot set GTA dimensions", static_cast<gta::result>(r));
             }
+            reset_dimension_taglists();
         }
 
         /**
@@ -1223,6 +1266,7 @@ namespace gta
             {
                 throw exception("cannot set GTA dimensions", static_cast<gta::result>(r));
             }
+            reset_dimension_taglists();
         }
 
         /**
@@ -1240,6 +1284,7 @@ namespace gta
             {
                 throw exception("cannot set GTA dimensions", static_cast<gta::result>(r));
             }
+            reset_dimension_taglists();
         }
 
         /*@}*/
