@@ -239,7 +239,7 @@ namespace gta
          * \brief       Get a description.
          * \return      A description of the exception.
          */
-        virtual const char* what() const
+        virtual const char* what() const throw ()
         {
             return _what;
         }
