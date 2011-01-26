@@ -4,7 +4,8 @@
  * This file is part of libgta, a library that implements the Generic Tagged
  * Array (GTA) file format.
  *
- * Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+ * Copyright (C) 2010, 2011
+ * Martin Lambers <marlam@marlam.de>
  *
  * Libgta is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
@@ -259,19 +260,18 @@ namespace gta
 
         gta_taglist_t *_taglist;
 
+        /** \cond INTERNAL */
         void set(gta_taglist_t *taglist)
         {
             _taglist = taglist;
         }
 
-    public:
-
-        /** \cond INTERNAL */
         taglist() throw ()
-            : _taglist(NULL)
         {
         }
         /** \endcond */
+
+    public:
 
         /**
          * \brief       Get the number of tags.
@@ -713,7 +713,7 @@ namespace gta
 
         void reset_component_taglists()
         {
-            _component_taglists.resize(gta_get_components(_header));
+            _component_taglists.resize(gta_get_components(_header), taglist());
             for (uintmax_t i = 0; i < _component_taglists.size(); i++)
             {
                 _component_taglists[i].set(gta_get_component_taglist(_header, i));
@@ -722,7 +722,7 @@ namespace gta
 
         void reset_dimension_taglists()
         {
-            _dimension_taglists.resize(gta_get_dimensions(_header));
+            _dimension_taglists.resize(gta_get_dimensions(_header), taglist());
             for (size_t i = 0; i < _dimension_taglists.size(); i++)
             {
                 _dimension_taglists[i].set(gta_get_dimension_taglist(_header, i));
