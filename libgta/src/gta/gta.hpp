@@ -166,7 +166,7 @@ namespace gta
     /**
      * \brief The exception class.
      *
-     * The GTA C++ library reports errors by throwing exceptions. You can use
+     * The GTA C++ interface reports errors by throwing exceptions. You can use
      * them just like std::exceptions, but you can also query the original
      * \a gta::result that caused the exception.
      */
@@ -186,7 +186,7 @@ namespace gta
          * \param s     The action that failed.
          * \param r     The GTA result.
          */
-        exception(const char *s, gta::result r) throw ()
+        exception(const char *s, gta::result r)
             : _r(r), _sys_errno(r == system_error ? errno : 0)
         {
             const char *w = "";
@@ -239,7 +239,7 @@ namespace gta
          * \brief       Get a description.
          * \return      A description of the exception.
          */
-        virtual const char* what() const throw()
+        virtual const char* what() const
         {
             return _what;
         }
@@ -266,7 +266,7 @@ namespace gta
             _taglist = taglist;
         }
 
-        taglist() throw ()
+        taglist()
         {
         }
         /** \endcond */
@@ -277,7 +277,7 @@ namespace gta
          * \brief       Get the number of tags.
          * \return      The number of tags.
          */
-        uintmax_t tags() const throw ()
+        uintmax_t tags() const
         {
             return gta_get_tags(_taglist);
         }
@@ -287,7 +287,7 @@ namespace gta
          * \param i     The tag index.
          * \return      The name of the tag.
          */
-        const char *name(uintmax_t i) const throw ()
+        const char *name(uintmax_t i) const
         {
             return gta_get_tag_name(_taglist, i);
         }
@@ -297,7 +297,7 @@ namespace gta
          * \param i     The tag index.
          * \return      The value of the tag.
          */
-        const char *value(uintmax_t i) const throw ()
+        const char *value(uintmax_t i) const
         {
             return gta_get_tag_value(_taglist, i);
         }
@@ -307,7 +307,7 @@ namespace gta
          * \param name  The tag name.
          * \return      The tag value, or NULL if the tag name is not found.
          */
-        const char *get(const char *name) const throw ()
+        const char *get(const char *name) const
         {
             return gta_get_tag(_taglist, name);
         }
@@ -321,7 +321,7 @@ namespace gta
          * The name and value must be valid UTF-8 strings without control characters.
          * Additionally, the name must not contain the equal sign and must not be empty.
          */
-        void set(const char *name, const char *value) throw (exception)
+        void set(const char *name, const char *value)
         {
             gta_result_t r = gta_set_tag(_taglist, name, value);
             if (r != GTA_OK)
@@ -336,7 +336,7 @@ namespace gta
          *
          * Removes the tag with the given name, if it exists.
          */
-        void unset(const char *name) throw (exception)
+        void unset(const char *name)
         {
             gta_result_t r = gta_unset_tag(_taglist, name);
             if (r != GTA_OK)
@@ -350,7 +350,7 @@ namespace gta
          *
          * Removes all tags.
          */
-        void unset_all() throw ()
+        void unset_all()
         {
             gta_unset_all_tags(_taglist);
         }
@@ -359,7 +359,7 @@ namespace gta
          * \brief       Assignment operator.
          * \param tl    The tag list to copy.
          */
-        const taglist &operator=(const taglist &tl) throw (exception)
+        const taglist &operator=(const taglist &tl)
         {
             gta_result_t r = gta_clone_taglist(_taglist, tl._taglist);
             if (r != GTA_OK)
@@ -395,7 +395,7 @@ namespace gta
          * The function must set errno to indicate the type of error. If the
          * error type is unknown, errno should be set to EIO.
          */
-        virtual size_t read(void *buffer GTA_ATTR_UNUSED, size_t size GTA_ATTR_UNUSED, bool *error) throw ()
+        virtual size_t read(void *buffer GTA_ATTR_UNUSED, size_t size GTA_ATTR_UNUSED, bool *error)
         {
             errno = ENOSYS;
             *error = true;
@@ -414,7 +414,7 @@ namespace gta
          * The function must set errno to indicate the type of error. If the
          * error type is unknown, errno should be set to EIO.
          */
-        virtual size_t write(const void *buffer GTA_ATTR_UNUSED, size_t size GTA_ATTR_UNUSED, bool *error) throw ()
+        virtual size_t write(const void *buffer GTA_ATTR_UNUSED, size_t size GTA_ATTR_UNUSED, bool *error)
         {
             errno = ENOSYS;
             *error = true;
@@ -428,7 +428,7 @@ namespace gta
          * This function must return true if the object is seekable, i.e. if the
          * \a seek function can be used. Otherwise, it must return false.
          */
-        virtual bool seekable() throw ()
+        virtual bool seekable()
         {
             return false;
         }
@@ -446,7 +446,7 @@ namespace gta
          * The function must set errno to indicate the type of error. If the
          * error type is unknown, errno should be set to EIO.
          */
-        virtual void seek(intmax_t offset GTA_ATTR_UNUSED, int whence GTA_ATTR_UNUSED, bool *error) throw ()
+        virtual void seek(intmax_t offset GTA_ATTR_UNUSED, int whence GTA_ATTR_UNUSED, bool *error)
         {
             errno = ENOSYS;
             *error = true;
@@ -462,12 +462,12 @@ namespace gta
 
     public:
 
-        istream_io(std::istream &is) throw ()
+        istream_io(std::istream &is)
             : _is(is)
         {
         }
 
-        virtual size_t read(void *buffer, size_t size, bool *error) throw ()
+        virtual size_t read(void *buffer, size_t size, bool *error)
         {
             try
             {
@@ -485,12 +485,12 @@ namespace gta
             return size;
         }
 
-        virtual bool seekable() throw ()
+        virtual bool seekable()
         {
             return (_is.tellg() != static_cast<std::streampos>(-1));
         }
 
-        virtual void seek(intmax_t offset, int whence, bool *error) throw ()
+        virtual void seek(intmax_t offset, int whence, bool *error)
         {
             if (offset > std::numeric_limits<std::streamoff>::max())
             {
@@ -528,12 +528,12 @@ namespace gta
 
     public:
 
-        ostream_io(std::ostream &os) throw ()
+        ostream_io(std::ostream &os)
             : _os(os)
         {
         }
 
-        virtual size_t write(const void *buffer, size_t size, bool *error) throw ()
+        virtual size_t write(const void *buffer, size_t size, bool *error)
         {
             try
             {
@@ -551,12 +551,12 @@ namespace gta
             return size;
         }
 
-        virtual bool seekable() throw ()
+        virtual bool seekable()
         {
             return (_os.tellp() != static_cast<std::streampos>(-1));
         }
 
-        virtual void seek(intmax_t offset, int whence, bool *error) throw ()
+        virtual void seek(intmax_t offset, int whence, bool *error)
         {
             if (offset > std::numeric_limits<std::streamoff>::max())
             {
@@ -639,7 +639,7 @@ namespace gta
 
     public:
 
-        io_state() throw (exception)
+        io_state()
         {
             gta_result_t r = gta_init_io_state(&_state);
             if (r != GTA_OK)
@@ -673,7 +673,7 @@ namespace gta
         }
 
         /** \cond INTERNAL */
-        io_state &operator=(const io_state &s) throw (exception)
+        io_state &operator=(const io_state &s)
         {
             gta_result_t r = gta_clone_io_state(_state, s._state);
             if (r != GTA_OK)
@@ -747,7 +747,7 @@ namespace gta
         /**
          * \brief       Constructor.
          */
-        header() throw (exception)
+        header()
         {
             gta_result_t r = gta_init_header(&_header);
             if (r != GTA_OK)
@@ -761,7 +761,7 @@ namespace gta
          * \brief       Copy constructor.
          * \param hdr   The header to copy.
          */
-        header(const header &hdr) throw (exception)
+        header(const header &hdr)
             : _header(NULL)
         {
             gta_result_t r;
@@ -793,7 +793,7 @@ namespace gta
          * \brief       Assignment operator.
          * \param hdr   The header to copy.
          */
-        const header &operator=(const header &hdr) throw (exception)
+        const header &operator=(const header &hdr)
         {
             gta_result_t r = gta_clone_header(_header, hdr._header);
             if (r != GTA_OK)
@@ -816,7 +816,7 @@ namespace gta
          * \brief       Read a header.
          * \param io    Custom input object.
          */
-        void read_from(custom_io &io) throw (exception)
+        void read_from(custom_io &io)
         {
             gta_result_t r = gta_read_header(_header, read_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
@@ -830,7 +830,7 @@ namespace gta
          * \brief       Read a header.
          * \param is    Input stream.
          */
-        void read_from(std::istream &is) throw (exception)
+        void read_from(std::istream &is)
         {
             istream_io io(is);
             gta_result_t r = gta_read_header(_header, read_custom_io, reinterpret_cast<intptr_t>(&io));
@@ -845,7 +845,7 @@ namespace gta
          * \brief       Read a header.
          * \param f     Input C stream.
          */
-        void read_from(FILE *f) throw (exception)
+        void read_from(FILE *f)
         {
             gta_result_t r = gta_read_header_from_stream(_header, f);
             if (r != GTA_OK)
@@ -859,7 +859,7 @@ namespace gta
          * \brief       Read a header.
          * \param fd    Input file descriptor.
          */
-        void read_from(int fd) throw (exception)
+        void read_from(int fd)
         {
             gta_result_t r = gta_read_header_from_fd(_header, fd);
             if (r != GTA_OK)
@@ -873,7 +873,7 @@ namespace gta
          * \brief       Write a header.
          * \param io    Custom output object.
          */
-        void write_to(custom_io &io) const throw (exception)
+        void write_to(custom_io &io) const
         {
             gta_result_t r = gta_write_header(_header, write_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
@@ -886,7 +886,7 @@ namespace gta
          * \brief       Write a header.
          * \param os    Output stream.
          */
-        void write_to(std::ostream &os) const throw (exception)
+        void write_to(std::ostream &os) const
         {
             ostream_io io(os);
             gta_result_t r = gta_write_header(_header, write_custom_io, reinterpret_cast<intptr_t>(&io));
@@ -900,7 +900,7 @@ namespace gta
          * \brief       Write a header.
          * \param f     Output C stream.
          */
-        void write_to(FILE *f) const throw (exception)
+        void write_to(FILE *f) const
         {
             gta_result_t r = gta_write_header_to_stream(_header, f);
             if (r != GTA_OK)
@@ -913,7 +913,7 @@ namespace gta
          * \brief       Write a header.
          * \param fd    Output file descriptor.
          */
-        void write_to(int fd) const throw (exception)
+        void write_to(int fd) const
         {
             gta_result_t r = gta_write_header_to_fd(_header, fd);
             if (r != GTA_OK)
@@ -934,7 +934,7 @@ namespace gta
          * \brief       Get the global tag list.
          * \return      The global tag list.
          */
-        const taglist &global_taglist() const throw ()
+        const taglist &global_taglist() const
         {
             return _global_taglist;
         }
@@ -943,7 +943,7 @@ namespace gta
          * \brief       Get the global tag list.
          * \return      The global tag list.
          */
-        taglist &global_taglist() throw ()
+        taglist &global_taglist()
         {
             return _global_taglist;
         }
@@ -952,7 +952,7 @@ namespace gta
          * \brief       Get the element size.
          * \return      The size of an array element.
          */
-        uintmax_t element_size() const throw ()
+        uintmax_t element_size() const
         {
             return gta_get_element_size(_header);
         }
@@ -961,7 +961,7 @@ namespace gta
          * \brief       Get the number of components.
          * \return      The number of components.
          */
-        uintmax_t components() const throw ()
+        uintmax_t components() const
         {
             return gta_get_components(_header);
         }
@@ -971,7 +971,7 @@ namespace gta
          * \param i     The component index.
          * \return      The type of the component.
          */
-        type component_type(uintmax_t i) const throw ()
+        type component_type(uintmax_t i) const
         {
             return static_cast<type>(gta_get_component_type(_header, i));
         }
@@ -981,7 +981,7 @@ namespace gta
          * \param i     The component index.
          * \return      The size of the component.
          */
-        uintmax_t component_size(uintmax_t i) const throw ()
+        uintmax_t component_size(uintmax_t i) const
         {
             return gta_get_component_size(_header, i);
         }
@@ -991,7 +991,7 @@ namespace gta
          * \param i     The component index.
          * \return      The tag list of the component.
          */
-        const taglist &component_taglist(uintmax_t i) const throw ()
+        const taglist &component_taglist(uintmax_t i) const
         {
             return _component_taglists[i];
         }
@@ -1001,7 +1001,7 @@ namespace gta
          * \param i     The component index.
          * \return      The tag list of the component.
          */
-        taglist &component_taglist(uintmax_t i) throw ()
+        taglist &component_taglist(uintmax_t i)
         {
             return _component_taglists[i];
         }
@@ -1010,7 +1010,7 @@ namespace gta
          * \brief       Get the number of dimensions.
          * \return      The number of dimensions.
          */
-        uintmax_t dimensions() const throw ()
+        uintmax_t dimensions() const
         {
             return gta_get_dimensions(_header);
         }
@@ -1020,7 +1020,7 @@ namespace gta
          * \param i     The dimension index.
          * \return      The size in the dimension.
          */
-        uintmax_t dimension_size(uintmax_t i) const throw ()
+        uintmax_t dimension_size(uintmax_t i) const
         {
             return gta_get_dimension_size(_header, i);
         }
@@ -1030,7 +1030,7 @@ namespace gta
          * \param i     The dimension index.
          * \return      The tag list of the dimension.
          */
-        const taglist &dimension_taglist(uintmax_t i) const throw ()
+        const taglist &dimension_taglist(uintmax_t i) const
         {
             return _dimension_taglists[i];
         }
@@ -1040,7 +1040,7 @@ namespace gta
          * \param i     The dimension index.
          * \return      The tag list of the dimension.
          */
-        taglist &dimension_taglist(uintmax_t i) throw ()
+        taglist &dimension_taglist(uintmax_t i)
         {
             return _dimension_taglists[i];
         }
@@ -1049,7 +1049,7 @@ namespace gta
          * \brief       Get the total number of elements in the array.
          * \return      The total number of elements in the array.
          */
-        uintmax_t elements() const throw ()
+        uintmax_t elements() const
         {
             return gta_get_elements(_header);
         }
@@ -1058,7 +1058,7 @@ namespace gta
          * \brief       Get the total size of the array.
          * \return      The size (in bytes) of the complete array.
          */
-        uintmax_t data_size() const throw ()
+        uintmax_t data_size() const
         {
             return gta_get_data_size(_header);
         }
@@ -1072,7 +1072,7 @@ namespace gta
          * Compressed data is always stored in chunks, while uncompressed
          * data is never stored in chunks.
          */
-        gta::compression compression() const throw ()
+        gta::compression compression() const
         {
             return static_cast<gta::compression>(gta_get_compression(_header));
         }
@@ -1084,7 +1084,7 @@ namespace gta
          * Sets the compression type for writing the header and data.\n
          * See \a gta_compression_t for more information on compression types.
          */
-        void set_compression(gta::compression compression) throw ()
+        void set_compression(gta::compression compression)
         {
             gta_set_compression(_header, static_cast<gta_compression_t>(compression));
         }
@@ -1110,7 +1110,7 @@ namespace gta
          * \a gta::blob, then the \a sizes list must contain two size values.\n
          * All components will initially have an empty tag list.\n
          */
-        void set_components(uintmax_t n, const type *types, const uintmax_t *sizes = NULL) throw (exception)
+        void set_components(uintmax_t n, const type *types, const uintmax_t *sizes = NULL)
         {
             gta_result_t r = gta_set_components(_header, n, reinterpret_cast<const gta_type_t *>(types), sizes);
             if (r != GTA_OK)
@@ -1125,7 +1125,7 @@ namespace gta
          * \param type  The type of the component.
          * \param size  The size of the component, in case the type is \a gta::blob.
          */
-        void set_components(type type, uintmax_t size = 0) throw (exception)
+        void set_components(type type, uintmax_t size = 0)
         {
             gta::type types[] = { type };
             uintmax_t sizes[] = { size };
@@ -1145,7 +1145,7 @@ namespace gta
          * \param size1 The size of the second component, in case its type is \a gta::blob.
          */
         void set_components(type type0, type type1,
-                uintmax_t size0 = 0, uintmax_t size1 = 0) throw (exception)
+                uintmax_t size0 = 0, uintmax_t size1 = 0)
         {
             type types[] = { type0, type1 };
             uintmax_t sizes[] = { size0, size1 };
@@ -1167,7 +1167,7 @@ namespace gta
          * \param size2 The size of the third component, in case its type is \a gta::blob.
          */
         void set_components(type type0, type type1, type type2,
-                uintmax_t size0 = 0, uintmax_t size1 = 0, uintmax_t size2 = 0) throw (exception)
+                uintmax_t size0 = 0, uintmax_t size1 = 0, uintmax_t size2 = 0)
         {
             type types[] = { type0, type1, type2 };
             uintmax_t sizes[] = { size0, size1, size2 };
@@ -1191,7 +1191,7 @@ namespace gta
          * \param size3 The size of the fourth component, in case its type is \a gta::blob.
          */
         void set_components(type type0, type type1, type type2, type type3,
-                uintmax_t size0 = 0, uintmax_t size1 = 0, uintmax_t size2 = 0, uintmax_t size3 = 0) throw (exception)
+                uintmax_t size0 = 0, uintmax_t size1 = 0, uintmax_t size2 = 0, uintmax_t size3 = 0)
         {
             type types[] = { type0, type1, type2, type3 };
             uintmax_t sizes[] = { size0, size1, size2, size3 };
@@ -1211,7 +1211,7 @@ namespace gta
          * Sets the array dimensions.\n
          * All dimensions will initially have an empty tag list.
          */
-        void set_dimensions(uintmax_t n, const uintmax_t *sizes) throw (exception)
+        void set_dimensions(uintmax_t n, const uintmax_t *sizes)
         {
             gta_result_t r = gta_set_dimensions(_header, n, sizes);
             if (r != GTA_OK)
@@ -1225,7 +1225,7 @@ namespace gta
          * \brief       Set the dimensions (variant for one-dimensional arrays).
          * \param size  The size in the single dimension.
          */
-        void set_dimensions(uintmax_t size) throw (exception)
+        void set_dimensions(uintmax_t size)
         {
             uintmax_t sizes[] = { size };
             gta_result_t r = gta_set_dimensions(_header, 1, sizes);
@@ -1241,7 +1241,7 @@ namespace gta
          * \param size0 The size in the first dimension.
          * \param size1 The size in the second dimension.
          */
-        void set_dimensions(uintmax_t size0, uintmax_t size1) throw (exception)
+        void set_dimensions(uintmax_t size0, uintmax_t size1)
         {
             uintmax_t sizes[] = { size0, size1 };
             gta_result_t r = gta_set_dimensions(_header, 2, sizes);
@@ -1258,7 +1258,7 @@ namespace gta
          * \param size1 The size in the second dimension.
          * \param size2 The size in the third dimension.
          */
-        void set_dimensions(uintmax_t size0, uintmax_t size1, uintmax_t size2) throw (exception)
+        void set_dimensions(uintmax_t size0, uintmax_t size1, uintmax_t size2)
         {
             uintmax_t sizes[] = { size0, size1, size2 };
             gta_result_t r = gta_set_dimensions(_header, 3, sizes);
@@ -1276,7 +1276,7 @@ namespace gta
          * \param size2 The size in the third dimension.
          * \param size3 The size in the fourth dimension.
          */
-        void set_dimensions(uintmax_t size0, uintmax_t size1, uintmax_t size2, uintmax_t size3) throw (exception)
+        void set_dimensions(uintmax_t size0, uintmax_t size1, uintmax_t size2, uintmax_t size3)
         {
             uintmax_t sizes[] = { size0, size1, size2, size3 };
             gta_result_t r = gta_set_dimensions(_header, 4, sizes);
@@ -1302,7 +1302,7 @@ namespace gta
          *
          * Reads the complete data into the given buffer. The buffer must be large enough.
          */
-        void read_data(custom_io &io, void *data) const throw (exception)
+        void read_data(custom_io &io, void *data) const
         {
             gta_result_t r = gta_read_data(_header, data, read_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
@@ -1318,7 +1318,7 @@ namespace gta
          *
          * Reads the complete data into the given buffer. The buffer must be large enough.
          */
-        void read_data(std::istream &is, void *data) const throw (exception)
+        void read_data(std::istream &is, void *data) const
         {
             istream_io io(is);
             gta_result_t r = gta_read_data(_header, data, read_custom_io, reinterpret_cast<intptr_t>(&io));
@@ -1335,7 +1335,7 @@ namespace gta
          *
          * Reads the complete data into the given buffer. The buffer must be large enough.
          */
-        void read_data(FILE *f, void *data) const throw (exception)
+        void read_data(FILE *f, void *data) const
         {
             gta_result_t r = gta_read_data_from_stream(_header, data, f);
             if (r != GTA_OK)
@@ -1351,7 +1351,7 @@ namespace gta
          *
          * Reads the complete data into the given buffer. The buffer must be large enough.
          */
-        void read_data(int fd, void *data) const throw (exception)
+        void read_data(int fd, void *data) const
         {
             gta_result_t r = gta_read_data_from_fd(_header, data, fd);
             if (r != GTA_OK)
@@ -1366,7 +1366,7 @@ namespace gta
          *
          * Skips the complete data, so that the next GTA header can be read.
          */
-        void skip_data(custom_io &io) const throw (exception)
+        void skip_data(custom_io &io) const
         {
             gta_result_t r = gta_skip_data(_header, read_custom_io,
                     (io.seekable() ? seek_custom_io : NULL),
@@ -1383,7 +1383,7 @@ namespace gta
          *
          * Skips the complete data, so that the next GTA header can be read.
          */
-        void skip_data(std::istream &is) const throw (exception)
+        void skip_data(std::istream &is) const
         {
             istream_io io(is);
             gta_result_t r = gta_skip_data(_header, read_custom_io,
@@ -1401,7 +1401,7 @@ namespace gta
          *
          * Skips the complete data, so that the next GTA header can be read.
          */
-        void skip_data(FILE *f) const throw (exception)
+        void skip_data(FILE *f) const
         {
             gta_result_t r = gta_skip_data_from_stream(_header, f);
             if (r != GTA_OK)
@@ -1416,7 +1416,7 @@ namespace gta
          *
          * Skips the complete data, so that the next GTA header can be read.
          */
-        void skip_data(int fd) const throw (exception)
+        void skip_data(int fd) const
         {
             gta_result_t r = gta_skip_data_from_fd(_header, fd);
             if (r != GTA_OK)
@@ -1430,7 +1430,7 @@ namespace gta
          * \param io    Custom output object.
          * \param data  Data buffer.
          */
-        void write_data(custom_io &io, const void *data) const throw (exception)
+        void write_data(custom_io &io, const void *data) const
         {
             gta_result_t r = gta_write_data(_header, data, write_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
@@ -1444,7 +1444,7 @@ namespace gta
          * \param os    Output stream.
          * \param data  Data buffer.
          */
-        void write_data(std::ostream &os, const void *data) const throw (exception)
+        void write_data(std::ostream &os, const void *data) const
         {
             ostream_io io(os);
             gta_result_t r = gta_write_data(_header, data, write_custom_io, reinterpret_cast<intptr_t>(&io));
@@ -1459,7 +1459,7 @@ namespace gta
          * \param f     Output C stream.
          * \param data  Data buffer.
          */
-        void write_data(FILE *f, const void *data) const throw (exception)
+        void write_data(FILE *f, const void *data) const
         {
             gta_result_t r = gta_write_data_to_stream(_header, data, f);
             if (r != GTA_OK)
@@ -1473,7 +1473,7 @@ namespace gta
          * \param fd    Output file descriptor.
          * \param data  Data buffer.
          */
-        void write_data(int fd, const void *data) const throw (exception)
+        void write_data(int fd, const void *data) const
         {
             gta_result_t r = gta_write_data_to_fd(_header, data, fd);
             if (r != GTA_OK)
@@ -1488,7 +1488,7 @@ namespace gta
          * \param write_header  Output header.
          * \param write_io      Custom output object.
          */
-        void copy_data(custom_io &read_io, const header &write_header, custom_io &write_io) const throw (exception)
+        void copy_data(custom_io &read_io, const header &write_header, custom_io &write_io) const
         {
             gta_result_t r = gta_copy_data(_header,
                     read_custom_io, reinterpret_cast<intptr_t>(&read_io),
@@ -1506,7 +1506,7 @@ namespace gta
          * \param write_header  Output header.
          * \param os            Output stream.
          */
-        void copy_data(std::istream &is, const header &write_header, std::ostream &os) const throw (exception)
+        void copy_data(std::istream &is, const header &write_header, std::ostream &os) const
         {
             istream_io read_io(is);
             ostream_io write_io(os);
@@ -1526,7 +1526,7 @@ namespace gta
          * \param write_header  Output header.
          * \param fo            Output C stream.
          */
-        void copy_data(FILE *fi, const header &write_header, FILE *fo) const throw (exception)
+        void copy_data(FILE *fi, const header &write_header, FILE *fo) const
         {
             gta_result_t r = gta_copy_data_stream(_header, fi, write_header._header, fo);
             if (r != GTA_OK)
@@ -1541,7 +1541,7 @@ namespace gta
          * \param write_header  Output header.
          * \param fdo           Output file descriptor.
          */
-        void copy_data(int fdi, const header &write_header, int fdo) const throw (exception)
+        void copy_data(int fdi, const header &write_header, int fdo) const
         {
             gta_result_t r = gta_copy_data_fd(_header, fdi, write_header._header, fdo);
             if (r != GTA_OK)
@@ -1563,7 +1563,7 @@ namespace gta
          * \param index         The linear index.
          * \param indices       The array indices.
          */
-        void linear_index_to_indices(uintmax_t index, uintmax_t *indices) const throw ()
+        void linear_index_to_indices(uintmax_t index, uintmax_t *indices) const
         {
             gta_linear_index_to_indices(_header, index, indices);
         }
@@ -1573,7 +1573,7 @@ namespace gta
          * \param indices       The array indices.
          * \return              The linear index.
          */
-        uintmax_t indices_to_linear_index(const uintmax_t *indices) const throw ()
+        uintmax_t indices_to_linear_index(const uintmax_t *indices) const
         {
             return gta_indices_to_linear_index(_header, indices);
         }
@@ -1584,7 +1584,7 @@ namespace gta
          * \param indices       Indices for each dimension of the array.
          * \return              A pointer to the element.
          */
-        const void *element(const void *data, const uintmax_t *indices) const throw ()
+        const void *element(const void *data, const uintmax_t *indices) const
         {
             return gta_get_element_const(_header, data, indices);
         }
@@ -1595,7 +1595,7 @@ namespace gta
          * \param indices       Indices for each dimension of the array.
          * \return              A pointer to the element.
          */
-        void *element(void *data, const uintmax_t *indices) const throw ()
+        void *element(void *data, const uintmax_t *indices) const
         {
             return gta_get_element(_header, data, indices);
         }
@@ -1610,7 +1610,7 @@ namespace gta
          * but also for multidimensional arrays by using \a index as a linear index to
          * the array data.
          */
-        const void *element(const void *data, uintmax_t index) const throw ()
+        const void *element(const void *data, uintmax_t index) const
         {
             return gta_get_element_linear_const(_header, data, index);
         }
@@ -1625,7 +1625,7 @@ namespace gta
          * but also for multidimensional arrays by using \a index as a linear index to
          * the array data.
          */
-        void *element(void *data, uintmax_t index) const throw ()
+        void *element(void *data, uintmax_t index) const
         {
             return gta_get_element_linear(_header, data, index);
         }
@@ -1637,7 +1637,7 @@ namespace gta
          * \param index1        Index of the element in the second dimension.
          * \return              A pointer to the element.
          */
-        const void *element(const void *data, uintmax_t index0, uintmax_t index1) const throw ()
+        const void *element(const void *data, uintmax_t index0, uintmax_t index1) const
         {
             uintmax_t indices[] = { index0, index1 };
             return gta_get_element_const(_header, data, indices);
@@ -1650,7 +1650,7 @@ namespace gta
          * \param index1        Index of the element in the second dimension.
          * \return              A pointer to the element.
          */
-        void *element(void *data, uintmax_t index0, uintmax_t index1) const throw ()
+        void *element(void *data, uintmax_t index0, uintmax_t index1) const
         {
             uintmax_t indices[] = { index0, index1 };
             return gta_get_element(_header, data, indices);
@@ -1664,7 +1664,7 @@ namespace gta
          * \param index2        Index of the element in the third dimension.
          * \return              A pointer to the element.
          */
-        const void *element(const void *data, uintmax_t index0, uintmax_t index1, uintmax_t index2) const throw ()
+        const void *element(const void *data, uintmax_t index0, uintmax_t index1, uintmax_t index2) const
         {
             uintmax_t indices[] = { index0, index1, index2 };
             return gta_get_element_const(_header, data, indices);
@@ -1678,7 +1678,7 @@ namespace gta
          * \param index2        Index of the element in the third dimension.
          * \return              A pointer to the element.
          */
-        void *element(void *data, uintmax_t index0, uintmax_t index1, uintmax_t index2) const throw ()
+        void *element(void *data, uintmax_t index0, uintmax_t index1, uintmax_t index2) const
         {
             uintmax_t indices[] = { index0, index1, index2 };
             return gta_get_element(_header, data, indices);
@@ -1693,7 +1693,7 @@ namespace gta
          * \param index3        Index of the element in the fourth dimension.
          * \return              A pointer to the element.
          */
-        const void *element(const void *data, uintmax_t index0, uintmax_t index1, uintmax_t index2, uintmax_t index3) const throw ()
+        const void *element(const void *data, uintmax_t index0, uintmax_t index1, uintmax_t index2, uintmax_t index3) const
         {
             uintmax_t indices[] = { index0, index1, index2, index3 };
             return gta_get_element_const(_header, data, indices);
@@ -1708,7 +1708,7 @@ namespace gta
          * \param index3        Index of the element in the fourth dimension.
          * \return              A pointer to the element.
          */
-        void *element(void *data, uintmax_t index0, uintmax_t index1, uintmax_t index2, uintmax_t index3) const throw ()
+        void *element(void *data, uintmax_t index0, uintmax_t index1, uintmax_t index2, uintmax_t index3) const
         {
             uintmax_t indices[] = { index0, index1, index2, index3 };
             return gta_get_element(_header, data, indices);
@@ -1720,7 +1720,7 @@ namespace gta
          * \param i             Component index.
          * \return              A pointer to the component.
          */
-        const void *component(const void *element, uintmax_t i) const throw ()
+        const void *component(const void *element, uintmax_t i) const
         {
             return gta_get_component_const(_header, element, i);
         }
@@ -1731,7 +1731,7 @@ namespace gta
          * \param i             Component index.
          * \return              A pointer to the component.
          */
-        void *component(void *element, uintmax_t i) const throw ()
+        void *component(void *element, uintmax_t i) const
         {
             return gta_get_component(_header, element, i);
         }
@@ -1762,7 +1762,7 @@ namespace gta
          *
          * Reads the given number of elements into the given buffer, which must be large enough.
          */
-        void read_elements(io_state &state, custom_io &io, uintmax_t n, void *buf) const throw (exception)
+        void read_elements(io_state &state, custom_io &io, uintmax_t n, void *buf) const
         {
             gta_result_t r = gta_read_elements(_header, state._state, n, buf, read_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
@@ -1780,7 +1780,7 @@ namespace gta
          *
          * Reads the given number of elements into the given buffer, which must be large enough.
          */
-        void read_elements(io_state &state, std::istream &is, uintmax_t n, void *buf) const throw (exception)
+        void read_elements(io_state &state, std::istream &is, uintmax_t n, void *buf) const
         {
             istream_io io(is);
             gta_result_t r = gta_read_elements(_header, state._state, n, buf, read_custom_io, reinterpret_cast<intptr_t>(&io));
@@ -1799,7 +1799,7 @@ namespace gta
          *
          * Reads the given number of elements into the given buffer, which must be large enough.
          */
-        void read_elements(io_state &state, FILE *f, uintmax_t n, void *buf) const throw (exception)
+        void read_elements(io_state &state, FILE *f, uintmax_t n, void *buf) const
         {
             gta_result_t r = gta_read_elements_from_stream(_header, state._state, n, buf, f);
             if (r != GTA_OK)
@@ -1817,7 +1817,7 @@ namespace gta
          *
          * Reads the given number of elements into the given buffer, which must be large enough.
          */
-        void read_elements(io_state &state, int fd, uintmax_t n, void *buf) const throw (exception)
+        void read_elements(io_state &state, int fd, uintmax_t n, void *buf) const
         {
             gta_result_t r = gta_read_elements_from_fd(_header, state._state, n, buf, fd);
             if (r != GTA_OK)
@@ -1835,7 +1835,7 @@ namespace gta
          *
          * Writes the given number of elements from the given buffer.
          */
-        void write_elements(io_state &state, custom_io &io, uintmax_t n, const void *buf) const throw (exception)
+        void write_elements(io_state &state, custom_io &io, uintmax_t n, const void *buf) const
         {
             gta_result_t r = gta_write_elements(_header, state._state, n, buf, write_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
@@ -1853,7 +1853,7 @@ namespace gta
          *
          * Writes the given number of elements from the given buffer.
          */
-        void write_elements(io_state &state, std::ostream &os, uintmax_t n, const void *buf) const throw (exception)
+        void write_elements(io_state &state, std::ostream &os, uintmax_t n, const void *buf) const
         {
             ostream_io io(os);
             gta_result_t r = gta_write_elements(_header, state._state, n, buf, write_custom_io, reinterpret_cast<intptr_t>(&io));
@@ -1872,7 +1872,7 @@ namespace gta
          *
          * Writes the given number of elements from the given buffer.
          */
-        void write_elements(io_state &state, FILE *f, uintmax_t n, const void *buf) const throw (exception)
+        void write_elements(io_state &state, FILE *f, uintmax_t n, const void *buf) const
         {
             gta_result_t r = gta_write_elements_to_stream(_header, state._state, n, buf, f);
             if (r != GTA_OK)
@@ -1890,7 +1890,7 @@ namespace gta
          *
          * Writes the given number of elements from the given buffer.
          */
-        void write_elements(io_state &state, int fd, uintmax_t n, const void *buf) const throw (exception)
+        void write_elements(io_state &state, int fd, uintmax_t n, const void *buf) const
         {
             gta_result_t r = gta_write_elements_to_fd(_header, state._state, n, buf, fd);
             if (r != GTA_OK)
@@ -1929,7 +1929,7 @@ namespace gta
          */
         void read_block(custom_io &io, uintmax_t data_offset,
                 const uintmax_t *lower_coordinates, const uintmax_t *higher_coordinates,
-                void *block) const throw (exception)
+                void *block) const
         {
             gta_result_t r = gta_read_block(_header, data_offset,
                     lower_coordinates, higher_coordinates, block,
@@ -1953,7 +1953,7 @@ namespace gta
          */
         void read_block(std::istream &is, uintmax_t data_offset,
                 const uintmax_t *lower_coordinates, const uintmax_t *higher_coordinates,
-                void *block) const throw (exception)
+                void *block) const
         {
             istream_io io(is);
             gta_result_t r = gta_read_block(_header, data_offset,
@@ -1978,7 +1978,7 @@ namespace gta
          */
         void read_block(FILE *f, uintmax_t data_offset,
                 const uintmax_t *lower_coordinates, const uintmax_t *higher_coordinates,
-                void *block) const throw (exception)
+                void *block) const
         {
             gta_result_t r = gta_read_block_from_stream(_header, data_offset,
                     lower_coordinates, higher_coordinates, block, f);
@@ -2001,7 +2001,7 @@ namespace gta
          */
         void read_block(int fd, uintmax_t data_offset,
                 const uintmax_t *lower_coordinates, const uintmax_t *higher_coordinates,
-                void *block) const throw (exception)
+                void *block) const
         {
             gta_result_t r = gta_read_block_from_fd(_header, data_offset,
                     lower_coordinates, higher_coordinates, block, fd);
@@ -2023,7 +2023,7 @@ namespace gta
          */
         void write_block(custom_io &io, uintmax_t data_offset,
                 const uintmax_t *lower_coordinates, const uintmax_t *higher_coordinates,
-                const void *block) const throw (exception)
+                const void *block) const
         {
             gta_result_t r = gta_write_block(_header, data_offset,
                     lower_coordinates, higher_coordinates, block,
@@ -2046,7 +2046,7 @@ namespace gta
          */
         void write_block(std::ostream &os, uintmax_t data_offset,
                 const uintmax_t *lower_coordinates, const uintmax_t *higher_coordinates,
-                const void *block) const throw (exception)
+                const void *block) const
         {
             ostream_io io(os);
             gta_result_t r = gta_write_block(_header, data_offset,
@@ -2070,7 +2070,7 @@ namespace gta
          */
         void write_block(FILE *f, uintmax_t data_offset,
                 const uintmax_t *lower_coordinates, const uintmax_t *higher_coordinates,
-                const void *block) const throw (exception)
+                const void *block) const
         {
             gta_result_t r = gta_write_block_to_stream(_header, data_offset,
                     lower_coordinates, higher_coordinates, block, f);
@@ -2092,7 +2092,7 @@ namespace gta
          */
         void write_block(int fd, uintmax_t data_offset,
                 const uintmax_t *lower_coordinates, const uintmax_t *higher_coordinates,
-                const void *block) const throw (exception)
+                const void *block) const
         {
             gta_result_t r = gta_write_block_to_fd(_header, data_offset,
                     lower_coordinates, higher_coordinates, block, fd);
