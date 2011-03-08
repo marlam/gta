@@ -5,7 +5,7 @@ dnl
 dnl This file is part of libgta, a library that implements the Generic Tagged
 dnl Array (GTA) file format.
 dnl
-dnl Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+dnl Copyright (C) 2010, 2011  Martin Lambers <marlam@marlam.de>
 dnl
 dnl Libgta is free software: you can redistribute it and/or modify it under the
 dnl terms of the GNU Lesser General Public License as published by the Free
@@ -22,7 +22,7 @@ dnl along with Libgta. If not, see <http://www.gnu.org/licenses/>.
 
 dnl Autotools init stuff
 AC_PREREQ([2.65])
-AC_INIT([libgta], [0.9.3], [marlam@marlam.de], [libgta], [http://www.nongnu.org/gta/])
+AC_INIT([libgta], [0.9.3], [gta-list@nongnu.org], [libgta], [http://gta.nongnu.org/])
 AC_CONFIG_SRCDIR([src/gta.c])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])

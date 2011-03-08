@@ -74,9 +74,9 @@ Section
   WriteRegExpandStr HKLM $MYTMP "InstallLocation" "$INSTDIR"
   WriteRegStr       HKLM $MYTMP "DisplayVersion"  "${PACKAGE_VERSION}"
   WriteRegStr       HKLM $MYTMP "Publisher"       "Martin Lambers"
-  WriteRegStr       HKLM $MYTMP "URLInfoAbout"    "http://www.nongnu.org/gta/"
-  WriteRegStr       HKLM $MYTMP "HelpLink"        "http://www.nongnu.org/gta/"
-  WriteRegStr       HKLM $MYTMP "URLUpdateInfo"   "http://www.nongnu.org/gta/"
+  WriteRegStr       HKLM $MYTMP "URLInfoAbout"    "http://gta.nongnu.org/"
+  WriteRegStr       HKLM $MYTMP "HelpLink"        "http://gta.nongnu.org/"
+  WriteRegStr       HKLM $MYTMP "URLUpdateInfo"   "http://gta.nongnu.org/"
   WriteRegDWORD     HKLM $MYTMP "NoModify"        "1"
   WriteRegDWORD     HKLM $MYTMP "NoRepair"        "1"
 
@@ -86,7 +86,7 @@ Section
   CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
   CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\GTA gui.lnk" "$INSTDIR\bin\gta.exe" "gui"
   CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
-  WriteINIStr "$SMPROGRAMS\$STARTMENU_FOLDER\Website.url" "InternetShortcut" "URL" "http://www.nongnu.org/gta/"
+  WriteINIStr "$SMPROGRAMS\$STARTMENU_FOLDER\Website.url" "InternetShortcut" "URL" "http://gta.nongnu.org/"
 !insertmacro MUI_STARTMENU_WRITE_END
 
 ; Add bin directory to the path

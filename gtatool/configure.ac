@@ -5,7 +5,7 @@ dnl
 dnl This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
 dnl (GTAs).
 dnl
-dnl Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+dnl Copyright (C) 2010, 2011  Martin Lambers <marlam@marlam.de>
 dnl
 dnl This program is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 dnl Autotools init stuff
 AC_PREREQ([2.65])
-AC_INIT([gtatool], [0.9.3], [marlam@marlam.de], [gtatool], [http://www.nongnu.org/gta/])
+AC_INIT([gtatool], [0.9.3], [gta-list@nongnu.org], [gtatool], [http://gta.nongnu.org/])
 AC_CONFIG_SRCDIR([src/main.cpp])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
