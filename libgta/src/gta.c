@@ -3780,26 +3780,35 @@ gta_read_elements(const gta_header_t *GTA_RESTRICT header, gta_io_state_t *GTA_R
         io_state->chunk_index += l;
     }
     io_state->counter += n;
-    if (io_state->counter == gta_get_elements(header) && gta_get_compression(header) != GTA_NONE)
+    if (io_state->counter == gta_get_elements(header))
     {
-        if (io_state->chunk_index != io_state->chunk_size)
+        if (gta_get_compression(header) != GTA_NONE)
         {
-            retval = GTA_INVALID_DATA;
-            goto exit;
+            if (io_state->chunk_index != io_state->chunk_size)
+            {
+                retval = GTA_INVALID_DATA;
+                goto exit;
+            }
+            // read the last, empty chunk
+            free(io_state->chunk);
+            io_state->chunk = NULL;
+            retval = gta_read_chunk(header, &(io_state->chunk),
+                    &(io_state->chunk_size), read_fn, userdata);
+            if (retval != GTA_OK)
+            {
+                goto exit;
+            }
+            if (io_state->chunk_size != 0)
+            {
+                retval = GTA_INVALID_DATA;
+                goto exit;
+            }
         }
-        // read the last, empty chunk
-        free(io_state->chunk);
-        io_state->chunk = NULL;
-        retval = gta_read_chunk(header, &(io_state->chunk),
-                &(io_state->chunk_size), read_fn, userdata);
-        if (retval != GTA_OK)
+        else
         {
-            goto exit;
-        }
-        if (io_state->chunk_size != 0)
-        {
-            retval = GTA_INVALID_DATA;
-            goto exit;
+            // free the chunk; it will not be needed anymore
+            free(io_state->chunk);
+            io_state->chunk = NULL;
         }
     }
     if (gta_data_needs_endianness_swapping(header))
@@ -3976,6 +3985,9 @@ gta_write_elements(const gta_header_t *GTA_RESTRICT header, gta_io_state_t *GTA_
                     goto exit;
                 }
             }
+            // free the chunk; it will not be needed anymore
+            free(io_state->chunk);
+            io_state->chunk = NULL;
         }
     }
 exit:
