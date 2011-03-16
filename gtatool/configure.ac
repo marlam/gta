@@ -5,7 +5,8 @@ dnl
 dnl This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
 dnl (GTAs).
 dnl
-dnl Copyright (C) 2010, 2011  Martin Lambers <marlam@marlam.de>
+dnl Copyright (C) 2010, 2011
+dnl Martin Lambers <marlam@marlam.de>
 dnl
 dnl This program is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by

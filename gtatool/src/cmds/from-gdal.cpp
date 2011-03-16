@@ -1,6 +1,4 @@
 /*
- * from-gdal.cpp
- *
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
