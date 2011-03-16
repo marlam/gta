@@ -3739,9 +3739,14 @@ gta_read_elements(const gta_header_t *GTA_RESTRICT header, gta_io_state_t *GTA_R
             }
             else
             {
+                size_t chunk_size = gta_max_chunk_size;
                 if (!io_state->chunk)
                 {
-                    io_state->chunk = malloc(gta_max_chunk_size);
+                    if (gta_get_data_size(header) < chunk_size)
+                    {
+                        chunk_size = gta_get_data_size(header);
+                    }
+                    io_state->chunk = malloc(chunk_size);
                     if (!io_state->chunk)
                     {
                         retval = GTA_SYSTEM_ERROR;
@@ -3749,9 +3754,9 @@ gta_read_elements(const gta_header_t *GTA_RESTRICT header, gta_io_state_t *GTA_R
                     }
                 }
                 uintmax_t read_size = gta_get_data_size(header) - io_state->already_read;
-                if (read_size > gta_max_chunk_size)
+                if (read_size > chunk_size)
                 {
-                    read_size = gta_max_chunk_size;
+                    read_size = chunk_size;
                 }
                 int error = false;
                 size_t r = read_fn(userdata, io_state->chunk, read_size, &error);
