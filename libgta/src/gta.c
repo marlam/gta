@@ -73,8 +73,6 @@
 static const size_t gta_max_chunk_size = 16 * 1024 * 1024;
 /* The buffer size increment when filling buffers with an unknown number of elements. */
 static const size_t gta_bufsize_inc = 256;
-/* The buffer size for data input/output. */
-static const size_t gta_iobuf_size = 1024 * 1024;
 
 
 /*
@@ -330,7 +328,7 @@ static GTA_ATTR_NOTHROW
 gta_result_t gta_readskip(gta_read_t read_fn, intptr_t userdata, uintmax_t s)
 {
     gta_result_t retval = GTA_OK;
-    void *trash = malloc(s < gta_iobuf_size ? s : gta_iobuf_size);
+    void *trash = malloc(s < gta_max_chunk_size ? s : gta_max_chunk_size);
     if (!trash)
     {
         retval = GTA_SYSTEM_ERROR;
@@ -339,7 +337,7 @@ gta_result_t gta_readskip(gta_read_t read_fn, intptr_t userdata, uintmax_t s)
     while (s > 0)
     {
         int error = false;
-        size_t x = (s > gta_iobuf_size ? gta_iobuf_size : s);
+        size_t x = (s > gta_max_chunk_size ? gta_max_chunk_size : s);
         size_t r = read_fn(userdata, trash, x, &error);
         if (error)
         {
@@ -3526,7 +3524,7 @@ gta_copy_data(const gta_header_t *GTA_RESTRICT read_header, gta_read_t read_fn, 
         void *chunk = NULL;
         size_t chunk_size = 0;
         size_t chunk_index = 0;
-        void *buffer = malloc(size < gta_iobuf_size ? size : gta_iobuf_size);
+        void *buffer = malloc(size < gta_max_chunk_size ? size : gta_max_chunk_size);
 
         if (!buffer)
         {
@@ -3545,7 +3543,7 @@ gta_copy_data(const gta_header_t *GTA_RESTRICT read_header, gta_read_t read_fn, 
         while (size > 0)
         {
             int error = false;
-            size_t x = (size > gta_iobuf_size ? gta_iobuf_size : size);
+            size_t x = (size > gta_max_chunk_size ? gta_max_chunk_size : size);
             size_t r = read_fn(read_userdata, buffer, x, &error);
             if (error)
             {
