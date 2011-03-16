@@ -10,10 +10,10 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: GTA
-Description: Generic Tagged Arrays
-URL: http://www.nongnu.org/gta/
-Version: @VERSION@
+Name: libgta
+Description: Library to read and write Generic Tagged Arrays (GTAs)
+URL: @PACKAGE_URL@
+Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lgta
 Libs.private: @LTLIBLZMA@ @LTLIBBZ2@ @LTLIBZ@
 Cflags: -I${includedir}

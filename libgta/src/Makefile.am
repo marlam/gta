@@ -13,7 +13,7 @@ libgta_la_LIBADD = $(LTLIBLZMA) $(LTLIBBZ2) $(LTLIBZ)
 AM_CFLAGS = $(CFLAG_VISIBILITY)
 AM_CPPFLAGS = -I$(top_builddir)/src
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = gta.pc
+pkgconfig_DATA = libgta.pc
 DISTCLEANFILES = $(pkgconfig_DATA)
 
 # When a shared libgta library is built, the libgta.la file causes unnecessary
