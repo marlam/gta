@@ -5,7 +5,8 @@ dnl
 dnl This file is part of libgta, a library that implements the Generic Tagged
 dnl Array (GTA) file format.
 dnl
-dnl Copyright (C) 2010, 2011  Martin Lambers <marlam@marlam.de>
+dnl Copyright (C) 2010, 2011
+dnl Martin Lambers <marlam@marlam.de>
 dnl
 dnl Libgta is free software: you can redistribute it and/or modify it under the
 dnl terms of the GNU Lesser General Public License as published by the Free
