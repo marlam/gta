@@ -43,7 +43,6 @@ AC_ARG_ENABLE([la-file],
     [if test "$enableval" = "yes"; then install_la_file="yes"; else install_la_file="no"; fi],
     [if test "$enable_shared" = "yes"; then install_la_file="no"; else install_la_file="yes"; fi])
 AM_CONDITIONAL([INSTALL_LA_FILE], [test "$install_la_file" = "yes"])
-AM_CONDITIONAL([BUILD_SPEC], [test "$build_spec" = "yes"])
 AC_ARG_ENABLE([reference],
     [AS_HELP_STRING([--enable-reference], [Build the reference. Enabled by default if doxygen is available.])],
     [if test "$enableval" = "yes"; then build_ref="yes"; else build_ref="no"; fi], [build_ref="yes"])
