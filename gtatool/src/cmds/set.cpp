@@ -155,12 +155,10 @@ extern "C" int gtatool_set(int argc, char *argv[])
                 }
                 element_loop.write(src);
             }
-            element_loop.finish();
             for (uintmax_t i = read_src_elements; i < hdr_src.elements(); i++)
             {
                 element_loop_src.read();
             }
-            element_loop_src.finish();
             array_loop_src.finish();
         }
         array_loop.finish();

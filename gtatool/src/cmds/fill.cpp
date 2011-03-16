@@ -143,7 +143,6 @@ extern "C" int gtatool_fill(int argc, char *argv[])
                 }
                 element_loop.write(replace ? v.ptr() : src);
             }
-            element_loop.finish();
         }
         array_loop.finish();
     }

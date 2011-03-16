@@ -136,7 +136,6 @@ extern "C" int gtatool_extract(int argc, char *argv[])
                     element_loop.write(src);
                 }
             }
-            element_loop.finish();
         }
         array_loop.finish();
     }

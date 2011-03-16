@@ -144,7 +144,6 @@ extern "C" int gtatool_dimension_reorder(int argc, char *argv[])
                 hdri.read_block(array_loop.file_in(), data_offset, &(in_indices[0]), &(in_indices[0]), element.ptr());
                 element_loop.write(element.ptr());
             }
-            element_loop.finish();
             cio::seek(array_loop.file_in(), data_offset, SEEK_SET, array_loop.filename_in());
             array_loop.skip_data(hdri);
         }

@@ -75,20 +75,13 @@ private:
     gta::header _header_in;
     std::string _name_in;
     FILE *_file_in;
+    gta::io_state _state_in;
     gta::header _header_out;
     std::string _name_out;
     FILE *_file_out;
-
-    gta::io_state _state_in;
-    uintmax_t _element_index_in;
-    blob _buf_in;
-    uintmax_t _buf_elements_in;
-    uintmax_t _buf_index_in;
     gta::io_state _state_out;
-    uintmax_t _element_index_out;
-    blob _buf_out;
-    uintmax_t _buf_elements_out;
-    uintmax_t _buf_index_out;
+
+    blob _buf;
 
 public:
     element_loop_t() throw ();
@@ -99,8 +92,6 @@ public:
 
     void *read();
     void write(const void *element);
-
-    void finish();
 };
 
 /* Loop over all input and output arrays.

@@ -145,9 +145,7 @@ extern "C" int gtatool_dimension_merge(int argc, char *argv[])
                 {
                     element_loop.write(element_loop_2.read());
                 }
-                element_loop_2.finish();
             }
-            element_loop.finish();
         }
         for (size_t i = 0; i < arguments.size(); i++)
         {

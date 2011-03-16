@@ -130,11 +130,9 @@ extern "C" int gtatool_dimension_split(int argc, char *argv[])
                 size_t j = indices[dim];
                 tmpeloops[j].write(e);
             }
-            element_loop.finish();
             // Combine the GTA data to a single output stream
             for (size_t i = 0; i < hdros.size(); i++)
             {
-                tmpeloops[i].finish();
                 tmpaloops[i].finish();
                 array_loop_t tmploop;
                 tmploop.start(tmpfilenames[i], "");

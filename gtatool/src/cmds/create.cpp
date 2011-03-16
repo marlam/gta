@@ -106,7 +106,6 @@ extern "C" int gtatool_create(int argc, char *argv[])
             {
                 element_loop.write(v.ptr());
             }
-            element_loop.finish();
         }
         array_loop.finish();
     }

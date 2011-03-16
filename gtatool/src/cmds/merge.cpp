@@ -186,10 +186,6 @@ extern "C" int gtatool_merge(int argc, char *argv[])
                 }
                 element_loops[0].write(element_loops[j].read());
             }
-            for (size_t i = 0; i < element_loops.size(); i++)
-            {
-                element_loops[i].finish();
-            }
         }
         array_loops[0].finish();
         for (size_t i = 1; i < arguments.size(); i++)

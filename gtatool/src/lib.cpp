@@ -522,10 +522,8 @@ std::string to_utf8(const std::string &s)
 const size_t element_loop_t::_max_iobuf_size = 1024 * 1024;
 
 element_loop_t::element_loop_t() throw ()
-    : _header_in(), _name_in(), _file_in(NULL),
-    _header_out(), _name_out(), _file_out(NULL),
-    _state_in(), _element_index_in(0), _buf_in(), _buf_elements_in(0), _buf_index_in(0),
-    _state_out(), _element_index_out(0), _buf_out(), _buf_elements_out(0), _buf_index_out(0)
+    : _header_in(), _name_in(), _file_in(NULL), _state_in(),
+    _header_out(), _name_out(), _file_out(NULL), _state_out(), _buf()
 {
 }
 
@@ -540,91 +538,27 @@ void element_loop_t::start(
     _header_in = header_in;
     _name_in = name_in;
     _file_in = file_in;
+    _state_in = gta::io_state();
     _header_out = header_out;
     _name_out = name_out;
     _file_out = file_out;
-    _state_in = gta::io_state();
-    _element_index_in = 0;
-    _buf_in.resize(0);
-    _buf_elements_in = 0;
-    _buf_index_in = 0;
     _state_out = gta::io_state();
-    _element_index_out = 0;
-    _buf_out.resize(0);
-    _buf_elements_out = 0;
-    _buf_index_out = 0;
+    _buf.resize(0);
 }
 
 void *element_loop_t::read()
 {
-    if (_buf_index_in == _buf_elements_in)
+    if (_buf.size() == 0)
     {
-        uintmax_t max_elements = _max_iobuf_size / checked_cast<size_t>(_header_in.element_size()) + 1;
-        uintmax_t elements = std::min(max_elements, _header_in.elements() - _element_index_in);
-        size_t buf_size = elements * _header_in.element_size();    // cannot overflow here anymore
-        if (_buf_in.size() < buf_size)
-        {
-            _buf_in.resize(buf_size);
-        }
-        try
-        {
-            _header_in.read_elements(_state_in, _file_in, elements, _buf_in.ptr());
-        }
-        catch (std::exception &e)
-        {
-            throw exc(_name_in + ": " + e.what());
-        }
-        _buf_elements_in = elements;
-        _buf_index_in = 0;
+        _buf.resize(checked_cast<size_t>(_header_in.element_size()));
     }
-    void *p = _buf_in.ptr(_buf_index_in * static_cast<size_t>(_header_in.element_size()));
-    _buf_index_in++;
-    _element_index_in++;
-    return p;
+    _header_in.read_elements(_state_in, _file_in, 1, _buf.ptr());
+    return _buf.ptr();
 }
 
 void element_loop_t::write(const void *element)
 {
-    if (_buf_index_out == _buf_elements_out)
-    {
-        try
-        {
-            _header_out.write_elements(_state_out, _file_out, _buf_elements_out, _buf_out.ptr());
-        }
-        catch (std::exception &e)
-        {
-            throw exc(_name_out + ": " + e.what());
-        }
-        uintmax_t max_elements = _max_iobuf_size / checked_cast<size_t>(_header_out.element_size()) + 1;
-        uintmax_t elements = std::min(max_elements, _header_out.elements() - _element_index_out);
-        size_t buf_size = elements * _header_out.element_size();    // cannot overflow here anymore
-        if (_buf_out.size() < buf_size)
-        {
-            _buf_out.resize(buf_size);
-        }
-        _buf_elements_out = elements;
-        _buf_index_out = 0;
-    }
-    memcpy(_buf_out.ptr(_buf_index_out * static_cast<size_t>(_header_out.element_size())),
-            element, _header_out.element_size());
-    _buf_index_out++;
-    _element_index_out++;
-}
-
-void element_loop_t::finish()
-{
-    // flush output buffer
-    if (_buf_index_out > 0)
-    {
-        try
-        {
-            _header_out.write_elements(_state_out, _file_out, _buf_index_out, _buf_out.ptr());
-        }
-        catch (std::exception &e)
-        {
-            throw exc(_name_out + ": " + e.what());
-        }
-    }
+    _header_out.write_elements(_state_out, _file_out, 1, element);
 }
 
 const std::string array_loop_t::_stdin_name = "standard input";

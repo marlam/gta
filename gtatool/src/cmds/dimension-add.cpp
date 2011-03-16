@@ -114,7 +114,6 @@ extern "C" int gtatool_dimension_add(int argc, char *argv[])
             {
                 element_loop.write(element_loop.read());
             }
-            element_loop.finish();
         }
         array_loop.finish();
     }

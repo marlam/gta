@@ -123,7 +123,6 @@ extern "C" int gtatool_dimension_extract(int argc, char *argv[])
                     element_loop.write(e);
                 }
             }
-            element_loop.finish();
         }
         array_loop.finish();
     }
