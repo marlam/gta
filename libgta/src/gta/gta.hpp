@@ -326,7 +326,7 @@ namespace gta
             gta_result_t r = gta_set_tag(_taglist, name, value);
             if (r != GTA_OK)
             {
-                throw exception("cannot set GTA tag", static_cast<gta::result>(r));
+                throw exception("Cannot set GTA tag", static_cast<gta::result>(r));
             }
         }
 
@@ -341,7 +341,7 @@ namespace gta
             gta_result_t r = gta_unset_tag(_taglist, name);
             if (r != GTA_OK)
             {
-                throw exception("cannot unset GTA tag", static_cast<gta::result>(r));
+                throw exception("Cannot unset GTA tag", static_cast<gta::result>(r));
             }
         }
 
@@ -364,7 +364,7 @@ namespace gta
             gta_result_t r = gta_clone_taglist(_taglist, tl._taglist);
             if (r != GTA_OK)
             {
-                throw exception("cannot clone GTA taglist", static_cast<gta::result>(r));
+                throw exception("Cannot clone GTA taglist", static_cast<gta::result>(r));
             }
             return *this;
         }
@@ -644,7 +644,7 @@ namespace gta
             gta_result_t r = gta_create_io_state(&_state);
             if (r != GTA_OK)
             {
-                throw exception("cannot initialize GTA i/o state", static_cast<gta::result>(r));
+                throw exception("Cannot initialize GTA i/o state", static_cast<gta::result>(r));
             }
         }
 
@@ -654,12 +654,12 @@ namespace gta
             gta_result_t r = gta_create_io_state(&_state);
             if (r != GTA_OK)
             {
-                throw exception("cannot initialize GTA i/o state", static_cast<gta::result>(r));
+                throw exception("Cannot initialize GTA i/o state", static_cast<gta::result>(r));
             }
             r = gta_clone_io_state(_state, s._state);
             if (r != GTA_OK)
             {
-                throw exception("cannot clone GTA i/o state", static_cast<gta::result>(r));
+                throw exception("Cannot clone GTA i/o state", static_cast<gta::result>(r));
             }
         }
         /** \endcond */
@@ -678,7 +678,7 @@ namespace gta
             gta_result_t r = gta_clone_io_state(_state, s._state);
             if (r != GTA_OK)
             {
-                throw exception("cannot clone GTA i/o state", static_cast<gta::result>(r));
+                throw exception("Cannot clone GTA i/o state", static_cast<gta::result>(r));
             }
             return *this;
         }
@@ -752,7 +752,7 @@ namespace gta
             gta_result_t r = gta_create_header(&_header);
             if (r != GTA_OK)
             {
-                throw exception("cannot initialize GTA header", static_cast<gta::result>(r));
+                throw exception("Cannot initialize GTA header", static_cast<gta::result>(r));
             }
             reset_taglists();
         }
@@ -768,12 +768,12 @@ namespace gta
             r = gta_create_header(&_header);
             if (r != GTA_OK)
             {
-                throw exception("cannot initialize GTA header", static_cast<gta::result>(r));
+                throw exception("Cannot initialize GTA header", static_cast<gta::result>(r));
             }
             r = gta_clone_header(_header, hdr._header);
             if (r != GTA_OK)
             {
-                throw exception("cannot clone GTA header", static_cast<gta::result>(r));
+                throw exception("Cannot clone GTA header", static_cast<gta::result>(r));
             }
             reset_taglists();
         }
@@ -798,7 +798,7 @@ namespace gta
             gta_result_t r = gta_clone_header(_header, hdr._header);
             if (r != GTA_OK)
             {
-                throw exception("cannot clone GTA header", static_cast<gta::result>(r));
+                throw exception("Cannot clone GTA header", static_cast<gta::result>(r));
             }
             reset_taglists();
             return *this;
@@ -821,7 +821,7 @@ namespace gta
             gta_result_t r = gta_read_header(_header, read_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
             {
-                throw exception("cannot read GTA header", static_cast<gta::result>(r));
+                throw exception("Cannot read GTA header", static_cast<gta::result>(r));
             }
             reset_taglists();
         }
@@ -836,7 +836,7 @@ namespace gta
             gta_result_t r = gta_read_header(_header, read_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
             {
-                throw exception("cannot read GTA header", static_cast<gta::result>(r));
+                throw exception("Cannot read GTA header", static_cast<gta::result>(r));
             }
             reset_taglists();
         }
@@ -850,7 +850,7 @@ namespace gta
             gta_result_t r = gta_read_header_from_stream(_header, f);
             if (r != GTA_OK)
             {
-                throw exception("cannot read GTA header", static_cast<gta::result>(r));
+                throw exception("Cannot read GTA header", static_cast<gta::result>(r));
             }
             reset_taglists();
         }
@@ -864,7 +864,7 @@ namespace gta
             gta_result_t r = gta_read_header_from_fd(_header, fd);
             if (r != GTA_OK)
             {
-                throw exception("cannot read GTA header", static_cast<gta::result>(r));
+                throw exception("Cannot read GTA header", static_cast<gta::result>(r));
             }
             reset_taglists();
         }
@@ -878,7 +878,7 @@ namespace gta
             gta_result_t r = gta_write_header(_header, write_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
             {
-                throw exception("cannot write GTA header", static_cast<gta::result>(r));
+                throw exception("Cannot write GTA header", static_cast<gta::result>(r));
             }
         }
 
@@ -892,7 +892,7 @@ namespace gta
             gta_result_t r = gta_write_header(_header, write_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
             {
-                throw exception("cannot write GTA header", static_cast<gta::result>(r));
+                throw exception("Cannot write GTA header", static_cast<gta::result>(r));
             }
         }
 
@@ -905,7 +905,7 @@ namespace gta
             gta_result_t r = gta_write_header_to_stream(_header, f);
             if (r != GTA_OK)
             {
-                throw exception("cannot write GTA header", static_cast<gta::result>(r));
+                throw exception("Cannot write GTA header", static_cast<gta::result>(r));
             }
         }
 
@@ -918,7 +918,7 @@ namespace gta
             gta_result_t r = gta_write_header_to_fd(_header, fd);
             if (r != GTA_OK)
             {
-                throw exception("cannot write GTA header", static_cast<gta::result>(r));
+                throw exception("Cannot write GTA header", static_cast<gta::result>(r));
             }
         }
 
@@ -1115,7 +1115,7 @@ namespace gta
             gta_result_t r = gta_set_components(_header, n, reinterpret_cast<const gta_type_t *>(types), sizes);
             if (r != GTA_OK)
             {
-                throw exception("cannot set GTA components", static_cast<gta::result>(r));
+                throw exception("Cannot set GTA components", static_cast<gta::result>(r));
             }
             reset_component_taglists();
         }
@@ -1132,7 +1132,7 @@ namespace gta
             gta_result_t r = gta_set_components(_header, 1, reinterpret_cast<gta_type_t *>(types), sizes);
             if (r != GTA_OK)
             {
-                throw exception("cannot set GTA components", static_cast<gta::result>(r));
+                throw exception("Cannot set GTA components", static_cast<gta::result>(r));
             }
             reset_component_taglists();
         }
@@ -1152,7 +1152,7 @@ namespace gta
             gta_result_t r = gta_set_components(_header, 2, reinterpret_cast<gta_type_t *>(types), sizes);
             if (r != GTA_OK)
             {
-                throw exception("cannot set GTA components", static_cast<gta::result>(r));
+                throw exception("Cannot set GTA components", static_cast<gta::result>(r));
             }
             reset_component_taglists();
         }
@@ -1174,7 +1174,7 @@ namespace gta
             gta_result_t r = gta_set_components(_header, 3, reinterpret_cast<gta_type_t *>(types), sizes);
             if (r != GTA_OK)
             {
-                throw exception("cannot set GTA components", static_cast<gta::result>(r));
+                throw exception("Cannot set GTA components", static_cast<gta::result>(r));
             }
             reset_component_taglists();
         }
@@ -1198,7 +1198,7 @@ namespace gta
             gta_result_t r = gta_set_components(_header, 4, reinterpret_cast<gta_type_t *>(types), sizes);
             if (r != GTA_OK)
             {
-                throw exception("cannot set GTA components", static_cast<gta::result>(r));
+                throw exception("Cannot set GTA components", static_cast<gta::result>(r));
             }
             reset_component_taglists();
         }
@@ -1216,7 +1216,7 @@ namespace gta
             gta_result_t r = gta_set_dimensions(_header, n, sizes);
             if (r != GTA_OK)
             {
-                throw exception("cannot set GTA dimensions", static_cast<gta::result>(r));
+                throw exception("Cannot set GTA dimensions", static_cast<gta::result>(r));
             }
             reset_dimension_taglists();
         }
@@ -1231,7 +1231,7 @@ namespace gta
             gta_result_t r = gta_set_dimensions(_header, 1, sizes);
             if (r != GTA_OK)
             {
-                throw exception("cannot set GTA dimensions", static_cast<gta::result>(r));
+                throw exception("Cannot set GTA dimensions", static_cast<gta::result>(r));
             }
             reset_dimension_taglists();
         }
@@ -1247,7 +1247,7 @@ namespace gta
             gta_result_t r = gta_set_dimensions(_header, 2, sizes);
             if (r != GTA_OK)
             {
-                throw exception("cannot set GTA dimensions", static_cast<gta::result>(r));
+                throw exception("Cannot set GTA dimensions", static_cast<gta::result>(r));
             }
             reset_dimension_taglists();
         }
@@ -1264,7 +1264,7 @@ namespace gta
             gta_result_t r = gta_set_dimensions(_header, 3, sizes);
             if (r != GTA_OK)
             {
-                throw exception("cannot set GTA dimensions", static_cast<gta::result>(r));
+                throw exception("Cannot set GTA dimensions", static_cast<gta::result>(r));
             }
             reset_dimension_taglists();
         }
@@ -1282,7 +1282,7 @@ namespace gta
             gta_result_t r = gta_set_dimensions(_header, 4, sizes);
             if (r != GTA_OK)
             {
-                throw exception("cannot set GTA dimensions", static_cast<gta::result>(r));
+                throw exception("Cannot set GTA dimensions", static_cast<gta::result>(r));
             }
             reset_dimension_taglists();
         }
@@ -1307,7 +1307,7 @@ namespace gta
             gta_result_t r = gta_read_data(_header, data, read_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
             {
-                throw exception("cannot read GTA data", static_cast<gta::result>(r));
+                throw exception("Cannot read GTA data", static_cast<gta::result>(r));
             }
         }
 
@@ -1324,7 +1324,7 @@ namespace gta
             gta_result_t r = gta_read_data(_header, data, read_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
             {
-                throw exception("cannot read GTA data", static_cast<gta::result>(r));
+                throw exception("Cannot read GTA data", static_cast<gta::result>(r));
             }
         }
 
@@ -1340,7 +1340,7 @@ namespace gta
             gta_result_t r = gta_read_data_from_stream(_header, data, f);
             if (r != GTA_OK)
             {
-                throw exception("cannot read GTA data", static_cast<gta::result>(r));
+                throw exception("Cannot read GTA data", static_cast<gta::result>(r));
             }
         }
 
@@ -1356,7 +1356,7 @@ namespace gta
             gta_result_t r = gta_read_data_from_fd(_header, data, fd);
             if (r != GTA_OK)
             {
-                throw exception("cannot read GTA data", static_cast<gta::result>(r));
+                throw exception("Cannot read GTA data", static_cast<gta::result>(r));
             }
         }
 
@@ -1373,7 +1373,7 @@ namespace gta
                     reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
             {
-                throw exception("cannot skip GTA data", static_cast<gta::result>(r));
+                throw exception("Cannot skip GTA data", static_cast<gta::result>(r));
             }
         }
 
@@ -1391,7 +1391,7 @@ namespace gta
                     reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
             {
-                throw exception("cannot skip GTA data", static_cast<gta::result>(r));
+                throw exception("Cannot skip GTA data", static_cast<gta::result>(r));
             }
         }
 
@@ -1406,7 +1406,7 @@ namespace gta
             gta_result_t r = gta_skip_data_from_stream(_header, f);
             if (r != GTA_OK)
             {
-                throw exception("cannot skip GTA data", static_cast<gta::result>(r));
+                throw exception("Cannot skip GTA data", static_cast<gta::result>(r));
             }
         }
 
@@ -1421,7 +1421,7 @@ namespace gta
             gta_result_t r = gta_skip_data_from_fd(_header, fd);
             if (r != GTA_OK)
             {
-                throw exception("cannot skip GTA data", static_cast<gta::result>(r));
+                throw exception("Cannot skip GTA data", static_cast<gta::result>(r));
             }
         }
 
@@ -1435,7 +1435,7 @@ namespace gta
             gta_result_t r = gta_write_data(_header, data, write_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
             {
-                throw exception("cannot write GTA data", static_cast<gta::result>(r));
+                throw exception("Cannot write GTA data", static_cast<gta::result>(r));
             }
         }
 
@@ -1450,7 +1450,7 @@ namespace gta
             gta_result_t r = gta_write_data(_header, data, write_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
             {
-                throw exception("cannot write GTA data", static_cast<gta::result>(r));
+                throw exception("Cannot write GTA data", static_cast<gta::result>(r));
             }
         }
 
@@ -1464,7 +1464,7 @@ namespace gta
             gta_result_t r = gta_write_data_to_stream(_header, data, f);
             if (r != GTA_OK)
             {
-                throw exception("cannot write GTA data", static_cast<gta::result>(r));
+                throw exception("Cannot write GTA data", static_cast<gta::result>(r));
             }
         }
 
@@ -1478,7 +1478,7 @@ namespace gta
             gta_result_t r = gta_write_data_to_fd(_header, data, fd);
             if (r != GTA_OK)
             {
-                throw exception("cannot write GTA data", static_cast<gta::result>(r));
+                throw exception("Cannot write GTA data", static_cast<gta::result>(r));
             }
         }
 
@@ -1496,7 +1496,7 @@ namespace gta
                     write_custom_io, reinterpret_cast<intptr_t>(&write_io));
             if (r != GTA_OK)
             {
-                throw exception("cannot copy GTA data", static_cast<gta::result>(r));
+                throw exception("Cannot copy GTA data", static_cast<gta::result>(r));
             }
         }
 
@@ -1516,7 +1516,7 @@ namespace gta
                     write_custom_io, reinterpret_cast<intptr_t>(&write_io));
             if (r != GTA_OK)
             {
-                throw exception("cannot copy GTA data", static_cast<gta::result>(r));
+                throw exception("Cannot copy GTA data", static_cast<gta::result>(r));
             }
         }
 
@@ -1531,7 +1531,7 @@ namespace gta
             gta_result_t r = gta_copy_data_stream(_header, fi, write_header._header, fo);
             if (r != GTA_OK)
             {
-                throw exception("cannot copy GTA data", static_cast<gta::result>(r));
+                throw exception("Cannot copy GTA data", static_cast<gta::result>(r));
             }
         }
 
@@ -1546,7 +1546,7 @@ namespace gta
             gta_result_t r = gta_copy_data_fd(_header, fdi, write_header._header, fdo);
             if (r != GTA_OK)
             {
-                throw exception("cannot copy GTA data", static_cast<gta::result>(r));
+                throw exception("Cannot copy GTA data", static_cast<gta::result>(r));
             }
         }
 
@@ -1767,7 +1767,7 @@ namespace gta
             gta_result_t r = gta_read_elements(_header, state._state, n, buf, read_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
             {
-                throw exception("cannot read GTA data elements", static_cast<gta::result>(r));
+                throw exception("Cannot read GTA data elements", static_cast<gta::result>(r));
             }
         }
 
@@ -1786,7 +1786,7 @@ namespace gta
             gta_result_t r = gta_read_elements(_header, state._state, n, buf, read_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
             {
-                throw exception("cannot read GTA data elements", static_cast<gta::result>(r));
+                throw exception("Cannot read GTA data elements", static_cast<gta::result>(r));
             }
         }
 
@@ -1804,7 +1804,7 @@ namespace gta
             gta_result_t r = gta_read_elements_from_stream(_header, state._state, n, buf, f);
             if (r != GTA_OK)
             {
-                throw exception("cannot read GTA data elements", static_cast<gta::result>(r));
+                throw exception("Cannot read GTA data elements", static_cast<gta::result>(r));
             }
         }
 
@@ -1822,7 +1822,7 @@ namespace gta
             gta_result_t r = gta_read_elements_from_fd(_header, state._state, n, buf, fd);
             if (r != GTA_OK)
             {
-                throw exception("cannot read GTA data elements", static_cast<gta::result>(r));
+                throw exception("Cannot read GTA data elements", static_cast<gta::result>(r));
             }
         }
 
@@ -1840,7 +1840,7 @@ namespace gta
             gta_result_t r = gta_write_elements(_header, state._state, n, buf, write_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
             {
-                throw exception("cannot write GTA data elements", static_cast<gta::result>(r));
+                throw exception("Cannot write GTA data elements", static_cast<gta::result>(r));
             }
         }
 
@@ -1859,7 +1859,7 @@ namespace gta
             gta_result_t r = gta_write_elements(_header, state._state, n, buf, write_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
             {
-                throw exception("cannot write GTA data elements", static_cast<gta::result>(r));
+                throw exception("Cannot write GTA data elements", static_cast<gta::result>(r));
             }
         }
 
@@ -1877,7 +1877,7 @@ namespace gta
             gta_result_t r = gta_write_elements_to_stream(_header, state._state, n, buf, f);
             if (r != GTA_OK)
             {
-                throw exception("cannot write GTA data elements", static_cast<gta::result>(r));
+                throw exception("Cannot write GTA data elements", static_cast<gta::result>(r));
             }
         }
 
@@ -1895,7 +1895,7 @@ namespace gta
             gta_result_t r = gta_write_elements_to_fd(_header, state._state, n, buf, fd);
             if (r != GTA_OK)
             {
-                throw exception("cannot write GTA data elements", static_cast<gta::result>(r));
+                throw exception("Cannot write GTA data elements", static_cast<gta::result>(r));
             }
         }
 
@@ -1936,7 +1936,7 @@ namespace gta
                     read_custom_io, seek_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
             {
-                throw exception("cannot read GTA data block", static_cast<gta::result>(r));
+                throw exception("Cannot read GTA data block", static_cast<gta::result>(r));
             }
         }
 
@@ -1961,7 +1961,7 @@ namespace gta
                     read_custom_io, seek_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
             {
-                throw exception("cannot read GTA data block", static_cast<gta::result>(r));
+                throw exception("Cannot read GTA data block", static_cast<gta::result>(r));
             }
         }
 
@@ -1984,7 +1984,7 @@ namespace gta
                     lower_coordinates, higher_coordinates, block, f);
             if (r != GTA_OK)
             {
-                throw exception("cannot read GTA data block", static_cast<gta::result>(r));
+                throw exception("Cannot read GTA data block", static_cast<gta::result>(r));
             }
         }
 
@@ -2007,7 +2007,7 @@ namespace gta
                     lower_coordinates, higher_coordinates, block, fd);
             if (r != GTA_OK)
             {
-                throw exception("cannot read GTA data block", static_cast<gta::result>(r));
+                throw exception("Cannot read GTA data block", static_cast<gta::result>(r));
             }
         }
 
@@ -2030,7 +2030,7 @@ namespace gta
                     write_custom_io, seek_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
             {
-                throw exception("cannot write GTA data block", static_cast<gta::result>(r));
+                throw exception("Cannot write GTA data block", static_cast<gta::result>(r));
             }
         }
 
@@ -2054,7 +2054,7 @@ namespace gta
                     write_custom_io, seek_custom_io, reinterpret_cast<intptr_t>(&io));
             if (r != GTA_OK)
             {
-                throw exception("cannot write GTA data block", static_cast<gta::result>(r));
+                throw exception("Cannot write GTA data block", static_cast<gta::result>(r));
             }
         }
 
@@ -2076,7 +2076,7 @@ namespace gta
                     lower_coordinates, higher_coordinates, block, f);
             if (r != GTA_OK)
             {
-                throw exception("cannot write GTA data block", static_cast<gta::result>(r));
+                throw exception("Cannot write GTA data block", static_cast<gta::result>(r));
             }
         }
 
@@ -2098,7 +2098,7 @@ namespace gta
                     lower_coordinates, higher_coordinates, block, fd);
             if (r != GTA_OK)
             {
-                throw exception("cannot write GTA data block", static_cast<gta::result>(r));
+                throw exception("Cannot write GTA data block", static_cast<gta::result>(r));
             }
         }
 
