@@ -24,11 +24,11 @@ int main(void)
     if (!infile) {
         return 1;
     }
-    r = gta_init_header(&inheader);
+    r = gta_create_header(&inheader);
     if (r != GTA_OK) {
         return 1;
     }
-    r = gta_init_io_state(&instate);
+    r = gta_create_io_state(&instate);
     if (r != GTA_OK) {
         return 1;
     }
@@ -39,11 +39,11 @@ int main(void)
     if (!outfile) {
         return 1;
     }
-    r = gta_init_header(&outheader);
+    r = gta_create_header(&outheader);
     if (r != GTA_OK) {
         return 1;
     }
-    r = gta_init_io_state(&outstate);
+    r = gta_create_io_state(&outstate);
     if (r != GTA_OK) {
         return 1;
     }
@@ -89,11 +89,11 @@ int main(void)
     /* Cleanup */
 
     free(element);
-    gta_deinit_io_state(instate);
-    gta_deinit_header(inheader);
+    gta_destroy_io_state(instate);
+    gta_destroy_header(inheader);
     fclose(infile);
-    gta_deinit_io_state(outstate);
-    gta_deinit_header(outheader);
+    gta_destroy_io_state(outstate);
+    gta_destroy_header(outheader);
     fclose(outfile);
     return 0;
 }

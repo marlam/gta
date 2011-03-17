@@ -641,7 +641,7 @@ namespace gta
 
         io_state()
         {
-            gta_result_t r = gta_init_io_state(&_state);
+            gta_result_t r = gta_create_io_state(&_state);
             if (r != GTA_OK)
             {
                 throw exception("cannot initialize GTA i/o state", static_cast<gta::result>(r));
@@ -651,7 +651,7 @@ namespace gta
         /** \cond INTERNAL */
         io_state(const io_state &s)
         {
-            gta_result_t r = gta_init_io_state(&_state);
+            gta_result_t r = gta_create_io_state(&_state);
             if (r != GTA_OK)
             {
                 throw exception("cannot initialize GTA i/o state", static_cast<gta::result>(r));
@@ -668,7 +668,7 @@ namespace gta
         {
             if (_state)
             {
-                gta_deinit_io_state(_state);
+                gta_destroy_io_state(_state);
             }
         }
 
@@ -749,7 +749,7 @@ namespace gta
          */
         header()
         {
-            gta_result_t r = gta_init_header(&_header);
+            gta_result_t r = gta_create_header(&_header);
             if (r != GTA_OK)
             {
                 throw exception("cannot initialize GTA header", static_cast<gta::result>(r));
@@ -765,7 +765,7 @@ namespace gta
             : _header(NULL)
         {
             gta_result_t r;
-            r = gta_init_header(&_header);
+            r = gta_create_header(&_header);
             if (r != GTA_OK)
             {
                 throw exception("cannot initialize GTA header", static_cast<gta::result>(r));
@@ -785,7 +785,7 @@ namespace gta
         {
             if (_header)
             {
-                gta_deinit_header(_header);
+                gta_destroy_header(_header);
             }
         }
 

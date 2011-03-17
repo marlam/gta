@@ -390,24 +390,23 @@ GTA_ATTR_NOTHROW;
 
 /**
  *
- * \name Initialize/Deinitialize GTA Headers
+ * \name Create and destroy GTA Headers
  *
  */
 
 /*@{*/
 
 /**
- * \brief               Initialize a GTA header structure.
+ * \brief               Create a new GTA header structure and initialize it.
  * \param header        The header.
  * \return              \a GTA_OK or \a GTA_SYSTEM_ERROR.
  *
- * Initializes a GTA header. This has to be done before doing anything with
- * a GTA header.\n
+ * Creates a new GTA header and initializes it.
  * The GTA will initially be empty (zero element components, zero dimensions)
  * and contain no tags. The compression method will be \a GTA_NONE.
  */
 extern GTA_EXPORT gta_result_t
-gta_init_header(gta_header_t *GTA_RESTRICT *GTA_RESTRICT header)
+gta_create_header(gta_header_t *GTA_RESTRICT *GTA_RESTRICT header)
 GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
 
 /**
@@ -416,7 +415,7 @@ GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
  * \param src_header    The source header.
  * \return              \a GTA_OK or \a GTA_SYSTEM_ERROR.
  *
- * Copies \a src_header to \a dst_header.
+ * Clones \a src_header into \a dst_header.
  */
 extern GTA_EXPORT gta_result_t
 gta_clone_header(gta_header_t *GTA_RESTRICT dst_header,
@@ -424,13 +423,13 @@ gta_clone_header(gta_header_t *GTA_RESTRICT dst_header,
 GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
 
 /**
- * \brief               Deinitialize a GTA header structure.
+ * \brief               Destroy a GTA header structure and free its resources.
  * \param header        The header.
  *
- * Deinitializes a GTA header and free all of its resources.
+ * Destroys a GTA header structure and fress all of its resources.
  */
 extern GTA_EXPORT void
-gta_deinit_header(gta_header_t *GTA_RESTRICT header)
+gta_destroy_header(gta_header_t *GTA_RESTRICT header)
 GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
 
 /*@}*/
@@ -1129,33 +1128,23 @@ GTA_ATTR_NONNULL_ALL GTA_ATTR_PURE GTA_ATTR_NOTHROW;
  * Theses function work for all GTAs, with or without compression, an the input and output streams
  * do not need to be seekable.
  *
- * Element-based input/output needs a state structure. This structure must be initialized with
- * gta_init_io_state() before the first element is read or written, and deinitialized with
- * gta_deinit_io_state() after the last element was read or written, or after an error occured.
+ * Element-based input/output needs a state structure. This structure must be allocated with
+ * gta_create_io_state() before the first element is read or written, and freed with
+ * gta_destroy_io_state() after the last element was read or written, or after an error occured.
  */
 
 /*@{*/
 
 /**
- * \brief               Initialize input/output state.
+ * \brief               Create and initialize a new input/output state.
  * \param io_state      The input/output state.
  * \return              \a GTA_OK or \a GTA_SYSTEM_ERROR.
  *
- * Initializes a state structure for element-based input/output.
+ * Creates and initializes a state structure for element-based input/output.
  */
 extern GTA_EXPORT gta_result_t
-gta_init_io_state(gta_io_state_t *GTA_RESTRICT *GTA_RESTRICT io_state)
+gta_create_io_state(gta_io_state_t *GTA_RESTRICT *GTA_RESTRICT io_state)
 GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
-
-/**
- * \brief               Deinitialize input/output state.
- * \param io_state      The input/output state.
- *
- * Deinitializes a state structure for element-based input/output.
- */
-extern GTA_EXPORT void
-gta_deinit_io_state(gta_io_state_t *GTA_RESTRICT io_state)
-GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
 
 /**
  * \brief               Clone an input/output state.
@@ -1163,11 +1152,21 @@ GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
  * \param src_io_state  The source state.
  * \return              \a GTA_OK or \a GTA_SYSTEM_ERROR.
  *
- * Copies \a src_io_state to \a dst_io_state.
+ * Clones \a src_io_state into \a dst_io_state.
  */
 extern GTA_EXPORT gta_result_t
 gta_clone_io_state(gta_io_state_t *GTA_RESTRICT dst_io_state,
         const gta_io_state_t *GTA_RESTRICT src_io_state)
+GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
+
+/**
+ * \brief               Destroy input/output state and free its resources.
+ * \param io_state      The input/output state.
+ *
+ * Destroys a state structure for element-based input/output and frees its resources.
+ */
+extern GTA_EXPORT void
+gta_destroy_io_state(gta_io_state_t *GTA_RESTRICT io_state)
 GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
 
 /**

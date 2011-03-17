@@ -27,7 +27,7 @@ int main(void)
     if (!file) {
         return 1;
     }
-    r = gta_init_header(&header);
+    r = gta_create_header(&header);
     if (r != GTA_OK) {
         return 1;
     }
@@ -59,7 +59,7 @@ int main(void)
     /* Cleanup */
 
     free(block);
-    gta_deinit_header(header);
+    gta_destroy_header(header);
     fclose(file);
     return 0;
 }

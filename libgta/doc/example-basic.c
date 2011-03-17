@@ -18,7 +18,7 @@ int main(void)
 
     /* Create a GTA that contains an RGB image with 256x128 pixels */
 
-    r = gta_init_header(&header);
+    r = gta_create_header(&header);
     if (r != GTA_OK) {
         return 1;
     }
@@ -80,7 +80,7 @@ int main(void)
     }
 
     free(data);
-    gta_deinit_header(header);
+    gta_destroy_header(header);
 
     /* Reread the same file */
 
@@ -88,7 +88,7 @@ int main(void)
     if (!f) {
         return 1;
     }
-    r = gta_init_header(&header);
+    r = gta_create_header(&header);
     if (r != GTA_OK) {
         return 1;
     }
@@ -122,6 +122,6 @@ int main(void)
     }
 
     free(data);
-    gta_deinit_header(header);
+    gta_destroy_header(header);
     return 0;
 }

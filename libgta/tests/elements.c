@@ -45,8 +45,8 @@ int main(void)
     uintmax_t dims[] = { 7, 11, 13, 17 };
     uintmax_t index;
 
-    r = gta_init_header(&hu);
-    r = gta_init_header(&hc);
+    r = gta_create_header(&hu);
+    r = gta_create_header(&hc);
     check(r == GTA_OK);
 
     /* Define an array */
@@ -70,9 +70,9 @@ int main(void)
     check(r == GTA_OK);
     r = gta_write_header_to_stream(hc, fc);
     check(r == GTA_OK);
-    r = gta_init_io_state(&su);
+    r = gta_create_io_state(&su);
     check(r == GTA_OK);
-    r = gta_init_io_state(&sc);
+    r = gta_create_io_state(&sc);
     check(r == GTA_OK);
     index = 0;
     for (uintmax_t w = 0; w < gta_get_dimension_size(hu, 3); w++)
@@ -102,8 +102,8 @@ int main(void)
             }
         }
     }
-    gta_deinit_io_state(su);
-    gta_deinit_io_state(sc);
+    gta_destroy_io_state(su);
+    gta_destroy_io_state(sc);
     fclose(fu);
     fclose(fc);
 
@@ -116,9 +116,9 @@ int main(void)
     check(r == GTA_OK);
     r = gta_read_header_from_stream(hc, fc);
     check(r == GTA_OK);
-    r = gta_init_io_state(&su);
+    r = gta_create_io_state(&su);
     check(r == GTA_OK);
-    r = gta_init_io_state(&sc);
+    r = gta_create_io_state(&sc);
     check(r == GTA_OK);
     index = 0;
     for (uintmax_t w = 0; w < gta_get_dimension_size(hu, 3); w++)
@@ -141,13 +141,13 @@ int main(void)
             }
         }
     }
-    gta_deinit_io_state(su);
-    gta_deinit_io_state(sc);
+    gta_destroy_io_state(su);
+    gta_destroy_io_state(sc);
     fclose(fu);
     fclose(fc);
 
-    gta_deinit_header(hu);
-    gta_deinit_header(hc);
+    gta_destroy_header(hu);
+    gta_destroy_header(hc);
     remove("test-elements-uncompressed.tmp");
     remove("test-elements-compressed.tmp");
     return 0;

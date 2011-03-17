@@ -190,11 +190,11 @@ int main(void)
     strcat(be_test_file, "/big-endian.gta");
 
     /* Init headers */
-    r = gta_init_header(&header);
+    r = gta_create_header(&header);
     check(r == GTA_OK);
-    r = gta_init_header(&le_header);
+    r = gta_create_header(&le_header);
     check(r == GTA_OK);
-    r = gta_init_header(&be_header);
+    r = gta_create_header(&be_header);
     check(r == GTA_OK);
 
     /* Define an array */
@@ -410,9 +410,9 @@ int main(void)
     free(be_data);
     free(le_test_file);
     free(be_test_file);
-    gta_deinit_header(header);
-    gta_deinit_header(le_header);
-    gta_deinit_header(be_header);
+    gta_destroy_header(header);
+    gta_destroy_header(le_header);
+    gta_destroy_header(be_header);
 
     remove("test-endianness.tmp");
     return 0;

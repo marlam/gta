@@ -46,7 +46,7 @@ int main(void)
     gta_result_t r;
     int fd;
 
-    r = gta_init_header(&header);
+    r = gta_create_header(&header);
     check(r == GTA_OK);
 
     /* Open the file descriptor */
@@ -132,7 +132,7 @@ int main(void)
     free(data);
     free(data2);
 
-    gta_deinit_header(header);
+    gta_destroy_header(header);
 
     return 0;
 }

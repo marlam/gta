@@ -15,7 +15,7 @@ int main(void)
 
     /* Create an example GTA */
 
-    r = gta_init_header(&header);
+    r = gta_create_header(&header);
     if (r != GTA_OK) {
         return 1;
     }
@@ -102,6 +102,6 @@ int main(void)
     }
     /* ... */
 
-    gta_deinit_header(header);
+    gta_destroy_header(header);
     return 0;
 }

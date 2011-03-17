@@ -1372,7 +1372,7 @@ exit:
 
 static GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW
 void
-gta_init_taglist(gta_taglist_t *GTA_RESTRICT taglist)
+gta_create_taglist(gta_taglist_t *GTA_RESTRICT taglist)
 {
     taglist->entries = 0;
     taglist->size = 0;
@@ -1384,7 +1384,7 @@ gta_init_taglist(gta_taglist_t *GTA_RESTRICT taglist)
 
 static GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW
 void
-gta_deinit_taglist(gta_taglist_t *GTA_RESTRICT taglist)
+gta_destroy_taglist(gta_taglist_t *GTA_RESTRICT taglist)
 {
     for (ssize_t i = 0; i < taglist->entries; i++)
     {
@@ -1756,8 +1756,8 @@ gta_unset_tag(gta_taglist_t *GTA_RESTRICT taglist, const char *GTA_RESTRICT name
 void
 gta_unset_all_tags(gta_taglist_t *GTA_RESTRICT taglist)
 {
-    gta_deinit_taglist(taglist);
-    gta_init_taglist(taglist);
+    gta_destroy_taglist(taglist);
+    gta_create_taglist(taglist);
 }
 
 gta_result_t
@@ -1765,7 +1765,7 @@ gta_clone_taglist(gta_taglist_t *GTA_RESTRICT dst_taglist,
         const gta_taglist_t *GTA_RESTRICT src_taglist)
 {
     gta_taglist_t tmp_taglist;
-    gta_init_taglist(&tmp_taglist);
+    gta_create_taglist(&tmp_taglist);
     for (uintmax_t i = 0; i < gta_get_tags(src_taglist); i++)
     {
         gta_result_t r = gta_set_tag(&tmp_taglist,
@@ -1773,11 +1773,11 @@ gta_clone_taglist(gta_taglist_t *GTA_RESTRICT dst_taglist,
                 gta_get_tag_value(src_taglist, i));
         if (r != GTA_OK)
         {
-            gta_deinit_taglist(&tmp_taglist);
+            gta_destroy_taglist(&tmp_taglist);
             return r;
         }
     }
-    gta_deinit_taglist(dst_taglist);
+    gta_destroy_taglist(dst_taglist);
     memcpy(dst_taglist, &tmp_taglist, sizeof(gta_taglist_t));
     return GTA_OK;
 }
@@ -1791,7 +1791,7 @@ gta_clone_taglist(gta_taglist_t *GTA_RESTRICT dst_taglist,
 
 
 gta_result_t
-gta_init_header(gta_header_t *GTA_RESTRICT *GTA_RESTRICT header)
+gta_create_header(gta_header_t *GTA_RESTRICT *GTA_RESTRICT header)
 {
     *header = malloc(sizeof(gta_header_t));
     if (!*header)
@@ -1807,7 +1807,7 @@ gta_init_header(gta_header_t *GTA_RESTRICT *GTA_RESTRICT header)
         free(hdr);
         return GTA_SYSTEM_ERROR;
     }
-    gta_init_taglist(hdr->global_taglist);
+    gta_create_taglist(hdr->global_taglist);
     hdr->components = 0;
     hdr->component_types = NULL;
     hdr->component_blob_sizes = NULL;
@@ -1826,7 +1826,7 @@ gta_clone_header(gta_header_t *GTA_RESTRICT dst_header,
     gta_result_t retval;
     gta_header_t *temp_header;
 
-    retval = gta_init_header(&temp_header);
+    retval = gta_create_header(&temp_header);
     if (retval != GTA_OK)
     {
         return retval;
@@ -1896,20 +1896,20 @@ gta_clone_header(gta_header_t *GTA_RESTRICT dst_header,
 exit:
     if (retval == GTA_OK)
     {
-        gta_deinit_taglist(dst_header->global_taglist);
+        gta_destroy_taglist(dst_header->global_taglist);
         free(dst_header->global_taglist);
         free(dst_header->component_types);
         free(dst_header->component_blob_sizes);
         for (uintmax_t i = 0; i < dst_header->components; i++)
         {
-            gta_deinit_taglist(dst_header->component_taglists[i]);
+            gta_destroy_taglist(dst_header->component_taglists[i]);
             free(dst_header->component_taglists[i]);
         }
         free(dst_header->component_taglists);
         free(dst_header->dimension_sizes);
         for (uintmax_t i = 0; i < dst_header->dimensions; i++)
         {
-            gta_deinit_taglist(dst_header->dimension_taglists[i]);
+            gta_destroy_taglist(dst_header->dimension_taglists[i]);
             free(dst_header->dimension_taglists[i]);
         }
         free(dst_header->dimension_taglists);
@@ -1919,7 +1919,7 @@ exit:
     {
         if (temp_header->global_taglist)
         {
-            gta_deinit_taglist(temp_header->global_taglist);
+            gta_destroy_taglist(temp_header->global_taglist);
             free(temp_header->global_taglist);
         }
         free(temp_header->component_types);
@@ -1928,7 +1928,7 @@ exit:
         {
             for (uintmax_t i = 0; i < temp_header->components; i++)
             {
-                gta_deinit_taglist(temp_header->component_taglists[i]);
+                gta_destroy_taglist(temp_header->component_taglists[i]);
                 free(temp_header->component_taglists[i]);
             }
         }
@@ -1938,7 +1938,7 @@ exit:
         {
             for (uintmax_t i = 0; i < temp_header->dimensions; i++)
             {
-                gta_deinit_taglist(temp_header->dimension_taglists[i]);
+                gta_destroy_taglist(temp_header->dimension_taglists[i]);
                 free(temp_header->dimension_taglists[i]);
             }
             free(temp_header->dimension_taglists);
@@ -1949,22 +1949,22 @@ exit:
 }
 
 void
-gta_deinit_header(gta_header_t *GTA_RESTRICT header)
+gta_destroy_header(gta_header_t *GTA_RESTRICT header)
 {
-    gta_deinit_taglist(header->global_taglist);
+    gta_destroy_taglist(header->global_taglist);
     free(header->global_taglist);
     free(header->component_types);
     free(header->component_blob_sizes);
     for (uintmax_t i = 0; i < header->components; i++)
     {
-        gta_deinit_taglist(header->component_taglists[i]);
+        gta_destroy_taglist(header->component_taglists[i]);
         free(header->component_taglists[i]);
     }
     free(header->component_taglists);
     free(header->dimension_sizes);
     for (uintmax_t i = 0; i < header->dimensions; i++)
     {
-        gta_deinit_taglist(header->dimension_taglists[i]);
+        gta_destroy_taglist(header->dimension_taglists[i]);
         free(header->dimension_taglists[i]);
     }
     free(header->dimension_taglists);
@@ -2057,7 +2057,7 @@ gta_read_taglist_from_chunk(const gta_header_t *GTA_RESTRICT header, gta_read_t 
     {
         return GTA_SYSTEM_ERROR;
     }
-    gta_init_taglist(*taglist);
+    gta_create_taglist(*taglist);
     for (;;)
     {
         char c;
@@ -2109,7 +2109,7 @@ exit:
     free(value);
     if (retval != GTA_OK)
     {
-        gta_deinit_taglist(*taglist);
+        gta_destroy_taglist(*taglist);
         free(*taglist);
         *taglist = NULL;
     }
@@ -2126,7 +2126,7 @@ gta_read_header(gta_header_t *GTA_RESTRICT header, gta_read_t read_fn, intptr_t 
 
     /* Use a temp header to avoid changing the given header unless we read everything successfully */
     gta_header_t *temp_header = NULL;
-    retval = gta_init_header(&temp_header);
+    retval = gta_create_header(&temp_header);
     if (retval != GTA_OK)
     {
         return retval;
@@ -2377,7 +2377,7 @@ gta_read_header(gta_header_t *GTA_RESTRICT header, gta_read_t read_fn, intptr_t 
         {
             goto exit;
         }
-        gta_deinit_taglist(temp_header->global_taglist);
+        gta_destroy_taglist(temp_header->global_taglist);
         free(temp_header->global_taglist);
         temp_header->global_taglist = taglist;
         void *tl_array = NULL;
@@ -2394,12 +2394,12 @@ gta_read_header(gta_header_t *GTA_RESTRICT header, gta_read_t read_fn, intptr_t 
             {
                 if (taglist)
                 {
-                    gta_deinit_taglist(taglist);
+                    gta_destroy_taglist(taglist);
                 }
                 for (size_t j = 0; j < i; j++)
                 {
                     gta_taglist_t *tl = ((gta_taglist_t **)tl_array)[j];
-                    gta_deinit_taglist(tl);
+                    gta_destroy_taglist(tl);
                     free(tl);
                 }
                 free(tl_array);
@@ -2426,12 +2426,12 @@ gta_read_header(gta_header_t *GTA_RESTRICT header, gta_read_t read_fn, intptr_t 
             {
                 if (taglist)
                 {
-                    gta_deinit_taglist(taglist);
+                    gta_destroy_taglist(taglist);
                 }
                 for (size_t j = 0; j < i; j++)
                 {
                     gta_taglist_t *tl = ((gta_taglist_t **)tl_array)[j];
-                    gta_deinit_taglist(tl);
+                    gta_destroy_taglist(tl);
                     free(tl);
                 }
                 free(tl_array);
@@ -2469,20 +2469,20 @@ gta_read_header(gta_header_t *GTA_RESTRICT header, gta_read_t read_fn, intptr_t 
 exit:
     if (retval == GTA_OK)
     {
-        gta_deinit_taglist(header->global_taglist);
+        gta_destroy_taglist(header->global_taglist);
         free(header->global_taglist);
         free(header->component_types);
         free(header->component_blob_sizes);
         for (size_t i = 0; i < header->components; i++)
         {
-            gta_deinit_taglist(header->component_taglists[i]);
+            gta_destroy_taglist(header->component_taglists[i]);
             free(header->component_taglists[i]);
         }
         free(header->component_taglists);
         free(header->dimension_sizes);
         for (size_t i = 0; i < header->dimensions; i++)
         {
-            gta_deinit_taglist(header->dimension_taglists[i]);
+            gta_destroy_taglist(header->dimension_taglists[i]);
             free(header->dimension_taglists[i]);
         }
         free(header->dimension_taglists);
@@ -2490,20 +2490,20 @@ exit:
     }
     else
     {
-        gta_deinit_taglist(temp_header->global_taglist);
+        gta_destroy_taglist(temp_header->global_taglist);
         free(temp_header->global_taglist);
         free(temp_header->component_types);
         free(temp_header->component_blob_sizes);
         for (size_t i = 0; i < temp_header->components; i++)
         {
-            gta_deinit_taglist(temp_header->component_taglists[i]);
+            gta_destroy_taglist(temp_header->component_taglists[i]);
             free(temp_header->component_taglists[i]);
         }
         free(temp_header->component_taglists);
         free(temp_header->dimension_sizes);
         for (size_t i = 0; i < temp_header->dimensions; i++)
         {
-            gta_deinit_taglist(temp_header->dimension_taglists[i]);
+            gta_destroy_taglist(temp_header->dimension_taglists[i]);
             free(temp_header->dimension_taglists[i]);
         }
         free(temp_header->dimension_taglists);
@@ -2954,17 +2954,17 @@ gta_set_components(gta_header_t *GTA_RESTRICT header, uintmax_t n,
         {
             for (size_t j = 0; j < i; j++)
             {
-                gta_deinit_taglist(my_taglists[j]);
+                gta_destroy_taglist(my_taglists[j]);
                 free(my_taglists[j]);
             }
             return GTA_SYSTEM_ERROR;
         }
-        gta_init_taglist(my_taglists[i]);
+        gta_create_taglist(my_taglists[i]);
     }
 
     for (size_t i = 0; i < header->components; i++)
     {
-        gta_deinit_taglist(header->component_taglists[i]);
+        gta_destroy_taglist(header->component_taglists[i]);
         free(header->component_taglists[i]);
     }
     free(header->component_types);
@@ -3048,17 +3048,17 @@ gta_set_dimensions(gta_header_t *GTA_RESTRICT header, uintmax_t n, const uintmax
         {
             for (size_t j = 0; j < i; j++)
             {
-                gta_deinit_taglist(my_taglists[j]);
+                gta_destroy_taglist(my_taglists[j]);
                 free(my_taglists[j]);
             }
             return GTA_SYSTEM_ERROR;
         }
-        gta_init_taglist(my_taglists[i]);
+        gta_create_taglist(my_taglists[i]);
     }
 
     for (size_t i = 0; i < header->dimensions; i++)
     {
-        gta_deinit_taglist(header->dimension_taglists[i]);
+        gta_destroy_taglist(header->dimension_taglists[i]);
         free(header->dimension_taglists[i]);
     }
     free(header->dimension_sizes);
@@ -3637,7 +3637,7 @@ gta_copy_data_fd(
  */
 
 gta_result_t
-gta_init_io_state(gta_io_state_t *GTA_RESTRICT *GTA_RESTRICT io_state)
+gta_create_io_state(gta_io_state_t *GTA_RESTRICT *GTA_RESTRICT io_state)
 {
     *io_state = malloc(sizeof(gta_io_state_t));
     if (!*io_state)
@@ -3655,7 +3655,7 @@ gta_init_io_state(gta_io_state_t *GTA_RESTRICT *GTA_RESTRICT io_state)
 }
 
 void
-gta_deinit_io_state(gta_io_state_t *GTA_RESTRICT io_state)
+gta_destroy_io_state(gta_io_state_t *GTA_RESTRICT io_state)
 {
     free(io_state->chunk);
     free(io_state);

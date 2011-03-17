@@ -42,7 +42,7 @@ int main(void)
     gta_result_t r;
     FILE *f;
 
-    r = gta_init_header(&header);
+    r = gta_create_header(&header);
     check(r == GTA_OK);
 
     /* Define an array */
@@ -151,7 +151,7 @@ int main(void)
 
     free(data);
     free(block);
-    gta_deinit_header(header);
+    gta_destroy_header(header);
     remove("test-blocks.tmp");
     return 0;
 }

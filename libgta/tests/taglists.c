@@ -42,7 +42,7 @@ int main(void)
     gta_result_t r;
     FILE *f;
 
-    r = gta_init_header(&header);
+    r = gta_create_header(&header);
     check(r == GTA_OK);
 
     /* Define an array */
@@ -225,7 +225,7 @@ int main(void)
     check(gta_set_tag(gtl, "name", "val\xf0\x80\x80\x87ue") == GTA_INVALID_DATA);
     check(gta_set_tag(gtl, "name", "val\xf0\xbf\xbf\xbfue") == GTA_OK);
 
-    gta_deinit_header(header);
+    gta_destroy_header(header);
 
     return 0;
 }
