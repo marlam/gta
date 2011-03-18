@@ -33,7 +33,7 @@
 
 #include "msg.h"
 #include "opt.h"
-#include "debug.h"
+#include "dbg.h"
 
 #include "lib.h"
 #include "cmds.h"
@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
     msg::set_level(msg::INF);
     msg::set_program_name(program_name);
     msg::set_columns_from_env();
-    debug::init_crashhandler();
+    dbg::init_crashhandler();
 
     if (argc < 2)
     {

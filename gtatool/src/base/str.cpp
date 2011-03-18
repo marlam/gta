@@ -39,7 +39,7 @@
 
 #include <iconv.h>
 
-#include "debug.h"
+#include "dbg.h"
 #include "msg.h"
 
 #include "str.h"
@@ -212,7 +212,7 @@ namespace str
         is >> v;
         if (is.fail() || !is.eof())
         {
-            throw exc(std::string("cannot convert '") + sanitize(s) + "' to " + name, EINVAL);
+            throw exc(std::string("Cannot convert '") + sanitize(s) + "' to " + name, EINVAL);
         }
         return v;
     }
@@ -242,8 +242,8 @@ namespace str
             /* Should never happen (out of memory or some invalid conversions).
              * We do not want to throw an exception because this function might
              * be called because of an exception. Inform the user instead. */
-            msg::err("FAILURE IN str::vasprintf().");
-            debug::crash();
+            msg::err("Failure in str::vasprintf().");
+            dbg::crash();
         }
         std::string s(cstr);
         free(cstr);
@@ -404,7 +404,7 @@ namespace str
         iconv_t cd = iconv_open(to_charset.c_str(), from_charset.c_str());
         if (cd == reinterpret_cast<iconv_t>(static_cast<size_t>(-1)))
         {
-            throw exc(std::string("cannot convert ") + from_charset + " to " + to_charset, errno);
+            throw exc(std::string("Cannot convert ") + from_charset + " to " + to_charset, errno);
         }
 
         size_t inbytesleft = src.length() + 1;
@@ -422,7 +422,7 @@ namespace str
         if (!orig_outbuf)
         {
             iconv_close(cd);
-            throw exc(std::string("cannot convert string from ") + from_charset + " to " + to_charset, ENOMEM);
+            throw exc(std::string("Cannot convert string from ") + from_charset + " to " + to_charset, ENOMEM);
         }
         char *outbuf = orig_outbuf;
 
@@ -432,7 +432,7 @@ namespace str
         if (s == static_cast<size_t>(-1))
         {
             free(orig_outbuf);
-            throw exc(std::string("cannot convert string from ") + from_charset + " to " + to_charset, saved_errno);
+            throw exc(std::string("Cannot convert string from ") + from_charset + " to " + to_charset, saved_errno);
         }
 
         std::string dst;
@@ -443,7 +443,7 @@ namespace str
         catch (std::exception &e)
         {
             free(orig_outbuf);
-            throw exc(std::string("cannot convert string from ") + from_charset + " to " + to_charset, ENOMEM);
+            throw exc(std::string("Cannot convert string from ") + from_charset + " to " + to_charset, ENOMEM);
         }
         free(orig_outbuf);
         return dst;

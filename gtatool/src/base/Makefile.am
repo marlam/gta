@@ -9,7 +9,7 @@ noinst_LTLIBRARIES = libbase.la
 libbase_la_SOURCES = \
 	str.h str.cpp \
 	msg.h msg.cpp \
-	debug.h debug.cpp \
+	dbg.h dbg.cpp \
 	exc.h exc.cpp \
 	intcheck.h \
 	cio.h cio.cpp \

@@ -36,9 +36,9 @@
 #include "exc.h"
 
 #ifdef __GNUC__
-# define AFP(a, b) __attribute__ ((format (printf, a, b)))
+# define STR_AFP(a, b) __attribute__ ((format (printf, a, b)))
 #else
-# define AFP(a, b) /* empty */
+# define STR_AFP(a, b) /* empty */
 #endif
 
 namespace str
@@ -80,8 +80,8 @@ namespace str
     template<> long double to<long double>(const std::string &s);
 
     /* Create std::strings printf-like */
-    std::string vasprintf(const char *format, va_list args) AFP(1, 0);
-    std::string asprintf(const char *format, ...) AFP(1, 2);
+    std::string vasprintf(const char *format, va_list args) STR_AFP(1, 0);
+    std::string asprintf(const char *format, ...) STR_AFP(1, 2);
 
     /* Replace all instances of s with r in str */
     std::string &replace(std::string &str, const std::string &s, const std::string &r);

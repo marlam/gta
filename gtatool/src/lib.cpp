@@ -31,7 +31,7 @@
 #include "msg.h"
 #include "intcheck.h"
 #include "endianness.h"
-#include "debug.h"
+#include "dbg.h"
 
 #include "lib.h"
 
@@ -514,7 +514,7 @@ std::string to_utf8(const std::string &s)
          * be representable in UTF-8. Crash the program and let's see if this ever gets
          * reported. */
         msg::err("CANNOT CONVERT TO UTF-8: %s", e.what());
-        debug::crash();
+        dbg::crash();
     }
     return r;
 }

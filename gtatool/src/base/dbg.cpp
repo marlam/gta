@@ -37,19 +37,19 @@
 #endif
 
 #include "msg.h"
-#include "debug.h"
+#include "dbg.h"
 
 
-namespace debug
+namespace dbg
 {
+#if HAVE_SIGACTION
     static void signal_crash(int signum)
     {
-#if HAVE_SIGACTION
         msg::err("Caught signal %d (%s). Aborting.", signum,
                 (signum == SIGILL ? "SIGILL" : (signum == SIGFPE ? "SIGFPE" : "SIGSEGV")));
         crash();
-#endif
     }
+#endif
 
     static void exception_crash()
     {
@@ -81,7 +81,8 @@ namespace debug
 
     void backtrace()
     {
-#if HAVE_BACKTRACE
+#ifndef NDEBUG
+# if HAVE_BACKTRACE
         // Adapted from the example in the glibc manual
         void *array[64];
         int size;
@@ -99,7 +100,7 @@ namespace debug
             strings = backtrace_symbols(array, size);
             for (int i = 0; i < size; i++)
             {
-# if __GNUG__
+#  if __GNUG__
                 int status;
                 char *p, *q;
                 char *realname = NULL;
@@ -126,19 +127,20 @@ namespace debug
                     msg::err("    %s", strings[i]);
                 }
                 free(realname);
-# else
+#  else
                 msg::err("    %s", strings[i]);
-# endif
+#  endif
             }
             free(strings);
         }
+# endif
 #endif
     }
 
     void crash()
     {
         backtrace();
-        msg::err("Please report this bug to <%s>.", PACKAGE_BUGREPORT);
+        msg::err("Report bugs to <%s>.", PACKAGE_BUGREPORT);
         abort();
     }
 }

@@ -357,7 +357,7 @@ namespace opt
                 {
                     for (size_t i = 0; i < _allowed_values.size(); i++)
                     {
-                        if (_allowed_values[i] == v)
+                        if (_allowed_values[i] <= v && _allowed_values[i] >= v)
                         {
                             ok = true;
                             break;
@@ -513,7 +513,7 @@ namespace opt
                 {
                     for (size_t j = 0; j < vv.size(); j++)
                     {
-                        if (_allowed_values[i] == vv[j])
+                        if (_allowed_values[i] <= vv[j] && _allowed_values[i] >= vv[j])
                         {
                             ok = true;
                             break;

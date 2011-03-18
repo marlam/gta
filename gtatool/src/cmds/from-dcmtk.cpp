@@ -33,7 +33,7 @@
 #include "msg.h"
 #include "cio.h"
 #include "opt.h"
-#include "debug.h"
+#include "str.h"
 
 #include "lib.h"
 
