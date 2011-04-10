@@ -385,10 +385,10 @@ namespace str
          * of the SetConsoleOutputCP function. */
         SetConsoleOutputCP(GetACP());
 #else
-        char *bak = setlocale(LC_CTYPE, NULL);
+        std::string bak = setlocale(LC_CTYPE, NULL);
         setlocale(LC_CTYPE, "");
         char *charset = nl_langinfo(CODESET);
-        setlocale(LC_CTYPE, bak);
+        setlocale(LC_CTYPE, bak.c_str());
 #endif
         return std::string(charset);
     }
