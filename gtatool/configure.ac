@@ -108,7 +108,7 @@ AC_CHECK_FUNCS([iconv_open], [],
      fi
      LIB_ICONV="$LTLIBICONV"])
 AC_CHECK_DECLS([optreset], [#include <getopt.h>])
-AC_CHECK_FUNCS([backtrace sigaction vasprintf mmap link fseeko ftello])
+AC_CHECK_FUNCS([backtrace fseeko ftello link mmap nl_langinfo sigaction vasprintf wcwidth])
 AC_DEFINE_UNQUOTED([NDEBUG], [1], [Define to 1 to disable assertions and other debugging checks.])
 
 dnl The GTA library
