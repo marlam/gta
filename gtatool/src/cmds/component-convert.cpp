@@ -22,6 +22,7 @@
 #include "config.h"
 
 #include <sstream>
+#include <limits>
 #include <cstdio>
 #include <cctype>
 #include <cmath>
@@ -131,6 +132,7 @@ static uint64_t to_uint64(const void *val, gta::type type)
         break;
     default:
         // cannot happen
+        x = std::numeric_limits<uint64_t>::min();
         break;
     }
     return x;
@@ -229,6 +231,7 @@ static int64_t to_int64(const void *val, gta::type type)
         break;
     default:
         // cannot happen
+        x = std::numeric_limits<int64_t>::min();
         break;
     }
     return x;
@@ -325,6 +328,7 @@ static double to_float64(const void *val, gta::type type)
         break;
     default:
         // cannot happen
+        x = std::numeric_limits<double>::quiet_NaN();
         break;
     }
     return x;
