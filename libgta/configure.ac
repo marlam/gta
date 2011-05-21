@@ -71,7 +71,6 @@ AM_CONDITIONAL([VALGRIND_TESTS], [test "$valgrind_tests" = "yes"])
 dnl System
 AC_SYS_LARGEFILE
 AC_C_BIGENDIAN
-gl_INIT
 
 dnl Compression libraries
 AC_LIB_HAVE_LINKFLAGS([z], [], [#include <zlib.h>], [zlibVersion();])
