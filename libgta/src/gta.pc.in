@@ -10,7 +10,7 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: libgta
+Name: gta
 Description: Library to read and write Generic Tagged Arrays (GTAs)
 URL: @PACKAGE_URL@
 Version: @PACKAGE_VERSION@

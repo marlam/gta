@@ -124,7 +124,7 @@ AC_CONFIG_FILES([Makefile	\
 	doc/doxyfile		\
 	src/Makefile		\
 	src/gta/gta_version.h	\
-	src/libgta.pc		\
+	src/gta.pc		\
 	tests/Makefile		\
 	])
 AC_OUTPUT
