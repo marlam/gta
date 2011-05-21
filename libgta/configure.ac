@@ -31,7 +31,6 @@ AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([1.11.1 color-tests silent-rules tar-pax -Wall -Wno-portability])
 AM_SILENT_RULES([yes])
 AC_PROG_CC
-gl_EARLY
 AC_PROG_CC_C99
 AC_PROG_INSTALL
 LT_PREREQ([2.2.6])
