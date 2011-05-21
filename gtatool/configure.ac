@@ -272,7 +272,6 @@ dnl Output
 AC_CONFIG_FILES([Makefile \
     src/Makefile \
     src/base/Makefile \
-    src/cmds/Makefile \
     doc/Makefile \
     tests/Makefile \
 ])

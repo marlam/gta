@@ -50,6 +50,7 @@ typedef struct
     const char *name;
     cmd_category_t category;
     bool available;
+    const char *module_name;
     void *module_handle;
     int (*cmd)(int argc, char *argv[]);
     void (*cmd_print_help)(void);
@@ -59,16 +60,18 @@ typedef struct
     extern "C" int gtatool_ ## FNBASE (int argc, char *argv[]); \
     extern "C" void gtatool_ ## FNBASE ## _help (void);
 
-#define CMD_STATIC(NAME, CATEGORY, FNBASE, AVAILABLE) \
-    { NAME, CATEGORY, AVAILABLE, NULL, \
-        AVAILABLE ? gtatool_ ## FNBASE : NULL, AVAILABLE ? gtatool_ ## FNBASE ## _help : NULL}
+#define BUILTIN NULL
 
 #if DYNAMIC_MODULES
-#   define CMD_MODULE(NAME, CATEGORY, FNBASE, AVAILABLE) \
-        { NAME, CATEGORY, AVAILABLE, NULL, NULL, NULL }
+#   define CMD(NAME, CATEGORY, FNBASE, AVAILABLE, MODULE) \
+        { NAME, CATEGORY, AVAILABLE, MODULE, NULL, \
+            AVAILABLE && !MODULE ? gtatool_ ## FNBASE : NULL, \
+            AVAILABLE && !MODULE ? gtatool_ ## FNBASE ## _help : NULL }
 #else
-#   define CMD_MODULE(NAME, CATEGORY, FNBASE, AVAILABLE) \
-        CMD_STATIC(NAME, CATEGORY, FNBASE, AVAILABLE)
+#   define CMD(NAME, CATEGORY, FNBASE, AVAILABLE, MODULE) \
+        { NAME, CATEGORY, AVAILABLE, BUILTIN, NULL, \
+            AVAILABLE ? gtatool_ ## FNBASE : NULL, \
+            AVAILABLE ? gtatool_ ## FNBASE ## _help : NULL }
 #endif
 
 CMD_DECL(component_add)
@@ -121,53 +124,53 @@ CMD_DECL(version)
 
 static cmd_t cmds[] =
 {
-    CMD_STATIC("component-add",     component,  component_add,     true),
-    CMD_MODULE("component-compute", component,  component_compute, WITH_MUPARSER),
-    CMD_STATIC("component-convert", component,  component_convert, true),
-    CMD_STATIC("component-extract", component,  component_extract, true),
-    CMD_STATIC("component-merge",   component,  component_merge,   true),
-    CMD_STATIC("component-reorder", component,  component_reorder, true),
-    CMD_STATIC("component-set",     component,  component_set,     true),
-    CMD_STATIC("component-split",   component,  component_split,   true),
-    CMD_STATIC("compress",          array,      compress,          true),
-    CMD_STATIC("create",            array,      create,            true),
-    CMD_STATIC("dimension-add",     dimension,  dimension_add,     true),
-    CMD_STATIC("dimension-extract", dimension,  dimension_extract, true),
-    CMD_STATIC("dimension-merge",   dimension,  dimension_merge,   true),
-    CMD_STATIC("dimension-reorder", dimension,  dimension_reorder, true),
-    CMD_STATIC("dimension-reverse", dimension,  dimension_reverse, true),
-    CMD_STATIC("dimension-split",   dimension,  dimension_split,   true),
-    CMD_STATIC("extract",           array,      extract,           true),
-    CMD_STATIC("fill",              array,      fill,              true),
-    CMD_MODULE("from-dcmtk",        conversion, from_dcmtk,        WITH_DCMTK),
-    CMD_MODULE("from-exr",          conversion, from_exr,          WITH_EXR),
-    CMD_MODULE("from-gdal",         conversion, from_gdal,         WITH_GDAL),
-    CMD_MODULE("from-magick",       conversion, from_magick,       WITH_MAGICK),
-    CMD_MODULE("from-mat",          conversion, from_mat,          WITH_MAT),
-    CMD_MODULE("from-netpbm",       conversion, from_netpbm,       WITH_NETPBM),
-    CMD_MODULE("from-pfs",          conversion, from_pfs,          WITH_PFS),
-    CMD_STATIC("from-rat",          conversion, from_rat,          true),
-    CMD_STATIC("from-raw",          conversion, from_raw,          true),
-    CMD_MODULE("gui",               misc,       gui,               WITH_QT),
-    CMD_STATIC("help",              misc,       help,              true),
-    CMD_STATIC("info",              array,      info,              true),
-    CMD_STATIC("merge",             array,      merge,             true),
-    CMD_STATIC("resize",            array,      resize,            true),
-    CMD_STATIC("set",               array,      set,               true),
-    CMD_STATIC("stream-extract",    stream,     stream_extract,    true),
-    CMD_STATIC("stream-merge",      stream,     stream_merge,      true),
-    CMD_STATIC("stream-split",      stream,     stream_split,      true),
-    CMD_STATIC("tag",               array,      tag,               true),
-    CMD_MODULE("to-exr",            conversion, to_exr,            WITH_EXR),
-    CMD_MODULE("to-gdal",           conversion, to_gdal,           WITH_GDAL),
-    CMD_MODULE("to-magick",         conversion, to_magick,         WITH_MAGICK),
-    CMD_MODULE("to-mat",            conversion, to_mat,            WITH_MAT),
-    CMD_MODULE("to-netpbm",         conversion, to_netpbm,         WITH_NETPBM),
-    CMD_MODULE("to-pfs",            conversion, to_pfs,            WITH_PFS),
-    CMD_STATIC("to-rat",            conversion, to_rat,            true),
-    CMD_STATIC("to-raw",            conversion, to_raw,            true),
-    CMD_STATIC("uncompress",        array,      uncompress,        true),
-    CMD_STATIC("version",           misc,       version,           true),
+    CMD("component-add",     component,  component_add,     true,          BUILTIN),
+    CMD("component-compute", component,  component_compute, WITH_MUPARSER, "component-compute"),
+    CMD("component-convert", component,  component_convert, true,          BUILTIN),
+    CMD("component-extract", component,  component_extract, true,          BUILTIN),
+    CMD("component-merge",   component,  component_merge,   true,          BUILTIN),
+    CMD("component-reorder", component,  component_reorder, true,          BUILTIN),
+    CMD("component-set",     component,  component_set,     true,          BUILTIN),
+    CMD("component-split",   component,  component_split,   true,          BUILTIN),
+    CMD("compress",          array,      compress,          true,          BUILTIN),
+    CMD("create",            array,      create,            true,          BUILTIN),
+    CMD("dimension-add",     dimension,  dimension_add,     true,          BUILTIN),
+    CMD("dimension-extract", dimension,  dimension_extract, true,          BUILTIN),
+    CMD("dimension-merge",   dimension,  dimension_merge,   true,          BUILTIN),
+    CMD("dimension-reorder", dimension,  dimension_reorder, true,          BUILTIN),
+    CMD("dimension-reverse", dimension,  dimension_reverse, true,          BUILTIN),
+    CMD("dimension-split",   dimension,  dimension_split,   true,          BUILTIN),
+    CMD("extract",           array,      extract,           true,          BUILTIN),
+    CMD("fill",              array,      fill,              true,          BUILTIN),
+    CMD("from-dcmtk",        conversion, from_dcmtk,        WITH_DCMTK,    "format-dcmtk"),
+    CMD("from-exr",          conversion, from_exr,          WITH_EXR,      "format-exr"),
+    CMD("from-gdal",         conversion, from_gdal,         WITH_GDAL,     "format-gdal"),
+    CMD("from-magick",       conversion, from_magick,       WITH_MAGICK,   "format-magick"),
+    CMD("from-mat",          conversion, from_mat,          WITH_MAT,      "format-mat"),
+    CMD("from-netpbm",       conversion, from_netpbm,       WITH_NETPBM,   "format-netpbm"),
+    CMD("from-pfs",          conversion, from_pfs,          WITH_PFS,      "format-pfs"),
+    CMD("from-rat",          conversion, from_rat,          true,          BUILTIN),
+    CMD("from-raw",          conversion, from_raw,          true,          BUILTIN),
+    CMD("gui",               misc,       gui,               WITH_QT,       "gui"),
+    CMD("help",              misc,       help,              true,          BUILTIN),
+    CMD("info",              array,      info,              true,          BUILTIN),
+    CMD("merge",             array,      merge,             true,          BUILTIN),
+    CMD("resize",            array,      resize,            true,          BUILTIN),
+    CMD("set",               array,      set,               true,          BUILTIN),
+    CMD("stream-extract",    stream,     stream_extract,    true,          BUILTIN),
+    CMD("stream-merge",      stream,     stream_merge,      true,          BUILTIN),
+    CMD("stream-split",      stream,     stream_split,      true,          BUILTIN),
+    CMD("tag",               array,      tag,               true,          BUILTIN),
+    CMD("to-exr",            conversion, to_exr,            WITH_EXR,      "format-exr"),
+    CMD("to-gdal",           conversion, to_gdal,           WITH_GDAL,     "format-gdal"),
+    CMD("to-magick",         conversion, to_magick,         WITH_MAGICK,   "format-magick"),
+    CMD("to-mat",            conversion, to_mat,            WITH_MAT,      "format-mat"),
+    CMD("to-netpbm",         conversion, to_netpbm,         WITH_NETPBM,   "format-netpbm"),
+    CMD("to-pfs",            conversion, to_pfs,            WITH_PFS,      "format-pfs"),
+    CMD("to-rat",            conversion, to_rat,            true,          BUILTIN),
+    CMD("to-raw",            conversion, to_raw,            true,          BUILTIN),
+    CMD("uncompress",        array,      uncompress,        true,          BUILTIN),
+    CMD("version",           misc,       version,           true,          BUILTIN),
 };
 
 
@@ -206,7 +209,7 @@ static int cmd_strcmp(const void *a, const void *b)
 int cmd_find(const char *cmd)
 {
     cmd_t *p;
-    cmd_t key = { cmd, misc, false, NULL, NULL, NULL };
+    cmd_t key = { cmd, misc, false, NULL, NULL, NULL, NULL };
 
     p = static_cast<cmd_t *>(bsearch(
                 static_cast<void *>(&key),
@@ -224,7 +227,7 @@ void cmd_open(int cmd_index)
     if (cmds[cmd_index].available && !cmds[cmd_index].cmd)
     {
         std::string cmd_name = cmds[cmd_index].name;
-        std::string module_name = std::string(PKGLIBDIR) + "/" + cmd_name + ".so";
+        std::string module_name = std::string(PKGLIBDIR) + "/" + cmds[cmd_index].module_name + ".so";
         std::string fn_name = std::string("gtatool_") + str::replace(cmd_name, "-", "_");
         std::string help_fn_name = fn_name + "_help";
         // We used RTLD_LAZY here, but that broke the from-dcmtk command whith dmctk 3.6.0.
