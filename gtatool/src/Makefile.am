@@ -8,10 +8,11 @@
 SUBDIRS = base cmds
 bin_PROGRAMS = gta
 gta_SOURCES = main.cpp cmds.h cmds.cpp lib.h lib.cpp
-AM_CPPFLAGS = -I$(top_srcdir)/src/base -DPKGLIBDIR=\"$(pkglibdir)\"
+AM_CPPFLAGS = -I$(top_srcdir)/src/base -DPKGLIBDIR=\"$(pkglibdir)\" \
+	$(libgta_CFLAGS)
 gta_LDADD = $(top_builddir)/src/cmds/libbuiltin.la \
 	$(top_builddir)/src/base/libbase.la \
-	$(LTLIBGTA) $(LIB_DLOPEN) $(LIB_ICONV)
+	$(libgta_LIBS) $(LIB_DLOPEN) $(LIBICONV)
 gta_LDFLAGS = -export-dynamic
 if W32
 gta_SOURCES += appicon.ico

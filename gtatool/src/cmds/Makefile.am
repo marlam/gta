@@ -5,10 +5,18 @@
 # permitted in any medium without royalty provided the copyright notice and this
 # notice are preserved. This file is offered as-is, without any warranty.
 
-AM_CPPFLAGS = -I$(top_srcdir)/src/base -I$(top_srcdir)/src
 BUILT_SOURCES =
 CLEANFILES =
 EXTRA_DIST =
+AM_CPPFLAGS = -I$(top_srcdir)/src/base -I$(top_srcdir)/src \
+	$(libgta_CFLAGS) \
+	$(libmuparser_CFLAGS) \
+	$(libmagick_CFLAGS) \
+	$(libpfs_CFLAGS) \
+	$(libopenexr_CFLAGS) \
+	$(libgdal_CFLAGS) \
+	$(libmatio_CFLAGS) \
+	$(libqtgui_CFLAGS)
 
 #
 # Builtin commands
@@ -72,10 +80,10 @@ if WITH_MUPARSER
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += component-compute.la
 component_compute_la_SOURCES = component-compute.cpp
-component_compute_la_LIBADD = $(LTLIBMUPARSER)
+component_compute_la_LIBADD = $(libmuparser_LIBS)
 else
 libbuiltin_la_SOURCES += component-compute.cpp
-libbuiltin_la_LIBADD += $(LTLIBMUPARSER)
+libbuiltin_la_LIBADD += $(libmuparser_LIBS)
 endif
 endif
 
@@ -97,13 +105,13 @@ if WITH_MAGICK
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += from-magick.la
 from_magick_la_SOURCES = from-magick.cpp
-from_magick_la_LIBADD = $(LTLIBMAGICK__)
+from_magick_la_LIBADD = $(libmagick_LIBS)
 pkglib_LTLIBRARIES += to-magick.la
 to_magick_la_SOURCES = to-magick.cpp
-to_magick_la_LIBADD = $(LTLIBMAGICK__)
+to_magick_la_LIBADD = $(libmagick_LIBS)
 else
 libbuiltin_la_SOURCES += from-magick.cpp to-magick.cpp
-libbuiltin_la_LIBADD += $(LTLIBMAGICK__)
+libbuiltin_la_LIBADD += $(libmagick_LIBS)
 endif
 endif
 
@@ -111,13 +119,13 @@ if WITH_PFS
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += from-pfs.la
 from_pfs_la_SOURCES = from-pfs.cpp
-from_pfs_la_LIBADD = $(LTLIBPFS_1_2)
+from_pfs_la_LIBADD = $(libpfs_LIBS)
 pkglib_LTLIBRARIES += to-pfs.la
 to_pfs_la_SOURCES = to-pfs.cpp
-to_pfs_la_LIBADD = $(LTLIBPFS_1_2)
+to_pfs_la_LIBADD = $(libpfs_LIBS)
 else
 libbuiltin_la_SOURCES += from-pfs.cpp to-pfs.cpp
-libbuiltin_la_LIBADD += $(LTLIBPFS_1_2)
+libbuiltin_la_LIBADD += $(libpfs_LIBS)
 endif
 endif
 
@@ -125,13 +133,13 @@ if WITH_EXR
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += from-exr.la
 from_exr_la_SOURCES = from-exr.cpp
-from_exr_la_LIBADD = $(LTLIBILMIMF)
+from_exr_la_LIBADD = $(libopenexr_LIBS)
 pkglib_LTLIBRARIES += to-exr.la
 to_exr_la_SOURCES = to-exr.cpp
-to_exr_la_LIBADD = $(LTLIBILMIMF)
+to_exr_la_LIBADD = $(libopenexr_LIBS)
 else
 libbuiltin_la_SOURCES += from-exr.cpp to-exr.cpp
-libbuiltin_la_LIBADD += $(LTLIBILMIMF)
+libbuiltin_la_LIBADD += $(libopenexr_LIBS)
 endif
 endif
 
@@ -139,13 +147,13 @@ if WITH_GDAL
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += from-gdal.la
 from_gdal_la_SOURCES = from-gdal.cpp
-from_gdal_la_LIBADD = $(LTLIBGDAL)
+from_gdal_la_LIBADD = $(libgdal_LIBS)
 pkglib_LTLIBRARIES += to-gdal.la
 to_gdal_la_SOURCES = to-gdal.cpp
-to_gdal_la_LIBADD = $(LTLIBGDAL)
+to_gdal_la_LIBADD = $(libgdal_LIBS)
 else
 libbuiltin_la_SOURCES += from-gdal.cpp to-gdal.cpp
-libbuiltin_la_LIBADD += $(LTLIBGDAL)
+libbuiltin_la_LIBADD += $(libgdal_LIBS)
 endif
 endif
 
@@ -164,13 +172,13 @@ if WITH_MAT
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += from-mat.la
 from_mat_la_SOURCES = from-mat.cpp
-from_mat_la_LIBADD = $(LTLIBMATIO)
+from_mat_la_LIBADD = $(libmatio_LIBS)
 pkglib_LTLIBRARIES += to-mat.la
 to_mat_la_SOURCES = to-mat.cpp
-to_mat_la_LIBADD = $(LTLIBMATIO)
+to_mat_la_LIBADD = $(libmatio_LIBS)
 else
 libbuiltin_la_SOURCES += from-mat.cpp to-mat.cpp
-libbuiltin_la_LIBADD += $(LTLIBMATIO)
+libbuiltin_la_LIBADD += $(libmatio_LIBS)
 endif
 endif
 
@@ -193,10 +201,10 @@ if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += gui.la
 gui_la_SOURCES = gui.h gui.cpp
 nodist_gui_la_SOURCES = $(GUI_BUILT_SOURCES)
-gui_la_LIBADD = $(LTLIBQTGUI)
+gui_la_LIBADD = $(libqtgui_LIBS)
 else
 libbuiltin_la_SOURCES += gui.h gui.cpp
 nodist_libbuiltin_la_SOURCES += $(GUI_BUILT_SOURCES)
-libbuiltin_la_LIBADD += $(LTLIBQTGUI)
+libbuiltin_la_LIBADD += $(libqtgui_LIBS)
 endif
 endif
