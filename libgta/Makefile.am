@@ -7,7 +7,6 @@
 
 SUBDIRS = doc src tests
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = m4/gnulib-cache.m4
 
 # Create the ChangeLog file from the git log
 dist-hook:
@@ -19,4 +18,4 @@ dist-hook:
 # (Taken from xz-4.999.9beta/Makefile.am)
 mydist:
 	umask 022; \
-	TAR_OPTIONS='--owner=0 --group=0 --numeric-owner --mode=u+rw,go+r-w' $(MAKE) dist-bzip2
+	TAR_OPTIONS='--owner=0 --group=0 --numeric-owner --mode=u+rw,go+r-w' $(MAKE) dist-xz

@@ -7,7 +7,7 @@
 
 SUBDIRS = src doc tests
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = m4/gnulib-cache.m4
+EXTRA_DIST =
 
 # Create the ChangeLog file from the git log
 dist-hook:
@@ -19,16 +19,17 @@ dist-hook:
 # (Taken from xz-4.999.9beta/Makefile.am)
 mydist:
 	umask 022; \
-	TAR_OPTIONS='--owner=0 --group=0 --numeric-owner --mode=u+rw,go+r-w' $(MAKE) dist-bzip2
+	TAR_OPTIONS='--owner=0 --group=0 --numeric-owner --mode=u+rw,go+r-w' $(MAKE) dist-xz
 
 # Make a W32 installer using NSIS
-EXTRA_DIST += build-aux/AddToPath.nsh build-aux/gtatool.nsi
+EXTRA_DIST += pkg/w32/AddToPath.nsh pkg/w32/gtatool.nsi pkg/w32/notes.txt
 if HAVE_MAKENSIS
 package-w32:
 	TMPDIR="`mktemp -d`" && \
 	$(MAKE) -C src install-strip prefix="$$TMPDIR" bindir="$$TMPDIR" libdir="$$TMPDIR" && \
-	cp $(top_srcdir)/build-aux/gtatool.nsi "$$TMPDIR" && \
-	cp $(top_srcdir)/build-aux/AddToPath.nsh "$$TMPDIR" && \
+	cp $(top_srcdir)/pkg/w32/AddToPath.nsh "$$TMPDIR" && \
+	cp $(top_srcdir)/pkg/w32/gtatool.nsi "$$TMPDIR" && \
+	cp $(top_srcdir)/pkg/w32/notes.txt "$$TMPDIR" && \
 	cp $(top_srcdir)/COPYING "$$TMPDIR" && \
 	cp $(top_srcdir)/src/appicon.ico "$$TMPDIR" && \
 	$(MAKENSIS) -DPACKAGE_VERSION="$(PACKAGE_VERSION)" "$$TMPDIR/gtatool.nsi" && \

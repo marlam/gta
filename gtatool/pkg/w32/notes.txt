@@ -1,0 +1,5 @@
+This package was produced on a GNU/Linux system using the Mingw-cross-env
+cross-compiler environment: http://www.nongnu.org/mingw-cross-env/
+
+The source code for GTATool is available here:
+http://gta.nongnu.org/download.html
