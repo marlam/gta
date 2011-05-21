@@ -107,7 +107,7 @@ if test -z "$PKG_CONFIG"; then
 fi
 
 dnl The GTA library
-PKG_CHECK_MODULES([libgta], [gta >= 0.9.3])
+PKG_CHECK_MODULES([libgta], [gta >= 0.9.4])
 
 dnl muParser
 AC_ARG_WITH([muparser],
