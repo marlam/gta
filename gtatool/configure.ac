@@ -284,13 +284,13 @@ if test "$dcmtk" = "yes"; then
     AC_LIB_FROMPACKAGE([dcmimgle], [dcmtk])
     case "${target}" in
     *-*-mingw32*)
-        AC_LIB_HAVE_LINKFLAGS([dcmimgle], [dcmdata dcmjpeg ijg8 ijg12 ijg16 ofstd z ws2_32],
+        AC_LIB_HAVE_LINKFLAGS([dcmimgle], [dcmdata dcmjpeg ijg8 ijg12 ijg16 oflog ofstd z ws2_32],
         [#define HAVE_CONFIG_H
          #include <dcmtk/dcmimgle/dcmimage.h>],
         [DicomImage img(NULL);])
         ;;
     *)
-        AC_LIB_HAVE_LINKFLAGS([dcmimgle], [dcmdata dcmjpeg ijg8 ijg12 ijg16 ofstd pthread z],
+        AC_LIB_HAVE_LINKFLAGS([dcmimgle], [dcmdata dcmjpeg ijg8 ijg12 ijg16 oflog ofstd pthread z],
         [#define HAVE_CONFIG_H
          #include <dcmtk/dcmimgle/dcmimage.h>],
         [DicomImage img(NULL);])

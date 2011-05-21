@@ -227,7 +227,8 @@ void cmd_open(int cmd_index)
         std::string module_name = std::string(PKGLIBDIR) + "/" + cmd_name + ".so";
         std::string fn_name = std::string("gtatool_") + str::replace(cmd_name, "-", "_");
         std::string help_fn_name = fn_name + "_help";
-        cmds[cmd_index].module_handle = dlopen(module_name.c_str(), RTLD_LAZY);
+        // We used RTLD_LAZY here, but that broke the from-dcmtk command whith dmctk 3.6.0.
+        cmds[cmd_index].module_handle = dlopen(module_name.c_str(), RTLD_NOW);
         if (!cmds[cmd_index].module_handle)
         {
             msg::err("%s", dlerror());
