@@ -65,11 +65,7 @@ libbuiltin_la_SOURCES = \
 	array/uncompress.cpp \
 	stream/stream-extract.cpp \
 	stream/stream-merge.cpp \
-	stream/stream-split.cpp \
-	format-raw/from-raw.cpp \
-	format-raw/to-raw.cpp \
-        format-rat/from-rat.cpp \
-        format-rat/to-rat.cpp
+	stream/stream-split.cpp
 nodist_libbuiltin_la_SOURCES =
 libbuiltin_la_LIBADD =
 
@@ -92,6 +88,20 @@ install-exec-hook:
 	rmdir $(libdir) || true
 endif
 
+if DYNAMIC_MODULES
+pkglib_LTLIBRARIES += conv-raw.la
+conv_raw_la_SOURCES = conv-raw/from-raw.cpp conv-raw/to-raw.cpp
+else
+libbuiltin_la_SOURCES += conv-raw/from-raw.cpp conv-raw/to-raw.cpp
+endif
+
+if DYNAMIC_MODULES
+pkglib_LTLIBRARIES += conv-rat.la
+conv_rat_la_SOURCES = conv-rat/from-rat.cpp conv-rat/to-rat.cpp
+else
+libbuiltin_la_SOURCES += conv-rat/from-rat.cpp conv-rat/to-rat.cpp
+endif
+
 if WITH_MUPARSER
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += component-compute.la
@@ -105,77 +115,77 @@ endif
 
 if WITH_NETPBM
 if DYNAMIC_MODULES
-pkglib_LTLIBRARIES += format-netpbm.la
-format_netpbm_la_SOURCES = format-netpbm/from-netpbm.cpp format-netpbm/to-netpbm.cpp
-format_netpbm_la_LIBADD = $(LTLIBNETPBM)
+pkglib_LTLIBRARIES += conv-netpbm.la
+conv_netpbm_la_SOURCES = conv-netpbm/from-netpbm.cpp conv-netpbm/to-netpbm.cpp
+conv_netpbm_la_LIBADD = $(LTLIBNETPBM)
 else
-libbuiltin_la_SOURCES += format-netpbm/from-netpbm.cpp format-netpbm/to-netpbm.cpp
+libbuiltin_la_SOURCES += conv-netpbm/from-netpbm.cpp conv-netpbm/to-netpbm.cpp
 libbuiltin_la_LIBADD += $(LTLIBNETPBM)
 endif
 endif
 
 if WITH_MAGICK
 if DYNAMIC_MODULES
-pkglib_LTLIBRARIES += format-magick.la
-format_magick_la_SOURCES = format-magick/from-magick.cpp format-magick/to-magick.cpp
-format_magick_la_LIBADD = $(libmagick_LIBS)
+pkglib_LTLIBRARIES += conv-magick.la
+conv_magick_la_SOURCES = conv-magick/from-magick.cpp conv-magick/to-magick.cpp
+conv_magick_la_LIBADD = $(libmagick_LIBS)
 else
-libbuiltin_la_SOURCES += format-magick/from-magick.cpp format-magick/to-magick.cpp
+libbuiltin_la_SOURCES += conv-magick/from-magick.cpp conv-magick/to-magick.cpp
 libbuiltin_la_LIBADD += $(libmagick_LIBS)
 endif
 endif
 
 if WITH_PFS
 if DYNAMIC_MODULES
-pkglib_LTLIBRARIES += format-pfs.la
-format_pfs_la_SOURCES = format-pfs/from-pfs.cpp format-pfs/to-pfs.cpp
-format_pfs_la_LIBADD = $(libpfs_LIBS)
+pkglib_LTLIBRARIES += conv-pfs.la
+conv_pfs_la_SOURCES = conv-pfs/from-pfs.cpp conv-pfs/to-pfs.cpp
+conv_pfs_la_LIBADD = $(libpfs_LIBS)
 else
-libbuiltin_la_SOURCES += format-pfs/from-pfs.cpp format-pfs/to-pfs.cpp
+libbuiltin_la_SOURCES += conv-pfs/from-pfs.cpp conv-pfs/to-pfs.cpp
 libbuiltin_la_LIBADD += $(libpfs_LIBS)
 endif
 endif
 
 if WITH_EXR
 if DYNAMIC_MODULES
-pkglib_LTLIBRARIES += format-exr.la
-format_exr_la_SOURCES = format-exr/from-exr.cpp format-exr/to-exr.cpp
-format_exr_la_LIBADD = $(libopenexr_LIBS)
+pkglib_LTLIBRARIES += conv-exr.la
+conv_exr_la_SOURCES = conv-exr/from-exr.cpp conv-exr/to-exr.cpp
+conv_exr_la_LIBADD = $(libopenexr_LIBS)
 else
-libbuiltin_la_SOURCES += format-exr/from-exr.cpp format-exr/to-exr.cpp
+libbuiltin_la_SOURCES += conv-exr/from-exr.cpp conv-exr/to-exr.cpp
 libbuiltin_la_LIBADD += $(libopenexr_LIBS)
 endif
 endif
 
 if WITH_GDAL
 if DYNAMIC_MODULES
-pkglib_LTLIBRARIES += format-gdal.la
-format_gdal_la_SOURCES = format-gdal/from-gdal.cpp format-gdal/to-gdal.cpp
-format_gdal_la_LIBADD = $(libgdal_LIBS)
+pkglib_LTLIBRARIES += conv-gdal.la
+conv_gdal_la_SOURCES = conv-gdal/from-gdal.cpp conv-gdal/to-gdal.cpp
+conv_gdal_la_LIBADD = $(libgdal_LIBS)
 else
-libbuiltin_la_SOURCES += format-gdal/from-gdal.cpp format-gdal/to-gdal.cpp
+libbuiltin_la_SOURCES += conv-gdal/from-gdal.cpp conv-gdal/to-gdal.cpp
 libbuiltin_la_LIBADD += $(libgdal_LIBS)
 endif
 endif
 
 if WITH_DCMTK
 if DYNAMIC_MODULES
-pkglib_LTLIBRARIES += format-dcmtk.la
-format_dcmtk_la_SOURCES = format-dcmtk/from-dcmtk.cpp
-format_dcmtk_la_LIBADD = $(LTLIBDCMIMGLE)
+pkglib_LTLIBRARIES += conv-dcmtk.la
+conv_dcmtk_la_SOURCES = conv-dcmtk/from-dcmtk.cpp
+conv_dcmtk_la_LIBADD = $(LTLIBDCMIMGLE)
 else
-libbuiltin_la_SOURCES += format-dcmtk/from-dcmtk.cpp
+libbuiltin_la_SOURCES += conv-dcmtk/from-dcmtk.cpp
 libbuiltin_la_LIBADD += $(LTLIBDCMIMGLE)
 endif
 endif
 
 if WITH_MAT
 if DYNAMIC_MODULES
-pkglib_LTLIBRARIES += format-mat.la
-format_mat_la_SOURCES = format-mat/from-mat.cpp format-mat/to-mat.cpp
-format_mat_la_LIBADD = $(libmatio_LIBS)
+pkglib_LTLIBRARIES += conv-mat.la
+conv_mat_la_SOURCES = conv-mat/from-mat.cpp conv-mat/to-mat.cpp
+conv_mat_la_LIBADD = $(libmatio_LIBS)
 else
-libbuiltin_la_SOURCES += format-mat/from-mat.cpp format-mat/to-mat.cpp
+libbuiltin_la_SOURCES += conv-mat/from-mat.cpp conv-mat/to-mat.cpp
 libbuiltin_la_LIBADD += $(libmatio_LIBS)
 endif
 endif
