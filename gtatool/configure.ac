@@ -94,11 +94,24 @@ AC_ARG_ENABLE([dynamic-modules],
 AC_DEFINE_UNQUOTED([DYNAMIC_MODULES], [`if test "$dynamic_modules" = "yes"; then echo "1"; else echo "0"; fi`], [Use dynamic modules?])
 AM_CONDITIONAL([DYNAMIC_MODULES], [test "$dynamic_modules" = "yes"])
 
+dnl Configure switches
+AC_ARG_ENABLE([debug],
+    [AS_HELP_STRING([--enable-debug], [Enable debugging checks. Disabled by default.])],
+    [if test "$enableval" = "yes"; then ndebug=0; else ndebug=1; fi], [ndebug=1])
+if test "$ndebug" = "1"; then
+    AC_DEFINE_UNQUOTED([NDEBUG], [1], [Define to 1 to disable assertions and other debugging checks.])
+fi
+
 dnl Feature checks needed by the base module
 AM_ICONV([])
 AC_CHECK_DECLS([optreset], [#include <getopt.h>])
+AC_SEARCH_LIBS([pthread_create], [pthread])
 AC_CHECK_FUNCS([backtrace fseeko ftello link mmap nl_langinfo sigaction vasprintf wcwidth])
-AC_DEFINE_UNQUOTED([NDEBUG], [1], [Define to 1 to disable assertions and other debugging checks.])
+CPPFLAGS_bak="$CPPFLAGS"
+LDFLAGS_bak="$LDFLAGS"
+CPPFLAGS="-pthread $CPPFLAGS"
+LDFLAGS="-pthread $LDFLAGS"
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], [], [CPPFLAGS="$CPPFLAGS_bak"; LDFLAGS="$LDFLAGS_bak"])
 
 dnl pkg-config
 PKG_PROG_PKG_CONFIG([])
@@ -109,7 +122,7 @@ fi
 dnl The GTA library
 PKG_CHECK_MODULES([libgta], [gta >= 0.9.4])
 
-dnl muParser
+dnl component-compute: muParser
 AC_ARG_WITH([muparser],
     [AS_HELP_STRING([--with-muparser], [Enable the component-compute command. Enabled by default if libmuparser is available.])],
     [if test "$withval" = "yes"; then muparser="yes"; else muparser="no "; fi], [muparser="yes"])
@@ -123,89 +136,7 @@ fi
 AC_DEFINE_UNQUOTED([WITH_MUPARSER], [`if test "$muparser" = "yes"; then echo "1"; else echo "0"; fi`], [Use muparser?])
 AM_CONDITIONAL([WITH_MUPARSER], [test "$muparser" = "yes"])
 
-dnl NetPBM
-AC_ARG_WITH([netpbm],
-    [AS_HELP_STRING([--with-netpbm], [Enable NetPBM import/export. Enabled by default if libnetpbm is available.])],
-    [if test "$withval" = "yes"; then netpbm="yes"; else netpbm="no "; fi], [netpbm="yes"])
-if test "$netpbm" = "yes"; then
-    AC_LANG([C])
-    AC_LIB_FROMPACKAGE([netpbm], [netpbm])
-    AC_LIB_HAVE_LINKFLAGS([netpbm], [], [#include <pam.h>], [pm_init(0, 0);])
-    AC_LANG([C++])
-    if test "$HAVE_LIBNETPBM" != "yes"; then
-        netpbm="no "
-        AC_MSG_WARN([NetPBM library not found.])
-        AC_MSG_WARN([Disabled the from-netpbm and to-netpbm commands.])
-    fi
-fi
-AC_DEFINE_UNQUOTED([WITH_NETPBM], [`if test "$netpbm" = "yes"; then echo "1"; else echo "0"; fi`], [Use netpbm?])
-AM_CONDITIONAL([WITH_NETPBM], [test "$netpbm" = "yes"])
-
-dnl ImageMagick
-AC_ARG_WITH([magick],
-    [AS_HELP_STRING([--with-magick], [Enable ImageMagick import/export. Enabled by default if libMagick++ is available.])],
-    [if test "$withval" = "yes"; then magick="yes"; else magick="no "; fi], [magick="yes"])
-if test "$magick" = "yes"; then
-    PKG_CHECK_MODULES([libmagick], [ImageMagick++ >= 0.0], [],
-        [magick="no "
-        AC_MSG_WARN([ImageMagick++ library not found:])
-        AC_MSG_WARN([$libmagick_PKG_ERRORS])
-        AC_MSG_WARN([Disabled the from-magick and to-magick commands.])])
-fi
-AC_DEFINE_UNQUOTED([WITH_MAGICK], [`if test "$magick" = "yes"; then echo "1"; else echo "0"; fi`], [Use magick?])
-AM_CONDITIONAL([WITH_MAGICK], [test "$magick" = "yes"])
-
-dnl PFS
-AC_ARG_WITH([pfs],
-    [AS_HELP_STRING([--with-pfs], [Enable PFS import/export. Enabled by default if libpfs-1.2 is available.])],
-    [if test "$withval" = "yes"; then pfs="yes"; else pfs="no "; fi], [pfs="yes"])
-if test "$pfs" = "yes"; then
-    PKG_CHECK_MODULES([libpfs], [pfs >= 0.0], [],
-        [pfs="no "
-        AC_MSG_WARN([PFS library not found:])
-        AC_MSG_WARN([$libpfs_PKG_ERRORS])
-        AC_MSG_WARN([Disabled the from-pfs and to-pfs commands.])])
-fi
-AC_DEFINE_UNQUOTED([WITH_PFS], [`if test "$pfs" = "yes"; then echo "1"; else echo "0"; fi`], [Use pfs?])
-AM_CONDITIONAL([WITH_PFS], [test "$pfs" = "yes"])
-
-dnl OpenEXR
-AC_ARG_WITH([exr],
-    [AS_HELP_STRING([--with-exr], [Enable OpenEXR import/export. Enabled by default if libIlmImf is available.])],
-    [if test "$withval" = "yes"; then exr="yes"; else exr="no "; fi], [exr="yes"])
-if test "$exr" = "yes"; then
-    PKG_CHECK_MODULES([libopenexr], [OpenEXR >= 0.0], [],
-        [exr="no "
-        AC_MSG_WARN([OpenEXR library not found:])
-        AC_MSG_WARN([$libopenexr_PKG_ERRORS])
-        AC_MSG_WARN([Disabled the from-exr and to-exr commands.])])
-fi
-AC_DEFINE_UNQUOTED([WITH_EXR], [`if test "$exr" = "yes"; then echo "1"; else echo "0"; fi`], [Use exr?])
-AM_CONDITIONAL([WITH_EXR], [test "$exr" = "yes"])
-
-dnl GDAL
-AC_ARG_WITH([gdal],
-    [AS_HELP_STRING([--with-gdal], [Enable GDAL import/export. Enabled by default if libgdal is available.])],
-    [if test "$withval" = "yes"; then gdal="yes"; else gdal="no "; fi], [gdal="yes"])
-if test "$gdal" = "yes"; then
-    GDALCONFIG=""
-    AC_ARG_VAR([GDALCONFIG], [gdal-config command])
-    AC_CHECK_TOOLS([GDALCONFIG], [gdal-config], [:])
-    if test "$GDALCONFIG" != ":"; then
-        libgdal_CFLAGS="`$GDALCONFIG --cflags`"
-        libgdal_LIBS="`$GDALCONFIG --libs`"
-        AC_SUBST([libgdal_CFLAGS])
-        AC_SUBST([libgdal_LIBS])
-    else
-        gdal="no "
-        AC_MSG_WARN([GDAL library not found.])
-        AC_MSG_WARN([Disabled the from-gdal and to-gdal commands.])
-    fi
-fi
-AC_DEFINE_UNQUOTED([WITH_GDAL], [`if test "$gdal" = "yes"; then echo "1"; else echo "0"; fi`], [Use gdal?])
-AM_CONDITIONAL([WITH_GDAL], [test "$gdal" = "yes"])
-
-dnl DCMTK
+dnl conv-dcmtk: DCMTK
 AC_ARG_WITH([dcmtk],
     [AS_HELP_STRING([--with-dcmtk], [Enable DCMTK import. Enabled by default if libdcmimgle is available.])],
     [if test "$withval" = "yes"; then dcmtk="yes"; else dcmtk="no "; fi], [dcmtk="yes"])
@@ -234,7 +165,72 @@ fi
 AC_DEFINE_UNQUOTED([WITH_DCMTK], [`if test "$dcmtk" = "yes"; then echo "1"; else echo "0"; fi`], [Use dcmtk?])
 AM_CONDITIONAL([WITH_DCMTK], [test "$dcmtk" = "yes"])
 
-dnl MATIO
+dnl conv-exr: OpenEXR
+AC_ARG_WITH([exr],
+    [AS_HELP_STRING([--with-exr], [Enable OpenEXR import/export. Enabled by default if libIlmImf is available.])],
+    [if test "$withval" = "yes"; then exr="yes"; else exr="no "; fi], [exr="yes"])
+if test "$exr" = "yes"; then
+    PKG_CHECK_MODULES([libopenexr], [OpenEXR >= 0.0], [],
+        [exr="no "
+        AC_MSG_WARN([OpenEXR library not found:])
+        AC_MSG_WARN([$libopenexr_PKG_ERRORS])
+        AC_MSG_WARN([Disabled the from-exr and to-exr commands.])])
+fi
+AC_DEFINE_UNQUOTED([WITH_EXR], [`if test "$exr" = "yes"; then echo "1"; else echo "0"; fi`], [Use exr?])
+AM_CONDITIONAL([WITH_EXR], [test "$exr" = "yes"])
+
+dnl conv-ffmpeg: FFmpeg
+AC_ARG_WITH([ffmpeg],
+    [AS_HELP_STRING([--with-ffmpeg], [Enable FFmpeg import/export. Enabled by default if libavcodec is available.])],
+    [if test "$withval" = "yes"; then ffmpeg="yes"; else ffmpeg="no "; fi], [ffmpeg="yes"])
+if test "$ffmpeg" = "yes"; then
+    AC_CHECK_FUNCS([sysconf])
+    PKG_CHECK_MODULES([libffmpeg], [libavformat >= 52.108.0 libavcodec libavdevice libavutil libswscale], [],
+        [ffmpeg="no "
+        AC_MSG_WARN([FFmpeg library not found:])
+        AC_MSG_WARN([$libffmpeg_PKG_ERRORS])
+        AC_MSG_WARN([Disabled the from-ffmpeg command.])])
+fi
+AC_DEFINE_UNQUOTED([WITH_FFMPEG], [`if test "$ffmpeg" = "yes"; then echo "1"; else echo "0"; fi`], [Use FFmpeg?])
+AM_CONDITIONAL([WITH_FFMPEG], [test "$ffmpeg" = "yes"])
+
+dnl conv-gdal: GDAL
+AC_ARG_WITH([gdal],
+    [AS_HELP_STRING([--with-gdal], [Enable GDAL import/export. Enabled by default if libgdal is available.])],
+    [if test "$withval" = "yes"; then gdal="yes"; else gdal="no "; fi], [gdal="yes"])
+if test "$gdal" = "yes"; then
+    GDALCONFIG=""
+    AC_ARG_VAR([GDALCONFIG], [gdal-config command])
+    AC_CHECK_TOOLS([GDALCONFIG], [gdal-config], [:])
+    if test "$GDALCONFIG" != ":"; then
+        libgdal_CFLAGS="`$GDALCONFIG --cflags`"
+        libgdal_LIBS="`$GDALCONFIG --libs`"
+        AC_SUBST([libgdal_CFLAGS])
+        AC_SUBST([libgdal_LIBS])
+    else
+        gdal="no "
+        AC_MSG_WARN([GDAL library not found.])
+        AC_MSG_WARN([Disabled the from-gdal and to-gdal commands.])
+    fi
+fi
+AC_DEFINE_UNQUOTED([WITH_GDAL], [`if test "$gdal" = "yes"; then echo "1"; else echo "0"; fi`], [Use gdal?])
+AM_CONDITIONAL([WITH_GDAL], [test "$gdal" = "yes"])
+
+dnl conv-magick: ImageMagick
+AC_ARG_WITH([magick],
+    [AS_HELP_STRING([--with-magick], [Enable ImageMagick import/export. Enabled by default if libMagick++ is available.])],
+    [if test "$withval" = "yes"; then magick="yes"; else magick="no "; fi], [magick="yes"])
+if test "$magick" = "yes"; then
+    PKG_CHECK_MODULES([libmagick], [ImageMagick++ >= 0.0], [],
+        [magick="no "
+        AC_MSG_WARN([ImageMagick++ library not found:])
+        AC_MSG_WARN([$libmagick_PKG_ERRORS])
+        AC_MSG_WARN([Disabled the from-magick and to-magick commands.])])
+fi
+AC_DEFINE_UNQUOTED([WITH_MAGICK], [`if test "$magick" = "yes"; then echo "1"; else echo "0"; fi`], [Use magick?])
+AM_CONDITIONAL([WITH_MAGICK], [test "$magick" = "yes"])
+
+dnl conv-mat: MATIO
 AC_ARG_WITH([matio],
     [AS_HELP_STRING([--with-matio], [Enable MATLAB import/export. Enabled by default if libmatio is available.])],
     [if test "$withval" = "yes"; then mat="yes"; else mat="no "; fi], [mat="yes"])
@@ -248,7 +244,39 @@ fi
 AC_DEFINE_UNQUOTED([WITH_MAT], [`if test "$mat" = "yes"; then echo "1"; else echo "0"; fi`], [Use mat?])
 AM_CONDITIONAL([WITH_MAT], [test "$mat" = "yes"])
 
-dnl Qt
+dnl conv-netpbm: NetPBM
+AC_ARG_WITH([netpbm],
+    [AS_HELP_STRING([--with-netpbm], [Enable NetPBM import/export. Enabled by default if libnetpbm is available.])],
+    [if test "$withval" = "yes"; then netpbm="yes"; else netpbm="no "; fi], [netpbm="yes"])
+if test "$netpbm" = "yes"; then
+    AC_LANG([C])
+    AC_LIB_FROMPACKAGE([netpbm], [netpbm])
+    AC_LIB_HAVE_LINKFLAGS([netpbm], [], [#include <pam.h>], [pm_init(0, 0);])
+    AC_LANG([C++])
+    if test "$HAVE_LIBNETPBM" != "yes"; then
+        netpbm="no "
+        AC_MSG_WARN([NetPBM library not found.])
+        AC_MSG_WARN([Disabled the from-netpbm and to-netpbm commands.])
+    fi
+fi
+AC_DEFINE_UNQUOTED([WITH_NETPBM], [`if test "$netpbm" = "yes"; then echo "1"; else echo "0"; fi`], [Use netpbm?])
+AM_CONDITIONAL([WITH_NETPBM], [test "$netpbm" = "yes"])
+
+dnl conv-pfs: PFS
+AC_ARG_WITH([pfs],
+    [AS_HELP_STRING([--with-pfs], [Enable PFS import/export. Enabled by default if libpfs-1.2 is available.])],
+    [if test "$withval" = "yes"; then pfs="yes"; else pfs="no "; fi], [pfs="yes"])
+if test "$pfs" = "yes"; then
+    PKG_CHECK_MODULES([libpfs], [pfs >= 0.0], [],
+        [pfs="no "
+        AC_MSG_WARN([PFS library not found:])
+        AC_MSG_WARN([$libpfs_PKG_ERRORS])
+        AC_MSG_WARN([Disabled the from-pfs and to-pfs commands.])])
+fi
+AC_DEFINE_UNQUOTED([WITH_PFS], [`if test "$pfs" = "yes"; then echo "1"; else echo "0"; fi`], [Use pfs?])
+AM_CONDITIONAL([WITH_PFS], [test "$pfs" = "yes"])
+
+dnl gui: Qt
 AC_ARG_WITH([qt],
     [AS_HELP_STRING([--with-qt], [Enable Qt GUI. Enabled by default if Qt >= 4.4.3 is available.])],
     [if test "$withval" = "yes"; then qt="yes"; else qt="no "; fi], [qt="yes"])
@@ -281,12 +309,13 @@ echo ""
 echo "Dynamic modules:       " "$dynamic_modules" "(Requires system support)"
 echo ""
 echo "component-compute:     " "$muparser" "(Requires muParser, Debian package: libmuparser-dev)"
-echo "from-netpbm, to-netpbm:" "$netpbm" "(Requires NetPBM, Debian package: libnetpbm10-dev)"
-echo "from-magick, to-magick:" "$magick" "(Requires ImageMagick, Debian package: libmagick++-dev)"
-echo "from-pfs, to-pfs:      " "$pfs" "(Requires pfstools, Debian package: libpfs-dev)"
-echo "from-exr, to-exr:      " "$exr" "(Requires OpenEXR, Debian package:libopenexr-dev)"
-echo "from-gdal, to-gdal:    " "$gdal" "(Requires GDAL, Debian package: libgdal-dev)"
 echo "from-dcmtk:            " "$dcmtk" "(Requires DCMTK, Debian package: libdcmtk1-dev)"
+echo "from-exr, to-exr:      " "$exr" "(Requires OpenEXR, Debian package:libopenexr-dev)"
+echo "from-ffmpeg:           " "$ffmpeg" "(Requires FFmpeg, Debian package: libavcodec-dev)"
+echo "from-gdal, to-gdal:    " "$gdal" "(Requires GDAL, Debian package: libgdal-dev)"
+echo "from-magick, to-magick:" "$magick" "(Requires ImageMagick, Debian package: libmagick++-dev)"
 echo "from-mat, to-mat:      " "$mat" "(Requires matio, Debian package: libmatio-dev)"
+echo "from-netpbm, to-netpbm:" "$netpbm" "(Requires NetPBM, Debian package: libnetpbm10-dev)"
+echo "from-pfs, to-pfs:      " "$pfs" "(Requires pfstools, Debian package: libpfs-dev)"
 echo "gui:                   " "$qt" "(Requires Qt, Debian package: libqt4-dev)"
 echo ""

@@ -18,6 +18,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/src/base -I$(top_srcdir)/src -DPKGLIBDIR=\"$(pkgli
 	$(libopenexr_CFLAGS) \
 	$(libgdal_CFLAGS) \
 	$(libmatio_CFLAGS) \
+	$(libffmpeg_CFLAGS) \
 	$(libqtgui_CFLAGS)
 
 #
@@ -91,6 +92,7 @@ endif
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-raw.la
 conv_raw_la_SOURCES = conv-raw/from-raw.cpp conv-raw/to-raw.cpp
+conv_raw_la_LIBADD = base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-raw/from-raw.cpp conv-raw/to-raw.cpp
 endif
@@ -98,6 +100,7 @@ endif
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-rat.la
 conv_rat_la_SOURCES = conv-rat/from-rat.cpp conv-rat/to-rat.cpp
+conv_rat_la_LIBADD = base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-rat/from-rat.cpp conv-rat/to-rat.cpp
 endif
@@ -106,7 +109,7 @@ if WITH_MUPARSER
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += component-compute.la
 component_compute_la_SOURCES = component/component-compute.cpp
-component_compute_la_LIBADD = $(libmuparser_LIBS)
+component_compute_la_LIBADD = $(libmuparser_LIBS) base/libbase.la
 else
 libbuiltin_la_SOURCES += component/component-compute.cpp
 libbuiltin_la_LIBADD += $(libmuparser_LIBS)
@@ -117,7 +120,7 @@ if WITH_NETPBM
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-netpbm.la
 conv_netpbm_la_SOURCES = conv-netpbm/from-netpbm.cpp conv-netpbm/to-netpbm.cpp
-conv_netpbm_la_LIBADD = $(LTLIBNETPBM)
+conv_netpbm_la_LIBADD = $(LTLIBNETPBM) base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-netpbm/from-netpbm.cpp conv-netpbm/to-netpbm.cpp
 libbuiltin_la_LIBADD += $(LTLIBNETPBM)
@@ -128,7 +131,7 @@ if WITH_MAGICK
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-magick.la
 conv_magick_la_SOURCES = conv-magick/from-magick.cpp conv-magick/to-magick.cpp
-conv_magick_la_LIBADD = $(libmagick_LIBS)
+conv_magick_la_LIBADD = $(libmagick_LIBS) base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-magick/from-magick.cpp conv-magick/to-magick.cpp
 libbuiltin_la_LIBADD += $(libmagick_LIBS)
@@ -139,7 +142,7 @@ if WITH_PFS
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-pfs.la
 conv_pfs_la_SOURCES = conv-pfs/from-pfs.cpp conv-pfs/to-pfs.cpp
-conv_pfs_la_LIBADD = $(libpfs_LIBS)
+conv_pfs_la_LIBADD = $(libpfs_LIBS) base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-pfs/from-pfs.cpp conv-pfs/to-pfs.cpp
 libbuiltin_la_LIBADD += $(libpfs_LIBS)
@@ -150,7 +153,7 @@ if WITH_EXR
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-exr.la
 conv_exr_la_SOURCES = conv-exr/from-exr.cpp conv-exr/to-exr.cpp
-conv_exr_la_LIBADD = $(libopenexr_LIBS)
+conv_exr_la_LIBADD = $(libopenexr_LIBS) base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-exr/from-exr.cpp conv-exr/to-exr.cpp
 libbuiltin_la_LIBADD += $(libopenexr_LIBS)
@@ -161,7 +164,7 @@ if WITH_GDAL
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-gdal.la
 conv_gdal_la_SOURCES = conv-gdal/from-gdal.cpp conv-gdal/to-gdal.cpp
-conv_gdal_la_LIBADD = $(libgdal_LIBS)
+conv_gdal_la_LIBADD = $(libgdal_LIBS) base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-gdal/from-gdal.cpp conv-gdal/to-gdal.cpp
 libbuiltin_la_LIBADD += $(libgdal_LIBS)
@@ -172,7 +175,7 @@ if WITH_DCMTK
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-dcmtk.la
 conv_dcmtk_la_SOURCES = conv-dcmtk/from-dcmtk.cpp
-conv_dcmtk_la_LIBADD = $(LTLIBDCMIMGLE)
+conv_dcmtk_la_LIBADD = $(LTLIBDCMIMGLE) base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-dcmtk/from-dcmtk.cpp
 libbuiltin_la_LIBADD += $(LTLIBDCMIMGLE)
@@ -183,10 +186,25 @@ if WITH_MAT
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-mat.la
 conv_mat_la_SOURCES = conv-mat/from-mat.cpp conv-mat/to-mat.cpp
-conv_mat_la_LIBADD = $(libmatio_LIBS)
+conv_mat_la_LIBADD = $(libmatio_LIBS) base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-mat/from-mat.cpp conv-mat/to-mat.cpp
 libbuiltin_la_LIBADD += $(libmatio_LIBS)
+endif
+endif
+
+if WITH_FFMPEG
+if DYNAMIC_MODULES
+pkglib_LTLIBRARIES += conv-ffmpeg.la
+conv_ffmpeg_la_SOURCES = conv-ffmpeg/from-ffmpeg.cpp \
+	conv-ffmpeg/media_data.h conv-ffmpeg/media_data.cpp \
+	conv-ffmpeg/media_object.h conv-ffmpeg/media_object.cpp
+conv_ffmpeg_la_LIBADD = $(libffmpeg_LIBS) base/libbase.la
+else
+libbuiltin_la_SOURCES += conv-ffmpeg/from-ffmpeg.cpp \
+	conv-ffmpeg/media_data.h conv-ffmpeg/media_data.cpp \
+	conv-ffmpeg/media_object.h conv-ffmpeg/media_object.cpp
+libbuiltin_la_LIBADD += $(libffmpeg_LIBS)
 endif
 endif
 
@@ -211,7 +229,7 @@ if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += gui.la
 gui_la_SOURCES = gui/gui.h gui/gui.cpp
 nodist_gui_la_SOURCES = $(GUI_BUILT_SOURCES)
-gui_la_LIBADD = $(libqtgui_LIBS)
+gui_la_LIBADD = $(libqtgui_LIBS) base/libbase.la
 else
 libbuiltin_la_SOURCES += gui/gui.h gui/gui.cpp
 nodist_libbuiltin_la_SOURCES += $(GUI_BUILT_SOURCES)

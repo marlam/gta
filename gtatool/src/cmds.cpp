@@ -94,6 +94,7 @@ CMD_DECL(extract)
 CMD_DECL(fill)
 CMD_DECL(from_dcmtk)
 CMD_DECL(from_exr)
+CMD_DECL(from_ffmpeg)
 CMD_DECL(from_gdal)
 CMD_DECL(from_magick)
 CMD_DECL(from_mat)
@@ -144,6 +145,7 @@ static cmd_t cmds[] =
     CMD("fill",              array,      fill,              true,          BUILTIN),
     CMD("from-dcmtk",        conversion, from_dcmtk,        WITH_DCMTK,    "conv-dcmtk"),
     CMD("from-exr",          conversion, from_exr,          WITH_EXR,      "conv-exr"),
+    CMD("from-ffmpeg",       conversion, from_ffmpeg,       WITH_FFMPEG,   "conv-ffmpeg"),
     CMD("from-gdal",         conversion, from_gdal,         WITH_GDAL,     "conv-gdal"),
     CMD("from-magick",       conversion, from_magick,       WITH_MAGICK,   "conv-magick"),
     CMD("from-mat",          conversion, from_mat,          WITH_MAT,      "conv-mat"),

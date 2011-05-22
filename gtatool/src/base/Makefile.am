@@ -15,4 +15,8 @@ libbase_la_SOURCES = \
 	cio.h cio.cpp \
 	opt.h opt.cpp \
 	endianness.h \
-	blob.h
+	s11n.h s11n.cpp \
+	thread.h thread.cpp \
+	blob.h \
+	gettext.h
+libbase_la_LDFLAGS = -static
