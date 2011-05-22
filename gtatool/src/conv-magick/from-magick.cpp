@@ -41,7 +41,7 @@ extern "C" void gtatool_from_magick_help(void)
 {
     msg::req_txt("from-magick [--force-format=l|la|rgb|rgba] <input-file> [<output-file>]\n"
             "\n"
-            "Convers images readable by ImageMagick to GTAs.");
+            "Converts images readable by ImageMagick to GTAs.");
 }
 
 extern "C" int gtatool_from_magick(int argc, char *argv[])
