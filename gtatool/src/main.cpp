@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
     program_name = strrchr(argv[0], '/');
     program_name = program_name ? program_name + 1 : argv[0];
 #endif
-    msg::set_level(msg::INF);
+    msg::set_level(msg::WRN);
     msg::set_program_name(program_name);
     msg::set_columns_from_env();
     dbg::init_crashhandler();
