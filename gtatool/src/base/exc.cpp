@@ -24,8 +24,8 @@
 #include <cstring>
 #include <cerrno>
 
-// #include "gettext.h"
-#define _(string) (string)
+#include "gettext.h"
+#define _(string) gettext(string)
 
 #include "msg.h"
 #include "exc.h"

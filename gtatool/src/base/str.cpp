@@ -39,8 +39,8 @@
 
 #include <iconv.h>
 
-// #include "gettext.h"
-#define _(string) (string)
+#include "gettext.h"
+#define _(string) gettext(string)
 
 #include "dbg.h"
 #include "msg.h"
@@ -131,6 +131,23 @@ namespace str
             }
         }
         return sane;
+    }
+
+    /* Trim a string (remove whitespace from both ends) */
+
+    std::string trim(const std::string &s)
+    {
+        const char whitespace[] = " \t\v\f\n\r";
+        size_t first = s.find_first_not_of(whitespace);
+        if (first != std::string::npos)
+        {
+            size_t last = s.find_last_not_of(whitespace);
+            return s.substr(first, last - first + 1);
+        }
+        else
+        {
+            return std::string();
+        }
     }
 
     /* Create std::strings from all basic data types */

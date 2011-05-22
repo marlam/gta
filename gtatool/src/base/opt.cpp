@@ -25,8 +25,8 @@
 #include <limits>
 #include <cstring>
 
-// #include "gettext.h"
-#define _(string) (string)
+#include "gettext.h"
+#define _(string) gettext(string)
 
 #include <getopt.h>
 #undef no_argument
