@@ -136,6 +136,26 @@ fi
 AC_DEFINE_UNQUOTED([WITH_MUPARSER], [`if test "$muparser" = "yes"; then echo "1"; else echo "0"; fi`], [Use muparser?])
 AM_CONDITIONAL([WITH_MUPARSER], [test "$muparser" = "yes"])
 
+dnl gui: Qt
+AC_ARG_WITH([qt],
+    [AS_HELP_STRING([--with-qt], [Enable Qt GUI. Enabled by default if Qt >= 4.4.3 is available.])],
+    [if test "$withval" = "yes"; then qt="yes"; else qt="no "; fi], [qt="yes"])
+if test "$qt" = "yes"; then
+    PKG_CHECK_MODULES([libqtgui], [QtGui >= 0.0], [],
+        [qt="no "
+        AC_MSG_WARN([QtGui library not found:])
+        AC_MSG_WARN([$libqtgui_PKG_ERRORS])
+        AC_MSG_WARN([Disabled the gui command.])])
+    RCC=""
+    AC_ARG_VAR([RCC], [rcc command])
+    AC_CHECK_TOOLS([RCC], [rcc-qt4 rcc])
+    MOC=""
+    AC_ARG_VAR([MOC], [moc command])
+    AC_CHECK_TOOLS([MOC], [moc-qt4 moc])
+fi
+AC_DEFINE_UNQUOTED([WITH_QT], [`if test "$qt" = "yes"; then echo "1"; else echo "0"; fi`], [Use Qt?])
+AM_CONDITIONAL([WITH_QT], [test "$qt" = "yes"])
+
 dnl conv-dcmtk: DCMTK
 AC_ARG_WITH([dcmtk],
     [AS_HELP_STRING([--with-dcmtk], [Enable DCMTK import. Enabled by default if libdcmimgle is available.])],
@@ -275,26 +295,6 @@ if test "$pfs" = "yes"; then
 fi
 AC_DEFINE_UNQUOTED([WITH_PFS], [`if test "$pfs" = "yes"; then echo "1"; else echo "0"; fi`], [Use pfs?])
 AM_CONDITIONAL([WITH_PFS], [test "$pfs" = "yes"])
-
-dnl gui: Qt
-AC_ARG_WITH([qt],
-    [AS_HELP_STRING([--with-qt], [Enable Qt GUI. Enabled by default if Qt >= 4.4.3 is available.])],
-    [if test "$withval" = "yes"; then qt="yes"; else qt="no "; fi], [qt="yes"])
-if test "$qt" = "yes"; then
-    PKG_CHECK_MODULES([libqtgui], [QtGui >= 0.0], [],
-        [qt="no "
-        AC_MSG_WARN([QtGui library not found:])
-        AC_MSG_WARN([$libqtgui_PKG_ERRORS])
-        AC_MSG_WARN([Disabled the gui command.])])
-    RCC=""
-    AC_ARG_VAR([RCC], [rcc command])
-    AC_CHECK_TOOLS([RCC], [rcc-qt4 rcc])
-    MOC=""
-    AC_ARG_VAR([MOC], [moc command])
-    AC_CHECK_TOOLS([MOC], [moc-qt4 moc])
-fi
-AC_DEFINE_UNQUOTED([WITH_QT], [`if test "$qt" = "yes"; then echo "1"; else echo "0"; fi`], [Use Qt?])
-AM_CONDITIONAL([WITH_QT], [test "$qt" = "yes"])
 
 dnl Output
 AC_CONFIG_FILES([Makefile \
