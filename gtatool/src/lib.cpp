@@ -546,19 +546,19 @@ void element_loop_t::start(
     _buf.resize(0);
 }
 
-void *element_loop_t::read()
+void *element_loop_t::read(size_t n)
 {
-    if (_buf.size() == 0)
+    if (_buf.size() < checked_cast<size_t>(n * _header_in.element_size()))
     {
-        _buf.resize(checked_cast<size_t>(_header_in.element_size()));
+        _buf.resize(n * _header_in.element_size());
     }
-    _header_in.read_elements(_state_in, _file_in, 1, _buf.ptr());
+    _header_in.read_elements(_state_in, _file_in, n, _buf.ptr());
     return _buf.ptr();
 }
 
-void element_loop_t::write(const void *element)
+void element_loop_t::write(const void *element, size_t n)
 {
-    _header_out.write_elements(_state_out, _file_out, 1, element);
+    _header_out.write_elements(_state_out, _file_out, n, element);
 }
 
 const std::string array_loop_t::_stdin_name = "standard input";

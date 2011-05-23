@@ -38,12 +38,11 @@
 extern "C" void gtatool_from_ffmpeg_help(void)
 {
     msg::req_txt(
-            "from-ffmpeg -l|--list-streams <input-file>\n"
-            "from-ffmpeg -s|--stream=N <input-file> [<output-file>]\n"
+            "from-ffmpeg [-l|--list-streams] [-s|--stream=N] <input-file> [<output-file>]\n"
             "\n"
-            "Converts video or audio data readable by FFmpeg to GTAs. "
-            "Use -l to get a list of supported streams in a file, and then use "
-            "-s to select the stream and convert the data.");
+            "Converts video or audio data readable by FFmpeg to GTAs.\n"
+            "When -l is given, list the streams available in the input file and quit.\n"
+            "Select a stream to convert with -s. The default is to use the first stream.");
 }
 
 extern "C" int gtatool_from_ffmpeg(int argc, char *argv[])
@@ -53,7 +52,7 @@ extern "C" int gtatool_from_ffmpeg(int argc, char *argv[])
     options.push_back(&help);
     opt::flag list_streams("list-streams", 'l', opt::optional);
     options.push_back(&list_streams);
-    opt::val<int> stream("stream", 's', opt::optional, 1, std::numeric_limits<int>::max(), 0);
+    opt::val<int> stream("stream", 's', opt::optional, 1, std::numeric_limits<int>::max(), 1);
     options.push_back(&stream);
     std::vector<std::string> arguments;
     if (!opt::parse(argc, argv, options, 1, 2, arguments))
@@ -64,13 +63,6 @@ extern "C" int gtatool_from_ffmpeg(int argc, char *argv[])
     {
         gtatool_from_ffmpeg_help();
         return 0;
-    }
-
-    if ((!list_streams.value() && !stream.value())
-            || (list_streams.value() && stream.value()))
-    {
-        msg::err("Exactly one of the options -l and -s must be given.");
-        return 1;
     }
 
     media_object input(true);
@@ -180,7 +172,7 @@ extern "C" int gtatool_from_ffmpeg(int argc, char *argv[])
             element_loop_t element_loop;
             array_loop.start_element_loop(element_loop, gta::header(), hdr);
             uintmax_t elements = hdr.elements();
-            uintmax_t e = std::min(elements, static_cast<uintmax_t>(1000));
+            uintmax_t e = std::min(elements, static_cast<uintmax_t>(10000));
             input.start_audio_blob_read(s, e * hdr.element_size());
             while (e > 0)
             {
@@ -189,20 +181,18 @@ extern "C" int gtatool_from_ffmpeg(int argc, char *argv[])
                 {
                     throw exc(name + ": cannot read enough audio data");
                 }
-                input.start_audio_blob_read(s, hdr.element_size());
-                for (uintmax_t i = 0; i < e; i++)
-                {
-                    element_loop.write(static_cast<const uint8_t *>(blob.data) + i * hdr.element_size());
-                }
                 elements -= e;
-                e = std::min(elements, static_cast<uintmax_t>(1000));
+                uintmax_t e_bak = e;
+                e = std::min(elements, static_cast<uintmax_t>(10000));
                 if (e > 0)
                 {
                     input.start_audio_blob_read(s, e * hdr.element_size());
                 }
+                element_loop.write(blob.data, e_bak);
             }
         }
         array_loop.finish();
+        input.close();
     }
     catch (std::exception &e)
     {
