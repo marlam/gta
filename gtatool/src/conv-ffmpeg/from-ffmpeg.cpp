@@ -96,7 +96,7 @@ extern "C" int gtatool_from_ffmpeg(int argc, char *argv[])
         return 0;
     }
 
-    if (stream.value() > input.video_streams() + input.audio_streams() + 1)
+    if (stream.value() > input.video_streams() + input.audio_streams())
     {
         msg::err("%s contains no stream %d", arguments[0].c_str(), stream.value());
         return 1;
