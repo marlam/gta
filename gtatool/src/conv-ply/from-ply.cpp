@@ -109,42 +109,57 @@ extern "C" int gtatool_from_ply(int argc, char *argv[])
                 if (nprops == 1)
                 {
                     hdr.set_components(gta::float32);
+                    hdr.component_taglist(0).set("INTERPRETATION", "X");
                 }
                 else if (nprops == 2)
                 {
                     hdr.set_components(gta::float32, gta::float32);
+                    hdr.component_taglist(0).set("INTERPRETATION", "X");
+                    hdr.component_taglist(1).set("INTERPRETATION", "Y");
                 }
                 else if (nprops == 3)
                 {
                     hdr.set_components(gta::float32, gta::float32, gta::float32);
+                    hdr.component_taglist(0).set("INTERPRETATION", "X");
+                    hdr.component_taglist(1).set("INTERPRETATION", "Y");
+                    hdr.component_taglist(2).set("INTERPRETATION", "Z");
                 }
                 else if (nprops == 4)
                 {
                     std::vector<gta::type> types(1, gta::float32);
                     types.resize(4, gta::uint8);
                     hdr.set_components(4, &(types[0]));
+                    hdr.component_taglist(0).set("INTERPRETATION", "X");
+                    hdr.component_taglist(1).set("INTERPRETATION", "RED");
+                    hdr.component_taglist(2).set("INTERPRETATION", "GREEN");
+                    hdr.component_taglist(3).set("INTERPRETATION", "BLUE");
                 }
                 else if (nprops == 5)
                 {
                     std::vector<gta::type> types(2, gta::float32);
                     types.resize(5, gta::uint8);
                     hdr.set_components(5, &(types[0]));
+                    hdr.component_taglist(0).set("INTERPRETATION", "X");
+                    hdr.component_taglist(1).set("INTERPRETATION", "Y");
+                    hdr.component_taglist(2).set("INTERPRETATION", "RED");
+                    hdr.component_taglist(3).set("INTERPRETATION", "GREEN");
+                    hdr.component_taglist(4).set("INTERPRETATION", "BLUE");
                 }
                 else if (nprops == 6)
                 {
                     std::vector<gta::type> types(3, gta::float32);
                     types.resize(6, gta::uint8);
                     hdr.set_components(6, &(types[0]));
+                    hdr.component_taglist(0).set("INTERPRETATION", "X");
+                    hdr.component_taglist(1).set("INTERPRETATION", "Y");
+                    hdr.component_taglist(2).set("INTERPRETATION", "Z");
+                    hdr.component_taglist(3).set("INTERPRETATION", "RED");
+                    hdr.component_taglist(4).set("INTERPRETATION", "GREEN");
+                    hdr.component_taglist(5).set("INTERPRETATION", "BLUE");
                 }
                 else
                 {
                     throw exc(namei + ": unsupported number of vertex properties.");
-                }
-                if (nprops >= 4)
-                {
-                    hdr.component_taglist(nprops - 3).set("INTERPRETATION", "RED");
-                    hdr.component_taglist(nprops - 2).set("INTERPRETATION", "GREEN");
-                    hdr.component_taglist(nprops - 1).set("INTERPRETATION", "BLUE");
                 }
                 array_loop.write(hdr, nameo);
                 for (int j = 0; j < nprops; j++)
