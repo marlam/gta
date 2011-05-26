@@ -52,6 +52,7 @@ libbuiltin_la_SOURCES = \
 	component/component-split.cpp \
 	dimension/dimension-add.cpp \
 	dimension/dimension-extract.cpp \
+	dimension/dimension-flatten.cpp \
 	dimension/dimension-merge.cpp \
 	dimension/dimension-reorder.cpp \
 	dimension/dimension-reverse.cpp \

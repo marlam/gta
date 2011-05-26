@@ -86,6 +86,7 @@ CMD_DECL(compress)
 CMD_DECL(create)
 CMD_DECL(dimension_add)
 CMD_DECL(dimension_extract)
+CMD_DECL(dimension_flatten)
 CMD_DECL(dimension_merge)
 CMD_DECL(dimension_reorder)
 CMD_DECL(dimension_reverse)
@@ -137,6 +138,7 @@ static cmd_t cmds[] =
     CMD("create",            array,      create,            true,          BUILTIN),
     CMD("dimension-add",     dimension,  dimension_add,     true,          BUILTIN),
     CMD("dimension-extract", dimension,  dimension_extract, true,          BUILTIN),
+    CMD("dimension-flatten", dimension,  dimension_flatten, true,          BUILTIN),
     CMD("dimension-merge",   dimension,  dimension_merge,   true,          BUILTIN),
     CMD("dimension-reorder", dimension,  dimension_reorder, true,          BUILTIN),
     CMD("dimension-reverse", dimension,  dimension_reverse, true,          BUILTIN),
