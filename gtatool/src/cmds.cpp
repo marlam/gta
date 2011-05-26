@@ -100,6 +100,7 @@ CMD_DECL(from_gdal)
 CMD_DECL(from_magick)
 CMD_DECL(from_mat)
 CMD_DECL(from_netpbm)
+CMD_DECL(from_pcd)
 CMD_DECL(from_pfs)
 CMD_DECL(from_ply)
 CMD_DECL(from_rat)
@@ -119,6 +120,7 @@ CMD_DECL(to_gdal)
 CMD_DECL(to_magick)
 CMD_DECL(to_mat)
 CMD_DECL(to_netpbm)
+CMD_DECL(to_pcd)
 CMD_DECL(to_pfs)
 CMD_DECL(to_ply)
 CMD_DECL(to_rat)
@@ -154,6 +156,7 @@ static cmd_t cmds[] =
     CMD("from-magick",       conversion, from_magick,       WITH_MAGICK,   "conv-magick"),
     CMD("from-mat",          conversion, from_mat,          WITH_MAT,      "conv-mat"),
     CMD("from-netpbm",       conversion, from_netpbm,       WITH_NETPBM,   "conv-netpbm"),
+    CMD("from-pcd",          conversion, from_pcd,          WITH_PCD,      "conv-pcd"),
     CMD("from-pfs",          conversion, from_pfs,          WITH_PFS,      "conv-pfs"),
     CMD("from-ply",          conversion, from_ply,          true,          "conv-ply"),
     CMD("from-rat",          conversion, from_rat,          true,          "conv-rat"),
@@ -173,6 +176,7 @@ static cmd_t cmds[] =
     CMD("to-magick",         conversion, to_magick,         WITH_MAGICK,   "conv-magick"),
     CMD("to-mat",            conversion, to_mat,            WITH_MAT,      "conv-mat"),
     CMD("to-netpbm",         conversion, to_netpbm,         WITH_NETPBM,   "conv-netpbm"),
+    CMD("to-pcd",            conversion, to_pcd,            WITH_PCD,      "conv-pcd"),
     CMD("to-pfs",            conversion, to_pfs,            WITH_PFS,      "conv-pfs"),
     CMD("to-ply",            conversion, to_ply,            true,          "conv-ply"),
     CMD("to-rat",            conversion, to_rat,            true,          "conv-rat"),

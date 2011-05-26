@@ -282,6 +282,20 @@ fi
 AC_DEFINE_UNQUOTED([WITH_NETPBM], [`if test "$netpbm" = "yes"; then echo "1"; else echo "0"; fi`], [Use netpbm?])
 AM_CONDITIONAL([WITH_NETPBM], [test "$netpbm" = "yes"])
 
+dnl conv-pcd: libpcl_io
+AC_ARG_WITH([pcd],
+    [AS_HELP_STRING([--with-pcd], [Enable PCD import/export. Enabled by default if libpcl_io is available.])],
+    [if test "$withval" = "yes"; then pcd="yes"; else pcd="no "; fi], [pcd="yes"])
+if test "$pcd" = "yes"; then
+    PKG_CHECK_MODULES([libpcl_io], [pcl_io >= 1.0], [],
+        [pcd="no "
+        AC_MSG_WARN([PCL io library not found:])
+        AC_MSG_WARN([$libpcl_io_PKG_ERRORS])
+        AC_MSG_WARN([Disabled the from-pcd and to-pcd commands.])])
+fi
+AC_DEFINE_UNQUOTED([WITH_PCD], [`if test "$pcd" = "yes"; then echo "1"; else echo "0"; fi`], [Use pcd?])
+AM_CONDITIONAL([WITH_PCD], [test "$pcd" = "yes"])
+
 dnl conv-pfs: PFS
 AC_ARG_WITH([pfs],
     [AS_HELP_STRING([--with-pfs], [Enable PFS import/export. Enabled by default if libpfs-1.2 is available.])],
@@ -316,6 +330,7 @@ echo "from-gdal, to-gdal:    " "$gdal" "(Requires GDAL, Debian package: libgdal-
 echo "from-magick, to-magick:" "$magick" "(Requires ImageMagick, Debian package: libmagick++-dev)"
 echo "from-mat, to-mat:      " "$mat" "(Requires matio, Debian package: libmatio-dev)"
 echo "from-netpbm, to-netpbm:" "$netpbm" "(Requires NetPBM, Debian package: libnetpbm10-dev)"
+echo "from-pcd, to-pcd:      " "$pcd" "(Requires the Point Cloud Library IO module libpcl_io)"
 echo "from-pfs, to-pfs:      " "$pfs" "(Requires pfstools, Debian package: libpfs-dev)"
 echo "gui:                   " "$qt" "(Requires Qt, Debian package: libqt4-dev)"
 echo ""

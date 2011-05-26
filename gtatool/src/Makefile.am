@@ -14,6 +14,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/src/base -I$(top_srcdir)/src -DPKGLIBDIR=\"$(pkgli
 	$(libgta_CFLAGS) \
 	$(libmuparser_CFLAGS) \
 	$(libmagick_CFLAGS) \
+	$(libpcl_io_CFLAGS) \
 	$(libpfs_CFLAGS) \
 	$(libopenexr_CFLAGS) \
 	$(libgdal_CFLAGS) \
@@ -210,6 +211,17 @@ conv_netpbm_la_LIBADD = $(LTLIBNETPBM) base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-netpbm/from-netpbm.cpp conv-netpbm/to-netpbm.cpp
 libbuiltin_la_LIBADD += $(LTLIBNETPBM)
+endif
+endif
+
+if WITH_PCD
+if DYNAMIC_MODULES
+pkglib_LTLIBRARIES += conv-pcd.la
+conv_pcd_la_SOURCES = conv-pcd/from-pcd.cpp conv-pcd/to-pcd.cpp
+conv_pcd_la_LIBADD = $(libpcl_io_LIBS) base/libbase.la
+else
+libbuiltin_la_SOURCES += conv-pcd/from-pcd.cpp conv-pcd/to-pcd.cpp
+libbuiltin_la_LIBADD += $(libpcl_io_LIBS)
 endif
 endif
 
