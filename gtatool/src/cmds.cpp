@@ -101,6 +101,7 @@ CMD_DECL(from_magick)
 CMD_DECL(from_mat)
 CMD_DECL(from_netpbm)
 CMD_DECL(from_pfs)
+CMD_DECL(from_ply)
 CMD_DECL(from_rat)
 CMD_DECL(from_raw)
 CMD_DECL(gui)
@@ -119,6 +120,7 @@ CMD_DECL(to_magick)
 CMD_DECL(to_mat)
 CMD_DECL(to_netpbm)
 CMD_DECL(to_pfs)
+CMD_DECL(to_ply)
 CMD_DECL(to_rat)
 CMD_DECL(to_raw)
 CMD_DECL(uncompress)
@@ -153,6 +155,7 @@ static cmd_t cmds[] =
     CMD("from-mat",          conversion, from_mat,          WITH_MAT,      "conv-mat"),
     CMD("from-netpbm",       conversion, from_netpbm,       WITH_NETPBM,   "conv-netpbm"),
     CMD("from-pfs",          conversion, from_pfs,          WITH_PFS,      "conv-pfs"),
+    CMD("from-ply",          conversion, from_ply,          true,          "conv-ply"),
     CMD("from-rat",          conversion, from_rat,          true,          "conv-rat"),
     CMD("from-raw",          conversion, from_raw,          true,          "conv-raw"),
     CMD("gui",               misc,       gui,               WITH_QT,       "gui"),
@@ -171,6 +174,7 @@ static cmd_t cmds[] =
     CMD("to-mat",            conversion, to_mat,            WITH_MAT,      "conv-mat"),
     CMD("to-netpbm",         conversion, to_netpbm,         WITH_NETPBM,   "conv-netpbm"),
     CMD("to-pfs",            conversion, to_pfs,            WITH_PFS,      "conv-pfs"),
+    CMD("to-ply",            conversion, to_ply,            true,          "conv-ply"),
     CMD("to-rat",            conversion, to_rat,            true,          "conv-rat"),
     CMD("to-raw",            conversion, to_raw,            true,          "conv-raw"),
     CMD("uncompress",        array,      uncompress,        true,          BUILTIN),

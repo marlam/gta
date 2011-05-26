@@ -225,6 +225,14 @@ endif
 endif
 
 if DYNAMIC_MODULES
+pkglib_LTLIBRARIES += conv-ply.la
+conv_ply_la_SOURCES = conv-ply/from-ply.cpp conv-ply/to-ply.cpp conv-ply/ply.h conv-ply/plyfile.cpp
+conv_ply_la_LIBADD = base/libbase.la
+else
+libbuiltin_la_SOURCES += conv-ply/from-ply.cpp conv-ply/to-ply.cpp conv-ply/ply.h conv-ply/plyfile.cpp
+endif
+
+if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-rat.la
 conv_rat_la_SOURCES = conv-rat/from-rat.cpp conv-rat/to-rat.cpp
 conv_rat_la_LIBADD = base/libbase.la
