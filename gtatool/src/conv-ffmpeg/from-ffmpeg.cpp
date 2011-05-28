@@ -171,12 +171,6 @@ extern "C" int gtatool_from_ffmpeg(int argc, char *argv[])
             }
             hdr.set_components(types.size(), &(types[0]));
 
-            hdr.dimension_taglist(0).set("INTERPRETATION", "T");
-            hdr.dimension_taglist(0).set("X-SAMPLE-RATE",
-                    str::from(input.audio_blob_template(s).rate).c_str());
-            hdr.dimension_taglist(0).set("SAMPLE-DISTANCE",
-                    (str::from(1.0 / input.audio_blob_template(s).rate) + " s").c_str());
-
             /* First, read all audio and store it in a temporary file, since we do not
              * know the exact number of audio samples in the stream; (rate * duration)
              * is just an estimate. */
@@ -214,6 +208,11 @@ extern "C" int gtatool_from_ffmpeg(int argc, char *argv[])
 
             /* Now we know the exact number of samples. Write the complete data to the GTA. */
             hdr.set_dimensions(samples);
+            hdr.dimension_taglist(0).set("INTERPRETATION", "T");
+            hdr.dimension_taglist(0).set("X-SAMPLE-RATE",
+                    str::from(input.audio_blob_template(s).rate).c_str());
+            hdr.dimension_taglist(0).set("SAMPLE-DISTANCE",
+                    (str::from(1.0 / input.audio_blob_template(s).rate) + " s").c_str());
             array_loop.write(hdr, name);
             cio::rewind(tmpf);
             array_loop.start_element_loop(element_loop, gta::header(), hdr);
