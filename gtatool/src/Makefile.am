@@ -13,14 +13,14 @@ EXTRA_DIST =
 AM_CPPFLAGS = -I$(top_srcdir)/src/base -I$(top_srcdir)/src -DPKGLIBDIR=\"$(pkglibdir)\" \
 	$(libgta_CFLAGS) \
 	$(libmuparser_CFLAGS) \
-	$(libmagick_CFLAGS) \
-	$(libpcl_io_CFLAGS) \
-	$(libpfs_CFLAGS) \
+	$(libqtgui_CFLAGS) \
 	$(libopenexr_CFLAGS) \
-	$(libgdal_CFLAGS) \
-	$(libmatio_CFLAGS) \
 	$(libffmpeg_CFLAGS) \
-	$(libqtgui_CFLAGS)
+	$(libgdal_CFLAGS) \
+	$(libmagick_CFLAGS) \
+	$(libmatio_CFLAGS) \
+	$(libpcl_io_CFLAGS) \
+	$(libpfs_CFLAGS)
 
 #
 # The gta program
@@ -236,6 +236,7 @@ libbuiltin_la_LIBADD += $(libpfs_LIBS)
 endif
 endif
 
+if WITH_PLY
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-ply.la
 conv_ply_la_SOURCES = conv-ply/from-ply.cpp conv-ply/to-ply.cpp conv-ply/ply.h conv-ply/plyfile.cpp
@@ -243,7 +244,9 @@ conv_ply_la_LIBADD = base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-ply/from-ply.cpp conv-ply/to-ply.cpp conv-ply/ply.h conv-ply/plyfile.cpp
 endif
+endif
 
+if WITH_RAT
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-rat.la
 conv_rat_la_SOURCES = conv-rat/from-rat.cpp conv-rat/to-rat.cpp
@@ -251,11 +254,14 @@ conv_rat_la_LIBADD = base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-rat/from-rat.cpp conv-rat/to-rat.cpp
 endif
+endif
 
+if WITH_RAW
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-raw.la
 conv_raw_la_SOURCES = conv-raw/from-raw.cpp conv-raw/to-raw.cpp
 conv_raw_la_LIBADD = base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-raw/from-raw.cpp conv-raw/to-raw.cpp
+endif
 endif

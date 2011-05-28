@@ -310,6 +310,27 @@ fi
 AC_DEFINE_UNQUOTED([WITH_PFS], [`if test "$pfs" = "yes"; then echo "1"; else echo "0"; fi`], [Use pfs?])
 AM_CONDITIONAL([WITH_PFS], [test "$pfs" = "yes"])
 
+dnl conv-ply
+AC_ARG_WITH([ply],
+    [AS_HELP_STRING([--with-ply], [Enable PLY import/export. Enabled by default.])],
+    [if test "$withval" = "yes"; then ply="yes"; else ply="no "; fi], [ply="yes"])
+AC_DEFINE_UNQUOTED([WITH_PLY], [`if test "$ply" = "yes"; then echo "1"; else echo "0"; fi`], [Use ply?])
+AM_CONDITIONAL([WITH_PLY], [test "$ply" = "yes"])
+
+dnl conv-rat
+AC_ARG_WITH([rat],
+    [AS_HELP_STRING([--with-rat], [Enable RAT import/export. Enabled by default.])],
+    [if test "$withval" = "yes"; then rat="yes"; else rat="no "; fi], [rat="yes"])
+AC_DEFINE_UNQUOTED([WITH_RAT], [`if test "$rat" = "yes"; then echo "1"; else echo "0"; fi`], [Use rat?])
+AM_CONDITIONAL([WITH_RAT], [test "$rat" = "yes"])
+
+dnl conv-raw
+AC_ARG_WITH([raw],
+    [AS_HELP_STRING([--with-raw], [Enable RAW import/export. Enabled by default.])],
+    [if test "$withval" = "yes"; then raw="yes"; else raw="no "; fi], [raw="yes"])
+AC_DEFINE_UNQUOTED([WITH_RAW], [`if test "$raw" = "yes"; then echo "1"; else echo "0"; fi`], [Use raw?])
+AM_CONDITIONAL([WITH_RAW], [test "$raw" = "yes"])
+
 dnl Output
 AC_CONFIG_FILES([Makefile \
     src/Makefile \
@@ -320,17 +341,20 @@ AC_CONFIG_FILES([Makefile \
 AC_OUTPUT
 
 echo ""
-echo "Dynamic modules:       " "$dynamic_modules" "(Requires system support)"
+echo "Dynamic modules:         " "$dynamic_modules" "(Requires system support)"
 echo ""
-echo "component-compute:     " "$muparser" "(Requires muParser, Debian package: libmuparser-dev)"
-echo "from-dcmtk:            " "$dcmtk" "(Requires DCMTK, Debian package: libdcmtk1-dev)"
-echo "from-exr, to-exr:      " "$exr" "(Requires OpenEXR, Debian package:libopenexr-dev)"
-echo "from-ffmpeg:           " "$ffmpeg" "(Requires FFmpeg, Debian package: libavcodec-dev)"
-echo "from-gdal, to-gdal:    " "$gdal" "(Requires GDAL, Debian package: libgdal-dev)"
-echo "from-magick, to-magick:" "$magick" "(Requires ImageMagick, Debian package: libmagick++-dev)"
-echo "from-mat, to-mat:      " "$mat" "(Requires matio, Debian package: libmatio-dev)"
-echo "from-netpbm, to-netpbm:" "$netpbm" "(Requires NetPBM, Debian package: libnetpbm10-dev)"
-echo "from-pcd, to-pcd:      " "$pcd" "(Requires the Point Cloud Library IO module libpcl_io)"
-echo "from-pfs, to-pfs:      " "$pfs" "(Requires pfstools, Debian package: libpfs-dev)"
-echo "gui:                   " "$qt" "(Requires Qt, Debian package: libqt4-dev)"
+echo "component-compute:       " "$muparser" "(Requires muParser, Debian package: libmuparser-dev)"
+echo "from-dcmtk:              " "$dcmtk" "(Requires DCMTK, Debian package: libdcmtk1-dev)"
+echo "from-exr, to-exr:        " "$exr" "(Requires OpenEXR, Debian package:libopenexr-dev)"
+echo "from-ffmpeg:             " "$ffmpeg" "(Requires FFmpeg, Debian package: libavcodec-dev)"
+echo "from-gdal, to-gdal:      " "$gdal" "(Requires GDAL, Debian package: libgdal-dev)"
+echo "from-magick, to-magick:  " "$magick" "(Requires ImageMagick, Debian package: libmagick++-dev)"
+echo "from-mat, to-mat:        " "$mat" "(Requires matio, Debian package: libmatio-dev)"
+echo "from-netpbm, to-netpbm:  " "$netpbm" "(Requires NetPBM, Debian package: libnetpbm10-dev)"
+echo "from-pcd, to-pcd:        " "$pcd" "(Requires the Point Cloud Library IO module libpcl_io)"
+echo "from-pfs, to-pfs:        " "$pfs" "(Requires pfstools, Debian package: libpfs-dev)"
+echo "from-ply, to-ply:        " "$ply" ""
+echo "from-rat, to-rat:        " "$rat" ""
+echo "from-raw, to-raw:        " "$raw" ""
+echo "gui:                     " "$qt" "(Requires Qt, Debian package: libqt4-dev)"
 echo ""
