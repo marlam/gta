@@ -20,7 +20,8 @@ AM_CPPFLAGS = -I$(top_srcdir)/src/base -I$(top_srcdir)/src -DPKGLIBDIR=\"$(pkgli
 	$(libmagick_CFLAGS) \
 	$(libmatio_CFLAGS) \
 	$(libpcl_io_CFLAGS) \
-	$(libpfs_CFLAGS)
+	$(libpfs_CFLAGS) \
+	$(libsndfile_CFLAGS)
 
 #
 # The gta program
@@ -263,5 +264,16 @@ conv_raw_la_SOURCES = conv-raw/from-raw.cpp conv-raw/to-raw.cpp
 conv_raw_la_LIBADD = base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-raw/from-raw.cpp conv-raw/to-raw.cpp
+endif
+endif
+
+if WITH_SNDFILE
+if DYNAMIC_MODULES
+pkglib_LTLIBRARIES += conv-sndfile.la
+conv_sndfile_la_SOURCES = conv-sndfile/from-sndfile.cpp conv-sndfile/to-sndfile.cpp
+conv_sndfile_la_LIBADD = $(libsndfile_LIBS) base/libbase.la
+else
+libbuiltin_la_SOURCES += conv-sndfile/from-sndfile.cpp conv-sndfile/to-sndfile.cpp
+libbuiltin_la_LIBADD += $(libsndfile_LIBS)
 endif
 endif

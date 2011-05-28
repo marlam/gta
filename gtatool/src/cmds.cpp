@@ -105,6 +105,7 @@ CMD_DECL(from_pfs)
 CMD_DECL(from_ply)
 CMD_DECL(from_rat)
 CMD_DECL(from_raw)
+CMD_DECL(from_sndfile)
 CMD_DECL(gui)
 CMD_DECL(help)
 CMD_DECL(info)
@@ -125,6 +126,7 @@ CMD_DECL(to_pfs)
 CMD_DECL(to_ply)
 CMD_DECL(to_rat)
 CMD_DECL(to_raw)
+CMD_DECL(to_sndfile)
 CMD_DECL(uncompress)
 CMD_DECL(version)
 
@@ -161,6 +163,7 @@ static cmd_t cmds[] =
     CMD("from-ply",          conversion, from_ply,          WITH_PLY,      "conv-ply"),
     CMD("from-rat",          conversion, from_rat,          WITH_RAT,      "conv-rat"),
     CMD("from-raw",          conversion, from_raw,          WITH_RAW,      "conv-raw"),
+    CMD("from-sndfile",      conversion, from_sndfile,      WITH_SNDFILE,  "conv-sndfile"),
     CMD("gui",               misc,       gui,               WITH_QT,       "gui"),
     CMD("help",              misc,       help,              true,          BUILTIN),
     CMD("info",              array,      info,              true,          BUILTIN),
@@ -181,6 +184,7 @@ static cmd_t cmds[] =
     CMD("to-ply",            conversion, to_ply,            WITH_PLY,      "conv-ply"),
     CMD("to-rat",            conversion, to_rat,            WITH_RAT,      "conv-rat"),
     CMD("to-raw",            conversion, to_raw,            WITH_RAW,      "conv-raw"),
+    CMD("to-sndfile",        conversion, to_sndfile,        WITH_SNDFILE,  "conv-sndfile"),
     CMD("uncompress",        array,      uncompress,        true,          BUILTIN),
     CMD("version",           misc,       version,           true,          BUILTIN),
 };

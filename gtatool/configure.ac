@@ -331,6 +331,20 @@ AC_ARG_WITH([raw],
 AC_DEFINE_UNQUOTED([WITH_RAW], [`if test "$raw" = "yes"; then echo "1"; else echo "0"; fi`], [Use raw?])
 AM_CONDITIONAL([WITH_RAW], [test "$raw" = "yes"])
 
+dnl conv-sndfile: libsndfile
+AC_ARG_WITH([sndfile],
+    [AS_HELP_STRING([--with-sndfile], [Enable SNDFILE import/export. Enabled by default if libsndfile is available.])],
+    [if test "$withval" = "yes"; then sndfile="yes"; else sndfile="no "; fi], [sndfile="yes"])
+if test "$sndfile" = "yes"; then
+    PKG_CHECK_MODULES([libsndfile], [sndfile >= 0.0], [],
+        [sndfile="no "
+        AC_MSG_WARN([sndfile library not found:])
+        AC_MSG_WARN([$libsndfile_PKG_ERRORS])
+        AC_MSG_WARN([Disabled the from-sndfile and to-sndfile commands.])])
+fi
+AC_DEFINE_UNQUOTED([WITH_SNDFILE], [`if test "$sndfile" = "yes"; then echo "1"; else echo "0"; fi`], [Use sndfile?])
+AM_CONDITIONAL([WITH_SNDFILE], [test "$sndfile" = "yes"])
+
 dnl Output
 AC_CONFIG_FILES([Makefile \
     src/Makefile \
@@ -356,5 +370,6 @@ echo "from-pfs, to-pfs:        " "$pfs" "(Requires pfstools, Debian package: lib
 echo "from-ply, to-ply:        " "$ply" ""
 echo "from-rat, to-rat:        " "$rat" ""
 echo "from-raw, to-raw:        " "$raw" ""
+echo "from-sndfile, to-sndfile:" "$sndfile" "(Requires libsndfile, Debian package: libsndfile1-dev)"
 echo "gui:                     " "$qt" "(Requires Qt, Debian package: libqt4-dev)"
 echo ""
