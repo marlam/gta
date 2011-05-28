@@ -29,6 +29,8 @@
 #include "msg.h"
 #include "opt.h"
 #include "str.h"
+#include "cio.h"
+#include "blob.h"
 
 #include "lib.h"
 
@@ -145,11 +147,12 @@ extern "C" int gtatool_from_ffmpeg(int argc, char *argv[])
         {
             int s = stream.value() - input.video_streams() - 1;
             input.audio_stream_set_active(s, true);
-            audio_blob blob;
+            audio_blob ablob;
             gta::header hdr;
             std::string name;
+            element_loop_t element_loop;
 
-            hdr.set_dimensions(input.audio_blob_template(s).rate * input.audio_duration(s) / 1000000);
+            hdr.set_dimensions(1);      // number of samples; will be corrected later
             std::vector<gta::type> types;
             switch (input.audio_blob_template(s).sample_format)
             {
@@ -174,28 +177,55 @@ extern "C" int gtatool_from_ffmpeg(int argc, char *argv[])
             hdr.dimension_taglist(0).set("SAMPLE-DISTANCE",
                     (str::from(1.0 / input.audio_blob_template(s).rate) + " s").c_str());
 
-            array_loop.write(hdr, name);
-            element_loop_t element_loop;
-            array_loop.start_element_loop(element_loop, gta::header(), hdr);
-            uintmax_t elements = hdr.elements();
-            uintmax_t e = std::min(elements, static_cast<uintmax_t>(10000));
-            input.start_audio_blob_read(s, e * hdr.element_size());
-            while (e > 0)
+            /* First, read all audio and store it in a temporary file, since we do not
+             * know the exact number of audio samples in the stream; (rate * duration)
+             * is just an estimate. */
+            uintmax_t rate = input.audio_blob_template(s).rate;
+            uintmax_t samples_estimate = rate * input.audio_duration(s) / 1000000;
+            uintmax_t samples = 0;
+            uintmax_t n = std::min(samples_estimate, rate);
+            if (n < rate)
             {
-                blob = input.finish_audio_blob_read(s);
-                if (!blob.is_valid())
-                {
-                    throw exc(name + ": cannot read enough audio data");
-                }
-                elements -= e;
-                uintmax_t e_bak = e;
-                e = std::min(elements, static_cast<uintmax_t>(10000));
-                if (e > 0)
-                {
-                    input.start_audio_blob_read(s, e * hdr.element_size());
-                }
-                element_loop.write(blob.data, e_bak);
+                // read the last second worth of samples one at a time so that we do not miss any.
+                n = 1;
             }
+            input.start_audio_blob_read(s, n * hdr.element_size());
+            FILE *tmpf = cio::tempfile();
+            while (n > 0)
+            {
+                ablob = input.finish_audio_blob_read(s);
+                if (!ablob.is_valid())
+                {
+                    break;      // end of stream
+                }
+                samples_estimate = (samples_estimate >= n) ? samples_estimate - n : 0;
+                uintmax_t n_bak = n;
+                n = std::min(samples_estimate, rate);
+                if (n < rate)
+                {
+                    // read the last second worth of samples one at a time so that we do not miss any.
+                    n = 1;
+                }
+                input.start_audio_blob_read(s, n * hdr.element_size());
+                cio::write(ablob.data, hdr.element_size(), n_bak, tmpf);
+                samples += n_bak;
+            }
+            cio::flush(tmpf);
+
+            /* Now we know the exact number of samples. Write the complete data to the GTA. */
+            hdr.set_dimensions(samples);
+            array_loop.write(hdr, name);
+            cio::rewind(tmpf);
+            array_loop.start_element_loop(element_loop, gta::header(), hdr);
+            blob buf(10000 * hdr.element_size());
+            while (samples > 0)
+            {
+                n = std::min(samples, static_cast<uintmax_t>(10000));
+                cio::read(buf.ptr(), hdr.element_size(), n, tmpf);
+                element_loop.write(buf.ptr(), n);
+                samples -= n;
+            }
+            cio::close(tmpf);
         }
         array_loop.finish();
         input.close();
