@@ -620,8 +620,8 @@ extern "C" void gtatool_component_convert_help(void)
             "\n"
             "Converts the array element components of the given GTAs to the given types, "
             "and writes the resulting GTA to standard output.\n"
-            "If -n is given, the range of a integer types is normalized when converting to a "
-            "floating point type ([0,1] for unsigned integers, [-1,1] for signed integers).\n"
+            "If --normalize is given, the range of an integer type is normalized when converting it to a "
+            "floating point type (to [0,1] for unsigned integers, and to [-1,1] for signed integers).\n"
             "Example: component-convert -c uint8,uint8,uint8 hdr.gta > rgb.gta");
 }
 
