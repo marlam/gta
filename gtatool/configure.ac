@@ -205,7 +205,7 @@ AC_ARG_WITH([ffmpeg],
     [if test "$withval" = "yes"; then ffmpeg="yes"; else ffmpeg="no "; fi], [ffmpeg="yes"])
 if test "$ffmpeg" = "yes"; then
     AC_CHECK_FUNCS([sysconf])
-    PKG_CHECK_MODULES([libffmpeg], [libavformat >= 52.108.0 libavcodec libavdevice libavutil libswscale], [],
+    PKG_CHECK_MODULES([libffmpeg], [libavformat >= 53.2.0 libavcodec libavdevice libavutil libswscale], [],
         [ffmpeg="no "
         AC_MSG_WARN([FFmpeg library not found:])
         AC_MSG_WARN([$libffmpeg_PKG_ERRORS])
