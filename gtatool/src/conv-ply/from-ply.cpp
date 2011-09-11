@@ -101,7 +101,7 @@ extern "C" int gtatool_from_ply(int argc, char *argv[])
             {
                 int num_elems;
                 int nprops;
-                (void)ply_get_element_description(ply, "vertex", &num_elems, &nprops);
+                (void)ply_get_element_description(ply, const_cast<char *>("vertex"), &num_elems, &nprops);
 
                 gta::header hdr;
                 std::string nameo;
