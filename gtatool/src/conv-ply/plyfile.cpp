@@ -2004,6 +2004,10 @@ char **get_words(FILE *fp, int *nwords, char **orig_line)
       *ptr = ' ';
       *ptr2 = ' ';
     }
+    else if (*ptr == '\r') {
+      *ptr = ' ';
+      *ptr2 = ' ';
+    }
     else if (*ptr == '\n') {
       *ptr = ' ';
       *ptr2 = '\0';
