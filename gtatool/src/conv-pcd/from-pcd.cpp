@@ -40,7 +40,7 @@
 
 extern "C" void gtatool_from_pcd_help(void)
 {
-    msg::req_txt("from-pcd [<input-file>] <output-file>\n"
+    msg::req_txt("from-pcd <input-file> [<output-file>]\n"
             "\n"
             "Converts PCD files to GTAs.\n"
             "Currently only XYZ, XYZI, and XYZRGB data is supported.");

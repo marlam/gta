@@ -39,7 +39,7 @@
 
 extern "C" void gtatool_from_ply_help(void)
 {
-    msg::req_txt("from-ply [<input-file>] <output-file>\n"
+    msg::req_txt("from-ply <input-file> [<output-file>]\n"
             "\n"
             "Converts PLY files to GTAs. Currently only point clouds (vertex lists) are supported, "
             "but no faces, edges, or materials.\n"

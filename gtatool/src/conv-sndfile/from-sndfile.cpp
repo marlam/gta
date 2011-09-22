@@ -39,7 +39,7 @@
 
 extern "C" void gtatool_from_sndfile_help(void)
 {
-    msg::req_txt("from-sndfile [<input-file>] <output-file>\n"
+    msg::req_txt("from-sndfile <input-file> [<output-file>]\n"
             "\n"
             "Converts audio files that libsndfile can read to GTAs.");
 }
