@@ -175,45 +175,45 @@ extern "C" int gtatool_to_ply(int argc, char *argv[])
             ply_vertex v;
             for (uintmax_t e = 0; e < hdr.elements(); e++)
             {
-                void *e = element_loop.read();
+                void *p = element_loop.read();
                 if (hdr.components() == 1)
                 {
-                    std::memcpy(&v.x, hdr.component(e, 0), sizeof(float));
+                    std::memcpy(&v.x, hdr.component(p, 0), sizeof(float));
                 }
                 else if (hdr.components() == 2)
                 {
-                    std::memcpy(&v.x, hdr.component(e, 0), sizeof(float));
-                    std::memcpy(&v.y, hdr.component(e, 1), sizeof(float));
+                    std::memcpy(&v.x, hdr.component(p, 0), sizeof(float));
+                    std::memcpy(&v.y, hdr.component(p, 1), sizeof(float));
                 }
                 else if (hdr.components() == 3)
                 {
-                    std::memcpy(&v.x, hdr.component(e, 0), sizeof(float));
-                    std::memcpy(&v.y, hdr.component(e, 1), sizeof(float));
-                    std::memcpy(&v.z, hdr.component(e, 2), sizeof(float));
+                    std::memcpy(&v.x, hdr.component(p, 0), sizeof(float));
+                    std::memcpy(&v.y, hdr.component(p, 1), sizeof(float));
+                    std::memcpy(&v.z, hdr.component(p, 2), sizeof(float));
                 }
                 else if (hdr.components() == 4)
                 {
-                    std::memcpy(&v.x, hdr.component(e, 0), sizeof(float));
-                    std::memcpy(&v.r, hdr.component(e, 1), sizeof(uint8_t));
-                    std::memcpy(&v.g, hdr.component(e, 2), sizeof(uint8_t));
-                    std::memcpy(&v.b, hdr.component(e, 3), sizeof(uint8_t));
+                    std::memcpy(&v.x, hdr.component(p, 0), sizeof(float));
+                    std::memcpy(&v.r, hdr.component(p, 1), sizeof(uint8_t));
+                    std::memcpy(&v.g, hdr.component(p, 2), sizeof(uint8_t));
+                    std::memcpy(&v.b, hdr.component(p, 3), sizeof(uint8_t));
                 }
                 else if (hdr.components() == 5)
                 {
-                    std::memcpy(&v.x, hdr.component(e, 0), sizeof(float));
-                    std::memcpy(&v.y, hdr.component(e, 1), sizeof(float));
-                    std::memcpy(&v.r, hdr.component(e, 2), sizeof(uint8_t));
-                    std::memcpy(&v.g, hdr.component(e, 3), sizeof(uint8_t));
-                    std::memcpy(&v.b, hdr.component(e, 4), sizeof(uint8_t));
+                    std::memcpy(&v.x, hdr.component(p, 0), sizeof(float));
+                    std::memcpy(&v.y, hdr.component(p, 1), sizeof(float));
+                    std::memcpy(&v.r, hdr.component(p, 2), sizeof(uint8_t));
+                    std::memcpy(&v.g, hdr.component(p, 3), sizeof(uint8_t));
+                    std::memcpy(&v.b, hdr.component(p, 4), sizeof(uint8_t));
                 }
                 else
                 {
-                    std::memcpy(&v.x, hdr.component(e, 0), sizeof(float));
-                    std::memcpy(&v.y, hdr.component(e, 1), sizeof(float));
-                    std::memcpy(&v.z, hdr.component(e, 2), sizeof(float));
-                    std::memcpy(&v.r, hdr.component(e, 3), sizeof(uint8_t));
-                    std::memcpy(&v.g, hdr.component(e, 4), sizeof(uint8_t));
-                    std::memcpy(&v.b, hdr.component(e, 5), sizeof(uint8_t));
+                    std::memcpy(&v.x, hdr.component(p, 0), sizeof(float));
+                    std::memcpy(&v.y, hdr.component(p, 1), sizeof(float));
+                    std::memcpy(&v.z, hdr.component(p, 2), sizeof(float));
+                    std::memcpy(&v.r, hdr.component(p, 3), sizeof(uint8_t));
+                    std::memcpy(&v.g, hdr.component(p, 4), sizeof(uint8_t));
+                    std::memcpy(&v.b, hdr.component(p, 5), sizeof(uint8_t));
                 }
                 ply_put_element(ply, &v);
             }

@@ -143,11 +143,11 @@ extern "C" int gtatool_component_merge(int argc, char *argv[])
             gta::io_state so;
             for (uintmax_t e = 0; e < hdro.elements(); e++)
             {
-                void *e = element_buf.ptr();
+                void *p = element_buf.ptr();
                 for (size_t i = 0; i < arguments.size(); i++)
                 {
-                    hdri[i].read_elements(si[i], fi[i], 1, e);
-                    e = static_cast<void *>(static_cast<char *>(e) + hdri[i].element_size());
+                    hdri[i].read_elements(si[i], fi[i], 1, p);
+                    p = static_cast<void *>(static_cast<char *>(p) + hdri[i].element_size());
                 }
                 hdro.write_elements(so, gtatool_stdout, 1, element_buf.ptr());
             }
