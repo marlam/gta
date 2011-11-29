@@ -350,7 +350,7 @@ media_object::~media_object()
     }
 }
 
-void media_object::set_video_frame_template(int index)
+void media_object::set_video_frame_template(int index, int width_before_avcodec_open, int height_before_avcodec_open)
 {
     AVStream *video_stream = _ffmpeg->format_ctx->streams[_ffmpeg->video_streams[index]];
     AVCodecContext *video_codec_ctx = _ffmpeg->video_codec_ctxs[index];
@@ -359,6 +359,22 @@ void media_object::set_video_frame_template(int index)
     // Dimensions and aspect ratio
     video_frame_template.raw_width = video_codec_ctx->width;
     video_frame_template.raw_height = video_codec_ctx->height;
+    // XXX Use width/height values from before avcodec_open() if they
+    // differ and seem safe to use. See also media_object::open().
+    if (width_before_avcodec_open >= 1
+            && height_before_avcodec_open >= 1
+            && width_before_avcodec_open <= video_codec_ctx->width
+            && height_before_avcodec_open <= video_codec_ctx->height
+            && (width_before_avcodec_open != video_codec_ctx->width
+                || height_before_avcodec_open != video_codec_ctx->height))
+    {
+        msg::dbg("%s video stream %d: using frame size %dx%d instead of %dx%d.",
+                _url.c_str(), index + 1,
+                width_before_avcodec_open, height_before_avcodec_open,
+                video_codec_ctx->width, video_codec_ctx->height);
+        video_frame_template.raw_width = width_before_avcodec_open;
+        video_frame_template.raw_height = height_before_avcodec_open;
+    }
     int ar_num = 1;
     int ar_den = 1;
     int ar_snum = video_stream->sample_aspect_ratio.num;
@@ -385,14 +401,19 @@ void media_object::set_video_frame_template(int index)
     video_frame_template.chroma_location = video_frame::center;
     if (!_always_convert_to_bgra32
             && (video_codec_ctx->pix_fmt == PIX_FMT_YUV444P
+                || video_codec_ctx->pix_fmt == PIX_FMT_YUV444P10
                 || video_codec_ctx->pix_fmt == PIX_FMT_YUV422P
-                || video_codec_ctx->pix_fmt == PIX_FMT_YUV420P))
+                || video_codec_ctx->pix_fmt == PIX_FMT_YUV422P10
+                || video_codec_ctx->pix_fmt == PIX_FMT_YUV420P
+                || video_codec_ctx->pix_fmt == PIX_FMT_YUV420P10))
     {
-        if (video_codec_ctx->pix_fmt == PIX_FMT_YUV444P)
+        if (video_codec_ctx->pix_fmt == PIX_FMT_YUV444P
+                || video_codec_ctx->pix_fmt == PIX_FMT_YUV444P10)
         {
             video_frame_template.layout = video_frame::yuv444p;
         }
-        else if (video_codec_ctx->pix_fmt == PIX_FMT_YUV422P)
+        else if (video_codec_ctx->pix_fmt == PIX_FMT_YUV422P
+                || video_codec_ctx->pix_fmt == PIX_FMT_YUV422P10)
         {
             video_frame_template.layout = video_frame::yuv422p;
         }
@@ -405,10 +426,23 @@ void media_object::set_video_frame_template(int index)
         {
             video_frame_template.color_space = video_frame::yuv709;
         }
-        video_frame_template.value_range = video_frame::u8_mpeg;
-        if (video_codec_ctx->color_range == AVCOL_RANGE_JPEG)
+        if (video_codec_ctx->pix_fmt == PIX_FMT_YUV444P10
+                || video_codec_ctx->pix_fmt == PIX_FMT_YUV422P10
+                || video_codec_ctx->pix_fmt == PIX_FMT_YUV420P10)
         {
-            video_frame_template.value_range = video_frame::u8_full;
+            video_frame_template.value_range = video_frame::u10_mpeg;
+            if (video_codec_ctx->color_range == AVCOL_RANGE_JPEG)
+            {
+                video_frame_template.value_range = video_frame::u10_full;
+            }
+        }
+        else
+        {
+            video_frame_template.value_range = video_frame::u8_mpeg;
+            if (video_codec_ctx->color_range == AVCOL_RANGE_JPEG)
+            {
+                video_frame_template.value_range = video_frame::u8_full;
+            }
         }
         video_frame_template.chroma_location = video_frame::center;
         if (video_codec_ctx->chroma_sample_location == AVCHROMA_LOC_LEFT)
@@ -779,6 +813,13 @@ void media_object::open(const std::string &url, const device_request &dev_reques
         _ffmpeg->format_ctx->streams[i]->discard = AVDISCARD_ALL;        // ignore by default; user must activate streams
         AVCodecContext *codec_ctx = _ffmpeg->format_ctx->streams[i]->codec;
         AVCodec *codec = NULL;
+        // XXX: Sometimes the reported width and height for a video stream change after avcodec_open(),
+        // but the original values seem to be correct. This seems to happen mostly with 1920x1080 video
+        // that later is reported as 1920x1088, which results in a gray bar displayed at the bottom of
+        // the frame. FFplay is also affected. As a workaround, we keep the original values here and use
+        // them later in set_video_frame_template().
+        int width_before_avcodec_open = codec_ctx->width;
+        int height_before_avcodec_open = codec_ctx->height;
         if (_ffmpeg->format_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
         {
             // Activate multithreaded decoding. This must be done before opening the codec; see
@@ -811,7 +852,7 @@ void media_object::open(const std::string &url, const device_request &dev_reques
             _ffmpeg->video_codecs.push_back(codec);
             // Determine frame template.
             _ffmpeg->video_frame_templates.push_back(video_frame());
-            set_video_frame_template(j);
+            set_video_frame_template(j, width_before_avcodec_open, height_before_avcodec_open);
             // Allocate things required for decoding
             _ffmpeg->video_packets.push_back(AVPacket());
             av_init_packet(&(_ffmpeg->video_packets[j]));

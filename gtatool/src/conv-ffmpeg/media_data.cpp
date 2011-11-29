@@ -267,6 +267,12 @@ std::string video_frame::format_name() const
         case u8_mpeg:
             name += "-mpeg";
             break;
+        case u10_full:
+            name += "-jpeg10";
+            break;
+        case u10_mpeg:
+            name += "-mpeg10";
+            break;
         }
     }
     if (layout == yuv422p || layout == yuv420p)
@@ -307,18 +313,19 @@ void video_frame::copy_plane(int view, int plane, void *buf) const
     size_t dst_row_width = 0;
     size_t dst_row_size = 0;
     size_t lines = 0;
+    size_t type_size = (value_range == u8_full || value_range == u8_mpeg) ? 1 : 2;
 
     switch (layout)
     {
     case bgra32:
         dst_row_width = width * 4;
-        dst_row_size = dst_row_width;
+        dst_row_size = dst_row_width * type_size;
         lines = height;
         break;
 
     case yuv444p:
         dst_row_width = width;
-        dst_row_size = next_multiple_of_4(dst_row_width);
+        dst_row_size = next_multiple_of_4(dst_row_width * type_size);
         lines = height;
         break;
 
@@ -326,13 +333,13 @@ void video_frame::copy_plane(int view, int plane, void *buf) const
         if (plane == 0)
         {
             dst_row_width = width;
-            dst_row_size = next_multiple_of_4(dst_row_width);
+            dst_row_size = next_multiple_of_4(dst_row_width * type_size);
             lines = height;
         }
         else
         {
             dst_row_width = width / 2;
-            dst_row_size = next_multiple_of_4(dst_row_width);
+            dst_row_size = next_multiple_of_4(dst_row_width * type_size);
             lines = height;
         }
         break;
@@ -341,13 +348,13 @@ void video_frame::copy_plane(int view, int plane, void *buf) const
         if (plane == 0)
         {
             dst_row_width = width;
-            dst_row_size = next_multiple_of_4(dst_row_width);
+            dst_row_size = next_multiple_of_4(dst_row_width * type_size);
             lines = height;
         }
         else
         {
             dst_row_width = width / 2;
-            dst_row_size = next_multiple_of_4(dst_row_width);
+            dst_row_size = next_multiple_of_4(dst_row_width * type_size);
             lines = height / 2;
         }
         break;
@@ -397,7 +404,7 @@ void video_frame::copy_plane(int view, int plane, void *buf) const
         size_t dst_offset = 0;
         for (size_t y = 0; y < lines; y++)
         {
-            std::memcpy(dst + dst_offset, src + src_offset, dst_row_width);
+            std::memcpy(dst + dst_offset, src + src_offset, dst_row_width * type_size);
             dst_offset += dst_row_size;
             src_offset += src_row_size;
         }
@@ -576,45 +583,46 @@ parameters::parameters() :
     fullscreen_flip_left(-1),
     fullscreen_flop_left(-1),
     fullscreen_flip_right(-1),
-    fullscreen_flop_right(-1)
+    fullscreen_flop_right(-1),
+    zoom(-1.0f)
 {
 }
 
 void parameters::set_defaults()
 {
-    if (!std::isfinite(parallax) || parallax < -1.0f || parallax > +1.0f)
+    if (!std::isnormal(parallax) || parallax < -1.0f || parallax > +1.0f)
     {
         parallax = 0.0f;
     }
-    if (!std::isfinite(crosstalk_r) || crosstalk_r < 0.0f || crosstalk_r > +1.0f)
+    if (!std::isnormal(crosstalk_r) || crosstalk_r < 0.0f || crosstalk_r > +1.0f)
     {
         crosstalk_r = 0.0f;
     }
-    if (!std::isfinite(crosstalk_g) || crosstalk_g < 0.0f || crosstalk_g > +1.0f)
+    if (!std::isnormal(crosstalk_g) || crosstalk_g < 0.0f || crosstalk_g > +1.0f)
     {
         crosstalk_g = 0.0f;
     }
-    if (!std::isfinite(crosstalk_b) || crosstalk_b < 0.0f || crosstalk_b > +1.0f)
+    if (!std::isnormal(crosstalk_b) || crosstalk_b < 0.0f || crosstalk_b > +1.0f)
     {
         crosstalk_b = 0.0f;
     }
-    if (!std::isfinite(ghostbust) || ghostbust < 0.0f || ghostbust > +1.0f)
+    if (!std::isnormal(ghostbust) || ghostbust < 0.0f || ghostbust > +1.0f)
     {
         ghostbust = 0.0f;
     }
-    if (!std::isfinite(contrast) || contrast < -1.0f || contrast > +1.0f)
+    if (!std::isnormal(contrast) || contrast < -1.0f || contrast > +1.0f)
     {
         contrast = 0.0f;
     }
-    if (!std::isfinite(brightness) || brightness < -1.0f || brightness > +1.0f)
+    if (!std::isnormal(brightness) || brightness < -1.0f || brightness > +1.0f)
     {
         brightness = 0.0f;
     }
-    if (!std::isfinite(hue) || hue < -1.0f || hue > +1.0f)
+    if (!std::isnormal(hue) || hue < -1.0f || hue > +1.0f)
     {
         hue = 0.0f;
     }
-    if (!std::isfinite(saturation) || saturation < -1.0f || saturation > +1.0f)
+    if (!std::isnormal(saturation) || saturation < -1.0f || saturation > +1.0f)
     {
         saturation = 0.0f;
     }
@@ -630,7 +638,7 @@ void parameters::set_defaults()
     {
         subtitle_size = -1;
     }
-    if (!std::isfinite(subtitle_scale) || subtitle_scale < 0.0f)
+    if (!std::isnormal(subtitle_scale) || subtitle_scale < 0.0f)
     {
         subtitle_scale = -1.0f;
     }
@@ -638,7 +646,7 @@ void parameters::set_defaults()
     {
         subtitle_color = std::numeric_limits<uint64_t>::max();
     }
-    if (!std::isfinite(subtitle_parallax) || subtitle_parallax < -1.0f || subtitle_parallax > +1.0f)
+    if (!std::isnormal(subtitle_parallax) || subtitle_parallax < -1.0f || subtitle_parallax > +1.0f)
     {
         subtitle_parallax = 0.0f;
     }
@@ -661,6 +669,10 @@ void parameters::set_defaults()
     if (fullscreen_flop_right < 0)
     {
         fullscreen_flop_right = 0;
+    }
+    if (!std::isnormal(zoom) || zoom < 0.0f)
+    {
+        zoom = 0.0f;
     }
 }
 
@@ -898,6 +910,7 @@ void parameters::save(std::ostream &os) const
     s11n::save(os, fullscreen_flop_left);
     s11n::save(os, fullscreen_flip_right);
     s11n::save(os, fullscreen_flop_right);
+    s11n::save(os, zoom);
 }
 
 void parameters::load(std::istream &is)
@@ -928,4 +941,5 @@ void parameters::load(std::istream &is)
     s11n::load(is, fullscreen_flop_left);
     s11n::load(is, fullscreen_flip_right);
     s11n::load(is, fullscreen_flop_right);
+    s11n::load(is, zoom);
 }

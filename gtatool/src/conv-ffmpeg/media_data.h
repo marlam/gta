@@ -83,7 +83,9 @@ public:
     typedef enum
     {
         u8_full,        // 0-255 for all components
-        u8_mpeg         // 16-235 for Y, 16-240 for U and V
+        u8_mpeg,        // 16-235 for Y, 16-240 for U and V
+        u10_full,       // 0-1023 for all components (stored in 16 bits)
+        u10_mpeg,       // 64-940 for Y, 64-960 for U and V (stored in 16 bits)
     } value_range_t;
 
     // Location of chroma samples (only relevant for chroma subsampling layouts)
@@ -330,6 +332,7 @@ public:
     int fullscreen_flop_left;           // Flop left view horizontally in fullscreen mode (0/1)
     int fullscreen_flip_right;          // Flip right view vertically in fullscreen mode (0/1)
     int fullscreen_flop_right;          // Flop right view horizontally in fullscreen mode (0/1)
+    float zoom;                         // Zoom, 0 = off (show full video width) .. 1 = full (use full screen height)
 
     // Constructor
     parameters();
