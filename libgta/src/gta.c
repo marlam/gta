@@ -57,6 +57,10 @@
 #   define fseeko(stream, offset, whence) fseeko64(stream, offset, whence)
 #   define ftello(stream) ftello64(stream)
 #   define lseek(fd, offset, whence) _lseeki64(fd, offset, whence)
+#   ifndef SSIZE_MAX
+#       define SSIZE_MAX (sizeof(ssize_t) == sizeof(long long) ? LLONG_MAX \
+                : sizeof(ssize_t) == sizeof(long) ? LONG_MAX : INT_MAX)
+#   endif
 #endif
 
 /* Define OFF_MAX (maximum value in off_t). */
