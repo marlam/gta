@@ -97,8 +97,8 @@
 
 #include <stdio.h>
 
-#ifdef _MSC_VER
-/* MSVC lacks the C99 header <stdint.h> */
+#if defined _MSC_VER && _MSC_VER < 1600
+/* MSVC versions older than Visual Studio 2010 lack the C99 header <stdint.h> */
 typedef signed __int64 intmax_t;
 typedef unsigned __int64 uintmax_t;
 #   ifdef _WIN64
