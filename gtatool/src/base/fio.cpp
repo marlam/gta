@@ -88,7 +88,7 @@
 #ifndef S_IXGRP
 # define S_IXGRP 0
 #endif
-#ifndef S_IRWGX
+#ifndef S_IRWXG
 # define S_IRWXG (S_IRGRP | S_IWGRP | S_IXGRP)
 #endif
 #ifndef S_IROTH
