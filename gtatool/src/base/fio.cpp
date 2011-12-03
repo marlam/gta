@@ -44,7 +44,7 @@
 #if W32
 # include <climits>
 # define WIN32_LEAN_AND_MEAN    /* do not include more than necessary */
-# define _WIN32_WINNT 0x0502    /* Windows XP SP2 or later */
+# define _WIN32_WINNT 0x0600    /* Windows Vista or later */
 # include <windows.h>
 # include <shlwapi.h>
 # include <sys/locking.h>
@@ -67,12 +67,41 @@
 # define fseeko(stream, offset, whence) fseeko64(stream, offset, whence)
 #endif
 
-#ifndef S_IRWXG
-# define S_IRWXG 0
+#ifndef S_IRUSR
+# define S_IRUSR _S_IREAD
 #endif
-
+#ifndef S_IWUSR
+# define S_IWUSR _S_IWRITE
+#endif
+#ifndef S_IXUSR
+# define S_IXUSR 0
+#endif
+#ifndef S_IRWXU
+# define S_IRWXU (S_IRUSR | S_IWUSR | S_IXUSR)
+#endif
+#ifndef S_IRGRP
+# define S_IRGRP _S_IREAD
+#endif
+#ifndef S_IWGRP
+# define S_IWGRP _S_IWRITE
+#endif
+#ifndef S_IXGRP
+# define S_IXGRP 0
+#endif
+#ifndef S_IRWGX
+# define S_IRWXG (S_IRGRP | S_IWGRP | S_IXGRP)
+#endif
+#ifndef S_IROTH
+# define S_IROTH _S_IREAD
+#endif
+#ifndef S_IWOTH
+# define S_IWOTH _S_IWRITE
+#endif
+#ifndef S_IXOTH
+# define S_IXOTH 0
+#endif
 #ifndef S_IRWXO
-# define S_IRWXO 0
+# define S_IRWXO (S_IROTH | S_IWOTH | S_IXOTH)
 #endif
 
 #ifndef HAVE_FNMATCH
@@ -106,52 +135,64 @@ static int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
 }
 #endif
 
+#if not defined(HAVE_LINK) || not defined(HAVE_SYMLINK)
+static void set_errno_from_last_error(DWORD err)
+{
+    /* It is not documented which errors CreateHardLink() can produce.
+     * The following conversions are based on tests on a Windows XP SP2
+     * system. */
+    switch (err)
+    {
+    case ERROR_ACCESS_DENIED:
+        errno = EACCES;
+        break;
+    case ERROR_INVALID_FUNCTION:        /* fs does not support hard links */
+        errno = EPERM;
+        break;
+    case ERROR_NOT_SAME_DEVICE:
+        errno = EXDEV;
+        break;
+    case ERROR_PATH_NOT_FOUND:
+    case ERROR_FILE_NOT_FOUND:
+        errno = ENOENT;
+        break;
+    case ERROR_INVALID_PARAMETER:
+        errno = ENAMETOOLONG;
+        break;
+    case ERROR_TOO_MANY_LINKS:
+        errno = EMLINK;
+        break;
+    case ERROR_ALREADY_EXISTS:
+        errno = EEXIST;
+        break;
+    default:
+        errno = EIO;
+    }
+}
+#endif
+
 #ifndef HAVE_LINK
 static int link(const char *path1, const char *path2)
 {
     if (CreateHardLink(path2, path1, nullptr) == 0)
     {
-        /* It is not documented which errors CreateHardLink() can produce.
-         * The following conversions are based on tests on a Windows XP SP2
-         * system. */
         DWORD err = GetLastError();
-        switch (err)
-        {
-            case ERROR_ACCESS_DENIED:
-                errno = EACCES;
-                break;
-
-            case ERROR_INVALID_FUNCTION:        /* fs does not support hard links */
-                errno = EPERM;
-                break;
-
-            case ERROR_NOT_SAME_DEVICE:
-                errno = EXDEV;
-                break;
-
-            case ERROR_PATH_NOT_FOUND:
-            case ERROR_FILE_NOT_FOUND:
-                errno = ENOENT;
-                break;
-
-            case ERROR_INVALID_PARAMETER:
-                errno = ENAMETOOLONG;
-                break;
-
-            case ERROR_TOO_MANY_LINKS:
-                errno = EMLINK;
-                break;
-
-            case ERROR_ALREADY_EXISTS:
-                errno = EEXIST;
-                break;
-
-            default:
-                errno = EIO;
-        }
+        set_errno_from_last_error(err);
         return -1;
     }
+    return 0;
+}
+#endif
 
+#ifndef HAVE_SYMLINK
+static int symlink(const char *path1, const char *path2)
+{
+    if (CreateSymbolicLink(path2, path1, 0) == 0)
+    {
+        DWORD err = GetLastError();
+        set_errno_from_last_error(err);
+        return -1;
+    }
     return 0;
 }
 #endif
@@ -649,7 +690,13 @@ error_exit:
             {
                 throw exc(std::string("Cannot read from ")
                         + (!filename.empty() ? to_sys(filename) : "temporary file")
-                        + ": " + std::strerror(ENODATA), ENODATA);
+                        + ": "
+#ifdef ENODATA
+                        + std::strerror(ENODATA), ENODATA
+#else
+                        + "No data available"
+#endif
+                        );
             }
         }
     }
