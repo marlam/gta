@@ -60,6 +60,8 @@ if test "$w32" = "yes"; then
     dnl Define _BSD_SOURCE to get the optreset declaration. We need this
     dnl because we may use getopt_long for more than one command line.
     CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE"
+    dnl For PathMatchSpec() in base module fio:
+    LIBS="$LIBS -lshlwapi"
 else
     MAKENSIS=":"
 fi
