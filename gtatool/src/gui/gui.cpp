@@ -288,17 +288,17 @@ ArrayWidget::ArrayWidget(gta::header *header, QWidget *parent)
 {
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(new QLabel("Dimensions:"), 0, 0, 1, 1);
-    _dimensions_label = new QLineEdit("");
-    _dimensions_label->setReadOnly(true);
-    layout->addWidget(_dimensions_label, 0, 1, 1, 3);
+    _dimensions_ledt = new QLineEdit("");
+    _dimensions_ledt->setReadOnly(true);
+    layout->addWidget(_dimensions_ledt, 0, 1, 1, 3);
     layout->addWidget(new QLabel("Components:"), 1, 0, 1, 1);
-    _components_label = new QLineEdit("");
-    _components_label->setReadOnly(true);
-    layout->addWidget(_components_label, 1, 1, 1, 3);
+    _components_ledt = new QLineEdit("");
+    _components_ledt->setReadOnly(true);
+    layout->addWidget(_components_ledt, 1, 1, 1, 3);
     layout->addWidget(new QLabel("Size:"), 2, 0, 1, 1);
-    _size_label = new QLineEdit("");
-    _size_label->setReadOnly(true);
-    layout->addWidget(_size_label, 2, 1, 1, 3);
+    _size_ledt = new QLineEdit("");
+    _size_ledt->setReadOnly(true);
+    layout->addWidget(_size_ledt, 2, 1, 1, 3);
     layout->addWidget(new QLabel("Compression:"), 3, 0, 1, 1);
     _compression_combobox = new QComboBox();
     _compression_combobox->setEditable(false);
@@ -376,7 +376,22 @@ void ArrayWidget::update()
             dimensions_string += " x ";
         }
     }
-    _dimensions_label->setText(dimensions_string.c_str());
+    if (_header->dimensions() == 0)
+    {
+        dimensions_string += "0 (empty)";
+    }
+    else if (_header->dimensions() == 1)
+    {
+        dimensions_string += " elements";
+    }
+    else
+    {
+        dimensions_string += " (";
+        dimensions_string += str::from(_header->elements());
+        dimensions_string += " elements)";
+    }
+    _dimensions_ledt->setText(dimensions_string.c_str());
+    _dimensions_ledt->setCursorPosition(0);
     std::string components_string;
     for (uintmax_t i = 0; i < _header->components(); i++)
     {
@@ -386,9 +401,19 @@ void ArrayWidget::update()
             components_string += ", ";
         }
     }
-    _components_label->setText(components_string.c_str());
-    _size_label->setText((str::from(_header->data_size()) + " bytes ("
-                + str::human_readable_memsize(_header->data_size()) + ")").c_str());
+    if (_header->components() == 0)
+    {
+        components_string += "none";
+    }
+    _components_ledt->setText(components_string.c_str());
+    _components_ledt->setCursorPosition(0);
+    std::string size_string = str::from(_header->data_size()) + " bytes";
+    if (_header->data_size() >= 1024)
+    {
+        size_string += " (" + str::human_readable_memsize(_header->data_size()) + ")";
+    }
+    _size_ledt->setText(size_string.c_str());
+    _size_ledt->setCursorPosition(0);
     while (_taglists_widget->count() > 0)
     {
         QWidget *w = _taglists_widget->widget(0);

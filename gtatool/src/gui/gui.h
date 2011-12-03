@@ -93,9 +93,9 @@ Q_OBJECT
 
 private:
     gta::header *_header;
-    QLineEdit *_dimensions_label;
-    QLineEdit *_components_label;
-    QLineEdit *_size_label;
+    QLineEdit *_dimensions_ledt;
+    QLineEdit *_components_ledt;
+    QLineEdit *_size_ledt;
     QComboBox *_compression_combobox;
     MyTabWidget *_taglists_widget;
 
