@@ -16,5 +16,6 @@ $GTA create -d 7,11,13 -c int8,int8,int8 -n 2 "$TMPD"/a.gta
 $GTA info --help 2> "$TMPD"/help.txt
 
 $GTA info "$TMPD"/a.gta "$TMPD"/a.gta "$TMPD"/a.gta 2> /dev/null
+$GTA info -s "$TMPD"/a.gta 2> /dev/null
 
 rm -r "$TMPD"
