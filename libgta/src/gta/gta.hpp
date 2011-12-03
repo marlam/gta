@@ -2155,6 +2155,6 @@ namespace gta
     }
 
     /*@}*/
-};
+}
 
 #endif
