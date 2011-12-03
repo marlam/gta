@@ -194,6 +194,12 @@ void type_from_string(const std::string &s, gta::type *t, uintmax_t *size)
 
 void typelist_from_string(const std::string &s, std::vector<gta::type> *types, std::vector<uintmax_t> *sizes)
 {
+    types->clear();
+    sizes->clear();
+    if (s.empty())
+    {
+        return;
+    }
     size_t i = 0;
     do
     {
@@ -361,6 +367,10 @@ void value_from_string(const std::string &s, const gta::type t, const uintmax_t 
 void valuelist_from_string(const std::string &s, const std::vector<gta::type> &types,
         const std::vector<uintmax_t> &sizes, void *valuelist)
 {
+    if ((types.size() == 0 && !s.empty()) || (types.size() > 0 && s.empty()))
+    {
+        throw exc("invalid number of values");
+    }
     size_t i = 0;
     size_t blob_index = 0;
     char *value = static_cast<char *>(valuelist);

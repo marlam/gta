@@ -40,7 +40,7 @@
 extern "C" void gtatool_create_help(void)
 {
     msg::req_txt(
-            "create -d|--dimensions=<d0>[,<d1>[,...]] -c|--components=<c0>[,<c1>[,...]] "
+            "create [-d|--dimensions=<d0>[,<d1>[,...]]] [-c|--components=<c0>[,<c1>[,...]]] "
             "[-v|--value=<v0>[,<v1>[,...]]] [-n|--n=<n>] [<output-file>]\n"
             "\n"
             "Creates n GTAs and writes them to standard output or the given output file.\n"
@@ -57,9 +57,9 @@ extern "C" int gtatool_create(int argc, char *argv[])
     std::vector<opt::option *> options;
     opt::info help("help", '\0', opt::optional);
     options.push_back(&help);
-    opt::tuple<uintmax_t> dimensions("dimensions", 'd', opt::required, 1, std::numeric_limits<uintmax_t>::max());
+    opt::tuple<uintmax_t> dimensions("dimensions", 'd', opt::optional, 1, std::numeric_limits<uintmax_t>::max());
     options.push_back(&dimensions);
-    opt::string components("components", 'c', opt::required);
+    opt::string components("components", 'c', opt::optional);
     options.push_back(&components);
     opt::string value("value", 'v', opt::optional);
     options.push_back(&value);
@@ -81,13 +81,19 @@ extern "C" int gtatool_create(int argc, char *argv[])
         array_loop_t array_loop;
         gta::header hdr;
         std::string name;
-        hdr.set_dimensions(dimensions.value().size(), &(dimensions.value()[0]));
+        if (!dimensions.values().empty())
+        {
+            hdr.set_dimensions(dimensions.value().size(), &(dimensions.value()[0]));
+        }
         std::vector<gta::type> comp_types;
         std::vector<uintmax_t> comp_sizes;
-        typelist_from_string(components.value(), &comp_types, &comp_sizes);
-        hdr.set_components(comp_types.size(), &(comp_types[0]), comp_sizes.size() == 0 ? NULL : &(comp_sizes[0]));
+        if (!components.values().empty())
+        {
+            typelist_from_string(components.value(), &comp_types, &comp_sizes);
+            hdr.set_components(comp_types.size(), &(comp_types[0]), comp_sizes.size() == 0 ? NULL : &(comp_sizes[0]));
+        }
         blob v(checked_cast<size_t>(hdr.element_size()));
-        if (value.value().empty())
+        if (value.values().empty())
         {
             memset(v.ptr(), 0, hdr.element_size());
         }
