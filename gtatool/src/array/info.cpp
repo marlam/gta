@@ -209,6 +209,10 @@ extern "C" int gtatool_info(int argc, char *argv[])
                     dimensions << "x";
                 }
             }
+            if (hdr.dimensions() > 1)
+            {
+                dimensions << " = " << hdr.elements();
+            }
             std::stringstream components;
             for (uintmax_t i = 0; i < hdr.components(); i++)
             {
