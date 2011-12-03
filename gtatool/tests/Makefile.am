@@ -20,6 +20,7 @@ TESTS = \
 	gta-uncompress.sh \
 	gta-dimension-add.sh \
 	gta-dimension-extract.sh \
+	gta-dimension-flatten.sh \
 	gta-dimension-merge.sh \
 	gta-dimension-reorder.sh \
 	gta-dimension-reverse.sh \
