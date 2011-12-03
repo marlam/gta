@@ -541,7 +541,7 @@ static void convert(void *dst, gta::type dst_type, const void *src, gta::type sr
         to_cfloat64(val, src, src_type, normalize);
         if (dst_type == gta::cfloat32)
         {
-            float v[2] = { val[0], val[1] };
+            float v[2] = { static_cast<float>(val[0]), static_cast<float>(val[1]) };
             memcpy(dst, v, 2 * sizeof(float));
         }
         else

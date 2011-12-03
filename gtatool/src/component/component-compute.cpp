@@ -346,7 +346,7 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
                             break;
                         case gta::cfloat32:
                             {
-                                float v[2] = { comp_vars[comp_var_index], comp_vars[comp_var_index + 1] };
+                                float v[2] = { static_cast<float>(comp_vars[comp_var_index]), static_cast<float>(comp_vars[comp_var_index + 1]) };
                                 comp_var_index += 2;
                                 memcpy(hdri.component(element.ptr(), i), v, 2 * sizeof(float));
                             }
