@@ -30,7 +30,7 @@
 #include "msg.h"
 #include "blob.h"
 #include "opt.h"
-#include "cio.h"
+#include "fio.h"
 #include "str.h"
 #include "intcheck.h"
 
@@ -114,7 +114,7 @@ extern "C" int gtatool_dimension_split(int argc, char *argv[])
                         hdro_dim++;
                     }
                 }
-                tmpfilenames[i] = cio::mktempfile(&(tmpfiles[i]), PACKAGE_NAME);
+                tmpfilenames[i] = fio::mktempfile(&(tmpfiles[i]), PACKAGE_NAME);
                 tmpaloops[i].start("", tmpfilenames[i]);
                 tmpaloops[i].start_element_loop(tmpeloops[i], hdri, hdros[i]);
             }
@@ -139,8 +139,8 @@ extern "C" int gtatool_dimension_split(int argc, char *argv[])
                 tmploop.write(hdros[i], nameos[i]);
                 tmploop.copy_data(hdros[i], hdros[i]);
                 tmploop.finish();
-                cio::close(tmpfiles[i], tmpfilenames[i]);
-                cio::remove(tmpfilenames[i]);
+                fio::close(tmpfiles[i], tmpfilenames[i]);
+                fio::remove(tmpfilenames[i]);
             }
         }
         array_loop.finish();

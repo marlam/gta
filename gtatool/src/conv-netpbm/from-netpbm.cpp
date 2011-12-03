@@ -27,7 +27,7 @@
 
 #include "msg.h"
 #include "blob.h"
-#include "cio.h"
+#include "fio.h"
 #include "opt.h"
 #include "intcheck.h"
 
@@ -72,9 +72,9 @@ extern "C" int gtatool_from_netpbm(int argc, char *argv[])
         if (arguments.size() == 2)
         {
             ofilename = arguments[1];
-            fo = cio::open(ofilename, "w");
+            fo = fio::open(ofilename, "w");
         }
-        if (cio::isatty(fo))
+        if (fio::isatty(fo))
         {
             throw exc("refusing to write to a tty");
         }
@@ -87,8 +87,8 @@ extern "C" int gtatool_from_netpbm(int argc, char *argv[])
 
     try
     {
-        FILE *fi = cio::open(ifilename, "r");
-        while (cio::has_more(fi, ifilename))
+        FILE *fi = fio::open(ifilename, "r");
+        while (fio::has_more(fi, ifilename))
         {
             // GTA
             gta::header hdr;
@@ -189,10 +189,10 @@ extern "C" int gtatool_from_netpbm(int argc, char *argv[])
             }
             pnm_freepamrow(tuplerow);
         }
-        cio::close(fi);
+        fio::close(fi);
         if (fo != gtatool_stdout)
         {
-            cio::close(fo);
+            fio::close(fo);
         }
     }
     catch (std::exception &e)

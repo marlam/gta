@@ -40,7 +40,7 @@
 
 #include <gta/gta.hpp>
 
-#include "cio.h"        // For a fixed off_t on W32
+#include "fio.h"        // For a fixed off_t on W32
 
 
 class MyTabWidget : public QTabWidget

@@ -29,7 +29,7 @@
 #include "msg.h"
 #include "opt.h"
 #include "str.h"
-#include "cio.h"
+#include "fio.h"
 #include "blob.h"
 
 #include "lib.h"
@@ -184,7 +184,7 @@ extern "C" int gtatool_from_ffmpeg(int argc, char *argv[])
                 n = 1;
             }
             input.start_audio_blob_read(s, n * hdr.element_size());
-            FILE *tmpf = cio::tempfile();
+            FILE *tmpf = fio::tempfile();
             while (n > 0)
             {
                 ablob = input.finish_audio_blob_read(s);
@@ -201,10 +201,10 @@ extern "C" int gtatool_from_ffmpeg(int argc, char *argv[])
                     n = 1;
                 }
                 input.start_audio_blob_read(s, n * hdr.element_size());
-                cio::write(ablob.data, hdr.element_size(), n_bak, tmpf);
+                fio::write(ablob.data, hdr.element_size(), n_bak, tmpf);
                 samples += n_bak;
             }
-            cio::flush(tmpf);
+            fio::flush(tmpf);
 
             /* Now we know the exact number of samples. Write the complete data to the GTA. */
             hdr.set_dimensions(samples);
@@ -214,17 +214,17 @@ extern "C" int gtatool_from_ffmpeg(int argc, char *argv[])
             hdr.dimension_taglist(0).set("SAMPLE-DISTANCE",
                     (str::from(1.0 / input.audio_blob_template(s).rate) + " s").c_str());
             array_loop.write(hdr, name);
-            cio::rewind(tmpf);
+            fio::rewind(tmpf);
             array_loop.start_element_loop(element_loop, gta::header(), hdr);
             blob buf(10000 * hdr.element_size());
             while (samples > 0)
             {
                 n = std::min(samples, static_cast<uintmax_t>(10000));
-                cio::read(buf.ptr(), hdr.element_size(), n, tmpf);
+                fio::read(buf.ptr(), hdr.element_size(), n, tmpf);
                 element_loop.write(buf.ptr(), n);
                 samples -= n;
             }
-            cio::close(tmpf);
+            fio::close(tmpf);
         }
         array_loop.finish();
         input.close();

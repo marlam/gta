@@ -1,7 +1,4 @@
 /*
- * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
- * (GTAs).
- *
  * Copyright (C) 2009, 2010, 2011
  * Martin Lambers <marlam@marlam.de>
  *
@@ -44,7 +41,7 @@ namespace msg
 
     typedef enum
     {
-        DBG = 0,
+        DBG = 0,        // Only ever printed if NDEBUG is not set!
         INF = 1,
         WRN = 2,
         ERR = 3,
@@ -77,15 +74,29 @@ namespace msg
     void msg_txt(level_t level, const std::string &s);
     void msg_txt(level_t level, const char *format, ...) MSG_AFP(2, 3);
 
+#ifdef NDEBUG
+    inline void dbg(int, const std::string &) { }
+    inline void dbg(int, const char *, ...) { }
+    inline void dbg_txt(int, const std::string &) { }
+    inline void dbg_txt(int, const char *, ...) { }
+#else
     void dbg(int indent, const std::string &s);
     void dbg(int indent, const char *format, ...) MSG_AFP(2, 3);
     void dbg_txt(int indent, const std::string &s);
     void dbg_txt(int indent, const char *format, ...) MSG_AFP(2, 3);
+#endif
 
+#ifdef NDEBUG
+    inline void dbg(const std::string &) { } 
+    inline void dbg(const char *, ...) { }
+    inline void dbg_txt(const std::string &) { }
+    inline void dbg_txt(const char *, ...) { }
+#else
     void dbg(const std::string &s);
     void dbg(const char *format, ...) MSG_AFP(1, 2);
     void dbg_txt(const std::string &s);
     void dbg_txt(const char *format, ...) MSG_AFP(1, 2);
+#endif
 
     void inf(int indent, const std::string &s);
     void inf(int indent, const char *format, ...) MSG_AFP(2, 3);

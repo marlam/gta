@@ -30,7 +30,6 @@
 
 #include "msg.h"
 #include "blob.h"
-#include "cio.h"
 #include "opt.h"
 #include "str.h"
 #include "intcheck.h"

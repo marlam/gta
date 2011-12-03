@@ -30,7 +30,7 @@
 
 #include "msg.h"
 #include "blob.h"
-#include "cio.h"
+#include "fio.h"
 #include "opt.h"
 #include "intcheck.h"
 
@@ -74,9 +74,9 @@ extern "C" int gtatool_from_magick(int argc, char *argv[])
         if (arguments.size() == 2)
         {
             filename = arguments[1];
-            fo = cio::open(filename, "w");
+            fo = fio::open(filename, "w");
         }
-        if (cio::isatty(fo))
+        if (fio::isatty(fo))
         {
             throw exc("refusing to write to a tty");
         }
@@ -174,7 +174,7 @@ extern "C" int gtatool_from_magick(int argc, char *argv[])
         }
         if (fo != gtatool_stdout)
         {
-            cio::close(fo);
+            fio::close(fo);
         }
     }
     catch (std::exception &e)

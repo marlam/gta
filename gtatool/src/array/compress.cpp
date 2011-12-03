@@ -29,7 +29,6 @@
 
 #include "msg.h"
 #include "opt.h"
-#include "cio.h"
 #include "str.h"
 
 #include "lib.h"

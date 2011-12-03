@@ -1,7 +1,4 @@
 /*
- * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
- * (GTAs).
- *
  * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
  * Martin Lambers <marlam@marlam.de>
  *
@@ -25,15 +22,22 @@
 #include <cstdlib>
 #include <cerrno>
 #include <cstring>
+#include <cstdint>
 #include <string>
 #include <list>
 
-#include <stdint.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <dirent.h>
+#if HAVE_GETPWUID
+# include <pwd.h>
+#endif
+#if HAVE_FNMATCH
+# include <fnmatch.h>
+#endif
 #if HAVE_MMAP
 # include <sys/mman.h>
 #endif
@@ -42,12 +46,15 @@
 # define WIN32_LEAN_AND_MEAN    /* do not include more than necessary */
 # define _WIN32_WINNT 0x0502    /* Windows XP SP2 or later */
 # include <windows.h>
+# include <shlwapi.h>
 # include <sys/locking.h>
 #endif
 
 #include "exc.h"
+#include "dbg.h"
 #include "msg.h"
-#include "cio.h"
+#include "fio.h"
+#include "thread.h"
 
 
 /* Define some POSIX functionality that is missing on W32 */
@@ -68,10 +75,41 @@
 # define S_IRWXO 0
 #endif
 
+#ifndef HAVE_FNMATCH
+# define FNM_NOMATCH 1
+static int fnmatch(const char* pattern, const char* string, int flags)
+{
+    return (PathMatchSpec(string, pattern) ? 0 : FNM_NOMATCH);
+}
+#endif
+
+#ifndef HAVE_READDIR_R
+static int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
+{
+    struct dirent *r;
+    static mutex m;
+    m.lock();
+    errno = 0;
+    r = ::readdir(dirp);
+    if (!r) {
+        if (errno != 0) {
+            return errno;
+        } else {
+            *result = nullptr;
+            return 0;
+        }
+    }
+    std::memcpy(entry, r, sizeof(struct dirent));    
+    m.unlock();
+    *result = entry;
+    return 0;
+}
+#endif
+
 #ifndef HAVE_LINK
 static int link(const char *path1, const char *path2)
 {
-    if (CreateHardLink(path2, path1, NULL) == 0)
+    if (CreateHardLink(path2, path1, nullptr) == 0)
     {
         /* It is not documented which errors CreateHardLink() can produce.
          * The following conversions are based on tests on a Windows XP SP2
@@ -124,6 +162,11 @@ static int mkdir(const char *pathname, mode_t)
 {
     return _mkdir(pathname);
 }
+#endif
+
+#if W32
+/* W32 has a broken name for fsync() */
+# define fsync(fd) _commit(fd)
 #endif
 
 #if W32
@@ -200,7 +243,7 @@ static const char DIRSEP
 #endif
 
 
-namespace cio
+namespace fio
 {
 #if W32
     // Convert sane path names to and from Windows path names.
@@ -247,7 +290,7 @@ namespace cio
         }
         if (l > PATH_MAX)
         {
-            throw exc(std::string("Cannot handle ") + s, ENAMETOOLONG);
+            throw exc(std::string("Cannot handle ") + s + ": " + std::strerror(ENAMETOOLONG), ENAMETOOLONG);
         }
         return s;
     }
@@ -258,7 +301,7 @@ namespace cio
         size_t l = s.length();
         if (l > PATH_MAX)
         {
-            throw exc(std::string("Cannot handle ") + s, ENAMETOOLONG);
+            throw exc(std::string("Cannot handle ") + s + ": " + std::strerror(ENAMETOOLONG), ENAMETOOLONG);
         }
         if (l >= 2 && s[1] == ':'
                 && ((s[0] >= 'a' && s[0] <= 'z')
@@ -276,35 +319,67 @@ namespace cio
     }
 #endif
 
-    FILE *open(const std::string &filename, const std::string &mode, const int flags)
+    FILE *open(const std::string &filename, const std::string &mode, int flags, int posix_advice)
     {
-        if (flags == 0)
+        assert(!filename.empty());
+        assert(mode == "r" || mode == "r+" || mode == "w" || mode == "w+" || mode == "a" || mode == "a+");
+
+        if (flags == 0 && posix_advice == 0)
         {
             FILE *f;
             if (!(f = ::fopen(to_sys(filename).c_str(), mode.c_str())))
             {
-                throw exc("Cannot open " + to_sys(filename), errno);
+                throw exc(std::string("Cannot open ") + to_sys(filename) + ": " + std::strerror(errno), errno);
             }
             return f;
         }
         else
         {
+            if (mode == "r")
+            {
+                flags |= O_RDONLY;
+            }
+            else if (mode == "r+")
+            {
+                flags |= O_RDWR;
+            }
+            else if (mode == "w")
+            {
+                flags |= O_WRONLY | O_CREAT | O_TRUNC;
+            }
+            else if (mode == "w+")
+            {
+                flags |= O_RDWR | O_CREAT | O_TRUNC;
+            }
+            else if (mode == "a")
+            {
+                flags |= O_WRONLY | O_CREAT | O_APPEND;
+            }
+            else if (mode == "a+")
+            {
+                flags |= O_RDWR | O_CREAT | O_APPEND;
+            }
             int fd;
             FILE *f;
-            if ((fd = ::open(to_sys(filename).c_str(), flags, S_IRUSR | S_IWUSR)) == -1)
+            if ((fd = ::open(to_sys(filename).c_str(), flags, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)) == -1)
             {
-                if ((flags & O_CREAT) && (flags & O_EXCL))
+                throw exc(std::string("Cannot open ") + to_sys(filename) + ": " + std::strerror(errno), errno);
+            }
+#if HAVE_POSIX_FADVISE
+            if (posix_advice != 0)
+            {
+                int e = ::posix_fadvise(fd, 0, 0, posix_advice);
+                if (e != 0)
                 {
-                    throw exc("Cannot create " + to_sys(filename), errno);
-                }
-                else
-                {
-                    throw exc("Cannot open " + to_sys(filename), errno);
+                    ::close(fd);
+                    throw exc(std::string("Cannot set POSIX advice on ") + to_sys(filename) + ": " + std::strerror(e), e);
                 }
             }
+#endif
             if (!(f = fdopen(fd, mode.c_str())))
             {
-                throw exc("Cannot open " + to_sys(filename), errno);
+                ::close(fd);
+                throw exc(std::string("Cannot open ") + to_sys(filename) + ": " + std::strerror(errno), errno);
             }
             return f;
         }
@@ -312,28 +387,30 @@ namespace cio
 
     void close(FILE *f, const std::string &filename)
     {
+        assert(f);
         if (::fclose(f) != 0)
         {
-            throw exc("Cannot close " + (!filename.empty() ? to_sys(filename) : "temporary file"), errno);
+            throw exc(std::string("Cannot close ") + (!filename.empty() ? to_sys(filename) : "temporary file")
+                    + ": " + std::strerror(errno), errno);
         }
     }
 
     /* Internal function that does the real work for creating temporary files or
      * directories.
-     * To create a directory, set 'file' to NULL. This function will return the
-     * directory name in 'pathname'. If the result is NULL, then the function
+     * To create a directory, set 'file' to nullptr. This function will return the
+     * directory name in 'pathname'. If the result is nullptr, then the function
      * failed, and errno will be set.
      * To create a file, let this function return the stream in 'file', which must
-     * not be NULL. Use a NULL 'pathname' to get tempfile() behaviour (no name
-     * returned, file will be deleted) and a non-NULL 'pathname' to get mktempfile()
+     * not be nullptr. Use a nullptr 'pathname' to get tempfile() behaviour (no name
+     * returned, file will be deleted) and a non-nullptr 'pathname' to get mktempfile()
      * behaviour (name returned, file will not be deleted). If the function fails,
-     * the returned stream will be NULL, and errno will be set. */
+     * the returned stream will be nullptr, and errno will be set. */
     static void real_mktemp(const char *dir, const char *base, FILE **file, char **pathname)
     {
         FILE *f;
         size_t baselen;
         size_t dirlen;
-        char *tmpl = NULL;
+        char *tmpl = nullptr;
         size_t tmpllen;
         int fd = -1;
         int saved_errno;
@@ -434,11 +511,11 @@ error_exit:
         errno = saved_errno;
         if (file)
         {
-            *file = NULL;
+            *file = nullptr;
         }
         else
         {
-            *pathname = NULL;
+            *pathname = nullptr;
         }
     }
 
@@ -473,10 +550,10 @@ error_exit:
     {
         FILE *f;
 
-        real_mktemp(default_tmpdir(), !base.empty() ? base.c_str() : NULL, &f, NULL);
+        real_mktemp(default_tmpdir(), !base.empty() ? base.c_str() : nullptr, &f, nullptr);
         if (!f)
         {
-            throw exc("Cannot create temporary file", errno);
+            throw exc(std::string("Cannot create temporary file: ") + std::strerror(errno), errno);
         }
         return f;
     }
@@ -485,10 +562,10 @@ error_exit:
     {
         char *filename;
         real_mktemp(dir.empty() ? default_tmpdir() : to_sys(dir).c_str(),
-                !base.empty() ? base.c_str() : NULL, f, &filename);
+                !base.empty() ? base.c_str() : nullptr, f, &filename);
         if (!(*f))
         {
-            throw exc("Cannot create temporary file", errno);
+            throw exc(std::string("Cannot create temporary file: ") + std::strerror(errno), errno);
         }
         std::string s(filename);
         free(filename);
@@ -499,10 +576,10 @@ error_exit:
     {
         char *dirname;
         real_mktemp(dir.empty() ? default_tmpdir() : to_sys(dir).c_str(),
-                !base.empty() ? base.c_str() : NULL, NULL, &dirname);
+                !base.empty() ? base.c_str() : nullptr, nullptr, &dirname);
         if (!dirname)
         {
-            throw exc("Cannot create temporary directory", errno);
+            throw exc(std::string("Cannot create temporary directory: ") + std::strerror(errno), errno);
         }
         std::string s(dirname);
         free(dirname);
@@ -511,9 +588,11 @@ error_exit:
 
     void disable_buffering(FILE *f, const std::string &filename)
     {
-        if (::setvbuf(f, NULL, _IONBF, 0) != 0)
+        if (::setvbuf(f, nullptr, _IONBF, 0) != 0)
         {
-            throw exc("Cannot disable buffering for " + (!filename.empty() ? to_sys(filename) : "temporary file"), errno);
+            throw exc(std::string("Cannot disable buffering for ")
+                    + (!filename.empty() ? to_sys(filename) : "temporary file")
+                    + ": " + std::strerror(errno), errno);
         }
     }
 
@@ -537,7 +616,9 @@ error_exit:
 #endif
         if (!success && errno != EACCES && errno != EAGAIN)
         {
-            throw exc("Cannot try to lock " + (!filename.empty() ? to_sys(filename) : "temporary file"), errno);
+            throw exc(std::string("Cannot try to lock ")
+                    + (!filename.empty() ? to_sys(filename) : "temporary file")
+                    + ": " + std::strerror(errno), errno);
         }
         return success;
     }
@@ -560,11 +641,15 @@ error_exit:
         {
             if (ferror(f))
             {
-                throw exc("Cannot read from " + (!filename.empty() ? to_sys(filename) : "temporary file"), errno);
+                throw exc(std::string("Cannot read from ")
+                        + (!filename.empty() ? to_sys(filename) : "temporary file")
+                        + ": " + std::strerror(errno), errno);
             }
             else
             {
-                throw exc("Cannot read from " + (!filename.empty() ? to_sys(filename) : "temporary file") + ": unexpected end of file");
+                throw exc(std::string("Cannot read from ")
+                        + (!filename.empty() ? to_sys(filename) : "temporary file")
+                        + ": " + std::strerror(ENODATA), ENODATA);
             }
         }
     }
@@ -573,7 +658,9 @@ error_exit:
     {
         if (::fwrite(dest, s, n, f) != n)
         {
-            throw exc("Cannot write to " + (!filename.empty() ? to_sys(filename) : "temporary file"), errno);
+            throw exc(std::string("Cannot write to ")
+                    + (!filename.empty() ? to_sys(filename) : "temporary file")
+                    + ": " + std::strerror(errno), errno);
         }
     }
 
@@ -581,7 +668,9 @@ error_exit:
     {
         if (::fflush(f) != 0)
         {
-            throw exc("Cannot flush " + (!filename.empty() ? to_sys(filename) : "temporary file"), errno);
+            throw exc(std::string("Cannot flush ")
+                    + (!filename.empty() ? to_sys(filename) : "temporary file")
+                    + ": " + std::strerror(errno), errno);
         }
     }
 
@@ -594,7 +683,9 @@ error_exit:
     {
         if (::fseeko(f, offset, whence) != 0)
         {
-            throw exc("Cannot seek in " + (!filename.empty() ? to_sys(filename) : "temporary file"), errno);
+            throw exc(std::string("Cannot seek in ")
+                    + (!filename.empty() ? to_sys(filename) : "temporary file")
+                    + ": " + std::strerror(errno), errno);
         }
     }
 
@@ -609,7 +700,9 @@ error_exit:
 
         if ((o = ::ftello(f)) == -1)
         {
-            throw exc("Cannot get position in " + (!filename.empty() ? to_sys(filename) : "temporary file"), errno);
+            throw exc(std::string("Cannot get position in ")
+                    + (!filename.empty() ? to_sys(filename) : "temporary file")
+                    + ": " + std::strerror(errno), errno);
         }
         return o;
     }
@@ -619,7 +712,9 @@ error_exit:
         int c = ::fgetc(f);
         if (c == EOF && ferror(f))
         {
-            throw exc("Cannot read from " + (!filename.empty() ? to_sys(filename) : "temporary file"), errno);
+            throw exc(std::string("Cannot read from ")
+                    + (!filename.empty() ? to_sys(filename) : "temporary file")
+                    + ": " + std::strerror(errno), errno);
         }
         return c;
     }
@@ -628,7 +723,9 @@ error_exit:
     {
         if (::ungetc(c, f) == EOF)
         {
-            throw exc("Cannot unget a character from " + (!filename.empty() ? to_sys(filename) : "temporary file"), errno);
+            throw exc(std::string("Cannot unget a character from ")
+                    + (!filename.empty() ? to_sys(filename) : "temporary file")
+                    + ": " + std::strerror(errno), errno);
         }
     }
 
@@ -667,14 +764,74 @@ error_exit:
         return ::isatty(fileno(f));
     }
 
+    void sync(FILE *f, const std::string &filename)
+    {
+        flush(f);
+        if (::fsync(fileno(f)) != 0)
+        {
+            throw exc(std::string("Cannot sync ")
+                    + (!filename.empty() ? to_sys(filename) : "temporary file")
+                    + ": " + std::strerror(errno), errno);
+        }
+    }
+
+    void datasync(FILE *f, const std::string &filename)
+    {
+#if HAVE_FDATASYNC
+        flush(f);
+        if (::fdatasync(fileno(f)) != 0)
+        {
+            throw exc(std::string("Cannot sync ")
+                    + (!filename.empty() ? to_sys(filename) : "temporary file")
+                    + ": " + std::strerror(errno), errno);
+        }
+#else
+        sync(f, filename);
+#endif
+    }
+
+    void advise(FILE *f, const int posix_advice, const std::string &filename)
+    {
+#if HAVE_POSIX_FADVISE
+        int fd = fileno(f);
+        if (posix_advice == POSIX_FADV_NOREUSE
+                || posix_advice == POSIX_FADV_WILLNEED
+                || posix_advice == POSIX_FADV_DONTNEED)
+        {
+            int flags = ::fcntl(fd, F_GETFL);
+            if ((flags & O_RDWR) | (flags & O_WRONLY))
+            {
+                // make sure all pages are written to disk; otherwise the advice will not work
+# if 0
+                /* Disable datasync() because it kills performance.
+                 * However this means that Linux ignores the advice for pages
+                 * that are not yet flushed to disk... */
+                datasync(f, filename);
+# else
+                flush(f);
+# endif
+            }
+        }
+        int e = ::posix_fadvise(fd, 0, 0, posix_advice);
+        if (e != 0)
+        {
+            throw exc(std::string("Cannot set POSIX advice on ")
+                    + (!filename.empty() ? to_sys(filename) : "temporary file")
+                    + ": " + std::strerror(e), e);
+        }
+#endif
+    }
+
     void *map(FILE *f, off_t offset, size_t length, const std::string &filename)
     {
 #if HAVE_MMAP
 
         void *retval;
-        if ((retval = ::mmap(NULL, length, PROT_READ, MAP_PRIVATE, fileno(f), offset)) == MAP_FAILED)
+        if ((retval = ::mmap(nullptr, length, PROT_READ, MAP_PRIVATE, fileno(f), offset)) == MAP_FAILED)
         {
-            throw exc("Cannot map " + (!filename.empty() ? to_sys(filename) : "temporary file") + " to memory", errno);
+            throw exc(std::string("Cannot map ")
+                    + (!filename.empty() ? to_sys(filename) : "temporary file")
+                    + " to memory: " + std::strerror(errno), errno);
         }
         return retval;
 
@@ -703,7 +860,9 @@ error_exit:
 
         if (::munmap(start, length) != 0)
         {
-            throw exc("Cannot unmap " + (!filename.empty() ? to_sys(filename) : "temporary file") + " from memory", errno);
+            throw exc(std::string("Cannot unmap ")
+                    + (!filename.empty() ? to_sys(filename) : "temporary file")
+                    + " from memory: " + std::strerror(errno), errno);
         }
 
 #else
@@ -718,7 +877,9 @@ error_exit:
     {
         if (::link(to_sys(oldfilename).c_str(), to_sys(newfilename).c_str()) != 0)
         {
-            throw exc("Cannot create link " + to_sys(newfilename) + " for " + to_sys(oldfilename), errno);
+            throw exc(std::string("Cannot create link ")
+                    + to_sys(newfilename) + " for " + to_sys(oldfilename)
+                    + ": " + std::strerror(errno), errno);
         }
     }
 
@@ -726,7 +887,18 @@ error_exit:
     {
         if (::unlink(to_sys(filename).c_str()) != 0)
         {
-            throw exc("Cannot unlink " + to_sys(filename), errno);
+            throw exc(std::string("Cannot unlink ")
+                    + to_sys(filename) + ": " + std::strerror(errno), errno);
+        }
+    }
+
+    void symlink(const std::string &oldfilename, const std::string &newfilename)
+    {
+        if (::symlink(to_sys(oldfilename).c_str(), to_sys(newfilename).c_str()) != 0)
+        {
+            throw exc(std::string("Cannot create symbolic link ")
+                    + to_sys(newfilename) + " for " + to_sys(oldfilename)
+                    + ": " + std::strerror(errno), errno);
         }
     }
 
@@ -734,7 +906,8 @@ error_exit:
     {
         if (::mkdir(to_sys(dirname).c_str(), S_IRWXU | S_IRWXG | S_IRWXO) != 0)
         {
-            throw exc("Cannot create directory " + to_sys(dirname), errno);
+            throw exc(std::string("Cannot create directory ")
+                    + to_sys(dirname) + ": " + std::strerror(errno), errno);
         }
     }
 
@@ -742,7 +915,8 @@ error_exit:
     {
         if (::rmdir(to_sys(dirname).c_str()) != 0)
         {
-            throw exc("Cannot remove directory " + to_sys(dirname), errno);
+            throw exc(std::string("Cannot remove directory ")
+                    + to_sys(dirname) + ": " + std::strerror(errno), errno);
         }
     }
 
@@ -763,8 +937,54 @@ error_exit:
         // TODO: work around W32 bug: rename cannot replace existing files
         if (::rename(to_sys(old_path).c_str(), to_sys(new_path).c_str()) != 0)
         {
-            throw exc("Cannot rename " + to_sys(old_path) + " to " + to_sys(new_path), errno);
+            throw exc(std::string("Cannot rename ")
+                    + to_sys(old_path) + " to " + to_sys(new_path)
+                    + ": " + std::strerror(errno), errno);
         }
+    }
+
+    std::vector<std::string> readdir(const std::string &dirname, const std::string &pattern)
+    {
+        DIR* d;
+        struct dirent* rde;
+        struct dirent de;
+        std::vector<std::string> list;
+
+        d = ::opendir(dirname.c_str());
+        if (!d) {
+            throw exc(std::string("Cannot read directory ")
+                    + to_sys(dirname)
+                    + ": " + std::strerror(errno), errno);
+        }
+
+        try {
+            while (::readdir_r(d, &de, &rde) == 0 && rde)
+            {
+                if (std::strcmp(de.d_name, ".") != 0 && std::strcmp(de.d_name, "..") != 0) {
+                    if (pattern.length() == 0 || fnmatch(pattern.c_str(), de.d_name, 0) == 0) {
+                        list.push_back(de.d_name);
+                    }
+                }
+            }
+            ::closedir(d);
+        } catch (std::exception& e) {
+            ::closedir(d);
+            throw exc(std::string("Cannot read directory ")
+                    + to_sys(dirname)
+                    + ": " + std::strerror(ENOMEM), ENOMEM);
+        }
+        return list;
+    }
+
+    bool stat(const std::string &pathname, struct stat *buf)
+    {
+        int r = ::stat(to_sys(pathname).c_str(), buf);
+        if (r != 0 && errno != ENOENT)
+        {
+            throw exc(std::string("Cannot stat ")
+                    + to_sys(pathname) + ": " + std::strerror(errno), errno);
+        }
+        return r == 0;
     }
 
     void mkdir_p(const std::string &prefix, const std::string &dirname)
@@ -842,7 +1062,8 @@ error_exit:
                 }
                 if (excor)
                 {
-                    throw exc("Cannot create directory " + s, errno);
+                    throw exc(std::string("Cannot create directory ")
+                            + s + ": " + std::strerror(errno), errno);
                 }
                 s[i] = DIRSEP;
             }
@@ -857,13 +1078,11 @@ error_exit:
     void rm_r(const std::string &pathname)
     {
         std::list<std::string> pathlist;
-        std::list<std::string>::iterator it;
-
         pathlist.push_back(to_sys(pathname));
         while (!pathlist.empty())
         {
             bool pathlist_grew = false;
-            it = pathlist.begin();
+            auto it = pathlist.begin();
             while (!pathlist_grew && it != pathlist.end())
             {
                 if (test_d(*it))
@@ -872,7 +1091,8 @@ error_exit:
                     struct dirent *ent;
                     if (!(dir = opendir((*it).c_str())))
                     {
-                        throw exc("Cannot remove " + (*it), errno);
+                        throw exc(std::string("Cannot remove ")
+                                + (*it) + ": " + std::strerror(errno), errno);
                     }
                     for (;;)
                     {
@@ -880,7 +1100,8 @@ error_exit:
                         ent = readdir(dir);
                         if (!ent && errno != 0)
                         {
-                            throw exc("Cannot remove " + (*it), errno);
+                            throw exc(std::string("Cannot remove ")
+                                    + (*it) + ": " + std::strerror(errno), errno);
                         }
                         else if (!ent)
                         {
@@ -898,7 +1119,8 @@ error_exit:
                     }
                     if (closedir(dir) != 0)
                     {
-                        throw exc("Cannot remove " + (*it), errno);
+                        throw exc(std::string("Cannot remove ")
+                                + (*it) + ": " + std::strerror(errno), errno);
                     }
                     if (!pathlist_grew)
                     {
@@ -918,22 +1140,10 @@ error_exit:
     static bool test(int mode, const std::string &pathname)
     {
         struct stat buf;
-        int r = ::stat(to_sys(pathname).c_str(), &buf);
-        if (r == 0
-                && (mode == 0
+        bool r = stat(pathname, &buf);
+        return (r && (mode == 0
                     || (mode == 1 && S_ISREG(buf.st_mode))
-                    || (mode == 2 && S_ISDIR(buf.st_mode))))
-        {
-            return true;
-        }
-        else if (r != 0 && errno != ENOENT)
-        {
-            throw exc("Cannot test pathname " + to_sys(pathname), errno);
-        }
-        else
-        {
-            return false;
-        }
+                    || (mode == 2 && S_ISDIR(buf.st_mode))));
     }
 
     bool test_e(const std::string &pathname)
@@ -964,5 +1174,64 @@ error_exit:
             base = base.substr(0, base.length() - suffix.length());
         }
         return base;
+    }
+
+    std::string dirname(const std::string &name)
+    {
+        size_t slash = name.find_last_of('/');
+        if (slash != std::string::npos)
+        {
+            return name.substr(0, slash);
+        }
+        else
+        {
+            return ".";
+        }
+    }
+
+    std::string homedir()
+    {
+#if W32
+        char *home;
+        BYTE homebuf[MAX_PATH + 1];
+        HKEY hkey;
+        DWORD len;
+        DWORD type;
+        long l;
+
+        if (!(home = getenv("HOME")))
+        {
+            l = RegOpenKeyEx(HKEY_CURRENT_USER,
+                    "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\"
+                    "Shell Folders", 0, KEY_READ, &hkey);
+            if (l == ERROR_SUCCESS)
+            {
+                len = MAX_PATH;
+                l = RegQueryValueEx(hkey, "AppData", nullptr, &type, homebuf, &len);
+                if (l == ERROR_SUCCESS && len < MAX_PATH)
+                {
+                    RegCloseKey(hkey);
+                    home = reinterpret_cast<char *>(homebuf);
+                }
+            }
+        }
+        return std::string(home ? home : "C:");
+#else
+        char *home;
+        struct passwd *pw;
+
+        if (!(home = getenv("HOME")))
+        {
+# if HAVE_GETPWUID
+            pw = getpwuid(getuid());
+            if (pw && pw->pw_dir)
+            {
+                home = pw->pw_dir;
+            }
+# endif
+        }
+
+        return std::string(home ? home : "/");
+#endif
     }
 }

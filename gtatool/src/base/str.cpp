@@ -1,7 +1,4 @@
 /*
- * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
- * (GTAs).
- *
  * Copyright (C) 2009, 2010, 2011
  * Martin Lambers <marlam@marlam.de>
  *
@@ -28,6 +25,7 @@
 #include <cerrno>
 #include <limits>
 #include <sstream>
+#include <locale>
 
 #ifdef HAVE_NL_LANGINFO
 # include <locale.h>
@@ -56,7 +54,7 @@ static int vasprintf(char **strp, const char *format, va_list args)
      * and its return value is standards compliant. This is true for the MinGW version
      * of vsnprintf(), but not for Microsofts version (Visual Studio etc.)!
      */
-    int length = vsnprintf(NULL, 0, format, args);
+    int length = vsnprintf(nullptr, 0, format, args);
     if (length > std::numeric_limits<int>::max() - 1
             || !(*strp = static_cast<char *>(malloc(length + 1))))
     {
@@ -110,6 +108,7 @@ template<typename T>
 static inline std::string float_to_str(T x)
 {
     std::ostringstream os;
+    os.imbue(std::locale::classic());
     os.precision(std::numeric_limits<T>::digits10 + 1);
     os << x;
     return os.str();
@@ -393,7 +392,7 @@ namespace str
     std::string localcharset()
     {
 #ifdef HAVE_NL_LANGINFO
-        std::string bak = setlocale(LC_CTYPE, NULL);
+        std::string bak = setlocale(LC_CTYPE, nullptr);
         setlocale(LC_CTYPE, "");
         char *charset = nl_langinfo(CODESET);
         setlocale(LC_CTYPE, bak.c_str());

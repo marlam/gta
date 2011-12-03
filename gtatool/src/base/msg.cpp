@@ -1,7 +1,4 @@
 /*
- * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
- * (GTAs).
- *
  * Copyright (C) 2009, 2010, 2011
  * Martin Lambers <marlam@marlam.de>
  *
@@ -49,7 +46,7 @@ namespace msg
     void set_file(FILE *f)
     {
         _file = f;
-        std::setvbuf(f, NULL, _IOLBF, 0);
+        std::setvbuf(f, nullptr, _IOLBF, 0);
     }
 
     level_t level()
@@ -59,7 +56,11 @@ namespace msg
 
     void set_level(level_t l)
     {
+#ifdef NDEBUG
+        _level = (l == msg::DBG ? msg::INF : l);
+#else
         _level = l;
+#endif
     }
 
     int columns()
@@ -158,7 +159,7 @@ namespace msg
     static std::wstring str_to_wstr(const std::string &in)
     {
         std::wstring out;
-        size_t l = std::mbstowcs(NULL, in.c_str(), 0);
+        size_t l = std::mbstowcs(nullptr, in.c_str(), 0);
         if (l == static_cast<size_t>(-1) || l > static_cast<size_t>(std::numeric_limits<int>::max() - 1))
         {
             // This should never happen. We don't want to handle this case, and we don't want to throw
@@ -338,6 +339,7 @@ namespace msg
         msg_txt(0, level, s);
     }
 
+#ifndef NDEBUG
     void dbg(int indent, const std::string &s)
     {
         if (DBG < _level)
@@ -437,6 +439,7 @@ namespace msg
         va_end(args);
         msg_txt(0, DBG, s);
     }
+#endif
 
     void inf(int indent, const std::string &s)
     {

@@ -30,7 +30,7 @@
 
 #include "msg.h"
 #include "blob.h"
-#include "cio.h"
+#include "fio.h"
 #include "opt.h"
 #include "str.h"
 #include "intcheck.h"
@@ -84,7 +84,7 @@ extern "C" int gtatool_from_ply(int argc, char *argv[])
         array_loop.start(std::vector<std::string>(1, arguments[0]), arguments.size() == 2 ? arguments[1] : "");
 
         std::string namei = arguments[0];
-        FILE *fi = cio::open(namei, "r");
+        FILE *fi = fio::open(namei, "r");
 
         int nelems;
         char **elist;
@@ -221,7 +221,7 @@ extern "C" int gtatool_from_ply(int argc, char *argv[])
                 continue;
             }
         }
-        cio::close(fi, namei);
+        fio::close(fi, namei);
         array_loop.finish();
     }
     catch (std::exception &e)

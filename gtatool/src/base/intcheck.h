@@ -1,7 +1,4 @@
 /*
- * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
- * (GTAs).
- *
  * Copyright (C) 2010, 2011
  * Martin Lambers <marlam@marlam.de>
  *

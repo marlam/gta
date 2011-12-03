@@ -30,7 +30,7 @@
 
 #include "msg.h"
 #include "blob.h"
-#include "cio.h"
+#include "fio.h"
 #include "opt.h"
 #include "str.h"
 #include "intcheck.h"
@@ -92,7 +92,7 @@ extern "C" int gtatool_to_mat(int argc, char *argv[])
         if (arguments.size() == 2)
         {
             ifilename = arguments[0];
-            fi = cio::open(ifilename, "r");
+            fi = fio::open(ifilename, "r");
             ofilename = arguments[1];
         }
     }
@@ -105,7 +105,7 @@ extern "C" int gtatool_to_mat(int argc, char *argv[])
     try
     {
         // Remove the output file if it exists so that matio does not append to it
-        try { cio::remove(ofilename); } catch (...) {}
+        try { fio::remove(ofilename); } catch (...) {}
         mat_t *mat = Mat_Open(ofilename.c_str(), MAT_ACC_RDWR);
         if (!mat)
         {
@@ -113,7 +113,7 @@ extern "C" int gtatool_to_mat(int argc, char *argv[])
         }
 
         uintmax_t array_index = 0;
-        while (cio::has_more(fi, ifilename))
+        while (fio::has_more(fi, ifilename))
         {
             std::string array_name = ifilename + " array " + str::from(array_index);
             gta::header ihdr;
@@ -264,7 +264,7 @@ extern "C" int gtatool_to_mat(int argc, char *argv[])
         }
         if (fi != gtatool_stdin)
         {
-            cio::close(fi);
+            fio::close(fi);
         }
         Mat_Close(mat);
     }

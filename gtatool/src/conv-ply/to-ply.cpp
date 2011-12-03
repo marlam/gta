@@ -30,7 +30,7 @@
 
 #include "msg.h"
 #include "blob.h"
-#include "cio.h"
+#include "fio.h"
 #include "opt.h"
 #include "str.h"
 #include "intcheck.h"
@@ -119,7 +119,7 @@ extern "C" int gtatool_to_ply(int argc, char *argv[])
                 }
             }
 
-            FILE *fo = cio::open(nameo, "w");
+            FILE *fo = fio::open(nameo, "w");
             PlyFile *ply = ply_write(fo, 1, ply_elem_names, PLY_BINARY_LE);
             if (!ply)
             {
@@ -217,14 +217,14 @@ extern "C" int gtatool_to_ply(int argc, char *argv[])
                 }
                 ply_put_element(ply, &v);
             }
-            cio::flush(fo, nameo);
+            fio::flush(fo, nameo);
             if (std::ferror(fo))
             {
                 throw exc(nameo + ": output error.");
             }
             // ply_close(ply); // This crashes for some reason.
             // So we just close() the file and accept the memory leakage.
-            cio::close(fo, nameo);
+            fio::close(fo, nameo);
         }
         array_loop.finish();
     }

@@ -28,7 +28,7 @@
 
 #include "msg.h"
 #include "blob.h"
-#include "cio.h"
+#include "fio.h"
 #include "opt.h"
 #include "intcheck.h"
 
@@ -74,7 +74,7 @@ extern "C" int gtatool_to_netpbm(int argc, char *argv[])
         if (arguments.size() == 2)
         {
             ifilename = arguments[0];
-            fi = cio::open(ifilename, "r");
+            fi = fio::open(ifilename, "r");
             ofilename = arguments[1];
         }
     }
@@ -86,8 +86,8 @@ extern "C" int gtatool_to_netpbm(int argc, char *argv[])
 
     try
     {
-        FILE *fo = cio::open(ofilename, "w");
-        while (cio::has_more(fi, ifilename))
+        FILE *fo = fio::open(ofilename, "w");
+        while (fio::has_more(fi, ifilename))
         {
             gta::header hdr;
             hdr.read_from(fi);
@@ -195,10 +195,10 @@ extern "C" int gtatool_to_netpbm(int argc, char *argv[])
             }
             pnm_freepamrow(tuplerow);
         }
-        cio::close(fo);
+        fio::close(fo);
         if (fi != gtatool_stdin)
         {
-            cio::close(fi);
+            fio::close(fi);
         }
     }
     catch (std::exception &e)

@@ -12,7 +12,7 @@ libbase_la_SOURCES = \
 	dbg.h dbg.cpp \
 	exc.h exc.cpp \
 	intcheck.h \
-	cio.h cio.cpp \
+	fio.h fio.cpp \
 	opt.h opt.cpp \
 	endianness.h \
 	s11n.h s11n.cpp \

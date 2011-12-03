@@ -30,7 +30,7 @@
 
 #include "msg.h"
 #include "blob.h"
-#include "cio.h"
+#include "fio.h"
 #include "opt.h"
 #include "str.h"
 #include "intcheck.h"
@@ -74,7 +74,7 @@ extern "C" int gtatool_to_magick(int argc, char *argv[])
         else
         {
             filename = arguments[0];
-            fi = cio::open(filename, "r");
+            fi = fio::open(filename, "r");
             magick_filename = arguments[1];
         }
     }
@@ -88,7 +88,7 @@ extern "C" int gtatool_to_magick(int argc, char *argv[])
     {
         std::vector<Magick::Image> imgs;
         uintmax_t array_index = 0;
-        while (cio::has_more(fi, filename))
+        while (fio::has_more(fi, filename))
         {
             std::string array_name = filename + " array " + str::from(array_index);
             gta::header hdr;
@@ -212,7 +212,7 @@ extern "C" int gtatool_to_magick(int argc, char *argv[])
         }
         if (fi != gtatool_stdin)
         {
-            cio::close(fi);
+            fio::close(fi);
         }
         Magick::writeImages(imgs.begin(), imgs.end(), magick_filename);
     }

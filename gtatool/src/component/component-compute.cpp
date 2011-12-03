@@ -32,7 +32,7 @@
 #include "msg.h"
 #include "blob.h"
 #include "opt.h"
-#include "cio.h"
+#include "fio.h"
 #include "str.h"
 #include "intcheck.h"
 
@@ -75,7 +75,7 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
         return 0;
     }
 
-    if (cio::isatty(gtatool_stdout))
+    if (fio::isatty(gtatool_stdout))
     {
         msg::err_txt("refusing to write to a tty");
         return 1;
@@ -90,11 +90,11 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
         do
         {
             std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : cio::open(finame, "r"));
+            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : fio::open(finame, "r"));
 
             // Loop over all GTAs inside the current file
             uintmax_t array_index = 0;
-            while (cio::has_more(fi, finame))
+            while (fio::has_more(fi, finame))
             {
                 // Determine the name of the array for error messages
                 std::string array_name = finame + " array " + str::from(array_index);
@@ -368,7 +368,7 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
             }
             if (fi != gtatool_stdin)
             {
-                cio::close(fi);
+                fio::close(fi);
             }
             arg++;
         }

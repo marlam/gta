@@ -31,7 +31,7 @@
 #include "msg.h"
 #include "blob.h"
 #include "opt.h"
-#include "cio.h"
+#include "fio.h"
 #include "str.h"
 #include "intcheck.h"
 
@@ -66,7 +66,7 @@ extern "C" int gtatool_component_merge(int argc, char *argv[])
         return 0;
     }
 
-    if (cio::isatty(gtatool_stdout))
+    if (fio::isatty(gtatool_stdout))
     {
         msg::err_txt("refusing to write to a tty");
         return 1;
@@ -77,11 +77,11 @@ extern "C" int gtatool_component_merge(int argc, char *argv[])
         std::vector<FILE *> fi(arguments.size());
         for (size_t i = 0; i < arguments.size(); i++)
         {
-            fi[i] = cio::open(arguments[i], "r");
+            fi[i] = fio::open(arguments[i], "r");
         }
         std::vector<gta::header> hdri(arguments.size());
         uintmax_t array_index = 0;
-        while (cio::has_more(fi[0], arguments[0]))
+        while (fio::has_more(fi[0], arguments[0]))
         {
             for (size_t i = 0; i < arguments.size(); i++)
             {
@@ -155,14 +155,14 @@ extern "C" int gtatool_component_merge(int argc, char *argv[])
         }
         for (size_t i = 1; i < arguments.size(); i++)
         {
-            if (cio::has_more(fi[i], arguments[i]))
+            if (fio::has_more(fi[i], arguments[i]))
             {
                 msg::wrn_txt("ignoring additional array(s) from %s", arguments[i].c_str());
             }
         }
         for (size_t i = 0; i < arguments.size(); i++)
         {
-            cio::close(fi[i], arguments[i]);
+            fio::close(fi[i], arguments[i]);
         }
     }
     catch (std::exception &e)

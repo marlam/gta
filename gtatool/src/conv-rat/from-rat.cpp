@@ -28,7 +28,7 @@
 
 #include "msg.h"
 #include "blob.h"
-#include "cio.h"
+#include "fio.h"
 #include "opt.h"
 #include "str.h"
 #include "intcheck.h"
@@ -98,9 +98,9 @@ extern "C" int gtatool_from_rat(int argc, char *argv[])
         if (arguments.size() == 2)
         {
             ofilename = arguments[1];
-            fo = cio::open(ofilename, "w");
+            fo = fio::open(ofilename, "w");
         }
-        if (cio::isatty(fo))
+        if (fio::isatty(fo))
         {
             throw exc("refusing to write to a tty");
         }
@@ -113,9 +113,9 @@ extern "C" int gtatool_from_rat(int argc, char *argv[])
 
     try
     {
-        FILE *fi = cio::open(ifilename, "r");
+        FILE *fi = fio::open(ifilename, "r");
 	int32_t rat_dim;
-        cio::read(&rat_dim, sizeof(int32_t), 1, fi, ifilename);
+        fio::read(&rat_dim, sizeof(int32_t), 1, fi, ifilename);
         if (endianness::endianness == endianness::little)
         {
             endianness::swap32(&rat_dim);
@@ -125,7 +125,7 @@ extern "C" int gtatool_from_rat(int argc, char *argv[])
             throw exc(ifilename + ": cannot read RAT data with " + str::from(rat_dim) + " dimensions");
         }
         std::vector<int32_t> rat_sizes(rat_dim);
-        cio::read(&(rat_sizes[0]), sizeof(int32_t), rat_dim, fi, ifilename);
+        fio::read(&(rat_sizes[0]), sizeof(int32_t), rat_dim, fi, ifilename);
         if (endianness::endianness == endianness::little)
         {
             for (int i = 0; i < rat_dim; i++)
@@ -141,21 +141,21 @@ extern "C" int gtatool_from_rat(int argc, char *argv[])
             }
         }
 	int32_t rat_var;
-        cio::read(&rat_var, sizeof(int32_t), 1, fi, ifilename);
+        fio::read(&rat_var, sizeof(int32_t), 1, fi, ifilename);
         if (endianness::endianness == endianness::little)
         {
             endianness::swap32(&rat_var);
         }
 	int32_t rat_type;
-        cio::read(&rat_type, sizeof(int32_t), 1, fi, ifilename);
+        fio::read(&rat_type, sizeof(int32_t), 1, fi, ifilename);
         if (endianness::endianness == endianness::little)
         {
             endianness::swap32(&rat_type);
         }
         int32_t rat_dummy[4];   // I have no idea what these fields mean, but it seems they can be ignored.
-        cio::read(rat_dummy, sizeof(int32_t), 4, fi, ifilename);
+        fio::read(rat_dummy, sizeof(int32_t), 4, fi, ifilename);
 	char rat_info[80];
-        cio::read(rat_info, sizeof(char), 80, fi, ifilename);
+        fio::read(rat_info, sizeof(char), 80, fi, ifilename);
 
         gta::type type;
         // See rat_v0.20/definitions.pro
@@ -203,7 +203,7 @@ extern "C" int gtatool_from_rat(int argc, char *argv[])
         thdr.set_dimensions(rat_dim, &(tdim_sizes[0]));
         thdr.set_components(1, &type, NULL);
         blob tdata(checked_cast<size_t>(thdr.data_size()));
-        cio::read(tdata.ptr(), thdr.data_size(), 1, fi, ifilename);
+        fio::read(tdata.ptr(), thdr.data_size(), 1, fi, ifilename);
         
         gta::header hdr;
         blob data(checked_cast<size_t>(thdr.data_size()));
@@ -487,10 +487,10 @@ extern "C" int gtatool_from_rat(int argc, char *argv[])
 
         hdr.write_to(fo);
         hdr.write_data(fo, data.ptr());
-        cio::close(fi);
+        fio::close(fi);
         if (fo != gtatool_stdout)
         {
-            cio::close(fo);
+            fio::close(fo);
         }
     }
     catch (std::exception &e)

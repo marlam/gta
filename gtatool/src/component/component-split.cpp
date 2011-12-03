@@ -30,7 +30,7 @@
 #include "msg.h"
 #include "blob.h"
 #include "opt.h"
-#include "cio.h"
+#include "fio.h"
 #include "str.h"
 #include "intcheck.h"
 
@@ -69,7 +69,7 @@ extern "C" int gtatool_component_split(int argc, char *argv[])
         return 0;
     }
 
-    if (cio::isatty(gtatool_stdout))
+    if (fio::isatty(gtatool_stdout))
     {
         msg::err_txt("refusing to write to a tty");
         return 1;
@@ -83,11 +83,11 @@ extern "C" int gtatool_component_split(int argc, char *argv[])
         do
         {
             std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : cio::open(finame, "r"));
+            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : fio::open(finame, "r"));
 
             // Loop over all GTAs inside the current file
             uintmax_t array_index = 0;
-            while (cio::has_more(fi, finame))
+            while (fio::has_more(fi, finame))
             {
                 // Determine the name of the array for error messages
                 std::string array_name = finame + " array " + str::from(array_index);
@@ -127,7 +127,7 @@ extern "C" int gtatool_component_split(int argc, char *argv[])
                     hdros[i].set_compression(gta::none);
                     hdros[i].set_components(hdri.component_type(comp_indices[i]), hdri.component_size(comp_indices[i]));
                     hdros[i].component_taglist(0) = hdri.component_taglist(comp_indices[i]);
-                    tmpfiles[i] = cio::tempfile(PACKAGE_NAME);
+                    tmpfiles[i] = fio::tempfile(PACKAGE_NAME);
                 }
                 // Write the GTA data to temporary files
                 blob element_in(checked_cast<size_t>(hdri.element_size()));
@@ -156,15 +156,15 @@ extern "C" int gtatool_component_split(int argc, char *argv[])
                 for (size_t i = 0; i < hdros.size(); i++)
                 {
                     hdros[i].write_to(gtatool_stdout);
-                    cio::rewind(tmpfiles[i]);
+                    fio::rewind(tmpfiles[i]);
                     hdros[i].copy_data(tmpfiles[i], hdros[i], gtatool_stdout);
-                    cio::close(tmpfiles[i]);
+                    fio::close(tmpfiles[i]);
                 }
                 array_index++;
             }
             if (fi != gtatool_stdin)
             {
-                cio::close(fi);
+                fio::close(fi);
             }
             arg++;
         }

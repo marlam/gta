@@ -30,7 +30,7 @@
 #include "msg.h"
 #include "blob.h"
 #include "opt.h"
-#include "cio.h"
+#include "fio.h"
 #include "str.h"
 #include "intcheck.h"
 
@@ -85,7 +85,7 @@ extern "C" int gtatool_dimension_reverse(int argc, char *argv[])
         array_loop.start(arguments, "");
         while (array_loop.read(hdri, namei))
         {
-            if (!cio::seekable(array_loop.file_in()))
+            if (!fio::seekable(array_loop.file_in()))
             {
                 throw exc(array_loop.filename_in() + ": input is not seekable");
             }
@@ -103,7 +103,7 @@ extern "C" int gtatool_dimension_reverse(int argc, char *argv[])
                     }
                 }
             }
-            uintmax_t data_offset = cio::tell(array_loop.file_in(), array_loop.filename_in());
+            uintmax_t data_offset = fio::tell(array_loop.file_in(), array_loop.filename_in());
             hdro = hdri;
             hdro.set_compression(gta::none);
             array_loop.write(hdro, nameo);
@@ -125,7 +125,7 @@ extern "C" int gtatool_dimension_reverse(int argc, char *argv[])
                 hdri.read_block(array_loop.file_in(), data_offset, &(ind[0]), &(ind[0]), element.ptr());
                 element_loop.write(element.ptr());
             }
-            cio::seek(array_loop.file_in(), data_offset, SEEK_SET, array_loop.filename_in());
+            fio::seek(array_loop.file_in(), data_offset, SEEK_SET, array_loop.filename_in());
             array_loop.skip_data(hdri);
         }
         array_loop.finish();

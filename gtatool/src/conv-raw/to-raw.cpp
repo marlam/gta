@@ -28,7 +28,7 @@
 
 #include "msg.h"
 #include "blob.h"
-#include "cio.h"
+#include "fio.h"
 #include "opt.h"
 #include "intcheck.h"
 #include "endianness.h"
@@ -83,7 +83,7 @@ extern "C" int gtatool_to_raw(int argc, char *argv[])
         if (arguments.size() == 2)
         {
             ifilename = arguments[0];
-            fi = cio::open(ifilename, "r");
+            fi = fio::open(ifilename, "r");
             ofilename = arguments[1];
         }
     }
@@ -95,7 +95,7 @@ extern "C" int gtatool_to_raw(int argc, char *argv[])
 
     try
     {
-        FILE *fo = cio::open(ofilename, "w");
+        FILE *fo = fio::open(ofilename, "w");
         gta::header hdr;
         hdr.read_from(fi);
         if (hdr.compression() != gta::none)
@@ -111,13 +111,13 @@ extern "C" int gtatool_to_raw(int argc, char *argv[])
             {
                 swap_element_endianness(hdr, element.ptr());
             }
-            cio::write(element.ptr(), hdr.element_size(), 1, fo, ofilename);
+            fio::write(element.ptr(), hdr.element_size(), 1, fo, ofilename);
         }
         if (fi != gtatool_stdin)
         {
-            cio::close(fi);
+            fio::close(fi);
         }
-        cio::close(fo);
+        fio::close(fo);
     }
     catch (std::exception &e)
     {

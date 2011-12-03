@@ -1,7 +1,4 @@
 /*
- * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
- * (GTAs).
- *
  * Copyright (C) 2009, 2010, 2011
  * Martin Lambers <marlam@marlam.de>
  *
@@ -31,7 +28,7 @@
 #include <string>
 #include <cstdarg>
 #include <cerrno>
-#include <stdint.h>
+#include <cstdint>
 
 #include "exc.h"
 

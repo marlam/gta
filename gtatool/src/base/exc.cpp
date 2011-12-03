@@ -1,7 +1,4 @@
 /*
- * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
- * (GTAs).
- *
  * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
  * Martin Lambers <marlam@marlam.de>
  *
@@ -52,7 +49,7 @@ exc::exc(const std::string &what, int sys_errno) throw ()
     }
     if (!empty())
     {
-        msg::dbg(_("Exception: %s"), _str.c_str());
+        msg::dbg_txt(_("Exception: %s"), _str.c_str());
     }
 }
 
@@ -70,7 +67,7 @@ exc::exc(int sys_errno) throw ()
     }
     if (!empty())
     {
-        msg::dbg(_("Exception: %s"), _str.c_str());
+        msg::dbg_txt(_("Exception: %s"), _str.c_str());
     }
 }
 
@@ -104,7 +101,7 @@ exc::exc(const std::exception &e) throw ()
     }
     if (!empty())
     {
-        msg::dbg(_("Exception: %s"), _str.c_str());
+        msg::dbg_txt(_("Exception: %s"), _str.c_str());
     }
 }
 

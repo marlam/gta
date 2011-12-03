@@ -31,7 +31,7 @@
 
 #include "msg.h"
 #include "blob.h"
-#include "cio.h"
+#include "fio.h"
 #include "opt.h"
 #include "str.h"
 #include "intcheck.h"
@@ -73,7 +73,7 @@ extern "C" int gtatool_to_exr(int argc, char *argv[])
         if (arguments.size() == 2)
         {
             ifilename = arguments[0];
-            fi = cio::open(ifilename, "r");
+            fi = fio::open(ifilename, "r");
             ofilename = arguments[1];
         }
     }

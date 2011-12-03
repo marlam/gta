@@ -27,7 +27,7 @@
 
 #include "msg.h"
 #include "blob.h"
-#include "cio.h"
+#include "fio.h"
 #include "opt.h"
 #include "intcheck.h"
 #include "endianness.h"
@@ -207,9 +207,9 @@ extern "C" int gtatool_from_raw(int argc, char *argv[])
         if (arguments.size() == 2)
         {
             ofilename = arguments[1];
-            fo = cio::open(ofilename, "w");
+            fo = fio::open(ofilename, "w");
         }
-        if (cio::isatty(fo))
+        if (fio::isatty(fo))
         {
             throw exc("refusing to write to a tty");
         }
@@ -222,7 +222,7 @@ extern "C" int gtatool_from_raw(int argc, char *argv[])
 
     try
     {
-        FILE *fi = cio::open(ifilename, "r");
+        FILE *fi = fio::open(ifilename, "r");
         gta::header hdr;
         hdr.set_dimensions(dimensions.value().size(), &(dimensions.value()[0]));
         hdr.set_components(components.value().size(), &(components.value()[0]));
@@ -231,17 +231,17 @@ extern "C" int gtatool_from_raw(int argc, char *argv[])
         gta::io_state so;
         for (uintmax_t e = 0; e < hdr.elements(); e++)
         {
-            cio::read(element.ptr(), hdr.element_size(), 1, fi, ifilename);
+            fio::read(element.ptr(), hdr.element_size(), 1, fi, ifilename);
             if (!host_endianness)
             {
                 swap_element_endianness(hdr, element.ptr());
             }
             hdr.write_elements(so, fo, 1, element.ptr());
         }
-        cio::close(fi);
+        fio::close(fi);
         if (fo != gtatool_stdout)
         {
-            cio::close(fo);
+            fio::close(fo);
         }
     }
     catch (std::exception &e)

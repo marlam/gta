@@ -28,7 +28,7 @@
 
 #include "msg.h"
 #include "blob.h"
-#include "cio.h"
+#include "fio.h"
 #include "opt.h"
 #include "str.h"
 #include "intcheck.h"
@@ -98,7 +98,7 @@ extern "C" int gtatool_to_rat(int argc, char *argv[])
         if (arguments.size() == 2)
         {
             ifilename = arguments[0];
-            fi = cio::open(ifilename, "r");
+            fi = fio::open(ifilename, "r");
             ofilename = arguments[1];
         }
     }
@@ -110,10 +110,10 @@ extern "C" int gtatool_to_rat(int argc, char *argv[])
 
     try
     {
-        FILE *fo = cio::open(ofilename, "w");
+        FILE *fo = fio::open(ofilename, "w");
 
         uintmax_t array_index = 0;
-        while (cio::has_more(fi, ifilename))
+        while (fio::has_more(fi, ifilename))
         {
             std::string array_name = ifilename + " array " + str::from(array_index);
             gta::header ihdr;
@@ -164,7 +164,7 @@ extern "C" int gtatool_to_rat(int argc, char *argv[])
             }
 
             blob idata(checked_cast<size_t>(ihdr.data_size()));
-            cio::read(idata.ptr(), ihdr.data_size(), 1, fi, ifilename);
+            fio::read(idata.ptr(), ihdr.data_size(), 1, fi, ifilename);
 
             gta::header hdr;
             blob data(checked_cast<size_t>(ihdr.data_size()));
@@ -213,19 +213,19 @@ extern "C" int gtatool_to_rat(int argc, char *argv[])
                     endianness::swap32(&(rat_dummy[i]));
                 }
             }
-            cio::write(&rat_dim, sizeof(int32_t), 1, fo, ofilename);
-            cio::write(&(rat_sizes[0]), sizeof(int32_t), rat_sizes.size(), fo, ofilename);
-            cio::write(&rat_var, sizeof(int32_t), 1, fo, ofilename);
-            cio::write(&rat_type, sizeof(int32_t), 1, fo, ofilename);
-            cio::write(rat_dummy, sizeof(int32_t), 4, fo, ofilename);
-            cio::write(rat_info, sizeof(char), 80, fo, ofilename);
-            cio::write(data.ptr(), hdr.data_size(), 1, fo, ofilename);
+            fio::write(&rat_dim, sizeof(int32_t), 1, fo, ofilename);
+            fio::write(&(rat_sizes[0]), sizeof(int32_t), rat_sizes.size(), fo, ofilename);
+            fio::write(&rat_var, sizeof(int32_t), 1, fo, ofilename);
+            fio::write(&rat_type, sizeof(int32_t), 1, fo, ofilename);
+            fio::write(rat_dummy, sizeof(int32_t), 4, fo, ofilename);
+            fio::write(rat_info, sizeof(char), 80, fo, ofilename);
+            fio::write(data.ptr(), hdr.data_size(), 1, fo, ofilename);
             array_index++;
         }
-        cio::close(fo, ofilename);
+        fio::close(fo, ofilename);
         if (fi != gtatool_stdin)
         {
-            cio::close(fi);
+            fio::close(fi);
         }
     }
     catch (std::exception &e)

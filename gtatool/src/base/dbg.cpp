@@ -1,8 +1,5 @@
 /*
- * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
- * (GTAs).
- *
- * Copyright (C) 2006, 2007, 2009, 2010, 2011
+ * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -72,9 +69,9 @@ namespace dbg
         signal_handler.sa_handler = signal_crash;
         sigemptyset(&signal_handler.sa_mask);
         signal_handler.sa_flags = 0;
-        (void)sigaction(SIGILL, &signal_handler, NULL);
-        (void)sigaction(SIGFPE, &signal_handler, NULL);
-        (void)sigaction(SIGSEGV, &signal_handler, NULL);
+        (void)sigaction(SIGILL, &signal_handler, nullptr);
+        (void)sigaction(SIGFPE, &signal_handler, nullptr);
+        (void)sigaction(SIGSEGV, &signal_handler, nullptr);
 #endif
         std::set_unexpected(exception_crash);
         std::set_terminate(exception_crash);
@@ -105,7 +102,7 @@ namespace dbg
 #  if __GNUG__
                 int status;
                 char *p, *q;
-                char *realname = NULL;
+                char *realname = nullptr;
 
                 p = strchr(strings[i], '(');
                 if (p)
@@ -115,7 +112,7 @@ namespace dbg
                     if (q)
                     {
                         *q = '\0';
-                        realname = abi::__cxa_demangle(p, NULL, NULL, &status);
+                        realname = abi::__cxa_demangle(p, nullptr, nullptr, &status);
                         *q = '+';
                     }
                 }

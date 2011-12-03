@@ -29,7 +29,7 @@
 
 #include "msg.h"
 #include "blob.h"
-#include "cio.h"
+#include "fio.h"
 #include "opt.h"
 #include "intcheck.h"
 
@@ -67,9 +67,9 @@ extern "C" int gtatool_from_pfs(int argc, char *argv[])
         if (arguments.size() == 2)
         {
             ofilename = arguments[1];
-            fo = cio::open(ofilename, "w");
+            fo = fio::open(ofilename, "w");
         }
-        if (cio::isatty(fo))
+        if (fio::isatty(fo))
         {
             throw exc("refusing to write to a tty");
         }
@@ -82,7 +82,7 @@ extern "C" int gtatool_from_pfs(int argc, char *argv[])
 
     try
     {
-        FILE *fi = cio::open(ifilename, "r");
+        FILE *fi = fio::open(ifilename, "r");
         for (;;)
         {
             pfs::DOMIO pfsio;
@@ -191,7 +191,7 @@ extern "C" int gtatool_from_pfs(int argc, char *argv[])
         }
         if (fo != gtatool_stdout)
         {
-            cio::close(fo);
+            fio::close(fo);
         }
     }
     catch (pfs::Exception &e)

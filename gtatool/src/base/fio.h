@@ -1,7 +1,4 @@
 /*
- * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
- * (GTAs).
- *
  * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
  * Martin Lambers <marlam@marlam.de>
  *
@@ -20,7 +17,7 @@
  */
 
 /**
- * \file cio.h
+ * \file fio.h
  *
  * C-style IO for C++, with exception handling.
  */
@@ -30,7 +27,9 @@
 
 #include <cstdio>
 #include <string>
+#include <vector>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 #include "exc.h"
 
@@ -52,7 +51,28 @@
 # define O_NOATIME 0
 #endif
 
-namespace cio
+/* Export POSIX fadvise flags to systems that lack them. */
+#ifndef POSIX_FADV_NORMAL
+# define POSIX_FADV_NORMAL 0
+#endif
+#ifndef POSIX_FADV_SEQUENTIAL
+# define POSIX_FADV_SEQUENTIAL 0
+#endif
+#ifndef POSIX_FADV_RANDOM
+# define POSIX_FADV_RANDOM 0
+#endif
+#ifndef POSIX_FADV_NOREUSE
+# define POSIX_FADV_NOREUSE 0
+#endif
+#ifndef POSIX_FADV_WILLNEED
+# define POSIX_FADV_WILLNEED 0
+#endif
+#ifndef POSIX_FADV_DONTNEED
+# define POSIX_FADV_DONTNEED 0
+#endif
+
+
+namespace fio
 {
 #if W32
     // Fix off_t
@@ -68,7 +88,10 @@ namespace cio
 #endif
 
     // fopen / fclose replacements
-    FILE *open(const std::string &filename, const std::string &mode, const int flags = 0);
+    // For open(), the flags argument gives open(2) flags *in addition* to the flags implied by the mode string ("r" =
+    // O_RDONLY, "r+" = O_RDWR, "w" = O_WRONLY | O_CREAT | O_TRUNC, "w+" = O_RDWR | O_CREAT | O_TRUNC, "a" = O_WRONLY |
+    // O_CREAT | O_APPEND, "a+" = O_RDWR | O_CREAT | O_APPEND).
+    FILE *open(const std::string &filename, const std::string &mode, int flags = 0, int posix_advice = 0);
     void close(FILE *f, const std::string &filename = std::string(""));
 
     // temporary files and directories
@@ -107,6 +130,13 @@ namespace cio
     // isatty
     bool isatty(FILE *f) throw ();
 
+    // fsync/fdatasync replacements
+    void sync(FILE *f, const std::string &filename = std::string(""));
+    void datasync(FILE *f, const std::string &filename = std::string(""));
+
+    // posix_fadvise replacement (always affects the whole file)
+    void advise(FILE *f, const int posix_advice, const std::string &filename = std::string(""));
+
     // mmap/munmap replacements
     // These wrappers support only a very limited subset of the real mmap/munmap:
     // - Mapping happens always with MAP_PRIVATE, PROT_READ
@@ -119,6 +149,9 @@ namespace cio
     void link(const std::string &oldfilename, const std::string &newfilename);
     void unlink(const std::string &filename);
 
+    // symbolic links
+    void symlink(const std::string &oldfilename, const std::string &newfilename);
+
     // mkdir and rmdir replacements
     void mkdir(const std::string &dirname);
     void rmdir(const std::string &dirname);
@@ -128,6 +161,13 @@ namespace cio
 
     // rename a file
     void rename(const std::string &old_path, const std::string &new_path);
+
+    // Read file names in directory (excluding the . and .. entries) and return
+    // those that match the given glob pattern (empty pattern: return all).
+    std::vector<std::string> readdir(const std::string &dirname, const std::string &pattern = "");
+
+    // stat
+    bool stat(const std::string &pathname, struct stat *buf);
 
     // replacements for shell utilities:
     // mkdir -p  (with a variant that assumes that a given prefix already exists)
@@ -143,6 +183,11 @@ namespace cio
     bool test_d(const std::string &pathname);
     // basename name [suffix]
     std::string basename(const std::string &name, const std::string &suffix = std::string(""));
+    // dirname name
+    std::string dirname(const std::string &name);
+
+    // Get special directories
+    std::string homedir();
 };
 
 #endif

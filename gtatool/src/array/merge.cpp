@@ -30,7 +30,7 @@
 #include "msg.h"
 #include "blob.h"
 #include "opt.h"
-#include "cio.h"
+#include "fio.h"
 #include "str.h"
 #include "intcheck.h"
 
@@ -69,7 +69,7 @@ extern "C" int gtatool_merge(int argc, char *argv[])
         return 0;
     }
 
-    if (cio::isatty(gtatool_stdout))
+    if (fio::isatty(gtatool_stdout))
     {
         msg::err_txt("refusing to write to a tty");
         return 1;

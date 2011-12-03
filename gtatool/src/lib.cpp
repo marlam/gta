@@ -27,7 +27,7 @@
 #include <cstddef>
 
 #include "str.h"
-#include "cio.h"
+#include "fio.h"
 #include "msg.h"
 #include "intcheck.h"
 #include "endianness.h"
@@ -579,7 +579,7 @@ array_loop_t::~array_loop_t()
     {
         try
         {
-            cio::close(_file_in, filename_in());
+            fio::close(_file_in, filename_in());
         }
         catch (...)
         {
@@ -589,7 +589,7 @@ array_loop_t::~array_loop_t()
     {
         try
         {
-            cio::close(_file_out, filename_out());
+            fio::close(_file_out, filename_out());
         }
         catch (...)
         {
@@ -616,7 +616,7 @@ void array_loop_t::start(const std::vector<std::string> &filenames_in,
     }
     else
     {
-        _file_in = cio::open(_filenames_in[0], "r");
+        _file_in = fio::open(_filenames_in[0], "r");
     }
     if (_filename_out.length() == 0)
     {
@@ -624,7 +624,7 @@ void array_loop_t::start(const std::vector<std::string> &filenames_in,
     }
     else
     {
-        _file_out = cio::open(_filename_out, "w");
+        _file_out = fio::open(_filename_out, "w");
     }
 }
 
@@ -635,14 +635,14 @@ void array_loop_t::finish()
         FILE *f = _file_out;
         const std::string &name = filename_out();
         _file_out = NULL;
-        cio::close(f, name);
+        fio::close(f, name);
     }
     if (_file_in && _file_in != gtatool_stdin)
     {
         FILE *f = _file_in;
         const std::string &name = filename_in();
         _file_in = NULL;
-        cio::close(f, name);
+        fio::close(f, name);
     }
 }
 
@@ -658,7 +658,7 @@ const std::string &array_loop_t::filename_out() throw ()
 
 bool array_loop_t::read(gta::header &header_in, std::string &name_in)
 {
-    while (!cio::has_more(_file_in))
+    while (!fio::has_more(_file_in))
     {
         if (_filenames_in.size() == 0)
         {
@@ -668,13 +668,13 @@ bool array_loop_t::read(gta::header &header_in, std::string &name_in)
         {
             FILE *f = _file_in;
             _file_in = NULL;
-            cio::close(f, filename_in());
+            fio::close(f, filename_in());
             if (_filename_index + 1 == _filenames_in.size())
             {
                 return false;
             }
             _filename_index++;
-            _file_in = cio::open(_filenames_in.at(_filename_index), "r");
+            _file_in = fio::open(_filenames_in.at(_filename_index), "r");
             _file_index_in = 0;
         }
     }
@@ -695,7 +695,7 @@ bool array_loop_t::read(gta::header &header_in, std::string &name_in)
 
 void array_loop_t::write(const gta::header &header_out, std::string &name_out)
 {
-    if (cio::isatty(_file_out))
+    if (fio::isatty(_file_out))
     {
         throw exc("refusing to write to a tty");
     }

@@ -1,8 +1,5 @@
 /*
- * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
- * (GTAs).
- *
- * Copyright (C) 2006, 2007, 2009, 2010, 2011
+ * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -27,7 +24,7 @@
 #include <string>
 #include <cctype>
 #include <cstdio>
-#include <stdint.h>
+#include <cstdint>
 
 
 /**
