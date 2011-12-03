@@ -55,8 +55,8 @@ if test "$build_ref" = "yes"; then
 fi
 AM_CONDITIONAL([BUILD_REF], [test "$build_ref" = "yes"])
 AC_ARG_ENABLE([valgrind-tests],
-    [AS_HELP_STRING([--enable-valgrind-tests], [Use valgrind when running tests. Enabled by default if valgrind is available.])],
-    [if test "$enableval" = "yes"; then valgrind_tests="yes"; else valgrind_tests="no"; fi], [valgrind_tests="yes"])
+    [AS_HELP_STRING([--enable-valgrind-tests], [Use valgrind when running tests. Disabled by default.])],
+    [if test "$enableval" = "yes"; then valgrind_tests="yes"; else valgrind_tests="no"; fi], [valgrind_tests="no"])
 AC_ARG_VAR([VALGRIND], [Valgrind command])
 if test "$valgrind_tests" = "yes"; then
     AC_CHECK_PROGS([VALGRIND], [valgrind], [:])
