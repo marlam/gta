@@ -209,7 +209,11 @@ extern "C" int gtatool_info(int argc, char *argv[])
                     dimensions << "x";
                 }
             }
-            if (hdr.dimensions() > 1)
+            if (hdr.dimensions() == 0)
+            {
+                dimensions << "0";
+            }
+            else if (hdr.dimensions() > 1)
             {
                 dimensions << " = " << hdr.elements();
             }
@@ -225,6 +229,11 @@ extern "C" int gtatool_info(int argc, char *argv[])
             if (hdr.data_size() == 0)
             {
                 msg::req(name + ":");
+            }
+            else if (hdr.data_size() < 1024)
+            {
+                msg::req(name + ": "
+                        + str::from(hdr.data_size()) + " bytes");
             }
             else
             {
@@ -246,13 +255,13 @@ extern "C" int gtatool_info(int argc, char *argv[])
                      : hdr.compression() == gta::zlib7 ? "zlib level 7"
                      : hdr.compression() == gta::zlib8 ? "zlib level 8"
                      : hdr.compression() == gta::zlib9 ? "zlib level 9" : "unknown"));
-            if (hdr.data_size() == 0)
+            if (hdr.components() > 0)
             {
-                msg::req(4, "empty array");
+                msg::req(4, dimensions.str() + " elements of type " + components.str());
             }
             else
             {
-                msg::req(4, dimensions.str() + " elements of type " + components.str());
+                msg::req(4, dimensions.str() + " empty elements");
             }
             for (uintmax_t i = 0; i < hdr.global_taglist().tags(); i++)
             {
