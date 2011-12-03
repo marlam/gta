@@ -47,6 +47,7 @@
 #include <QLineEdit>
 #include <QRadioButton>
 #include <QTextCodec>
+#include <QCheckBox>
 
 #include <gta/gta.hpp>
 
@@ -539,6 +540,13 @@ GUI::GUI()
         file_import_exr_action->setEnabled(false);
     }
     file_import_menu->addAction(file_import_exr_action);
+    QAction *file_import_ffmpeg_action = new QAction(tr("Multimedia data (via FFmpeg)..."), this);
+    connect(file_import_ffmpeg_action, SIGNAL(triggered()), this, SLOT(file_import_ffmpeg()));
+    if (!cmd_is_available(cmd_find("from-ffmpeg")))
+    {
+        file_import_ffmpeg_action->setEnabled(false);
+    }
+    file_import_menu->addAction(file_import_ffmpeg_action);
     QAction *file_import_gdal_action = new QAction(tr("Remote Sensing data (via GDAL)..."), this);
     connect(file_import_gdal_action, SIGNAL(triggered()), this, SLOT(file_import_gdal()));
     if (!cmd_is_available(cmd_find("from-gdal")))
@@ -560,6 +568,13 @@ GUI::GUI()
         file_import_mat_action->setEnabled(false);
     }
     file_import_menu->addAction(file_import_mat_action);
+    QAction *file_import_pcd_action = new QAction(tr("PCD point cloud data (via PCL)..."), this);
+    connect(file_import_pcd_action, SIGNAL(triggered()), this, SLOT(file_import_pcd()));
+    if (!cmd_is_available(cmd_find("from-pcd")))
+    {
+        file_import_pcd_action->setEnabled(false);
+    }
+    file_import_menu->addAction(file_import_pcd_action);
     QAction *file_import_pfs_action = new QAction(tr("PFS floating point data (via PFS)..."), this);
     connect(file_import_pfs_action, SIGNAL(triggered()), this, SLOT(file_import_pfs()));
     if (!cmd_is_available(cmd_find("from-pfs")))
@@ -567,6 +582,13 @@ GUI::GUI()
         file_import_pfs_action->setEnabled(false);
     }
     file_import_menu->addAction(file_import_pfs_action);
+    QAction *file_import_ply_action = new QAction(tr("PLY geometry data..."), this);
+    connect(file_import_ply_action, SIGNAL(triggered()), this, SLOT(file_import_ply()));
+    if (!cmd_is_available(cmd_find("from-ply")))
+    {
+        file_import_ply_action->setEnabled(false);
+    }
+    file_import_menu->addAction(file_import_ply_action);
     QAction *file_import_rat_action = new QAction(tr("RAT RadarTools data..."), this);
     connect(file_import_rat_action, SIGNAL(triggered()), this, SLOT(file_import_rat()));
     file_import_menu->addAction(file_import_rat_action);
@@ -602,6 +624,13 @@ GUI::GUI()
         file_export_mat_action->setEnabled(false);
     }
     file_export_menu->addAction(file_export_mat_action);
+    QAction *file_export_pcd_action = new QAction(tr("PCD point cloud data (via PCL)..."), this);
+    connect(file_export_pcd_action, SIGNAL(triggered()), this, SLOT(file_export_pcd()));
+    if (!cmd_is_available(cmd_find("to-pcd")))
+    {
+        file_export_pcd_action->setEnabled(false);
+    }
+    file_export_menu->addAction(file_export_pcd_action);
     QAction *file_export_pfs_action = new QAction(tr("PFS floating point data (via PFS)..."), this);
     connect(file_export_pfs_action, SIGNAL(triggered()), this, SLOT(file_export_pfs()));
     if (!cmd_is_available(cmd_find("to-pfs")))
@@ -609,6 +638,13 @@ GUI::GUI()
         file_export_pfs_action->setEnabled(false);
     }
     file_export_menu->addAction(file_export_pfs_action);
+    QAction *file_export_ply_action = new QAction(tr("PLY geometry data..."), this);
+    connect(file_export_ply_action, SIGNAL(triggered()), this, SLOT(file_export_ply()));
+    if (!cmd_is_available(cmd_find("to-ply")))
+    {
+        file_export_ply_action->setEnabled(false);
+    }
+    file_export_menu->addAction(file_export_ply_action);
     QAction *file_export_rat_action = new QAction(tr("RAT RadarTools data..."), this);
     connect(file_export_rat_action, SIGNAL(triggered()), this, SLOT(file_export_rat()));
     file_export_menu->addAction(file_export_rat_action);
@@ -659,6 +695,9 @@ GUI::GUI()
     QAction *dimension_extract_action = new QAction(tr("&Extract dimension from current array..."), this);
     connect(dimension_extract_action, SIGNAL(triggered()), this, SLOT(dimension_extract()));
     dimension_menu->addAction(dimension_extract_action);
+    QAction *dimension_flatten_action = new QAction(tr("&Flatten dimensions of current array (make it one-dimensional)..."), this);
+    connect(dimension_flatten_action, SIGNAL(triggered()), this, SLOT(dimension_flatten()));
+    dimension_menu->addAction(dimension_flatten_action);
     QAction *dimension_merge_action = new QAction(tr("&Merge arrays from open files into new dimension..."), this);
     connect(dimension_merge_action, SIGNAL(triggered()), this, SLOT(dimension_merge()));
     dimension_menu->addAction(dimension_merge_action);
@@ -1326,6 +1365,11 @@ void GUI::file_import_exr()
     import_from("from-exr", std::vector<std::string>(), QStringList("EXR files (*.exr)"));
 }
 
+void GUI::file_import_ffmpeg()
+{
+    import_from("from-ffmpeg", std::vector<std::string>(), QStringList("Any multimedia files (*.*)"));
+}
+
 void GUI::file_import_gdal()
 {
     import_from("from-gdal", std::vector<std::string>(), QStringList("TIFF files (*.tif *.tiff)"));
@@ -1341,9 +1385,19 @@ void GUI::file_import_mat()
     import_from("from-mat", std::vector<std::string>(), QStringList("MATLAB files (*.mat)"));
 }
 
+void GUI::file_import_pcd()
+{
+    import_from("from-pcd", std::vector<std::string>(), QStringList("PCD files (*.pcd)"));
+}
+
 void GUI::file_import_pfs()
 {
     import_from("from-pfs", std::vector<std::string>(), QStringList("PFS files (*.pfs)"));
+}
+
+void GUI::file_import_ply()
+{
+    import_from("from-ply", std::vector<std::string>(), QStringList("PLY files (*.ply)"));
 }
 
 void GUI::file_import_rat()
@@ -1419,9 +1473,19 @@ void GUI::file_export_rat()
     export_to("to-rat", std::vector<std::string>(), "rat", QStringList("RAT RadarTools files (*.rat)"));
 }
 
+void GUI::file_export_pcd()
+{
+    export_to("to-pcd", std::vector<std::string>(), "pcd", QStringList("PCD files (*.pcd)"));
+}
+
 void GUI::file_export_pfs()
 {
     export_to("to-pfs", std::vector<std::string>(), "pfs", QStringList("PFS files (*.pfs)"));
+}
+
+void GUI::file_export_ply()
+{
+    export_to("to-ply", std::vector<std::string>(), "ply", QStringList("PLY files (*.ply)"));
 }
 
 void GUI::file_export_raw()
@@ -1827,6 +1891,40 @@ void GUI::dimension_extract()
     output_cmd("dimension-extract", args, "");
 }
 
+void GUI::dimension_flatten()
+{
+    if (!check_have_file() || !check_file_unchanged())
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Flatten dimensions (make one-dimensional)");
+    QGridLayout *layout = new QGridLayout;
+    QCheckBox *p_checkbox = new QCheckBox("Prepend original coordinates to each array element");
+    layout->addWidget(p_checkbox, 0, 0, 1, 2);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 1, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 1, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    if (p_checkbox->isChecked())
+    {
+        args.push_back("-p");
+    }
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    args.push_back(fio::to_sys(fw->save_name()));
+    output_cmd("dimension-flatten", args, "");
+}
+
 void GUI::dimension_merge()
 {
     if (!check_have_file() || !check_all_files_unchanged())
@@ -2060,19 +2158,25 @@ void GUI::component_convert()
     layout->addWidget(comp_label, 0, 0, 1, 2);
     QLineEdit *comp_edit = new QLineEdit("");
     layout->addWidget(comp_edit, 1, 0, 1, 2);
+    QCheckBox *n_checkbox = new QCheckBox("Normalize integers when converting to floating point");
+    layout->addWidget(n_checkbox, 2, 0, 1, 2);
     QPushButton *ok_btn = new QPushButton(tr("&OK"));
     ok_btn->setDefault(true);
     connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
-    layout->addWidget(ok_btn, 2, 0);
+    layout->addWidget(ok_btn, 3, 0);
     QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
     connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
-    layout->addWidget(cancel_btn, 2, 1);
+    layout->addWidget(cancel_btn, 3, 1);
     dialog->setLayout(layout);
     if (dialog->exec() == QDialog::Rejected)
     {
         return;
     }
     std::vector<std::string> args;
+    if (n_checkbox->isChecked())
+    {
+        args.push_back("-n");
+    }
     args.push_back("-c");
     args.push_back(qPrintable(comp_edit->text().simplified().replace(' ', "")));
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
