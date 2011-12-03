@@ -76,7 +76,7 @@ extern "C" int gtatool_info(int argc, char *argv[])
         std::vector<double> squaresum;
         while (array_loop.read(hdr, name))
         {
-            if (statistics.value() && !hdr.data_size() == 0)
+            if (statistics.value() && hdr.data_size() != 0)
             {
                 minima.clear();
                 maxima.clear();
