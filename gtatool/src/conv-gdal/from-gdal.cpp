@@ -272,12 +272,12 @@ extern "C" int gtatool_from_gdal(int argc, char *argv[])
             value = GDALGetRasterMinimum(band, &success);
             if (success)
             {
-                taglist_set(hdr.component_taglist(i), "GDAL/MIN_VALUE", str::from(value));
+                taglist_set(hdr.component_taglist(i), "MIN_VALUE", str::from(value));
             }
             value = GDALGetRasterMaximum(band, &success);
             if (success)
             {
-                taglist_set(hdr.component_taglist(i), "GDAL/MAX_VALUE", str::from(value));
+                taglist_set(hdr.component_taglist(i), "MAX_VALUE", str::from(value));
             }
             value = GDALGetRasterOffset(band, &success);
             if (success)
