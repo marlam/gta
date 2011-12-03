@@ -93,6 +93,6 @@ The following tag names are defined for component tags in a GTA file:
 - "NO_DATA_VALUE": Special value that indicates that there is no data
   available for an array element.
 
-- "MIN": Minimal value of this component in this array.
+- "MIN_VALUE": Minimal value of this component in this array.
 
-- "MAX": Maximum value of this component in this array.
+- "MAX_VALUE": Maximum value of this component in this array.
