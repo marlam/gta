@@ -284,7 +284,7 @@ extern "C" int gtatool_info(int argc, char *argv[])
                 {
                     msg::req(8, std::string("minimum value = ") + str::from(minima[i]));
                     msg::req(8, std::string("maximum value = ") + str::from(maxima[i]));
-                    double mean = sum[i] / (hdr.elements() - 1);
+                    double mean = sum[i] / hdr.elements();
                     double variance = (squaresum[i] - sum[i] / hdr.elements() * sum[i]) / (hdr.elements() - 1);
                     double deviation = std::sqrt(variance);
                     msg::req(8, std::string("sample mean = ") + str::from(mean));
