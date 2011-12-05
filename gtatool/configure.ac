@@ -40,9 +40,6 @@ AC_PROG_INSTALL
 AC_LANG([C++])
 AC_C_BIGENDIAN
 
-dnl We want C++0x, and blindly add -std=gnu++0x. This may only work for gcc and clang...
-CXXFLAGS="-std=gnu++0x $CXXFLAGS"
-
 dnl Useful definitions
 AC_DEFINE_UNQUOTED([PLATFORM], ["${target}"], [Platform triplet])
 

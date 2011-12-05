@@ -28,7 +28,7 @@
 #define ENDIANNESS_H
 
 #include <cstring>
-#include <cstdint>
+#include <stdint.h>
 
 
 namespace endianness

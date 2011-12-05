@@ -24,7 +24,7 @@
 #include <string>
 #include <cctype>
 #include <cstdio>
-#include <cstdint>
+#include <stdint.h>
 
 
 /**

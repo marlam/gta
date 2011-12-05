@@ -64,7 +64,7 @@ private:
 public:
 
     blob() throw () :
-        _size(0), _ptr(nullptr)
+        _size(0), _ptr(NULL)
     {
     }
 
@@ -101,7 +101,7 @@ public:
         if (b.size() == 0) {
             std::free(_ptr);
             _size = 0;
-            _ptr = nullptr;
+            _ptr = NULL;
         } else {
             void *ptr = alloc(b.size());
             std::memcpy(ptr, b.ptr(), b.size());

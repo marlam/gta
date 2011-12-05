@@ -34,7 +34,7 @@ const pthread_mutex_t mutex::_mutex_initializer = PTHREAD_MUTEX_INITIALIZER;
 
 mutex::mutex() : _mutex(_mutex_initializer)
 {
-    int e = pthread_mutex_init(&_mutex, nullptr);
+    int e = pthread_mutex_init(&_mutex, NULL);
     if (e != 0)
         throw exc(str::asprintf(_("Cannot initialize mutex: %s"), std::strerror(e)), e);
 }
@@ -43,7 +43,7 @@ mutex::mutex(const mutex&) : _mutex(_mutex_initializer)
 {
     // You cannot have multiple copies of the same mutex.
     // Instead, we create a new one. This allows easier use of mutexes in STL containers.
-    int e = pthread_mutex_init(&_mutex, nullptr);
+    int e = pthread_mutex_init(&_mutex, NULL);
     if (e != 0)
         throw exc(str::asprintf(_("Cannot initialize mutex: %s"), std::strerror(e)), e);
 }
@@ -120,7 +120,7 @@ void* thread::__run(void* p)
         throw;
     }
     t->__running = false;
-    return nullptr;
+    return NULL;
 }
 
 void thread::start(int priority)
@@ -129,7 +129,7 @@ void thread::start(int priority)
         wait();
         int e;
         pthread_attr_t priority_thread_attr;
-        pthread_attr_t* thread_attr = nullptr;
+        pthread_attr_t* thread_attr = NULL;
         if (priority != priority_default)
         {
             // Currently this means priority_min
@@ -164,7 +164,7 @@ void thread::wait()
 {
     __wait_mutex.lock();
     if (atomic::bool_compare_and_swap(&__joinable, true, false)) {
-        int e = pthread_join(__thread_id, nullptr);
+        int e = pthread_join(__thread_id, NULL);
         if (e != 0) {
             __wait_mutex.unlock();
             throw exc(str::asprintf(_("Cannot join with thread: %s"), std::strerror(e)), e);
@@ -223,7 +223,7 @@ bool thread_group::start(thread* t, int priority)
 thread* thread_group::get_next_finished_thread()
 {
     if (__finished_threads.size() == 0) {
-        auto it = __active_threads.begin();
+        std::vector<thread*>::iterator it = __active_threads.begin();
         while (it != __active_threads.end()) {
             if (!(*it)->is_running()) {
                 __finished_threads.push_back(*it);
@@ -238,6 +238,6 @@ thread* thread_group::get_next_finished_thread()
         __finished_threads.pop_back();
         return ret;
     } else {
-        return nullptr;
+        return NULL;
     }
 }

@@ -96,7 +96,7 @@ namespace opt
             {
                 longopts[longopt_ind].has_arg = 1;      // required_argument
             }
-            longopts[longopt_ind].flag = nullptr;
+            longopts[longopt_ind].flag = NULL;
             longopts[longopt_ind].val = optval_base + longopt_ind;
             if (options[longopt_ind]->shortname() != '\0')
             {
@@ -118,7 +118,7 @@ namespace opt
             }
         }
         shortopts[shortopts_ind] = '\0';
-        longopts[longopt_count].name = nullptr;
+        longopts[longopt_count].name = NULL;
         longopts[longopt_count].has_arg = 0;
         longopts[longopt_count].flag = 0;
         longopts[longopt_count].val = 0;
@@ -137,7 +137,7 @@ namespace opt
 #endif
         while (!error)
         {
-            int optval = getopt_long(argc, argv, shortopts, longopts, nullptr);
+            int optval = getopt_long(argc, argv, shortopts, longopts, NULL);
             if (optval == -1)
             {
                 break;

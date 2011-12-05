@@ -46,7 +46,7 @@ namespace msg
     void set_file(FILE *f)
     {
         _file = f;
-        std::setvbuf(f, nullptr, _IOLBF, 0);
+        std::setvbuf(f, NULL, _IOLBF, 0);
     }
 
     level_t level()
@@ -159,7 +159,7 @@ namespace msg
     static std::wstring str_to_wstr(const std::string &in)
     {
         std::wstring out;
-        size_t l = std::mbstowcs(nullptr, in.c_str(), 0);
+        size_t l = std::mbstowcs(NULL, in.c_str(), 0);
         if (l == static_cast<size_t>(-1) || l > static_cast<size_t>(std::numeric_limits<int>::max() - 1))
         {
             // This should never happen. We don't want to handle this case, and we don't want to throw

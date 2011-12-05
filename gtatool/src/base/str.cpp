@@ -35,7 +35,9 @@
 # include <windows.h>
 #endif
 
-#include <iconv.h>
+#ifdef HAVE_ICONV
+# include <iconv.h>
+#endif
 
 #include "gettext.h"
 #define _(string) gettext(string)
@@ -54,7 +56,7 @@ static int vasprintf(char **strp, const char *format, va_list args)
      * and its return value is standards compliant. This is true for the MinGW version
      * of vsnprintf(), but not for Microsofts version (Visual Studio etc.)!
      */
-    int length = vsnprintf(nullptr, 0, format, args);
+    int length = vsnprintf(NULL, 0, format, args);
     if (length > std::numeric_limits<int>::max() - 1
             || !(*strp = static_cast<char *>(malloc(length + 1))))
     {
@@ -392,7 +394,7 @@ namespace str
     std::string localcharset()
     {
 #ifdef HAVE_NL_LANGINFO
-        std::string bak = setlocale(LC_CTYPE, nullptr);
+        std::string bak = setlocale(LC_CTYPE, NULL);
         setlocale(LC_CTYPE, "");
         char *charset = nl_langinfo(CODESET);
         setlocale(LC_CTYPE, bak.c_str());
@@ -421,6 +423,7 @@ namespace str
             return src;
         }
 
+#ifdef HAVE_ICONV
         iconv_t cd = iconv_open(to_charset.c_str(), from_charset.c_str());
         if (cd == reinterpret_cast<iconv_t>(static_cast<size_t>(-1)))
         {
@@ -467,5 +470,8 @@ namespace str
         }
         free(orig_outbuf);
         return dst;
+#else
+        throw exc(str::asprintf(_("Cannot convert %s to %s."), from_charset.c_str(), to_charset.c_str()), ENOSYS);
+#endif
     }
 }

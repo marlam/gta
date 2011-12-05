@@ -169,7 +169,7 @@ void serializable::load(const std::string& s)
     this->load(iss2);
 }
 
-// Return value nullptr means the character can be written as is.
+// Return value NULL means the character can be written as is.
 static const char* enc_char(char x)
 {
     return (x >= 0 && x <= 31 ? low_char_encodings[static_cast<int>(x)]
@@ -178,7 +178,7 @@ static const char* enc_char(char x)
             : x == '}' ? "\\}"
             : x == ' ' ? "\\ "
             : x == '\\' ? "\\\\"
-            : nullptr);
+            : NULL);
 }
 
 // Decode a character. The index i is incremented according to the characters consumed from s.

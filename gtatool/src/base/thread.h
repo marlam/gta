@@ -190,7 +190,7 @@ public:
     bool start(thread* t, int priority = thread::priority_default);
 
     // Return a finished thread object from the group and free its slot so
-    // that future threads can use it. If there is no finished thread, nullptr
+    // that future threads can use it. If there is no finished thread, NULL
     // is returned.
     thread* get_next_finished_thread();
 };

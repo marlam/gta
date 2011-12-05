@@ -69,9 +69,9 @@ namespace dbg
         signal_handler.sa_handler = signal_crash;
         sigemptyset(&signal_handler.sa_mask);
         signal_handler.sa_flags = 0;
-        (void)sigaction(SIGILL, &signal_handler, nullptr);
-        (void)sigaction(SIGFPE, &signal_handler, nullptr);
-        (void)sigaction(SIGSEGV, &signal_handler, nullptr);
+        (void)sigaction(SIGILL, &signal_handler, NULL);
+        (void)sigaction(SIGFPE, &signal_handler, NULL);
+        (void)sigaction(SIGSEGV, &signal_handler, NULL);
 #endif
         std::set_unexpected(exception_crash);
         std::set_terminate(exception_crash);
@@ -102,7 +102,7 @@ namespace dbg
 #  if __GNUG__
                 int status;
                 char *p, *q;
-                char *realname = nullptr;
+                char *realname = NULL;
 
                 p = strchr(strings[i], '(');
                 if (p)
@@ -112,7 +112,7 @@ namespace dbg
                     if (q)
                     {
                         *q = '\0';
-                        realname = abi::__cxa_demangle(p, nullptr, nullptr, &status);
+                        realname = abi::__cxa_demangle(p, NULL, NULL, &status);
                         *q = '+';
                     }
                 }

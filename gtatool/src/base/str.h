@@ -28,7 +28,7 @@
 #include <string>
 #include <cstdarg>
 #include <cerrno>
-#include <cstdint>
+#include <stdint.h>
 
 #include "exc.h"
 

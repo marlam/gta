@@ -22,7 +22,7 @@
 #include <cstdlib>
 #include <cerrno>
 #include <cstring>
-#include <cstdint>
+#include <stdint.h>
 #include <string>
 #include <list>
 
@@ -124,7 +124,7 @@ static int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
         if (errno != 0) {
             return errno;
         } else {
-            *result = nullptr;
+            *result = NULL;
             return 0;
         }
     }
@@ -174,7 +174,7 @@ static void set_errno_from_last_error(DWORD err)
 #ifndef HAVE_LINK
 static int link(const char *path1, const char *path2)
 {
-    if (CreateHardLink(path2, path1, nullptr) == 0)
+    if (CreateHardLink(path2, path1, NULL) == 0)
     {
         DWORD err = GetLastError();
         set_errno_from_last_error(err);
@@ -438,20 +438,20 @@ namespace fio
 
     /* Internal function that does the real work for creating temporary files or
      * directories.
-     * To create a directory, set 'file' to nullptr. This function will return the
-     * directory name in 'pathname'. If the result is nullptr, then the function
+     * To create a directory, set 'file' to NULL. This function will return the
+     * directory name in 'pathname'. If the result is NULL, then the function
      * failed, and errno will be set.
      * To create a file, let this function return the stream in 'file', which must
-     * not be nullptr. Use a nullptr 'pathname' to get tempfile() behaviour (no name
-     * returned, file will be deleted) and a non-nullptr 'pathname' to get mktempfile()
+     * not be NULL. Use a NULL 'pathname' to get tempfile() behaviour (no name
+     * returned, file will be deleted) and a non-NULL 'pathname' to get mktempfile()
      * behaviour (name returned, file will not be deleted). If the function fails,
-     * the returned stream will be nullptr, and errno will be set. */
+     * the returned stream will be NULL, and errno will be set. */
     static void real_mktemp(const char *dir, const char *base, FILE **file, char **pathname)
     {
         FILE *f;
         size_t baselen;
         size_t dirlen;
-        char *tmpl = nullptr;
+        char *tmpl = NULL;
         size_t tmpllen;
         int fd = -1;
         int saved_errno;
@@ -552,11 +552,11 @@ error_exit:
         errno = saved_errno;
         if (file)
         {
-            *file = nullptr;
+            *file = NULL;
         }
         else
         {
-            *pathname = nullptr;
+            *pathname = NULL;
         }
     }
 
@@ -591,7 +591,7 @@ error_exit:
     {
         FILE *f;
 
-        real_mktemp(default_tmpdir(), !base.empty() ? base.c_str() : nullptr, &f, nullptr);
+        real_mktemp(default_tmpdir(), !base.empty() ? base.c_str() : NULL, &f, NULL);
         if (!f)
         {
             throw exc(std::string("Cannot create temporary file: ") + std::strerror(errno), errno);
@@ -603,7 +603,7 @@ error_exit:
     {
         char *filename;
         real_mktemp(dir.empty() ? default_tmpdir() : to_sys(dir).c_str(),
-                !base.empty() ? base.c_str() : nullptr, f, &filename);
+                !base.empty() ? base.c_str() : NULL, f, &filename);
         if (!(*f))
         {
             throw exc(std::string("Cannot create temporary file: ") + std::strerror(errno), errno);
@@ -617,7 +617,7 @@ error_exit:
     {
         char *dirname;
         real_mktemp(dir.empty() ? default_tmpdir() : to_sys(dir).c_str(),
-                !base.empty() ? base.c_str() : nullptr, nullptr, &dirname);
+                !base.empty() ? base.c_str() : NULL, NULL, &dirname);
         if (!dirname)
         {
             throw exc(std::string("Cannot create temporary directory: ") + std::strerror(errno), errno);
@@ -629,7 +629,7 @@ error_exit:
 
     void disable_buffering(FILE *f, const std::string &filename)
     {
-        if (::setvbuf(f, nullptr, _IONBF, 0) != 0)
+        if (::setvbuf(f, NULL, _IONBF, 0) != 0)
         {
             throw exc(std::string("Cannot disable buffering for ")
                     + (!filename.empty() ? to_sys(filename) : "temporary file")
@@ -874,7 +874,7 @@ error_exit:
 #if HAVE_MMAP
 
         void *retval;
-        if ((retval = ::mmap(nullptr, length, PROT_READ, MAP_PRIVATE, fileno(f), offset)) == MAP_FAILED)
+        if ((retval = ::mmap(NULL, length, PROT_READ, MAP_PRIVATE, fileno(f), offset)) == MAP_FAILED)
         {
             throw exc(std::string("Cannot map ")
                     + (!filename.empty() ? to_sys(filename) : "temporary file")
@@ -1129,7 +1129,7 @@ error_exit:
         while (!pathlist.empty())
         {
             bool pathlist_grew = false;
-            auto it = pathlist.begin();
+            std::list<std::string>::iterator it = pathlist.begin();
             while (!pathlist_grew && it != pathlist.end())
             {
                 if (test_d(*it))
@@ -1254,7 +1254,7 @@ error_exit:
             if (l == ERROR_SUCCESS)
             {
                 len = MAX_PATH;
-                l = RegQueryValueEx(hkey, "AppData", nullptr, &type, homebuf, &len);
+                l = RegQueryValueEx(hkey, "AppData", NULL, &type, homebuf, &len);
                 if (l == ERROR_SUCCESS && len < MAX_PATH)
                 {
                     RegCloseKey(hkey);
