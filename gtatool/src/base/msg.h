@@ -87,7 +87,7 @@ namespace msg
 #endif
 
 #ifdef NDEBUG
-    inline void dbg(const std::string &) { } 
+    inline void dbg(const std::string &) { }
     inline void dbg(const char *, ...) { }
     inline void dbg_txt(const std::string &) { }
     inline void dbg_txt(const char *, ...) { }

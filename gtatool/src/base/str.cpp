@@ -390,6 +390,22 @@ namespace str
         }
     }
 
+    std::string human_readable_time(int64_t microseconds)
+    {
+        int64_t hours = microseconds / (1000000ll * 60ll * 60ll);
+        microseconds -= hours * (1000000ll * 60ll * 60ll);
+        int64_t minutes = microseconds / (1000000ll * 60ll);
+        microseconds -= minutes * (1000000ll * 60ll);
+        int64_t seconds = microseconds / 1000000ll;
+        std::string hr;
+        if (hours > 0)
+        {
+            hr = str::from(hours) + (minutes < 10 ? ":0" : ":");
+        }
+        hr += str::from(minutes) + (seconds < 10 ? ":0" : ":") + str::from(seconds);
+        return hr;
+    }
+
     /* Get the name of the user's character set */
     std::string localcharset()
     {
@@ -449,7 +465,7 @@ namespace str
         }
         char *outbuf = orig_outbuf;
 
-        size_t s = iconv(cd, const_cast<char **>(&inbuf), &inbytesleft, &outbuf, &outbytesleft);
+        size_t s = iconv(cd, const_cast<ICONV_CONST char **>(&inbuf), &inbytesleft, &outbuf, &outbytesleft);
         int saved_errno = errno;
         iconv_close(cd);
         if (s == static_cast<size_t>(-1))
