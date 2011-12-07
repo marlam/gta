@@ -7,7 +7,8 @@ if test $# -eq 0; then
 fi
 
 startsec="`date +%s`"
-seed="$startsec"
+#seed="$startsec"
+seed="`od -vAn -N4 -tu4 < /dev/urandom`"
 i=0
 while true; do
     seed="`./fuzztest-create $seed fuzztest-valid.gta fuzztest-corrupt.gta`"
