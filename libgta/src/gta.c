@@ -3723,6 +3723,11 @@ gta_read_elements(const gta_header_t *GTA_RESTRICT header, gta_io_state_t *GTA_R
         goto exit;
     }
     uintmax_t s = gta_get_element_size(header);
+    if (s == 0)
+    {
+        retval = GTA_INVALID_DATA;
+        goto exit;
+    }
     if (s > SIZE_MAX || n > SIZE_MAX || gta_size_overflow(n, s))
     {
         retval = GTA_OVERFLOW;
