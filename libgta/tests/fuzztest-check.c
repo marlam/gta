@@ -71,13 +71,16 @@ int main(int argc, char *argv[])
     check(r == GTA_OK);
     free(data);
     /* Read the data element-wise */
-    r = fseeko(f, data_offset, SEEK_SET);
-    check(r == 0);
-    data = malloc(gta_get_element_size(header));
-    check(data);
-    for (uintmax_t i = 0; i < gta_get_elements(header); i++) {
-        r = gta_read_elements_from_stream(header, io_state, 1, data, f);
-        check(r == GTA_OK);
+    if (gta_get_element_size(header) > 0 && gta_get_element_size(header) <= (uintmax_t)max_data_size) {
+        r = fseeko(f, data_offset, SEEK_SET);
+        check(r == 0);
+        data = malloc(gta_get_element_size(header));
+        check(data);
+        for (uintmax_t i = 0; i < gta_get_elements(header); i++) {
+            r = gta_read_elements_from_stream(header, io_state, 1, data, f);
+            check(r == GTA_OK);
+        }
+        free(data);
     }
     fclose(f);
 
@@ -102,16 +105,19 @@ int main(int argc, char *argv[])
         r = gta_read_data_from_stream(header, data, f);
         free(data);
         /* Read the data element-wise */
-        r = fseeko(f, data_offset, SEEK_SET);
-        check(r == 0);
-        data = malloc(gta_get_element_size(header));
-        check(data);
-        for (uintmax_t i = 0; i < gta_get_elements(header); i++) {
-            r = gta_read_elements_from_stream(header, io_state, 1, data, f);
-            if (r != GTA_OK)
-                break;
+        if (gta_get_element_size(header) > 0 && gta_get_element_size(header) <= (uintmax_t)max_data_size) {
+            r = fseeko(f, data_offset, SEEK_SET);
+            check(r == 0);
+            check(gta_get_element_size(header) <= gta_get_data_size(header));
+            data = malloc(gta_get_element_size(header));
+            check(data);
+            for (uintmax_t i = 0; i < gta_get_elements(header); i++) {
+                r = gta_read_elements_from_stream(header, io_state, 1, data, f);
+                if (r != GTA_OK)
+                    break;
+            }
+            free(data);
         }
-        free(data);
     }
     fclose(f);
 
