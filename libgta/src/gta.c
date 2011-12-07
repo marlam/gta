@@ -2498,19 +2498,25 @@ exit:
         free(temp_header->global_taglist);
         free(temp_header->component_types);
         free(temp_header->component_blob_sizes);
-        for (size_t i = 0; i < temp_header->components; i++)
+        if (temp_header->component_taglists != NULL )
         {
-            gta_destroy_taglist(temp_header->component_taglists[i]);
-            free(temp_header->component_taglists[i]);
+            for (size_t i = 0; i < temp_header->components; i++)
+            {
+                gta_destroy_taglist(temp_header->component_taglists[i]);
+                free(temp_header->component_taglists[i]);
+            }
+            free(temp_header->component_taglists);
         }
-        free(temp_header->component_taglists);
         free(temp_header->dimension_sizes);
-        for (size_t i = 0; i < temp_header->dimensions; i++)
+        if (temp_header->dimension_taglists != NULL)
         {
-            gta_destroy_taglist(temp_header->dimension_taglists[i]);
-            free(temp_header->dimension_taglists[i]);
+            for (size_t i = 0; i < temp_header->dimensions; i++)
+            {
+                gta_destroy_taglist(temp_header->dimension_taglists[i]);
+                free(temp_header->dimension_taglists[i]);
+            }
+            free(temp_header->dimension_taglists);
         }
-        free(temp_header->dimension_taglists);
     }
     free(temp_header);
     return retval;
