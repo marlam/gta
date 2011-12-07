@@ -940,6 +940,8 @@ gta_read_chunk(const gta_header_t *GTA_RESTRICT header,
     gta_result_t retval = GTA_OK;
     size_t r;
 
+    *chunk = NULL;
+    *chunk_size = 0;
     r = read_fn(userdata, &size_uncompressed, sizeof(uint64_t), &error);
     if (error)
     {
@@ -963,8 +965,6 @@ gta_read_chunk(const gta_header_t *GTA_RESTRICT header,
     if (size_uncompressed == 0)
     {
         // the last, empty chunk
-        *chunk = NULL;
-        *chunk_size = 0;
         retval = GTA_OK;
         goto exit;
     }
