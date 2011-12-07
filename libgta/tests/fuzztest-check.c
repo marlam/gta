@@ -108,7 +108,6 @@ int main(int argc, char *argv[])
         if (gta_get_element_size(header) > 0 && gta_get_element_size(header) <= (uintmax_t)max_data_size) {
             r = fseeko(f, data_offset, SEEK_SET);
             check(r == 0);
-            check(gta_get_element_size(header) <= gta_get_data_size(header));
             data = malloc(gta_get_element_size(header));
             check(data);
             for (uintmax_t i = 0; i < gta_get_elements(header); i++) {
