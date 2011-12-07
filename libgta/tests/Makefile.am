@@ -12,9 +12,19 @@ check_PROGRAMS = \
 	filedescriptors	\
 	endianness	\
 	blocks		\
-	elements
+	elements	\
+	fuzztest-create \
+	fuzztest-check
 
-TESTS = $(check_PROGRAMS)
+TESTS = \
+	basic		\
+	compression	\
+	taglists	\
+	filedescriptors	\
+	endianness	\
+	blocks		\
+	elements	\
+	fuzztest.sh
 
 EXTRA_DIST = little-endian.gta big-endian.gta
 
@@ -30,3 +40,6 @@ if VALGRIND_TESTS
 TESTS_ENVIRONMENT = $(VALGRIND) --quiet --log-fd=2 --error-exitcode=1 \
 	--tool=memcheck --leak-check=full  --leak-resolution=high --show-reachable=no
 endif
+
+fuzztest: fuzztest-create fuzztest-check
+	$(top_srcdir)/tests/fuzztest.sh "run"
