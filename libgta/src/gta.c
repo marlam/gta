@@ -2459,6 +2459,7 @@ gta_read_header(gta_header_t *GTA_RESTRICT header, gta_read_t read_fn, intptr_t 
 
     // Read an empty chunk that marks the end of the chunk list
     free(chunk);
+    chunk = NULL;
     retval = gta_read_chunk(header, &chunk, &chunk_size, read_fn, userdata);
     if (retval != GTA_OK)
     {
