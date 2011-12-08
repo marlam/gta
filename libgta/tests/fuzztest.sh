@@ -11,22 +11,26 @@ startsec="`date +%s`"
 seed="`od -vAn -N4 -tu4 < /dev/urandom`"
 i=0
 while true; do
-    seed="`./fuzztest-create $seed fuzztest-valid.gta fuzztest-corrupt.gta`"
+    validgta="`mktemp fuzztest-valid-XXXXXX.gta`"
+    corruptgta="`mktemp fuzztest-corrupt-XXXXXX.gta`"
+    newseed="`./fuzztest-create "$seed" "$validgta" "$corruptgta"`"
     if test $? -ne 0; then
-        echo 'Failed to create fuzz test files'
+        echo "Failed to create fuzz test files."
         break
     fi
-    ./fuzztest-check fuzztest-valid.gta fuzztest-corrupt.gta
+    ./fuzztest-check "$validgta" "$corruptgta"
     if test $? -ne 0; then
-        echo 'Fuzz test failed!'
-        echo 'Examine fuzztest-valid.gta and fuzztest-corrupt.gta'
+        echo "Fuzz test generated with seed $seed failed"'!'
+        echo "Examine $validgta and $corruptgta."
         break
     fi
+    rm "$validgta" "$corruptgta"
     i=$((i+1))
     if test $i -eq 1000; then
         currentsec="`date +%s`";
-        echo "1000 fuzz tests succeeded in $(($currentsec-$startsec)) seconds"
+        echo "1000 fuzz tests succeeded in $(($currentsec-$startsec)) seconds."
         i=0
         startsec=$currentsec
     fi
+    seed="$newseed"
 done
