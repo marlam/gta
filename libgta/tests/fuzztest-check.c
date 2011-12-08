@@ -39,9 +39,12 @@
 int main(int argc, char *argv[])
 {
     const int max_data_size = 64 * 1024 * 1024;
-    gta_header_t *header;
-    gta_io_state_t *io_state;
+    gta_header_t *iheader;
+    gta_header_t *oheader;
+    gta_io_state_t *istate;
+    gta_io_state_t *ostate;
     FILE *f;
+    FILE *nullf;
     off_t data_offset;
     void *data;
     int r;
@@ -50,74 +53,173 @@ int main(int argc, char *argv[])
     check(argv[1]);
     check(argv[2]);
 
-    r = gta_create_header(&header);
-    check(r == GTA_OK);
-    r = gta_create_io_state(&io_state);
-    check(r == GTA_OK);
+    nullf = fopen("/dev/null", "w");
+    check(nullf);
 
-    /* First check if we can read the valid GTA */
+    /* First check if we can read and write the valid GTA */
 
     f = fopen(argv[1], "r");
     check(f);
-    r = gta_read_header_from_stream(header, f);
+    r = gta_create_header(&iheader);
+    check(r == GTA_OK);
+    r = gta_create_header(&oheader);
+    check(r == GTA_OK);
+    r = gta_read_header_from_stream(iheader, f);
     check(r == GTA_OK);
     data_offset = ftello(f);
     check(data_offset > 0);
-    /* Read the data in one block */
-    check(gta_get_data_size(header) <= (uintmax_t)max_data_size);
-    data = malloc(gta_get_data_size(header));
+    r = gta_clone_header(oheader, iheader);
+    check(r == GTA_OK);
+    /* Read/write/skip the data in one block */
+    check(gta_get_data_size(iheader) <= (uintmax_t)max_data_size);
+    data = malloc(gta_get_data_size(iheader));
     check(data);
-    r = gta_read_data_from_stream(header, data, f);
+    r = gta_read_data_from_stream(iheader, data, f);
+    check(r == GTA_OK);
+    r = gta_write_data_to_stream(oheader, data, nullf);
     check(r == GTA_OK);
     free(data);
-    /* Read the data element-wise */
-    if (gta_get_element_size(header) > 0 && gta_get_element_size(header) <= (uintmax_t)max_data_size) {
+    r = fseeko(f, data_offset, SEEK_SET);
+    check(r == 0);
+    r = gta_skip_data_from_stream(iheader, f);
+    check(r == GTA_OK);
+    r = fseeko(f, data_offset, SEEK_SET);
+    check(r == 0);
+    r = gta_copy_data_stream(iheader, f, oheader, nullf);
+    check(r == GTA_OK);
+    if (gta_get_compression(oheader) == GTA_NONE)
+        gta_set_compression(oheader, GTA_ZLIB);
+    else
+        gta_set_compression(oheader, GTA_NONE);
+    r = fseeko(f, data_offset, SEEK_SET);
+    check(r == 0);
+    r = gta_copy_data_stream(iheader, f, oheader, nullf);
+    check(r == GTA_OK);
+    /* Read/write the data element-wise */
+    if (gta_get_element_size(iheader) > 0 && gta_get_element_size(iheader) <= (uintmax_t)max_data_size) {
         r = fseeko(f, data_offset, SEEK_SET);
         check(r == 0);
-        data = malloc(gta_get_element_size(header));
+        r = gta_create_io_state(&istate);
+        check(r == GTA_OK);
+        r = gta_create_io_state(&ostate);
+        check(r == GTA_OK);
+        data = malloc(gta_get_element_size(iheader));
         check(data);
-        for (uintmax_t i = 0; i < gta_get_elements(header); i++) {
-            r = gta_read_elements_from_stream(header, io_state, 1, data, f);
+        for (uintmax_t i = 0; i < gta_get_elements(iheader); i++) {
+            r = gta_read_elements_from_stream(iheader, istate, 1, data, f);
+            check(r == GTA_OK);
+            r = gta_write_elements_to_stream(oheader, ostate, 1, data, nullf);
+            check(r == GTA_OK);
+        }
+        gta_destroy_io_state(istate);
+        gta_destroy_io_state(ostate);
+        r = fseeko(f, data_offset, SEEK_SET);
+        check(r == 0);
+        r = gta_create_io_state(&istate);
+        check(r == GTA_OK);
+        r = gta_create_io_state(&ostate);
+        check(r == GTA_OK);
+        if (gta_get_compression(oheader) == GTA_NONE)
+            gta_set_compression(oheader, GTA_ZLIB);
+        else
+            gta_set_compression(oheader, GTA_NONE);
+        for (uintmax_t i = 0; i < gta_get_elements(iheader); i++) {
+            r = gta_read_elements_from_stream(iheader, istate, 1, data, f);
+            check(r == GTA_OK);
+            r = gta_write_elements_to_stream(oheader, ostate, 1, data, nullf);
             check(r == GTA_OK);
         }
         free(data);
+        gta_destroy_io_state(istate);
+        gta_destroy_io_state(ostate);
     }
+    gta_destroy_header(iheader);
+    gta_destroy_header(oheader);
     fclose(f);
 
-    gta_destroy_header(header);
-    r = gta_create_header(&header);
-    check(r == GTA_OK);
-    gta_destroy_io_state(io_state);
-    r = gta_create_io_state(&io_state);
-    check(r == GTA_OK);
 
     /* Now try the corrupt GTA */
 
     f = fopen(argv[2], "r");
     check(f);
-    r = gta_read_header_from_stream(header, f);
-    if (r == GTA_OK && gta_get_data_size(header) <= (uintmax_t)max_data_size) {
+    r = gta_create_header(&iheader);
+    check(r == GTA_OK);
+    r = gta_read_header_from_stream(iheader, f);
+    if (r == GTA_OK && gta_get_data_size(iheader) <= (uintmax_t)max_data_size) {
         data_offset = ftello(f);
         check(data_offset > 0);
-        /* Read the data in one block */
-        data = malloc(gta_get_data_size(header));
+        r = gta_create_header(&oheader);
+        check(r == GTA_OK);
+        r = gta_clone_header(oheader, iheader);
+        check(r == GTA_OK);
+        /* Read/write/skip the data in one block */
+        data = malloc(gta_get_data_size(iheader));
         check(data);
-        r = gta_read_data_from_stream(header, data, f);
+        r = gta_read_data_from_stream(iheader, data, f);
+        r = gta_write_data_to_stream(oheader, data, nullf);
+        r = fseeko(f, data_offset, SEEK_SET);
+        check(r == 0);
+        r = gta_skip_data_from_stream(iheader, f);
+        r = fseeko(f, data_offset, SEEK_SET);
+        check(r == 0);
+        r = gta_copy_data_stream(iheader, f, oheader, nullf);
+        r = fseeko(f, data_offset, SEEK_SET);
+        check(r == 0);
+        if (gta_get_compression(oheader) == GTA_NONE)
+            gta_set_compression(oheader, GTA_ZLIB);
+        else
+            gta_set_compression(oheader, GTA_NONE);
+        r = gta_copy_data_stream(iheader, f, oheader, nullf);
         free(data);
-        /* Read the data element-wise */
-        if (gta_get_element_size(header) > 0 && gta_get_element_size(header) <= (uintmax_t)max_data_size) {
+        /* Read/write the data element-wise */
+        if (gta_get_element_size(iheader) > 0 && gta_get_element_size(iheader) <= (uintmax_t)max_data_size) {
             r = fseeko(f, data_offset, SEEK_SET);
             check(r == 0);
-            data = malloc(gta_get_element_size(header));
+            r = gta_create_io_state(&istate);
+            check(r == GTA_OK);
+            r = gta_create_io_state(&ostate);
+            check(r == GTA_OK);
+            data = malloc(gta_get_element_size(iheader));
             check(data);
-            for (uintmax_t i = 0; i < gta_get_elements(header); i++) {
-                r = gta_read_elements_from_stream(header, io_state, 1, data, f);
+            for (uintmax_t i = 0; i < gta_get_elements(iheader); i++) {
+                r = gta_read_elements_from_stream(iheader, istate, 1, data, f);
+                if (r != GTA_OK)
+                    break;
+            }
+            for (uintmax_t i = 0; i < gta_get_elements(iheader); i++) {
+                r = gta_write_elements_to_stream(oheader, ostate, 1, data, nullf);
+                if (r != GTA_OK)
+                    break;
+            }
+            gta_destroy_io_state(istate);
+            gta_destroy_io_state(ostate);
+            r = fseeko(f, data_offset, SEEK_SET);
+            check(r == 0);
+            r = gta_create_io_state(&istate);
+            check(r == GTA_OK);
+            r = gta_create_io_state(&ostate);
+            check(r == GTA_OK);
+            if (gta_get_compression(oheader) == GTA_NONE)
+                gta_set_compression(oheader, GTA_ZLIB);
+            else
+                gta_set_compression(oheader, GTA_NONE);
+            for (uintmax_t i = 0; i < gta_get_elements(iheader); i++) {
+                r = gta_read_elements_from_stream(iheader, istate, 1, data, f);
+                if (r != GTA_OK)
+                    break;
+            }
+            for (uintmax_t i = 0; i < gta_get_elements(iheader); i++) {
+                r = gta_write_elements_to_stream(oheader, ostate, 1, data, nullf);
                 if (r != GTA_OK)
                     break;
             }
             free(data);
+            gta_destroy_io_state(istate);
+            gta_destroy_io_state(ostate);
         }
+        gta_destroy_header(oheader);
     }
+    gta_destroy_header(iheader);
     fclose(f);
 
     return 0;

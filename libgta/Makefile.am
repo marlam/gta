@@ -9,7 +9,7 @@ SUBDIRS = doc src tests
 ACLOCAL_AMFLAGS = -I m4
 
 fuzztest:
-	make -C tests fuzztest
+	$(MAKE) -C tests fuzztest
 
 # Create the ChangeLog file from the git log
 dist-hook:
