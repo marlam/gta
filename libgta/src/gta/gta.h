@@ -61,16 +61,16 @@
  * \section examples Examples
  *
  * Examples written in C:
- * - <a href="example-basic.c.html">Introductory example</a>
- * - <a href="example-tags.c.html">Using tags</a>
- * - <a href="example-stream-io.c.html">Stream-based input/output</a>
- * - <a href="example-block-io.c.html">Block-based input/output</a>
+ * - <a href="example-basic_8c.html">Introductory example</a>
+ * - <a href="example-tags_8c.html">Using tags</a>
+ * - <a href="example-stream-io_8c.html">Stream-based input/output</a>
+ * - <a href="example-block-io_8c.html">Block-based input/output</a>
  *
  * Examples written in C++:
- * - <a href="example-basic.cpp.html">Introductory example</a>
- * - <a href="example-tags.cpp.html">Using tags</a>
- * - <a href="example-stream-io.cpp.html">Stream-based input/output</a>
- * - <a href="example-block-io.cpp.html">Block-based input/output</a>
+ * - <a href="example-basic_8cpp.html">Introductory example</a>
+ * - <a href="example-tags_8cpp.html">Using tags</a>
+ * - <a href="example-stream-io_8cpp.html">Stream-based input/output</a>
+ * - <a href="example-block-io_8cpp.html">Block-based input/output</a>
  *
  * \page example-basic.c Examples written in C: Introductory example
  * \include example-basic.c
