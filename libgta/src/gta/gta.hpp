@@ -762,7 +762,6 @@ namespace gta
          * \param hdr   The header to copy.
          */
         header(const header &hdr)
-            : _header(NULL)
         {
             gta_result_t r;
             r = gta_create_header(&_header);
