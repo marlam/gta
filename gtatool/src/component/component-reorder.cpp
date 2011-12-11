@@ -84,90 +84,65 @@ extern "C" int gtatool_component_reorder(int argc, char *argv[])
         }
     }
 
-    if (fio::isatty(gtatool_stdout))
-    {
-        msg::err_txt("refusing to write to a tty");
-        return 1;
-    }
-
     try
     {
-        gta::header hdri;
-        gta::header hdro;
-        // Loop over all input files
-        size_t arg = 0;
-        do
+        array_loop_t array_loop;
+        gta::header hdri, hdro;
+        std::string namei, nameo;
+        array_loop.start(arguments, "");
+        while (array_loop.read(hdri, namei))
         {
-            std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : fio::open(finame, "r"));
-
-            // Loop over all GTAs inside the current file
-            uintmax_t array_index = 0;
-            while (fio::has_more(fi, finame))
+            if (!indices.value().empty() && hdri.components() != indices.value().size())
             {
-                // Determine the name of the array for error messages
-                std::string array_name = finame + " array " + str::from(array_index);
-                // Read the GTA header
-                hdri.read_from(fi);
-                if (!indices.value().empty() && hdri.components() != indices.value().size())
+                throw exc(namei + ": array has " + str::from(hdri.components())
+                        + " components while list of indices has " + str::from(indices.value().size()));
+            }
+            // Determine the new component order
+            hdro = hdri;
+            hdro.set_compression(gta::none);
+            if (!indices.value().empty())
+            {
+                std::vector<gta::type> comp_types;
+                std::vector<uintmax_t> comp_sizes;
+                for (size_t i = 0; i < indices.value().size(); i++)
                 {
-                    throw exc(array_name + ": array has " + str::from(hdri.components())
-                            + " components while list of indices has " + str::from(indices.value().size()));
+                    comp_types.push_back(hdri.component_type(indices.value()[i]));
+                    if (hdri.component_type(indices.value()[i]) == gta::blob)
+                    {
+                        comp_sizes.push_back(hdri.component_size(indices.value()[i]));
+                    }
                 }
-                // Determine the new component order
-                hdro = hdri;
-                hdro.set_compression(gta::none);
+                hdro.set_components(comp_types.size(), &(comp_types[0]), comp_sizes.size() == 0 ? NULL : &(comp_sizes[0]));
+                for (size_t i = 0; i < indices.value().size(); i++)
+                {
+                    hdro.component_taglist(i) = hdri.component_taglist(indices.value()[i]);
+                }
+            }
+
+            array_loop.write(hdro, nameo);
+            element_loop_t element_loop;
+            array_loop.start_element_loop(element_loop, hdri, hdro);
+            blob element_out(checked_cast<size_t>(hdro.element_size()));
+            for (uintmax_t e = 0; e < hdro.elements(); e++)
+            {
+                const void *element_in = element_loop.read();
                 if (!indices.value().empty())
                 {
-                    std::vector<gta::type> comp_types;
-                    std::vector<uintmax_t> comp_sizes;
-                    for (size_t i = 0; i < indices.value().size(); i++)
+                    for (uintmax_t i = 0; i < hdro.components(); i++)
                     {
-                        comp_types.push_back(hdri.component_type(indices.value()[i]));
-                        if (hdri.component_type(indices.value()[i]) == gta::blob)
-                        {
-                            comp_sizes.push_back(hdri.component_size(indices.value()[i]));
-                        }
-                    }
-                    hdro.set_components(comp_types.size(), &(comp_types[0]), comp_sizes.size() == 0 ? NULL : &(comp_sizes[0]));
-                    for (size_t i = 0; i < indices.value().size(); i++)
-                    {
-                        hdro.component_taglist(i) = hdri.component_taglist(indices.value()[i]);
+                        std::memcpy(hdro.component(element_out.ptr(), i),
+                                hdri.component(element_in, indices.value()[i]),
+                                hdro.component_size(i));
                     }
                 }
-                // Write the GTA header
-                hdro.write_to(gtatool_stdout);
-                // Manipulate the GTA data
-                blob element_in(checked_cast<size_t>(hdri.element_size()));
-                blob element_out(checked_cast<size_t>(hdro.element_size()));
-                gta::io_state si, so;
-                for (uintmax_t e = 0; e < hdro.elements(); e++)
+                else
                 {
-                    hdri.read_elements(si, fi, 1, element_in.ptr());
-                    if (!indices.value().empty())
-                    {
-                        for (uintmax_t i = 0; i < hdro.components(); i++)
-                        {
-                            memcpy(hdro.component(element_out.ptr(), i),
-                                    hdri.component(element_in.ptr(), indices.value()[i]),
-                                    hdro.component_size(i));
-                        }
-                    }
-                    else
-                    {
-                        memcpy(element_out.ptr(), element_in.ptr(), hdro.element_size());
-                    }
-                    hdro.write_elements(so, gtatool_stdout, 1, element_out.ptr());
+                    std::memcpy(element_out.ptr(), element_in, hdro.element_size());
                 }
-                array_index++;
+                element_loop.write(element_out.ptr());
             }
-            if (fi != gtatool_stdin)
-            {
-                fio::close(fi);
-            }
-            arg++;
         }
-        while (arg < arguments.size());
+        array_loop.finish();
     }
     catch (std::exception &e)
     {
