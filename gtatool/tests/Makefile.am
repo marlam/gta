@@ -10,6 +10,7 @@ TESTS = \
 	gta-version.sh \
 	gta-component-add.sh \
 	gta-component-set.sh \
+	gta-component-convert.sh \
 	gta-dimension-add.sh \
 	gta-dimension-extract.sh \
 	gta-dimension-flatten.sh \

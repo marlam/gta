@@ -47,77 +47,77 @@ static uint64_t to_uint64(const void *val, gta::type type)
     case gta::int8:
         {
             int8_t v;
-            memcpy(&v, val, sizeof(int8_t));
+            std::memcpy(&v, val, sizeof(int8_t));
             x = (v < 0 ? 0 : v);
         }
         break;
     case gta::uint8:
         {
             uint8_t v;
-            memcpy(&v, val, sizeof(uint8_t));
+            std::memcpy(&v, val, sizeof(uint8_t));
             x = v;
         }
         break;
     case gta::int16:
         {
             int16_t v;
-            memcpy(&v, val, sizeof(int16_t));
+            std::memcpy(&v, val, sizeof(int16_t));
             x = (v < 0 ? 0 : v);
         }
         break;
     case gta::uint16:
         {
             uint16_t v;
-            memcpy(&v, val, sizeof(uint16_t));
+            std::memcpy(&v, val, sizeof(uint16_t));
             x = v;
         }
         break;
     case gta::int32:
         {
             int32_t v;
-            memcpy(&v, val, sizeof(int32_t));
+            std::memcpy(&v, val, sizeof(int32_t));
             x = (v < 0 ? 0 : v);
         }
         break;
     case gta::uint32:
         {
             uint32_t v;
-            memcpy(&v, val, sizeof(uint32_t));
+            std::memcpy(&v, val, sizeof(uint32_t));
             x = v;
         }
         break;
     case gta::int64:
         {
             int64_t v;
-            memcpy(&v, val, sizeof(int64_t));
+            std::memcpy(&v, val, sizeof(int64_t));
             x = (v < 0 ? 0 : v);
         }
         break;
     case gta::uint64:
         {
             uint64_t v;
-            memcpy(&v, val, sizeof(uint64_t));
+            std::memcpy(&v, val, sizeof(uint64_t));
             x = v;
         }
         break;
     case gta::float32:
         {
             float v;
-            memcpy(&v, val, sizeof(float));
+            std::memcpy(&v, val, sizeof(float));
             x = ((!std::isfinite(v) || v < 0.0f) ? 0 : v);
         }
         break;
     case gta::float64:
         {
             double v;
-            memcpy(&v, val, sizeof(double));
+            std::memcpy(&v, val, sizeof(double));
             x = ((!std::isfinite(v) || v < 0.0f) ? 0 : v);
         }
         break;
     case gta::cfloat32:
         {
             float v[2];
-            memcpy(v, val, 2 * sizeof(float));
+            std::memcpy(v, val, 2 * sizeof(float));
             float a = std::sqrt(v[0] * v[0] + v[1] * v[1]);
             x = (!std::isfinite(a) ? 0 : a);
         }
@@ -125,7 +125,7 @@ static uint64_t to_uint64(const void *val, gta::type type)
     case gta::cfloat64:
         {
             double v[2];
-            memcpy(v, val, 2 * sizeof(double));
+            std::memcpy(v, val, 2 * sizeof(double));
             double a = std::sqrt(v[0] * v[0] + v[1] * v[1]);
             x = (!std::isfinite(a) ? 0 : a);
         }
@@ -146,77 +146,77 @@ static int64_t to_int64(const void *val, gta::type type)
     case gta::int8:
         {
             int8_t v;
-            memcpy(&v, val, sizeof(int8_t));
+            std::memcpy(&v, val, sizeof(int8_t));
             x = v;
         }
         break;
     case gta::uint8:
         {
             uint8_t v;
-            memcpy(&v, val, sizeof(uint8_t));
+            std::memcpy(&v, val, sizeof(uint8_t));
             x = v;
         }
         break;
     case gta::int16:
         {
             int16_t v;
-            memcpy(&v, val, sizeof(int16_t));
+            std::memcpy(&v, val, sizeof(int16_t));
             x = v;
         }
         break;
     case gta::uint16:
         {
             uint16_t v;
-            memcpy(&v, val, sizeof(uint16_t));
+            std::memcpy(&v, val, sizeof(uint16_t));
             x = v;
         }
         break;
     case gta::int32:
         {
             int32_t v;
-            memcpy(&v, val, sizeof(int32_t));
+            std::memcpy(&v, val, sizeof(int32_t));
             x = v;
         }
         break;
     case gta::uint32:
         {
             uint32_t v;
-            memcpy(&v, val, sizeof(uint32_t));
+            std::memcpy(&v, val, sizeof(uint32_t));
             x = v;
         }
         break;
     case gta::int64:
         {
             int64_t v;
-            memcpy(&v, val, sizeof(int64_t));
+            std::memcpy(&v, val, sizeof(int64_t));
             x = v;
         }
         break;
     case gta::uint64:
         {
             uint64_t v;
-            memcpy(&v, val, sizeof(uint64_t));
+            std::memcpy(&v, val, sizeof(uint64_t));
             x = v;
         }
         break;
     case gta::float32:
         {
             float v;
-            memcpy(&v, val, sizeof(float));
+            std::memcpy(&v, val, sizeof(float));
             x = (!std::isfinite(v) ? 0 : v);
         }
         break;
     case gta::float64:
         {
             double v;
-            memcpy(&v, val, sizeof(double));
+            std::memcpy(&v, val, sizeof(double));
             x = (!std::isfinite(v) ? 0 : v);
         }
         break;
     case gta::cfloat32:
         {
             float v[2];
-            memcpy(v, val, 2 * sizeof(float));
+            std::memcpy(v, val, 2 * sizeof(float));
             float a = std::sqrt(v[0] * v[0] + v[1] * v[1]);
             x = (!std::isfinite(a) ? 0 : a);
         }
@@ -224,7 +224,7 @@ static int64_t to_int64(const void *val, gta::type type)
     case gta::cfloat64:
         {
             double v[2];
-            memcpy(v, val, 2 * sizeof(double));
+            std::memcpy(v, val, 2 * sizeof(double));
             double a = std::sqrt(v[0] * v[0] + v[1] * v[1]);
             x = (!std::isfinite(a) ? 0 : a);
         }
@@ -245,7 +245,7 @@ static double to_float64(const void *val, gta::type type, bool normalize)
     case gta::int8:
         {
             int8_t v;
-            memcpy(&v, val, sizeof(int8_t));
+            std::memcpy(&v, val, sizeof(int8_t));
             x = v;
             if (normalize && v < 0)
             {
@@ -260,7 +260,7 @@ static double to_float64(const void *val, gta::type type, bool normalize)
     case gta::uint8:
         {
             uint8_t v;
-            memcpy(&v, val, sizeof(uint8_t));
+            std::memcpy(&v, val, sizeof(uint8_t));
             x = v;
             if (normalize && v > 0)
             {
@@ -271,7 +271,7 @@ static double to_float64(const void *val, gta::type type, bool normalize)
     case gta::int16:
         {
             int16_t v;
-            memcpy(&v, val, sizeof(int16_t));
+            std::memcpy(&v, val, sizeof(int16_t));
             x = v;
             if (normalize && v < 0)
             {
@@ -286,7 +286,7 @@ static double to_float64(const void *val, gta::type type, bool normalize)
     case gta::uint16:
         {
             uint16_t v;
-            memcpy(&v, val, sizeof(uint16_t));
+            std::memcpy(&v, val, sizeof(uint16_t));
             x = v;
             if (normalize && v > 0)
             {
@@ -297,7 +297,7 @@ static double to_float64(const void *val, gta::type type, bool normalize)
     case gta::int32:
         {
             int32_t v;
-            memcpy(&v, val, sizeof(int32_t));
+            std::memcpy(&v, val, sizeof(int32_t));
             x = v;
             if (normalize && v < 0)
             {
@@ -312,7 +312,7 @@ static double to_float64(const void *val, gta::type type, bool normalize)
     case gta::uint32:
         {
             uint32_t v;
-            memcpy(&v, val, sizeof(uint32_t));
+            std::memcpy(&v, val, sizeof(uint32_t));
             x = v;
             if (normalize && v > 0)
             {
@@ -323,7 +323,7 @@ static double to_float64(const void *val, gta::type type, bool normalize)
     case gta::int64:
         {
             int64_t v;
-            memcpy(&v, val, sizeof(int64_t));
+            std::memcpy(&v, val, sizeof(int64_t));
             x = v;
             if (normalize && v < 0)
             {
@@ -338,7 +338,7 @@ static double to_float64(const void *val, gta::type type, bool normalize)
     case gta::uint64:
         {
             uint64_t v;
-            memcpy(&v, val, sizeof(uint64_t));
+            std::memcpy(&v, val, sizeof(uint64_t));
             x = v;
             if (normalize && v > 0)
             {
@@ -349,28 +349,28 @@ static double to_float64(const void *val, gta::type type, bool normalize)
     case gta::float32:
         {
             float v;
-            memcpy(&v, val, sizeof(float));
+            std::memcpy(&v, val, sizeof(float));
             x = v;
         }
         break;
     case gta::float64:
         {
             double v;
-            memcpy(&v, val, sizeof(double));
+            std::memcpy(&v, val, sizeof(double));
             x = v;
         }
         break;
     case gta::cfloat32:
         {
             float v[2];
-            memcpy(v, val, 2 * sizeof(float));
+            std::memcpy(v, val, 2 * sizeof(float));
             x = std::sqrt(v[0] * v[0] + v[1] * v[1]);
         }
         break;
     case gta::cfloat64:
         {
             double v[2];
-            memcpy(v, val, 2 * sizeof(double));
+            std::memcpy(v, val, 2 * sizeof(double));
             x = std::sqrt(v[0] * v[0] + v[1] * v[1]);
         }
         break;
@@ -389,7 +389,7 @@ static void to_cfloat64(double c[2], const void *val, gta::type type, bool norma
     case gta::int8:
         {
             int8_t v;
-            memcpy(&v, val, sizeof(int8_t));
+            std::memcpy(&v, val, sizeof(int8_t));
             c[0] = v;
             c[1] = 0.0;
             if (normalize && v < 0)
@@ -405,7 +405,7 @@ static void to_cfloat64(double c[2], const void *val, gta::type type, bool norma
     case gta::uint8:
         {
             uint8_t v;
-            memcpy(&v, val, sizeof(uint8_t));
+            std::memcpy(&v, val, sizeof(uint8_t));
             c[0] = v;
             c[1] = 0.0;
             if (normalize && v > 0)
@@ -417,7 +417,7 @@ static void to_cfloat64(double c[2], const void *val, gta::type type, bool norma
     case gta::int16:
         {
             int16_t v;
-            memcpy(&v, val, sizeof(int16_t));
+            std::memcpy(&v, val, sizeof(int16_t));
             c[0] = v;
             c[1] = 0.0;
             if (normalize && v < 0)
@@ -433,7 +433,7 @@ static void to_cfloat64(double c[2], const void *val, gta::type type, bool norma
     case gta::uint16:
         {
             uint16_t v;
-            memcpy(&v, val, sizeof(uint16_t));
+            std::memcpy(&v, val, sizeof(uint16_t));
             c[0] = v;
             c[1] = 0.0;
             if (normalize && v > 0)
@@ -445,7 +445,7 @@ static void to_cfloat64(double c[2], const void *val, gta::type type, bool norma
     case gta::int32:
         {
             int32_t v;
-            memcpy(&v, val, sizeof(int32_t));
+            std::memcpy(&v, val, sizeof(int32_t));
             c[0] = v;
             c[1] = 0.0;
             if (normalize && v < 0)
@@ -461,7 +461,7 @@ static void to_cfloat64(double c[2], const void *val, gta::type type, bool norma
     case gta::uint32:
         {
             uint32_t v;
-            memcpy(&v, val, sizeof(uint32_t));
+            std::memcpy(&v, val, sizeof(uint32_t));
             c[0] = v;
             c[1] = 0.0;
             if (normalize && v > 0)
@@ -473,7 +473,7 @@ static void to_cfloat64(double c[2], const void *val, gta::type type, bool norma
     case gta::int64:
         {
             int64_t v;
-            memcpy(&v, val, sizeof(int64_t));
+            std::memcpy(&v, val, sizeof(int64_t));
             c[0] = v;
             c[1] = 0.0;
             if (normalize && v < 0)
@@ -489,7 +489,7 @@ static void to_cfloat64(double c[2], const void *val, gta::type type, bool norma
     case gta::uint64:
         {
             uint64_t v;
-            memcpy(&v, val, sizeof(uint64_t));
+            std::memcpy(&v, val, sizeof(uint64_t));
             c[0] = v;
             c[1] = 0.0;
             if (normalize && v > 0)
@@ -501,7 +501,7 @@ static void to_cfloat64(double c[2], const void *val, gta::type type, bool norma
     case gta::float32:
         {
             float v;
-            memcpy(&v, val, sizeof(float));
+            std::memcpy(&v, val, sizeof(float));
             c[0] = v;
             c[1] = 0.0;
         }
@@ -509,7 +509,7 @@ static void to_cfloat64(double c[2], const void *val, gta::type type, bool norma
     case gta::float64:
         {
             double v;
-            memcpy(&v, val, sizeof(double));
+            std::memcpy(&v, val, sizeof(double));
             c[0] = v;
             c[1] = 0.0;
         }
@@ -517,14 +517,14 @@ static void to_cfloat64(double c[2], const void *val, gta::type type, bool norma
     case gta::cfloat32:
         {
             float v[2];
-            memcpy(v, val, 2 * sizeof(float));
+            std::memcpy(v, val, 2 * sizeof(float));
             c[0] = v[0];
             c[1] = v[1];
         }
         break;
     case gta::cfloat64:
         {
-            memcpy(c, val, 2 * sizeof(double));
+            std::memcpy(c, val, 2 * sizeof(double));
         }
         break;
     default:
@@ -542,11 +542,11 @@ static void convert(void *dst, gta::type dst_type, const void *src, gta::type sr
         if (dst_type == gta::cfloat32)
         {
             float v[2] = { static_cast<float>(val[0]), static_cast<float>(val[1]) };
-            memcpy(dst, v, 2 * sizeof(float));
+            std::memcpy(dst, v, 2 * sizeof(float));
         }
         else
         {
-            memcpy(dst, val, 2 * sizeof(double));
+            std::memcpy(dst, val, 2 * sizeof(double));
         }
     }
     else if (dst_type == gta::float32 || dst_type == gta::float64)
@@ -555,11 +555,11 @@ static void convert(void *dst, gta::type dst_type, const void *src, gta::type sr
         if (dst_type == gta::float32)
         {
             float v = val;
-            memcpy(dst, &v, sizeof(float));
+            std::memcpy(dst, &v, sizeof(float));
         }
         else
         {
-            memcpy(dst, &val, sizeof(double));
+            std::memcpy(dst, &val, sizeof(double));
         }
     }
     else if (dst_type == gta::int8
@@ -571,21 +571,21 @@ static void convert(void *dst, gta::type dst_type, const void *src, gta::type sr
         if (dst_type == gta::int8)
         {
             int8_t v = val;
-            memcpy(dst, &v, sizeof(int8_t));
+            std::memcpy(dst, &v, sizeof(int8_t));
         }
         else if (dst_type == gta::int16)
         {
             int16_t v = val;
-            memcpy(dst, &v, sizeof(int16_t));
+            std::memcpy(dst, &v, sizeof(int16_t));
         }
         else if (dst_type == gta::int32)
         {
             int32_t v = val;
-            memcpy(dst, &v, sizeof(int32_t));
+            std::memcpy(dst, &v, sizeof(int32_t));
         }
         else
         {
-            memcpy(dst, &val, sizeof(int64_t));
+            std::memcpy(dst, &val, sizeof(int64_t));
         }
     }
     else // gta::uint{8,16,32,64}
@@ -594,21 +594,21 @@ static void convert(void *dst, gta::type dst_type, const void *src, gta::type sr
         if (dst_type == gta::uint8)
         {
             uint8_t v = val;
-            memcpy(dst, &v, sizeof(uint8_t));
+            std::memcpy(dst, &v, sizeof(uint8_t));
         }
         else if (dst_type == gta::uint16)
         {
             uint16_t v = val;
-            memcpy(dst, &v, sizeof(uint16_t));
+            std::memcpy(dst, &v, sizeof(uint16_t));
         }
         else if (dst_type == gta::uint32)
         {
             uint32_t v = val;
-            memcpy(dst, &v, sizeof(uint32_t));
+            std::memcpy(dst, &v, sizeof(uint32_t));
         }
         else
         {
-            memcpy(dst, &val, sizeof(uint64_t));
+            std::memcpy(dst, &val, sizeof(uint64_t));
         }
     }
 }
@@ -645,12 +645,6 @@ extern "C" int gtatool_component_convert(int argc, char *argv[])
         return 0;
     }
 
-    if (fio::isatty(gtatool_stdout))
-    {
-        msg::err_txt("refusing to write to a tty");
-        return 1;
-    }
-
     try
     {
         std::vector<gta::type> comp_types;
@@ -675,76 +669,57 @@ extern "C" int gtatool_component_convert(int argc, char *argv[])
             }
         }
 
-        gta::header hdri;
-        gta::header hdro;
-        // Loop over all input files
-        size_t arg = 0;
-        do
+        array_loop_t array_loop;
+        gta::header hdri, hdro;
+        std::string namei, nameo;
+        array_loop.start(arguments, "");
+        while (array_loop.read(hdri, namei))
         {
-            std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : fio::open(finame, "r"));
-
-            // Loop over all GTAs inside the current file
-            uintmax_t array_index = 0;
-            while (fio::has_more(fi, finame))
+            if (hdri.components() != comp_types.size())
             {
-                // Determine the name of the array for error messages
-                std::string array_name = finame + " array " + str::from(array_index);
-                // Read the GTA header
-                hdri.read_from(fi);
-                if (hdri.components() != comp_types.size())
+                throw exc(namei + ": number of components does not match");
+            }
+            for (uintmax_t i = 0; i < hdri.components(); i++)
+            {
+                if (hdri.component_type(i) == gta::blob
+                        || hdri.component_type(i) == gta::int128
+                        || hdri.component_type(i) == gta::uint128
+                        || hdri.component_type(i) == gta::float128
+                        || hdri.component_type(i) == gta::cfloat128)
                 {
-                    throw exc(array_name + ": number of components does not match");
+                    throw exc(namei + ": conversion from type "
+                            + type_to_string(hdri.component_type(i), hdri.component_size(i))
+                            + " is currently not supported");
                 }
-                for (uintmax_t i = 0; i < hdri.components(); i++)
-                {
-                    if (hdri.component_type(i) == gta::blob
-                            || hdri.component_type(i) == gta::int128
-                            || hdri.component_type(i) == gta::uint128
-                            || hdri.component_type(i) == gta::float128
-                            || hdri.component_type(i) == gta::cfloat128)
-                    {
-                        throw exc(array_name + ": conversion from type "
-                                + type_to_string(hdri.component_type(i), hdri.component_size(i))
-                                + " is currently not supported");
-                    }
-                }
-                // Convert components
-                hdro = hdri;
-                hdro.set_compression(gta::none);
-                hdro.set_components(comp_types.size(), &(comp_types[0]), comp_sizes.size() == 0 ? NULL : &(comp_sizes[0]));
+            }
+
+            // Convert components
+            hdro = hdri;
+            hdro.set_compression(gta::none);
+            hdro.set_components(comp_types.size(), &(comp_types[0]), comp_sizes.size() == 0 ? NULL : &(comp_sizes[0]));
+            for (uintmax_t i = 0; i < hdro.components(); i++)
+            {
+                hdro.component_taglist(i) = hdri.component_taglist(i);
+            }
+            array_loop.write(hdro, nameo);
+            element_loop_t element_loop;
+            array_loop.start_element_loop(element_loop, hdri, hdro);
+            blob element_out(checked_cast<size_t>(hdro.element_size()));
+            for (uintmax_t e = 0; e < hdro.elements(); e++)
+            {
+                const void *src = element_loop.read();
                 for (uintmax_t i = 0; i < hdro.components(); i++)
                 {
-                    hdro.component_taglist(i) = hdri.component_taglist(i);
+                    convert(hdro.component(element_out.ptr(), i),
+                            hdro.component_type(i),
+                            hdri.component(src, i),
+                            hdri.component_type(i),
+                            normalize.value());
                 }
-                // Write the GTA header
-                hdro.write_to(gtatool_stdout);
-                // Manipulate the GTA data
-                blob element_in(checked_cast<size_t>(hdri.element_size()));
-                blob element_out(checked_cast<size_t>(hdro.element_size()));
-                gta::io_state si, so;
-                for (uintmax_t e = 0; e < hdro.elements(); e++)
-                {
-                    hdri.read_elements(si, fi, 1, element_in.ptr());
-                    for (uintmax_t i = 0; i < hdro.components(); i++)
-                    {
-                        convert(hdro.component(element_out.ptr(), i),
-                                hdro.component_type(i),
-                                hdri.component(element_in.ptr(), i),
-                                hdri.component_type(i),
-                                normalize.value());
-                    }
-                    hdro.write_elements(so, gtatool_stdout, 1, element_out.ptr());
-                }
-                array_index++;
+                element_loop.write(element_out.ptr());
             }
-            if (fi != gtatool_stdin)
-            {
-                fio::close(fi);
-            }
-            arg++;
         }
-        while (arg < arguments.size());
+        array_loop.finish();
     }
     catch (std::exception &e)
     {
