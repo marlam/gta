@@ -8,6 +8,14 @@
 TESTS = \
 	gta-help.sh \
 	gta-version.sh \
+	gta-component-set.sh \
+	gta-dimension-add.sh \
+	gta-dimension-extract.sh \
+	gta-dimension-flatten.sh \
+	gta-dimension-merge.sh \
+	gta-dimension-reorder.sh \
+	gta-dimension-reverse.sh \
+	gta-dimension-split.sh \
 	gta-compress.sh \
 	gta-create.sh \
 	gta-extract.sh \
@@ -18,13 +26,6 @@ TESTS = \
 	gta-set.sh \
 	gta-tag.sh \
 	gta-uncompress.sh \
-	gta-dimension-add.sh \
-	gta-dimension-extract.sh \
-	gta-dimension-flatten.sh \
-	gta-dimension-merge.sh \
-	gta-dimension-reorder.sh \
-	gta-dimension-reverse.sh \
-	gta-dimension-split.sh \
 	gta-stream-extract.sh \
 	gta-stream-merge.sh \
 	gta-stream-split.sh
