@@ -76,124 +76,91 @@ extern "C" int gtatool_component_extract(int argc, char *argv[])
         return 1;
     }
 
-    if (fio::isatty(gtatool_stdout))
-    {
-        msg::err_txt("refusing to write to a tty");
-        return 1;
-    }
-
     try
     {
-        gta::header hdri;
-        gta::header hdro;
-        // Loop over all input files
-        size_t arg = 0;
-        do
+        array_loop_t array_loop;
+        gta::header hdri, hdro;
+        std::string namei, nameo;
+        array_loop.start(arguments, "");
+        while (array_loop.read(hdri, namei))
         {
-            std::string finame = (arguments.size() == 0 ? "standard input" : arguments[arg]);
-            FILE *fi = (arguments.size() == 0 ? gtatool_stdin : fio::open(finame, "r"));
+            // Remove components
+            hdro = hdri;
+            hdro.set_compression(gta::none);
+            std::vector<uintmax_t> hdro_comp_indices;
+            std::vector<gta::type> hdro_comp_types;
+            std::vector<uintmax_t> hdro_comp_sizes;
+            for (uintmax_t i = 0; i < hdri.components(); i++)
+            {
+                bool keep_this;
+                if (!keep.value().empty())
+                {
+                    keep_this = false;
+                    for (size_t j = 0; j < keep.value().size(); j++)
+                    {
+                        if (keep.value()[j] >= hdri.components())
+                        {
+                            throw exc(namei + ": array has no component " + str::from(keep.value()[j]));
+                        }
+                        if (keep.value()[j] == i)
+                        {
+                            keep_this = true;
+                        }
+                    }
+                }
+                else if (!drop.value().empty())
+                {
+                    keep_this = true;
+                    for (size_t j = 0; j < drop.value().size(); j++)
+                    {
+                        if (drop.value()[j] >= hdri.components())
+                        {
+                            throw exc(namei + ": array has no component " + str::from(drop.value()[j]));
+                        }
+                        if (drop.value()[j] == i)
+                        {
+                            keep_this = false;
+                        }
+                    }
+                }
+                else
+                {
+                    keep_this = true;
+                }
+                if (keep_this)
+                {
+                    hdro_comp_indices.push_back(i);
+                    hdro_comp_types.push_back(hdri.component_type(i));
+                    if (hdri.component_type(i) == gta::blob)
+                    {
+                        hdro_comp_sizes.push_back(hdri.component_size(i));
+                    }
+                }
+            }
+            hdro.set_components(hdro_comp_types.size(), &(hdro_comp_types[0]),
+                    (hdro_comp_sizes.size() > 0 ? &(hdro_comp_sizes[0]) : NULL));
+            for (size_t i = 0; i < hdro_comp_indices.size(); i++)
+            {
+                hdro.component_taglist(i) = hdri.component_taglist(hdro_comp_indices[i]);
+            }
 
-            // Loop over all GTAs inside the current file
-            uintmax_t array_index = 0;
-            while (fio::has_more(fi, finame))
+            array_loop.write(hdro, nameo);
+            element_loop_t element_loop;
+            array_loop.start_element_loop(element_loop, hdri, hdro);
+            blob element_out(checked_cast<size_t>(hdro.element_size()));
+            for (uintmax_t e = 0; e < hdro.elements(); e++)
             {
-                // Determine the name of the array for error messages
-                std::string array_name = finame + " array " + str::from(array_index);
-                // Read the GTA header
-                hdri.read_from(fi);
-                // Remove components
-                hdro = hdri;
-                hdro.set_compression(gta::none);
-                std::vector<uintmax_t> hdro_comp_indices;
-                std::vector<gta::type> hdro_comp_types;
-                std::vector<uintmax_t> hdro_comp_sizes;
-                for (uintmax_t i = 0; i < hdri.components(); i++)
+                const void *element_in = element_loop.read();
+                for (uintmax_t i = 0; i < hdro.components(); i++)
                 {
-                    bool keep_this;
-                    if (!keep.value().empty())
-                    {
-                        keep_this = false;
-                        for (size_t j = 0; j < keep.value().size(); j++)
-                        {
-                            if (keep.value()[j] >= hdri.components())
-                            {
-                                throw exc(array_name + ": array has no component " + str::from(keep.value()[j]));
-                            }
-                            if (keep.value()[j] == i)
-                            {
-                                keep_this = true;
-                            }
-                        }
-                    }
-                    else if (!drop.value().empty())
-                    {
-                        keep_this = true;
-                        for (size_t j = 0; j < drop.value().size(); j++)
-                        {
-                            if (drop.value()[j] >= hdri.components())
-                            {
-                                throw exc(array_name + ": array has no component " + str::from(drop.value()[j]));
-                            }
-                            if (drop.value()[j] == i)
-                            {
-                                keep_this = false;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        keep_this = true;
-                    }
-                    if (keep_this)
-                    {
-                        hdro_comp_indices.push_back(i);
-                        hdro_comp_types.push_back(hdri.component_type(i));
-                        if (hdri.component_type(i) == gta::blob)
-                        {
-                            hdro_comp_sizes.push_back(hdri.component_size(i));
-                        }
-                    }
+                    std::memcpy(hdro.component(element_out.ptr(), i),
+                            hdri.component(element_in, hdro_comp_indices[i]),
+                            hdro.component_size(i));
                 }
-                hdro.set_components(hdro_comp_types.size(), &(hdro_comp_types[0]),
-                        (hdro_comp_sizes.size() > 0 ? &(hdro_comp_sizes[0]) : NULL));
-                for (size_t i = 0; i < hdro_comp_indices.size(); i++)
-                {
-                    hdro.component_taglist(i) = hdri.component_taglist(hdro_comp_indices[i]);
-                }
-                // Write the GTA header
-                hdro.write_to(gtatool_stdout);
-                // Manipulate the GTA data
-                blob element_in(checked_cast<size_t>(hdri.element_size()));
-                blob element_out(checked_cast<size_t>(hdro.element_size()));
-                gta::io_state si, so;
-                for (uintmax_t e = 0; e < hdro.elements(); e++)
-                {
-                    hdri.read_elements(si, fi, 1, element_in.ptr());
-                    size_t component_in_index = 0;
-                    size_t component_out_index = 0;
-                    for (size_t i = 0; i < hdro_comp_indices.size(); i++)
-                    {
-                        for (uintmax_t j = i; j < hdro_comp_indices[i]; j++)
-                        {
-                            component_in_index += hdri.component_size(i);
-                        }
-                        memcpy(element_out.ptr(component_out_index),
-                                element_in.ptr(component_in_index),
-                                hdro.component_size(i));
-                        component_in_index += hdro.component_size(i);
-                        component_out_index += hdro.component_size(i);
-                    }
-                    hdro.write_elements(so, gtatool_stdout, 1, element_out.ptr());
-                }
-                array_index++;
+                element_loop.write(element_out.ptr());
             }
-            if (fi != gtatool_stdin)
-            {
-                fio::close(fi);
-            }
-            arg++;
         }
-        while (arg < arguments.size());
+        array_loop.finish();
     }
     catch (std::exception &e)
     {

@@ -11,6 +11,7 @@ TESTS = \
 	gta-component-add.sh \
 	gta-component-set.sh \
 	gta-component-convert.sh \
+	gta-component-extract.sh \
 	gta-dimension-add.sh \
 	gta-dimension-extract.sh \
 	gta-dimension-flatten.sh \
