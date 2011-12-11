@@ -128,19 +128,19 @@ extern "C" int gtatool_to_sndfile(int argc, char *argv[])
             while (elements > 0)
             {
                 uintmax_t n = std::min(elements, static_cast<uintmax_t>(sfinfo.samplerate));
-                void *data = element_loop.read(n);
+                const void *data = element_loop.read(n);
                 uintmax_t c;
                 if (type == gta::int16)
                 {
-                    c = sf_writef_short(sndo, static_cast<short *>(data), n);
+                    c = sf_writef_short(sndo, static_cast<const short *>(data), n);
                 }
                 else if (type == gta::float32)
                 {
-                    c = sf_writef_float(sndo, static_cast<float *>(data), n);
+                    c = sf_writef_float(sndo, static_cast<const float *>(data), n);
                 }
                 else
                 {
-                    c = sf_writef_double(sndo, static_cast<double *>(data), n);
+                    c = sf_writef_double(sndo, static_cast<const double *>(data), n);
                 }
                 if (c < n)
                 {

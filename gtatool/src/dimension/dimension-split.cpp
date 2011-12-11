@@ -125,7 +125,7 @@ extern "C" int gtatool_dimension_split(int argc, char *argv[])
             std::vector<uintmax_t> indices(hdri.dimensions());
             for (uintmax_t i = 0; i < hdri.elements(); i++)
             {
-                void *e = element_loop.read();
+                const void *e = element_loop.read();
                 hdri.linear_index_to_indices(i, &(indices[0]));
                 size_t j = indices[dim];
                 tmpeloops[j].write(e);

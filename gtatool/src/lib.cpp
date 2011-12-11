@@ -556,7 +556,7 @@ void element_loop_t::start(
     _buf.resize(0);
 }
 
-void *element_loop_t::read(size_t n)
+const void *element_loop_t::read(size_t n)
 {
     if (_buf.size() < checked_cast<size_t>(n * _header_in.element_size()))
     {

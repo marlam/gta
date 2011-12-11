@@ -175,7 +175,7 @@ extern "C" int gtatool_to_ply(int argc, char *argv[])
             ply_vertex v;
             for (uintmax_t e = 0; e < hdr.elements(); e++)
             {
-                void *p = element_loop.read();
+                const void *p = element_loop.read();
                 if (hdr.components() == 1)
                 {
                     std::memcpy(&v.x, hdr.component(p, 0), sizeof(float));

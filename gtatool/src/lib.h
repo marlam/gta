@@ -90,7 +90,7 @@ public:
     void start(const gta::header &header_in, const std::string &name_in, FILE *file_in,
             const gta::header &header_out, const std::string &name_out, FILE *file_out);
 
-    void *read(size_t n = 1);
+    const void *read(size_t n = 1);
     void write(const void *element, size_t n = 1);
 };
 
