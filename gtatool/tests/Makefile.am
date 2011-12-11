@@ -13,6 +13,7 @@ TESTS = \
 	gta-component-convert.sh \
 	gta-component-extract.sh \
 	gta-component-reorder.sh \
+	gta-component-split.sh \
 	gta-dimension-add.sh \
 	gta-dimension-extract.sh \
 	gta-dimension-flatten.sh \
