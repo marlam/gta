@@ -1,0 +1,4 @@
+Version 1.0.1:
+- The component-* commands now use proper buffering and therefore should be
+  much faster than before.
+- Building this package does not require C++11 anymore.
