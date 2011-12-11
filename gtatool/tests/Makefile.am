@@ -8,6 +8,7 @@
 TESTS = \
 	gta-help.sh \
 	gta-version.sh \
+	gta-component-add.sh \
 	gta-component-set.sh \
 	gta-dimension-add.sh \
 	gta-dimension-extract.sh \
