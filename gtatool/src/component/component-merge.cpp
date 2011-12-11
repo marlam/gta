@@ -66,63 +66,60 @@ extern "C" int gtatool_component_merge(int argc, char *argv[])
         return 0;
     }
 
-    if (fio::isatty(gtatool_stdout))
-    {
-        msg::err_txt("refusing to write to a tty");
-        return 1;
-    }
-
     try
     {
-        std::vector<FILE *> fi(arguments.size());
+        std::vector<array_loop_t> array_loops(arguments.size());
+        std::vector<element_loop_t> element_loops(arguments.size());
+        std::vector<gta::header> hdris(arguments.size());
+        std::vector<std::string> nameis(arguments.size());
+        std::string nameo;
         for (size_t i = 0; i < arguments.size(); i++)
         {
-            fi[i] = fio::open(arguments[i], "r");
+            array_loops[i].start(arguments[i], "");
         }
-        std::vector<gta::header> hdri(arguments.size());
-        uintmax_t array_index = 0;
-        while (fio::has_more(fi[0], arguments[0]))
+        while (array_loops[0].read(hdris[0], nameis[0]))
         {
-            for (size_t i = 0; i < arguments.size(); i++)
+            for (size_t i = 1; i < arguments.size(); i++)
             {
-                hdri[i].read_from(fi[i]);
+                array_loops[i].read(hdris[i], nameis[i]);
                 if (i > 0)
                 {
-                    if (hdri[i].dimensions() != hdri[0].dimensions())
+                    if (hdris[i].dimensions() != hdris[0].dimensions())
                     {
-                        throw exc(arguments[i] + " array " + str::from(array_index) + ": incompatible array");
+                        throw exc(nameis[i] + ": incompatible array (number of dimensions differs)");
                     }                        
-                    for (uintmax_t d = 0; d < hdri[0].dimensions(); d++)
+                    for (uintmax_t d = 0; d < hdris[0].dimensions(); d++)
                     {
-                        if (hdri[i].dimension_size(d) != hdri[0].dimension_size(d))
+                        if (hdris[i].dimension_size(d) != hdris[0].dimension_size(d))
                         {
-                            throw exc(arguments[i] + " array " + str::from(array_index) + ": incompatible array");
+                            throw exc(nameis[i] + ": incompatible array (dimension sizes differ)");
                         }
                     }
+                    array_loops[i].start_element_loop(element_loops[i], hdris[i], hdris[i]);
                 }
             }
             gta::header hdro;
-            hdro.global_taglist() = hdri[0].global_taglist();
+            hdro.global_taglist() = hdris[0].global_taglist();
             std::vector<uintmax_t> hdro_dim_sizes;
-            for (uintmax_t d = 0; d < hdri[0].dimensions(); d++)
+            for (uintmax_t d = 0; d < hdris[0].dimensions(); d++)
             {
-                hdro_dim_sizes.push_back(hdri[0].dimension_size(d));
+                hdro_dim_sizes.push_back(hdris[0].dimension_size(d));
             }
             hdro.set_dimensions(hdro_dim_sizes.size(), &(hdro_dim_sizes[0]));
-            for (uintmax_t d = 0; d < hdri[0].dimensions(); d++)
+            for (uintmax_t d = 0; d < hdris[0].dimensions(); d++)
             {
-                hdro.dimension_taglist(d) = hdri[0].dimension_taglist(d);
+                hdro.dimension_taglist(d) = hdris[0].dimension_taglist(d);
             }
             std::vector<gta::type> hdro_comp_types;
             std::vector<uintmax_t> hdro_comp_sizes;
             for (size_t i = 0; i < arguments.size(); i++)
             {
-                for (uintmax_t c = 0; c < hdri[i].components(); c++)
+                for (uintmax_t c = 0; c < hdris[i].components(); c++)
                 {
-                    hdro_comp_types.push_back(hdri[i].component_type(c));
-                    if (hdri[i].component_type(c) == gta::blob)
+                    hdro_comp_types.push_back(hdris[i].component_type(c));
+                    if (hdris[i].component_type(c) == gta::blob)
                     {
-                        hdro_comp_sizes.push_back(hdri[i].component_size(c));
+                        hdro_comp_sizes.push_back(hdris[i].component_size(c));
                     }
                 }
             }
@@ -131,38 +128,36 @@ extern "C" int gtatool_component_merge(int argc, char *argv[])
             uintmax_t hdro_c = 0;
             for (size_t i = 0; i < arguments.size(); i++)
             {
-                for (uintmax_t c = 0; c < hdri[i].components(); c++)
+                for (uintmax_t c = 0; c < hdris[i].components(); c++)
                 {
-                    hdro.component_taglist(hdro_c) = hdri[i].component_taglist(c);
+                    hdro.component_taglist(hdro_c) = hdris[i].component_taglist(c);
                     hdro_c++;
                 }
             }
-            hdro.write_to(gtatool_stdout);
-            blob element_buf(checked_cast<size_t>(hdro.element_size()));
-            std::vector<gta::io_state> si(arguments.size());
-            gta::io_state so;
+            array_loops[0].write(hdro, nameo);
+            element_loop_t element_loop;
+            array_loops[0].start_element_loop(element_loop, hdris[0], hdro);
+            blob element_out(checked_cast<size_t>(hdro.element_size()));
             for (uintmax_t e = 0; e < hdro.elements(); e++)
             {
-                void *p = element_buf.ptr();
-                for (size_t i = 0; i < arguments.size(); i++)
+                void *p = element_out.ptr();
+                std::memcpy(p, element_loop.read(), hdris[0].element_size());
+                p = static_cast<void *>(static_cast<char *>(p) + hdris[0].element_size());
+                for (size_t i = 1; i < arguments.size(); i++)
                 {
-                    hdri[i].read_elements(si[i], fi[i], 1, p);
-                    p = static_cast<void *>(static_cast<char *>(p) + hdri[i].element_size());
+                    std::memcpy(p, element_loops[i].read(), hdris[i].element_size());
+                    p = static_cast<void *>(static_cast<char *>(p) + hdris[i].element_size());
                 }
-                hdro.write_elements(so, gtatool_stdout, 1, element_buf.ptr());
-            }
-            array_index++;
-        }
-        for (size_t i = 1; i < arguments.size(); i++)
-        {
-            if (fio::has_more(fi[i], arguments[i]))
-            {
-                msg::wrn_txt("ignoring additional array(s) from %s", arguments[i].c_str());
+                element_loop.write(element_out.ptr());
             }
         }
         for (size_t i = 0; i < arguments.size(); i++)
         {
-            fio::close(fi[i], arguments[i]);
+            if (i > 0 && array_loops[i].read(hdris[i], nameis[i]))
+            {
+                msg::wrn_txt("ignoring additional array(s) from %s", arguments[i].c_str());
+            }
+            array_loops[i].finish();
         }
     }
     catch (std::exception &e)
