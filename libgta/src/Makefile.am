@@ -31,5 +31,5 @@ DISTCLEANFILES = $(pkgconfig_DATA)
 if INSTALL_LA_FILE
 else
 install-exec-hook:
-	rm $(libdir)/libgta.la
+	rm $(DESTDIR)$(libdir)/libgta.la
 endif
