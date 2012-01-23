@@ -668,7 +668,7 @@ const std::string &array_loop_t::filename_out() throw ()
 
 bool array_loop_t::read(gta::header &header_in, std::string &name_in)
 {
-    while (!fio::has_more(_file_in))
+    while (!fio::has_more(_file_in, filename_in()))
     {
         if (_filenames_in.size() == 0)
         {
