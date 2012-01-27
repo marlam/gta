@@ -64,8 +64,10 @@
 #endif
 
 /* Define OFF_MAX (maximum value in off_t). */
-#define OFF_MAX (sizeof(off_t) == sizeof(long long) ? LLONG_MAX \
+#ifndef OFF_MAX
+#   define OFF_MAX (sizeof(off_t) == sizeof(long long) ? LLONG_MAX \
         : sizeof(off_t) == sizeof(long) ? LONG_MAX : INT_MAX)
+#endif
 
 /*
  *
