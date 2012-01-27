@@ -4,7 +4,7 @@
  * This file is part of libgta, a library that implements the Generic Tagged
  * Array (GTA) file format.
  *
- * Copyright (C) 2010, 2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  *
  * Libgta is free software: you can redistribute it and/or modify it under the
