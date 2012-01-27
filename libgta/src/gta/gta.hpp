@@ -44,6 +44,12 @@
 
 #include <gta/gta.h>
 
+#ifdef _MSC_VER
+#  pragma warning (push)
+#  pragma warning (disable: 4996)	// strerror and _snprintf
+#  pragma warning (disable: 4244)	// conversion from uintmax_t to unsigned int
+#endif
+
 
 /**
  * \brief The gta namespace.
@@ -211,7 +217,11 @@ namespace gta
                 w = strerror(_sys_errno);
                 break;
             }
+#if defined _MSC_VER
+            _snprintf(_what, _whatsize, "%s: %s", s, w);
+#else
             snprintf(_what, _whatsize, "%s: %s", s, w);
+#endif
         }
 
         /**
@@ -2155,5 +2165,9 @@ namespace gta
 
     /*@}*/
 }
+
+#ifdef _MSC_VER
+#  pragma warning (pop)
+#endif
 
 #endif
