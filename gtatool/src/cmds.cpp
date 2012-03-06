@@ -188,7 +188,7 @@ static cmd_t cmds[] =
     CMD("to-rat",            conversion, to_rat,            WITH_RAT,      "conv-rat"),
     CMD("to-raw",            conversion, to_raw,            WITH_RAW,      "conv-raw"),
     CMD("to-sndfile",        conversion, to_sndfile,        WITH_SNDFILE,  "conv-sndfile"),
-    CMD("to-teem",           conversion, to_teem,           WITH_SNDFILE,  "conv-teem"),
+    CMD("to-teem",           conversion, to_teem,           WITH_TEEM,     "conv-teem"),
     CMD("uncompress",        array,      uncompress,        true,          BUILTIN),
     CMD("version",           misc,       version,           true,          BUILTIN),
 };
