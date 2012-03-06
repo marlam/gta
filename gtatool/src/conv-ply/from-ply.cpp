@@ -99,8 +99,8 @@ extern "C" int gtatool_from_ply(int argc, char *argv[])
         {
             if (std::strcmp(elist[i], "vertex") == 0)
             {
-                int num_elems;
-                int nprops;
+                int num_elems = 0;
+                int nprops = 0;
                 (void)ply_get_element_description(ply, const_cast<char *>("vertex"), &num_elems, &nprops);
 
                 gta::header hdr;
