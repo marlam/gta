@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -140,6 +140,8 @@ public:
     void skip_data(const gta::header &header_in);
     void copy_data(const gta::header &header_in, const gta::header &header_out);
     void copy_data(const gta::header &header_in, const array_loop_t &array_loop_out, gta::header &header_out);
+    void read_data(const gta::header &header_in, void *data);
+    void write_data(const gta::header &header_out, const void *data);
     void start_element_loop(element_loop_t &element_loop, const gta::header &header_in, const gta::header &header_out);
 
     FILE *file_in() const throw ()

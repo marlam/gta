@@ -348,6 +348,24 @@ fi
 AC_DEFINE_UNQUOTED([WITH_SNDFILE], [`if test "$sndfile" = "yes"; then echo "1"; else echo "0"; fi`], [Use sndfile?])
 AM_CONDITIONAL([WITH_SNDFILE], [test "$sndfile" = "yes"])
 
+dnl conv-teem: libteem
+AC_ARG_WITH([teem],
+    [AS_HELP_STRING([--with-teem], [Enable teem (nrrd) import/export. Enabled by default if libteem is available.])],
+    [if test "$withval" = "yes"; then teem="yes"; else teem="no "; fi], [teem="yes"])
+if test "$teem" = "yes"; then
+    AC_LANG([C])
+    AC_LIB_FROMPACKAGE([teem], [teem])
+    AC_LIB_HAVE_LINKFLAGS([teem], [], [#include <teem/nrrd.h>], [nrrdNuke(0);])
+    AC_LANG([C++])
+    if test "$HAVE_LIBTEEM" != "yes"; then
+        teem="no "
+        AC_MSG_WARN([teem library not found.])
+        AC_MSG_WARN([Disabled the from-teem and to-teem commands.])
+    fi
+fi
+AC_DEFINE_UNQUOTED([WITH_TEEM], [`if test "$teem" = "yes"; then echo "1"; else echo "0"; fi`], [Use teem?])
+AM_CONDITIONAL([WITH_TEEM], [test "$teem" = "yes"])
+
 dnl Output
 AC_CONFIG_FILES([Makefile \
     src/Makefile \
@@ -374,5 +392,6 @@ echo "from-ply, to-ply:        " "$ply" ""
 echo "from-rat, to-rat:        " "$rat" ""
 echo "from-raw, to-raw:        " "$raw" ""
 echo "from-sndfile, to-sndfile:" "$sndfile" "(Requires libsndfile, Debian package: libsndfile1-dev)"
+echo "from-teem, to-teem:      " "$teem" "(Requires libteem, Debian package: libteem1-dev)"
 echo "gui:                     " "$qt" "(Requires Qt, Debian package: libqt4-dev)"
 echo ""

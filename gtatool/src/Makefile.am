@@ -21,7 +21,8 @@ AM_CPPFLAGS = -I$(top_srcdir)/src/base -I$(top_srcdir)/src -DPKGLIBDIR=\"$(pkgli
 	$(libmatio_CFLAGS) \
 	$(libpcl_io_CFLAGS) \
 	$(libpfs_CFLAGS) \
-	$(libsndfile_CFLAGS)
+	$(libsndfile_CFLAGS) \
+	$(libteem_CFLAGS)
 
 #
 # The gta program
@@ -275,5 +276,16 @@ conv_sndfile_la_LIBADD = $(libsndfile_LIBS) base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-sndfile/from-sndfile.cpp conv-sndfile/to-sndfile.cpp
 libbuiltin_la_LIBADD += $(libsndfile_LIBS)
+endif
+endif
+
+if WITH_TEEM
+if DYNAMIC_MODULES
+pkglib_LTLIBRARIES += conv-teem.la
+conv_teem_la_SOURCES = conv-teem/from-teem.cpp conv-teem/to-teem.cpp
+conv_teem_la_LIBADD = $(LTLIBTEEM) base/libbase.la
+else
+libbuiltin_la_SOURCES += conv-teem/from-teem.cpp conv-teem/to-teem.cpp
+libbuiltin_la_LIBADD += $(LTLIBTEEM)
 endif
 endif

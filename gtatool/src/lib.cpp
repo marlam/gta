@@ -758,6 +758,30 @@ void array_loop_t::copy_data(const gta::header &header_in, const array_loop_t &a
     }
 }
 
+void array_loop_t::read_data(const gta::header &header_in, void *data)
+{
+    try
+    {
+        header_in.read_data(_file_in, data);
+    }
+    catch (std::exception &e)
+    {
+        throw exc(_array_name_in + ": " + e.what());
+    }
+}
+
+void array_loop_t::write_data(const gta::header &header_out, const void *data)
+{
+    try
+    {
+        header_out.write_data(_file_out, data);
+    }
+    catch (std::exception &e)
+    {
+        throw exc(_array_name_in + ": " + e.what());
+    }
+}
+
 void array_loop_t::start_element_loop(element_loop_t &element_loop,
         const gta::header &header_in, const gta::header &header_out)
 {

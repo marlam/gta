@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -106,6 +106,7 @@ CMD_DECL(from_ply)
 CMD_DECL(from_rat)
 CMD_DECL(from_raw)
 CMD_DECL(from_sndfile)
+CMD_DECL(from_teem)
 CMD_DECL(gui)
 CMD_DECL(help)
 CMD_DECL(info)
@@ -127,6 +128,7 @@ CMD_DECL(to_ply)
 CMD_DECL(to_rat)
 CMD_DECL(to_raw)
 CMD_DECL(to_sndfile)
+CMD_DECL(to_teem)
 CMD_DECL(uncompress)
 CMD_DECL(version)
 
@@ -164,6 +166,7 @@ static cmd_t cmds[] =
     CMD("from-rat",          conversion, from_rat,          WITH_RAT,      "conv-rat"),
     CMD("from-raw",          conversion, from_raw,          WITH_RAW,      "conv-raw"),
     CMD("from-sndfile",      conversion, from_sndfile,      WITH_SNDFILE,  "conv-sndfile"),
+    CMD("from-teem",         conversion, from_teem,         WITH_TEEM,     "conv-teem"),
     CMD("gui",               misc,       gui,               WITH_QT,       "gui"),
     CMD("help",              misc,       help,              true,          BUILTIN),
     CMD("info",              array,      info,              true,          BUILTIN),
@@ -185,6 +188,7 @@ static cmd_t cmds[] =
     CMD("to-rat",            conversion, to_rat,            WITH_RAT,      "conv-rat"),
     CMD("to-raw",            conversion, to_raw,            WITH_RAW,      "conv-raw"),
     CMD("to-sndfile",        conversion, to_sndfile,        WITH_SNDFILE,  "conv-sndfile"),
+    CMD("to-teem",           conversion, to_teem,           WITH_SNDFILE,  "conv-teem"),
     CMD("uncompress",        array,      uncompress,        true,          BUILTIN),
     CMD("version",           misc,       version,           true,          BUILTIN),
 };
