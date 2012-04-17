@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007, 2009, 2010, 2011
+ * Copyright (C) 2006, 2007, 2009, 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -21,6 +21,9 @@
 #include <typeinfo>
 #include <limits>
 #include <cstring>
+#ifndef NDEBUG
+# include <set>
+#endif
 
 #include "gettext.h"
 #define _(string) gettext(string)
@@ -30,6 +33,7 @@
 #undef required_argument
 #undef optional_argument
 
+#include "dbg.h"
 #include "msg.h"
 #include "opt.h"
 
@@ -64,6 +68,21 @@ namespace opt
                 shortopt_count++;
             }
         }
+#ifndef NDEBUG
+        /* Sanity check: are all short and long options unique? */
+        {
+            std::set<char> shortopt_set;
+            std::set<std::string> longopt_set;
+            for (size_t i = 0; i < options.size(); i++)
+            {
+                if (options[i]->shortname() != '\0')
+                    shortopt_set.insert(options[i]->shortname());
+                longopt_set.insert(options[i]->longname());
+            }
+            assert(longopt_set.size() == static_cast<size_t>(longopt_count));
+            assert(shortopt_set.size() == static_cast<size_t>(shortopt_count));
+        }
+#endif
         /* Construct an array of type 'struct option', 'longopts', and a short
          * option description string 'shortopts' for use with getopt_long().
          * The indices of options in the given array 'options' and the constructed
@@ -197,6 +216,10 @@ namespace opt
                     msg::err(_("Invalid argument for --%s."), options[optval]->longname().c_str());
                 }
                 error = true;
+            }
+            else
+            {
+                options[optval]->mark_as_set();
             }
             if (typeid(*(options[optval])) == typeid(info))
             {

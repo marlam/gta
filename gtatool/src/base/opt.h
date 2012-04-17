@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
+ * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -83,6 +83,7 @@ namespace opt
         std::string _longname;
         char _shortname;
         option_policy _policy;
+        bool _is_set;
 
     public:
         /**
@@ -92,7 +93,7 @@ namespace opt
          * \param mandatory     Whether this option is mandatory or optional.
          */
         option(const std::string &longname, char shortname, option_policy policy)
-            : _longname(longname), _shortname(shortname), _policy(policy)
+            : _longname(longname), _shortname(shortname), _policy(policy), _is_set(false)
         {
         }
 
@@ -109,6 +110,16 @@ namespace opt
         opt::option_policy policy() const
         {
             return _policy;
+        }
+
+        bool is_set() const
+        {
+            return _is_set;
+        }
+
+        void mark_as_set()
+        {
+            _is_set = true;
         }
 
         /**

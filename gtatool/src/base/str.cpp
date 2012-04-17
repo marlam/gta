@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2010, 2011
+ * Copyright (C) 2009, 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -151,6 +151,37 @@ namespace str
         }
     }
 
+    /* Parse a string into tokens */
+
+    std::vector<std::string> tokens(const std::string &s, const std::string &delimiters)
+    {
+        std::vector<std::string> t;
+        size_t index = 0;
+        for (;;)
+        {
+            size_t start = s.find_first_not_of(delimiters, index);
+            if (start != std::string::npos)
+            {
+                size_t end = s.find_first_of(delimiters, start);
+                if (end == std::string::npos)
+                {
+                    t.push_back(s.substr(start));
+                    break;
+                }
+                else
+                {
+                    t.push_back(s.substr(start, end - start));
+                    index = end;
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+        return t;
+    }
+
     /* Create std::strings from all basic data types */
 
     std::string from(bool x)
@@ -252,6 +283,35 @@ namespace str
     template<> float to<float>(const std::string &s) { return _to<float>(s, "float"); }
     template<> double to<double>(const std::string &s) { return _to<double>(s, "double"); }
     template<> long double to<long double>(const std::string &s) { return _to<long double>(s, "long double"); }
+
+    template<typename T>
+    static inline bool _to(const std::string& s, T* x)
+    {
+        T y;
+        try {
+            y = str::to<T>(s);
+        }
+        catch (...) {
+            return false;
+        }
+        *x = y;
+        return true;
+    }
+
+    template<> bool to(const std::string& s, bool* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, signed char* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, unsigned char* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, short* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, unsigned short* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, int* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, unsigned int* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, long* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, unsigned long* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, long long* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, unsigned long long* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, float* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, double* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, long double* x) { return _to(s, x); }
 
     /* Create std::strings printf-like */
 
@@ -388,6 +448,15 @@ namespace str
         {
             return str::asprintf("%.1f mm", length * 1000.0);
         }
+    }
+
+    std::string human_readable_geodetic(double lat, double lon, double elev)
+    {
+        std::string s = str::asprintf("lat %.6f lon %.6f",
+                180.0 / M_PI * lat, 180.0 / M_PI * lon);
+        if (elev < 0.0 || elev > 0.0)
+            s += " elev " + human_readable_length(elev);
+        return s;
     }
 
     std::string human_readable_time(int64_t microseconds)

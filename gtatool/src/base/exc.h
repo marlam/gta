@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
+ * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -56,8 +56,6 @@ class exc : public std::exception
         bool _fallback;
         std::string _str;
         int _sys_errno;
-
-        void create(const char *when, int sys_errno, const char *what) throw ();
 
     public:
         exc() throw ();

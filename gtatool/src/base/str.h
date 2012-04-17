@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2010, 2011
+ * Copyright (C) 2009, 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,6 +26,7 @@
 #define STR_H
 
 #include <string>
+#include <vector>
 #include <cstdarg>
 #include <cerrno>
 #include <stdint.h>
@@ -45,6 +46,9 @@ namespace str
 
     /* Trim a string (remove whitespace from both ends) */
     std::string trim(const std::string &s);
+
+    /* Parse a string into tokens separated by one of the characters in 'delimiters'. */
+    std::vector<std::string> tokens(const std::string &s, const std::string &delimiters);
 
     /* Create std::strings from all basic data types */
     std::string from(bool x);
@@ -78,6 +82,21 @@ namespace str
     template<> float to<float>(const std::string &s);
     template<> double to<double>(const std::string &s);
     template<> long double to<long double>(const std::string &s);
+    template<typename T> bool to(const std::string& s, T* x);
+    template<> bool to(const std::string& s, bool* x);
+    template<> bool to(const std::string& s, signed char* x);
+    template<> bool to(const std::string& s, unsigned char* x);
+    template<> bool to(const std::string& s, short* x);
+    template<> bool to(const std::string& s, unsigned short* x);
+    template<> bool to(const std::string& s, int* x);
+    template<> bool to(const std::string& s, unsigned int* x);
+    template<> bool to(const std::string& s, long* x);
+    template<> bool to(const std::string& s, unsigned long* x);
+    template<> bool to(const std::string& s, long long* x);
+    template<> bool to(const std::string& s, unsigned long long* x);
+    template<> bool to(const std::string& s, float* x);
+    template<> bool to(const std::string& s, double* x);
+    template<> bool to(const std::string& s, long double* x);
 
     /* Create std::strings printf-like */
     std::string vasprintf(const char *format, va_list args) STR_AFP(1, 0);
@@ -93,6 +112,7 @@ namespace str
     /* Convert various values to human readable strings */
     std::string human_readable_memsize(const uintmax_t size);
     std::string human_readable_length(const double length);
+    std::string human_readable_geodetic(double lat, double lon, double elev);
     std::string human_readable_time(int64_t microseconds);
 
     /* Get the name of the user's character set */
