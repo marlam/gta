@@ -214,7 +214,10 @@ extern "C" int gtatool_to_magick(int argc, char *argv[])
         {
             fio::close(fi);
         }
-        Magick::writeImages(imgs.begin(), imgs.end(), magick_filename);
+        if (imgs.size() > 0)
+        {
+            Magick::writeImages(imgs.begin(), imgs.end(), magick_filename);
+        }
     }
     catch (std::exception &e)
     {
