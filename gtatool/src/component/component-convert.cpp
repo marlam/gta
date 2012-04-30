@@ -39,7 +39,7 @@
 #include "lib.h"
 
 
-static uint64_t to_uint64(const void *val, gta::type type)
+static uint64_t to_uint64(const void *val, gta::type type, uint64_t normalization_max)
 {
     uint64_t x;
     switch (type)
@@ -104,6 +104,8 @@ static uint64_t to_uint64(const void *val, gta::type type)
         {
             float v;
             std::memcpy(&v, val, sizeof(float));
+            if (normalization_max)
+                v *= normalization_max;
             x = ((!std::isfinite(v) || v < 0.0f) ? 0 : v);
         }
         break;
@@ -111,6 +113,8 @@ static uint64_t to_uint64(const void *val, gta::type type)
         {
             double v;
             std::memcpy(&v, val, sizeof(double));
+            if (normalization_max)
+                v *= normalization_max;
             x = ((!std::isfinite(v) || v < 0.0f) ? 0 : v);
         }
         break;
@@ -119,6 +123,8 @@ static uint64_t to_uint64(const void *val, gta::type type)
             float v[2];
             std::memcpy(v, val, 2 * sizeof(float));
             float a = std::sqrt(v[0] * v[0] + v[1] * v[1]);
+            if (normalization_max)
+                a *= normalization_max;
             x = (!std::isfinite(a) ? 0 : a);
         }
         break;
@@ -127,6 +133,8 @@ static uint64_t to_uint64(const void *val, gta::type type)
             double v[2];
             std::memcpy(v, val, 2 * sizeof(double));
             double a = std::sqrt(v[0] * v[0] + v[1] * v[1]);
+            if (normalization_max)
+                a *= normalization_max;
             x = (!std::isfinite(a) ? 0 : a);
         }
         break;
@@ -138,7 +146,7 @@ static uint64_t to_uint64(const void *val, gta::type type)
     return x;
 }
 
-static int64_t to_int64(const void *val, gta::type type)
+static int64_t to_int64(const void *val, gta::type type, int64_t normalization_min, int64_t normalization_max)
 {
     int64_t x;
     switch (type)
@@ -203,6 +211,10 @@ static int64_t to_int64(const void *val, gta::type type)
         {
             float v;
             std::memcpy(&v, val, sizeof(float));
+            if (normalization_min && v < 0.0f)
+                v *= -1.0f * normalization_min;
+            if (normalization_max && v > 0.0f)
+                v *= normalization_max;
             x = (!std::isfinite(v) ? 0 : v);
         }
         break;
@@ -210,6 +222,10 @@ static int64_t to_int64(const void *val, gta::type type)
         {
             double v;
             std::memcpy(&v, val, sizeof(double));
+            if (normalization_min && v < 0.0f)
+                v *= -1.0f * normalization_min;
+            if (normalization_max && v > 0.0f)
+                v *= normalization_max;
             x = (!std::isfinite(v) ? 0 : v);
         }
         break;
@@ -218,6 +234,10 @@ static int64_t to_int64(const void *val, gta::type type)
             float v[2];
             std::memcpy(v, val, 2 * sizeof(float));
             float a = std::sqrt(v[0] * v[0] + v[1] * v[1]);
+            if (normalization_min && a < 0.0f)
+                a *= -1.0f * normalization_min;
+            if (normalization_max && a > 0.0f)
+                a *= normalization_max;
             x = (!std::isfinite(a) ? 0 : a);
         }
         break;
@@ -226,6 +246,10 @@ static int64_t to_int64(const void *val, gta::type type)
             double v[2];
             std::memcpy(v, val, 2 * sizeof(double));
             double a = std::sqrt(v[0] * v[0] + v[1] * v[1]);
+            if (normalization_min && a < 0.0f)
+                a *= -1.0f * normalization_min;
+            if (normalization_max && a > 0.0f)
+                a *= normalization_max;
             x = (!std::isfinite(a) ? 0 : a);
         }
         break;
@@ -248,13 +272,9 @@ static double to_float64(const void *val, gta::type type, bool normalize)
             std::memcpy(&v, val, sizeof(int8_t));
             x = v;
             if (normalize && v < 0)
-            {
-                x /= - std::numeric_limits<int8_t>::min();
-            }
+                x /= -1.0 * std::numeric_limits<int8_t>::min();
             else if (normalize && v > 0)
-            {
                 x /= std::numeric_limits<int8_t>::max();
-            }
         }
         break;
     case gta::uint8:
@@ -263,9 +283,7 @@ static double to_float64(const void *val, gta::type type, bool normalize)
             std::memcpy(&v, val, sizeof(uint8_t));
             x = v;
             if (normalize && v > 0)
-            {
                 x /= std::numeric_limits<uint8_t>::max();
-            }
         }
         break;
     case gta::int16:
@@ -274,13 +292,9 @@ static double to_float64(const void *val, gta::type type, bool normalize)
             std::memcpy(&v, val, sizeof(int16_t));
             x = v;
             if (normalize && v < 0)
-            {
-                x /= - std::numeric_limits<int16_t>::min();
-            }
+                x /= -1.0 * std::numeric_limits<int16_t>::min();
             else if (normalize && v > 0)
-            {
                 x /= std::numeric_limits<int16_t>::max();
-            }
         }
         break;
     case gta::uint16:
@@ -289,9 +303,7 @@ static double to_float64(const void *val, gta::type type, bool normalize)
             std::memcpy(&v, val, sizeof(uint16_t));
             x = v;
             if (normalize && v > 0)
-            {
                 x /= std::numeric_limits<uint16_t>::max();
-            }
         }
         break;
     case gta::int32:
@@ -300,13 +312,9 @@ static double to_float64(const void *val, gta::type type, bool normalize)
             std::memcpy(&v, val, sizeof(int32_t));
             x = v;
             if (normalize && v < 0)
-            {
-                x /= - std::numeric_limits<int32_t>::min();
-            }
+                x /= -1.0 * std::numeric_limits<int32_t>::min();
             else if (normalize && v > 0)
-            {
                 x /= std::numeric_limits<int32_t>::max();
-            }
         }
         break;
     case gta::uint32:
@@ -315,9 +323,7 @@ static double to_float64(const void *val, gta::type type, bool normalize)
             std::memcpy(&v, val, sizeof(uint32_t));
             x = v;
             if (normalize && v > 0)
-            {
                 x /= std::numeric_limits<uint32_t>::max();
-            }
         }
         break;
     case gta::int64:
@@ -326,13 +332,9 @@ static double to_float64(const void *val, gta::type type, bool normalize)
             std::memcpy(&v, val, sizeof(int64_t));
             x = v;
             if (normalize && v < 0)
-            {
-                x /= - std::numeric_limits<int64_t>::min();
-            }
+                x /= -1.0 * std::numeric_limits<int64_t>::min();
             else if (normalize && v > 0)
-            {
                 x /= std::numeric_limits<int64_t>::max();
-            }
         }
         break;
     case gta::uint64:
@@ -341,9 +343,7 @@ static double to_float64(const void *val, gta::type type, bool normalize)
             std::memcpy(&v, val, sizeof(uint64_t));
             x = v;
             if (normalize && v > 0)
-            {
                 x /= std::numeric_limits<uint64_t>::max();
-            }
         }
         break;
     case gta::float32:
@@ -393,13 +393,9 @@ static void to_cfloat64(double c[2], const void *val, gta::type type, bool norma
             c[0] = v;
             c[1] = 0.0;
             if (normalize && v < 0)
-            {
-                c[0] /= - std::numeric_limits<int8_t>::min();
-            }
+                c[0] /= -1.0 * std::numeric_limits<int8_t>::min();
             else if (normalize && v > 0)
-            {
                 c[0] /= std::numeric_limits<int8_t>::max();
-            }
         }
         break;
     case gta::uint8:
@@ -409,9 +405,7 @@ static void to_cfloat64(double c[2], const void *val, gta::type type, bool norma
             c[0] = v;
             c[1] = 0.0;
             if (normalize && v > 0)
-            {
                 c[0] /= std::numeric_limits<uint8_t>::max();
-            }
         }
         break;
     case gta::int16:
@@ -421,13 +415,9 @@ static void to_cfloat64(double c[2], const void *val, gta::type type, bool norma
             c[0] = v;
             c[1] = 0.0;
             if (normalize && v < 0)
-            {
-                c[0] /= - std::numeric_limits<int16_t>::min();
-            }
+                c[0] /= -1.0 * std::numeric_limits<int16_t>::min();
             else if (normalize && v > 0)
-            {
                 c[0] /= std::numeric_limits<int16_t>::max();
-            }
         }
         break;
     case gta::uint16:
@@ -437,9 +427,7 @@ static void to_cfloat64(double c[2], const void *val, gta::type type, bool norma
             c[0] = v;
             c[1] = 0.0;
             if (normalize && v > 0)
-            {
                 c[0] /= std::numeric_limits<uint16_t>::max();
-            }
         }
         break;
     case gta::int32:
@@ -449,13 +437,9 @@ static void to_cfloat64(double c[2], const void *val, gta::type type, bool norma
             c[0] = v;
             c[1] = 0.0;
             if (normalize && v < 0)
-            {
-                c[0] /= - std::numeric_limits<int32_t>::min();
-            }
+                c[0] /= -1.0 * std::numeric_limits<int32_t>::min();
             else if (normalize && v > 0)
-            {
                 c[0] /= std::numeric_limits<int32_t>::max();
-            }
         }
         break;
     case gta::uint32:
@@ -465,9 +449,7 @@ static void to_cfloat64(double c[2], const void *val, gta::type type, bool norma
             c[0] = v;
             c[1] = 0.0;
             if (normalize && v > 0)
-            {
                 c[0] /= std::numeric_limits<uint32_t>::max();
-            }
         }
         break;
     case gta::int64:
@@ -477,13 +459,9 @@ static void to_cfloat64(double c[2], const void *val, gta::type type, bool norma
             c[0] = v;
             c[1] = 0.0;
             if (normalize && v < 0)
-            {
-                c[0] /= - std::numeric_limits<int64_t>::min();
-            }
+                c[0] /= -1.0 * std::numeric_limits<int64_t>::min();
             else if (normalize && v > 0)
-            {
                 c[0] /= std::numeric_limits<int64_t>::max();
-            }
         }
         break;
     case gta::uint64:
@@ -493,9 +471,7 @@ static void to_cfloat64(double c[2], const void *val, gta::type type, bool norma
             c[0] = v;
             c[1] = 0.0;
             if (normalize && v > 0)
-            {
                 c[0] /= std::numeric_limits<uint64_t>::max();
-            }
         }
         break;
     case gta::float32:
@@ -567,7 +543,17 @@ static void convert(void *dst, gta::type dst_type, const void *src, gta::type sr
             || dst_type == gta::int32
             || dst_type == gta::int64)
     {
-        int64_t val = to_int64(src, src_type);
+        int64_t normalization_min = (!normalize ? 0
+                : dst_type == gta::int8  ? std::numeric_limits<int8_t>::min()
+                : dst_type == gta::int16 ? std::numeric_limits<int16_t>::min()
+                : dst_type == gta::int32 ? std::numeric_limits<int32_t>::min()
+                : std::numeric_limits<int64_t>::min());
+        int64_t normalization_max = (!normalize ? 0
+                : dst_type == gta::int8  ? std::numeric_limits<int8_t>::max()
+                : dst_type == gta::int16 ? std::numeric_limits<int16_t>::max()
+                : dst_type == gta::int32 ? std::numeric_limits<int32_t>::max()
+                : std::numeric_limits<int64_t>::max());
+        int64_t val = to_int64(src, src_type, normalization_min, normalization_max);
         if (dst_type == gta::int8)
         {
             int8_t v = val;
@@ -590,7 +576,12 @@ static void convert(void *dst, gta::type dst_type, const void *src, gta::type sr
     }
     else // gta::uint{8,16,32,64}
     {
-        uint64_t val = to_uint64(src, src_type);
+        uint64_t normalization_max = (!normalize ? 0
+                : dst_type == gta::uint8  ? std::numeric_limits<uint8_t>::max()
+                : dst_type == gta::uint16 ? std::numeric_limits<uint16_t>::max()
+                : dst_type == gta::uint32 ? std::numeric_limits<uint32_t>::max()
+                : std::numeric_limits<uint64_t>::max());
+        uint64_t val = to_uint64(src, src_type, normalization_max);
         if (dst_type == gta::uint8)
         {
             uint8_t v = val;
@@ -621,7 +612,8 @@ extern "C" void gtatool_component_convert_help(void)
             "Converts the array element components of the given GTAs to the given types, "
             "and writes the resulting GTA to standard output.\n"
             "If --normalize is given, the range of an integer type is normalized when converting it to a "
-            "floating point type (to [0,1] for unsigned integers, and to [-1,1] for signed integers).\n"
+            "floating point type (to [0,1] for unsigned integers, and to [-1,1] for signed integers), and this "
+            "conversion is reverted when converting a floating point type to an integer type.\n"
             "Example: component-convert -c uint8,uint8,uint8 hdr.gta > rgb.gta");
 }
 
