@@ -1,4 +1,4 @@
-; Copyright (C) 2010, 2011
+; Copyright (C) 2010, 2011, 2012
 ; Martin Lambers <marlam@marlam.de>
 ;
 ; Copying and distribution of this file, with or without modification, are
@@ -9,7 +9,7 @@
 !include "AddToPath.nsh"
 
 ; The name of the installer
-Name "GTATool ${PACKAGE_VERSION}"
+Name "GTA Tool ${PACKAGE_VERSION}"
 
 ; The file to write
 OutFile "gtatool-${PACKAGE_VERSION}-w32.exe"
@@ -54,7 +54,7 @@ Var STARTMENU_FOLDER
   !insertmacro MUI_LANGUAGE "English"
 
 ; Program file installation
-Section "GTATool Program" SecTools
+Section "GTA Tool Program" SecTools
   SetOutPath $INSTDIR\bin
   FILE gta.exe
 SectionEnd
@@ -68,11 +68,11 @@ Section
   WriteRegStr HKLM "Software\gtatool-${PACKAGE_VERSION}" "Install_Dir" "$INSTDIR"
   ; Windows Add/Remove Programs support
   StrCpy $MYTMP "Software\Microsoft\Windows\CurrentVersion\Uninstall\gtatool-${PACKAGE_VERSION}"
-  WriteRegStr       HKLM $MYTMP "DisplayName"     "GTATool ${PACKAGE_VERSION}"
+  WriteRegStr       HKLM $MYTMP "DisplayName"     "GTA Tool ${PACKAGE_VERSION}"
   WriteRegExpandStr HKLM $MYTMP "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteRegExpandStr HKLM $MYTMP "InstallLocation" "$INSTDIR"
   WriteRegStr       HKLM $MYTMP "DisplayVersion"  "${PACKAGE_VERSION}"
-  WriteRegStr       HKLM $MYTMP "Publisher"       "The GTATool developers"
+  WriteRegStr       HKLM $MYTMP "Publisher"       "The GTA Tool developers"
   WriteRegStr       HKLM $MYTMP "URLInfoAbout"    "http://gta.nongnu.org/"
   WriteRegStr       HKLM $MYTMP "HelpLink"        "http://gta.nongnu.org/"
   WriteRegStr       HKLM $MYTMP "URLUpdateInfo"   "http://gta.nongnu.org/"
@@ -81,7 +81,7 @@ Section
   ; Start menu
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
-  CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\GTATool.lnk" "$INSTDIR\bin\gta.exe" "gui"
+  CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\gtatool.lnk" "$INSTDIR\bin\gta.exe" "gui"
   WriteINIStr "$SMPROGRAMS\$STARTMENU_FOLDER\Website.url" "InternetShortcut" "URL" "http://gta.nongnu.org/"
   CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
   !insertmacro MUI_STARTMENU_WRITE_END
