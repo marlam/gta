@@ -2396,8 +2396,8 @@ void GUI::help_about()
 {
     QMessageBox::about(this, tr("About " PACKAGE_NAME), tr(
                 "<p>This is %1 version %2, using libgta version %3.</p>"
-                "<p>This graphical user interface is a frontend for the command line interface of this tool. "
-                "It provides only a limited subset of the full functionality.</p>"
+                "<p>This graphical user interface is a frontend for the command line interface of this tool, "
+                "and provides only a limited subset of the full functionality.</p>"
                 "<p>Use <code>%4 help</code> to get a list of all commands provided by this tool, "
                 "and <code>%4 help &lt;cmd&gt;</code> to get a description of a specific command.</p>"
                 "<p>See <a href=\"%5\">%5</a> for more information on this software.</p>"
