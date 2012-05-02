@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -226,6 +226,8 @@ private slots:
     void file_import_ply();
     void file_import_rat();
     void file_import_raw();
+    void file_import_sndfile();
+    void file_import_teem();
     void file_export_exr();
     void file_export_gdal();
     void file_export_magick();
@@ -235,6 +237,8 @@ private slots:
     void file_export_ply();
     void file_export_rat();
     void file_export_raw();
+    void file_export_sndfile();
+    void file_export_teem();
     void stream_merge();
     void stream_split();
     void stream_extract();

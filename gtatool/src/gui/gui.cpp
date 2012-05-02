@@ -620,6 +620,20 @@ GUI::GUI()
     QAction *file_import_raw_action = new QAction(tr("Raw data..."), this);
     connect(file_import_raw_action, SIGNAL(triggered()), this, SLOT(file_import_raw()));
     file_import_menu->addAction(file_import_raw_action);
+    QAction *file_import_sndfile_action = new QAction(tr("Audio data (via sndfile)..."), this);
+    connect(file_import_sndfile_action, SIGNAL(triggered()), this, SLOT(file_import_sndfile()));
+    if (!cmd_is_available(cmd_find("from-sndfile")))
+    {
+        file_import_sndfile_action->setEnabled(false);
+    }
+    file_import_menu->addAction(file_import_sndfile_action);
+    QAction *file_import_teem_action = new QAction(tr("NRRD data (via teem)..."), this);
+    connect(file_import_teem_action, SIGNAL(triggered()), this, SLOT(file_import_teem()));
+    if (!cmd_is_available(cmd_find("from-teem")))
+    {
+        file_import_teem_action->setEnabled(false);
+    }
+    file_import_menu->addAction(file_import_teem_action);
     QMenu *file_export_menu = file_menu->addMenu(tr("Export"));
     QAction *file_export_exr_action = new QAction(tr("EXR HDR images (via EXR)..."), this);
     connect(file_export_exr_action, SIGNAL(triggered()), this, SLOT(file_export_exr()));
@@ -676,6 +690,20 @@ GUI::GUI()
     QAction *file_export_raw_action = new QAction(tr("Raw data..."), this);
     connect(file_export_raw_action, SIGNAL(triggered()), this, SLOT(file_export_raw()));
     file_export_menu->addAction(file_export_raw_action);
+    QAction *file_export_sndfile_action = new QAction(tr("WAV audio (via sndfile)..."), this);
+    connect(file_export_sndfile_action, SIGNAL(triggered()), this, SLOT(file_export_sndfile()));
+    if (!cmd_is_available(cmd_find("to-sndfile")))
+    {
+        file_export_sndfile_action->setEnabled(false);
+    }
+    file_export_menu->addAction(file_export_sndfile_action);
+    QAction *file_export_teem_action = new QAction(tr("NRRD data (via teem)..."), this);
+    connect(file_export_teem_action, SIGNAL(triggered()), this, SLOT(file_export_teem()));
+    if (!cmd_is_available(cmd_find("to-teem")))
+    {
+        file_export_teem_action->setEnabled(false);
+    }
+    file_export_menu->addAction(file_export_teem_action);
     file_menu->addSeparator();
     QAction *quit_action = new QAction(tr("&Quit"), this);
     quit_action->setShortcut(tr("Ctrl+Q"));
@@ -1473,6 +1501,16 @@ void GUI::file_import_raw()
     import_from("from-raw", options, QStringList("Raw files (*.raw *.dat)"));
 }
 
+void GUI::file_import_sndfile()
+{
+    import_from("from-sndfile", std::vector<std::string>(), QStringList("WAV files (*.wav)"));
+}
+
+void GUI::file_import_teem()
+{
+    import_from("from-teem", std::vector<std::string>(), QStringList("NRRD files (*.nrrd)"));
+}
+
 void GUI::file_export_exr()
 {
     export_to("to-exr", std::vector<std::string>(), "exr", QStringList("EXR files (*.exr)"));
@@ -1544,6 +1582,16 @@ void GUI::file_export_raw()
     options.push_back("-e");
     options.push_back(le_button->isChecked() ? "little" : "big");
     export_to("to-raw", options, "raw", QStringList("Raw files (*.raw *.dat)"));
+}
+
+void GUI::file_export_sndfile()
+{
+    export_to("to-sndfile", std::vector<std::string>(), "wav", QStringList("WAV files (*.wav)"));
+}
+
+void GUI::file_export_teem()
+{
+    export_to("to-teem", std::vector<std::string>(), "nrrd", QStringList("NRRD files (*.nrrd)"));
 }
 
 void GUI::stream_merge()
