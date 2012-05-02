@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2011
+ * Copyright (C) 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -112,11 +112,11 @@ extern "C" int gtatool_from_ffmpeg(int argc, char *argv[])
         {
             int s = stream.value() - 1;
             input.video_stream_set_active(s, true);
-            input.start_video_frame_read(s);
+            input.start_video_frame_read(s, 1);
             video_frame frame;
             while ((frame = input.finish_video_frame_read(s)).is_valid())
             {
-                input.start_video_frame_read(s);
+                input.start_video_frame_read(s, 1);
                 gta::header hdr;
                 std::string name;
                 hdr.global_taglist().set("X-MILLISECONDS", str::from(frame.presentation_time / 1e3f).c_str());
