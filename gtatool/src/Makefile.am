@@ -122,7 +122,7 @@ rcc_verbose_0 = @echo "  RCC   " $@;
 GUI_BUILT_SOURCES = gui/gui.moc.cpp gui/gui.resources.cpp
 BUILT_SOURCES += $(GUI_BUILT_SOURCES)
 CLEANFILES += $(GUI_BUILT_SOURCES)
-EXTRA_DIST += gui/gui.png gui/gui.qrc
+EXTRA_DIST += gui/gui.qrc
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += gui.la
 gui_la_SOURCES = gui/gui.h gui/gui.cpp
@@ -133,6 +133,25 @@ libbuiltin_la_SOURCES += gui/gui.h gui/gui.cpp
 nodist_libbuiltin_la_SOURCES += $(GUI_BUILT_SOURCES)
 libbuiltin_la_LIBADD += $(libqtgui_LIBS)
 endif
+iconsdatadir = $(datadir)/icons/hicolor
+icons16dir = $(iconsdatadir)/16x16/apps
+icons32dir = $(iconsdatadir)/32x32/apps
+icons48dir = $(iconsdatadir)/48x48/apps
+icons64dir = $(iconsdatadir)/64x64/apps
+iconsscaldir = $(iconsdatadir)/scalable/apps
+dist_icons16_DATA = gui/logo/16x16/gta.png
+dist_icons32_DATA = gui/logo/32x32/gta.png
+dist_icons48_DATA = gui/logo/48x48/gta.png
+dist_icons64_DATA = gui/logo/64x64/gta.png
+dist_iconsscal_DATA = gui/logo/scalable/gta.svg
+update-icon-cache:
+	test -n "$(DESTDIR)" -o -z "$(GTK_UPDATE_ICON_CACHE)" || (umask 022 && $(GTK_UPDATE_ICON_CACHE) -q -f -t "$(iconsdatadir)")
+appdatadir = $(datadir)/applications
+dist_appdata_DATA = gui/gta_gui.desktop
+update-desktop-database:
+	test -n "$(DESTDIR)" -o -z "$(UPDATE_DESKTOP_DATABASE)" || (umask 022 && $(UPDATE_DESKTOP_DATABASE) "$(appdatadir)")
+install-data-hook: update-icon-cache update-desktop-database
+uninstall-hook: update-icon-cache update-desktop-database
 endif
 
 if WITH_DCMTK

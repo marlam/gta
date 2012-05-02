@@ -141,10 +141,10 @@ AM_CONDITIONAL([WITH_MUPARSER], [test "$muparser" = "yes"])
 
 dnl gui: Qt
 AC_ARG_WITH([qt],
-    [AS_HELP_STRING([--with-qt], [Enable Qt GUI. Enabled by default if Qt >= 4.4.3 is available.])],
+    [AS_HELP_STRING([--with-qt], [Enable Qt GUI. Enabled by default if Qt is available.])],
     [if test "$withval" = "yes"; then qt="yes"; else qt="no "; fi], [qt="yes"])
 if test "$qt" = "yes"; then
-    PKG_CHECK_MODULES([libqtgui], [QtGui >= 0.0], [],
+    PKG_CHECK_MODULES([libqtgui], [QtGui >= 4.6], [],
         [qt="no "
         AC_MSG_WARN([QtGui library not found:])
         AC_MSG_WARN([$libqtgui_PKG_ERRORS])
@@ -155,6 +155,13 @@ if test "$qt" = "yes"; then
     MOC=""
     AC_ARG_VAR([MOC], [moc command])
     AC_CHECK_TOOLS([MOC], [moc-qt4 moc])
+    dnl Icon and Menu tools. It is ok if these are missing.
+    GTK_UPDATE_ICON_CACHE=""
+    AC_ARG_VAR([GTK_UPDATE_ICON_CACHE], [gtk-update-icon-cache command])
+    AC_CHECK_PROGS([GTK_UPDATE_ICON_CACHE], [gtk-update-icon-cache])
+    UPDATE_DESKTOP_DATABASE=""
+    AC_ARG_VAR([UPDATE_DESKTOP_DATABASE], [update-desktop-database command])
+    AC_CHECK_PROGS([UPDATE_DESKTOP_DATABASE], [update-desktop-database])
 fi
 AC_DEFINE_UNQUOTED([WITH_QT], [`if test "$qt" = "yes"; then echo "1"; else echo "0"; fi`], [Use Qt?])
 AM_CONDITIONAL([WITH_QT], [test "$qt" = "yes"])

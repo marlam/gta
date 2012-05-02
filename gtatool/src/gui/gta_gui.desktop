@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=GTA
+GenericName=Generic Tagged Arrays
+Icon=gta
+Categories=Science
+Type=Application
+Exec=gta gui %u
+StartupNotify=true
+Terminal=false

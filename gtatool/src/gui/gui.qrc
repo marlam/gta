@@ -1,5 +1,5 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
-	<file>gui.png</file>
+	<file alias="gui.png">logo/64x64/gta.png</file>
 </qresource>
 </RCC>
