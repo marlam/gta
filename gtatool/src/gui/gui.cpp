@@ -2231,7 +2231,7 @@ void GUI::component_convert()
     layout->addWidget(comp_label, 0, 0, 1, 2);
     QLineEdit *comp_edit = new QLineEdit("");
     layout->addWidget(comp_edit, 1, 0, 1, 2);
-    QCheckBox *n_checkbox = new QCheckBox("Normalize integers when converting to floating point");
+    QCheckBox *n_checkbox = new QCheckBox("Normalize when converting between integers and floating point");
     layout->addWidget(n_checkbox, 2, 0, 1, 2);
     QPushButton *ok_btn = new QPushButton(tr("&OK"));
     ok_btn->setDefault(true);
