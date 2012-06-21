@@ -74,6 +74,7 @@ extern "C" int gtatool_info(int argc, char *argv[])
         std::vector<double> maxima;
         std::vector<double> sum;
         std::vector<double> squaresum;
+        std::vector<uintmax_t> valid_values;
         while (array_loop.read(hdr, name))
         {
             if (statistics.value() && hdr.data_size() != 0)
@@ -82,10 +83,12 @@ extern "C" int gtatool_info(int argc, char *argv[])
                 maxima.clear();
                 sum.clear();
                 squaresum.clear();
+                valid_values.clear();
                 minima.resize(checked_cast<size_t>(hdr.components()), +std::numeric_limits<double>::max());
                 maxima.resize(checked_cast<size_t>(hdr.components()), -std::numeric_limits<double>::max());
                 sum.resize(checked_cast<size_t>(hdr.components()), 0.0);
                 squaresum.resize(checked_cast<size_t>(hdr.components()), 0.0);
+                valid_values.resize(checked_cast<size_t>(hdr.components()), 0);
                 element_loop_t element_loop;
                 array_loop.start_element_loop(element_loop, hdr, hdr);
                 for (uintmax_t e = 0; e < hdr.elements(); e++)
@@ -186,12 +189,23 @@ extern "C" int gtatool_info(int argc, char *argv[])
                         }
                         if (std::isfinite(val))
                         {
-                            if (val < minima[c])
+                            if (valid_values[c] == 0)
+                            {
                                 minima[c] = val;
-                            else if (val > maxima[c])
                                 maxima[c] = val;
-                            sum[c] += val;
-                            squaresum[c] += val * val;
+                                sum[c] = val;
+                                squaresum[c] = val * val;
+                            }
+                            else
+                            {
+                                if (val < minima[c])
+                                    minima[c] = val;
+                                else if (val > maxima[c])
+                                    maxima[c] = val;
+                                sum[c] += val;
+                                squaresum[c] += val * val;
+                            }
+                            valid_values[c]++;
                         }
                     }
                 }
@@ -282,14 +296,19 @@ extern "C" int gtatool_info(int argc, char *argv[])
                         + str::human_readable_memsize(hdr.component_size(i)));
                 if (statistics.value() && !hdr.data_size() == 0)
                 {
-                    msg::req(8, std::string("minimum value = ") + str::from(minima[i]));
-                    msg::req(8, std::string("maximum value = ") + str::from(maxima[i]));
-                    double mean = sum[i] / hdr.elements();
-                    double variance = (squaresum[i] - sum[i] / hdr.elements() * sum[i]) / (hdr.elements() - 1);
-                    double deviation = std::sqrt(variance);
-                    msg::req(8, std::string("sample mean = ") + str::from(mean));
-                    msg::req(8, std::string("sample variance = ") + str::from(variance));
-                    msg::req(8, std::string("sample deviation = ") + str::from(deviation));
+                    msg::req(8, std::string("minimum value = ") + (valid_values[i] > 0 ? str::from(minima[i]) : "unavailable"));
+                    msg::req(8, std::string("maximum value = ") + (valid_values[i] > 0 ? str::from(maxima[i]) : "unavailable"));
+                    double mean = 0.0, variance = 0.0, deviation = 0.0;
+                    if (valid_values[i] > 0) {
+                        mean = sum[i] / valid_values[i];
+                    }
+                    if (valid_values[i] > 1) {
+                        variance = (squaresum[i] - sum[i] / hdr.elements() * sum[i]) / (valid_values[i] - 1);
+                        deviation = std::sqrt(variance);
+                    }
+                    msg::req(8, std::string("sample mean = ") + (valid_values[i] > 0 ? str::from(mean) : "unavailable"));
+                    msg::req(8, std::string("sample variance = ") + (valid_values[i] > 1 ? str::from(variance) : "unavailable"));
+                    msg::req(8, std::string("sample deviation = ") + (valid_values[i] > 1 ? str::from(deviation) : "unavailable"));
                 }
                 for (uintmax_t j = 0; j < hdr.component_taglist(i).tags(); j++)
                 {
