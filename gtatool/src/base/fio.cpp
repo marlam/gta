@@ -41,6 +41,11 @@
 #if HAVE_MMAP
 # include <sys/mman.h>
 #endif
+#ifndef W32
+# if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__
+#  define W32 1
+# endif
+#endif
 #if W32
 # include <climits>
 # define WIN32_LEAN_AND_MEAN    /* do not include more than necessary */
