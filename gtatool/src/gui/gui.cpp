@@ -616,9 +616,17 @@ GUI::GUI()
     file_import_menu->addAction(file_import_ply_action);
     QAction *file_import_rat_action = new QAction(tr("RAT RadarTools data..."), this);
     connect(file_import_rat_action, SIGNAL(triggered()), this, SLOT(file_import_rat()));
+    if (!cmd_is_available(cmd_find("from-rat")))
+    {
+        file_import_rat_action->setEnabled(false);
+    }
     file_import_menu->addAction(file_import_rat_action);
     QAction *file_import_raw_action = new QAction(tr("Raw data..."), this);
     connect(file_import_raw_action, SIGNAL(triggered()), this, SLOT(file_import_raw()));
+    if (!cmd_is_available(cmd_find("from-raw")))
+    {
+        file_import_raw_action->setEnabled(false);
+    }
     file_import_menu->addAction(file_import_raw_action);
     QAction *file_import_sndfile_action = new QAction(tr("Audio data (via sndfile)..."), this);
     connect(file_import_sndfile_action, SIGNAL(triggered()), this, SLOT(file_import_sndfile()));
@@ -686,9 +694,17 @@ GUI::GUI()
     file_export_menu->addAction(file_export_ply_action);
     QAction *file_export_rat_action = new QAction(tr("RAT RadarTools data..."), this);
     connect(file_export_rat_action, SIGNAL(triggered()), this, SLOT(file_export_rat()));
+    if (!cmd_is_available(cmd_find("to-rat")))
+    {
+        file_export_rat_action->setEnabled(false);
+    }
     file_export_menu->addAction(file_export_rat_action);
     QAction *file_export_raw_action = new QAction(tr("Raw data..."), this);
     connect(file_export_raw_action, SIGNAL(triggered()), this, SLOT(file_export_raw()));
+    if (!cmd_is_available(cmd_find("to-raw")))
+    {
+        file_export_raw_action->setEnabled(false);
+    }
     file_export_menu->addAction(file_export_raw_action);
     QAction *file_export_sndfile_action = new QAction(tr("WAV audio (via sndfile)..."), this);
     connect(file_export_sndfile_action, SIGNAL(triggered()), this, SLOT(file_export_sndfile()));
