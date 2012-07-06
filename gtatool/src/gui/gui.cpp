@@ -551,6 +551,13 @@ GUI::GUI()
     file_menu->addAction(file_close_all_action);
     file_menu->addSeparator();
     QMenu *file_import_menu = file_menu->addMenu(tr("Import"));
+    QAction *file_import_csv_action = new QAction(tr("CSV data..."), this);
+    connect(file_import_csv_action, SIGNAL(triggered()), this, SLOT(file_import_csv()));
+    if (!cmd_is_available(cmd_find("from-csv")))
+    {
+        file_import_csv_action->setEnabled(false);
+    }
+    file_import_menu->addAction(file_import_csv_action);
     QAction *file_import_dcmtk_action = new QAction(tr("DICOM files (via DCMTK)..."), this);
     connect(file_import_dcmtk_action, SIGNAL(triggered()), this, SLOT(file_import_dcmtk()));
     if (!cmd_is_available(cmd_find("from-dcmtk")))
@@ -643,6 +650,13 @@ GUI::GUI()
     }
     file_import_menu->addAction(file_import_teem_action);
     QMenu *file_export_menu = file_menu->addMenu(tr("Export"));
+    QAction *file_export_csv_action = new QAction(tr("CSV data..."), this);
+    connect(file_export_csv_action, SIGNAL(triggered()), this, SLOT(file_export_csv()));
+    if (!cmd_is_available(cmd_find("to-csv")))
+    {
+        file_export_csv_action->setEnabled(false);
+    }
+    file_export_menu->addAction(file_export_csv_action);
     QAction *file_export_exr_action = new QAction(tr("EXR HDR images (via EXR)..."), this);
     connect(file_export_exr_action, SIGNAL(triggered()), this, SLOT(file_export_exr()));
     if (!cmd_is_available(cmd_find("to-exr")))
@@ -1424,6 +1438,11 @@ void GUI::file_close_all()
     }
 }
 
+void GUI::file_import_csv()
+{
+    import_from("from-csv", std::vector<std::string>(), QStringList("CSV files (*.csv)"));
+}
+
 void GUI::file_import_dcmtk()
 {
     import_from("from-dcmtk", std::vector<std::string>(), QStringList("DICOM files (*.dcm)"));
@@ -1525,6 +1544,11 @@ void GUI::file_import_sndfile()
 void GUI::file_import_teem()
 {
     import_from("from-teem", std::vector<std::string>(), QStringList("NRRD files (*.nrrd)"));
+}
+
+void GUI::file_export_csv()
+{
+    export_to("to-csv", std::vector<std::string>(), "csv", QStringList("CSV files (*.csv)"));
 }
 
 void GUI::file_export_exr()
