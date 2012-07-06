@@ -93,6 +93,7 @@ CMD_DECL(dimension_reverse)
 CMD_DECL(dimension_split)
 CMD_DECL(extract)
 CMD_DECL(fill)
+CMD_DECL(from_csv)
 CMD_DECL(from_dcmtk)
 CMD_DECL(from_exr)
 CMD_DECL(from_ffmpeg)
@@ -117,6 +118,7 @@ CMD_DECL(stream_extract)
 CMD_DECL(stream_merge)
 CMD_DECL(stream_split)
 CMD_DECL(tag)
+CMD_DECL(to_csv)
 CMD_DECL(to_exr)
 CMD_DECL(to_gdal)
 CMD_DECL(to_magick)
@@ -153,6 +155,7 @@ static cmd_t cmds[] =
     CMD("dimension-split",   dimension,  dimension_split,   true,          BUILTIN),
     CMD("extract",           array,      extract,           true,          BUILTIN),
     CMD("fill",              array,      fill,              true,          BUILTIN),
+    CMD("from-csv",          conversion, from_csv,          WITH_CSV,      "conv-csv"),
     CMD("from-dcmtk",        conversion, from_dcmtk,        WITH_DCMTK,    "conv-dcmtk"),
     CMD("from-exr",          conversion, from_exr,          WITH_EXR,      "conv-exr"),
     CMD("from-ffmpeg",       conversion, from_ffmpeg,       WITH_FFMPEG,   "conv-ffmpeg"),
@@ -177,6 +180,7 @@ static cmd_t cmds[] =
     CMD("stream-merge",      stream,     stream_merge,      true,          BUILTIN),
     CMD("stream-split",      stream,     stream_split,      true,          BUILTIN),
     CMD("tag",               array,      tag,               true,          BUILTIN),
+    CMD("to-csv",            conversion, to_csv,            WITH_CSV,      "conv-csv"),
     CMD("to-exr",            conversion, to_exr,            WITH_EXR,      "conv-exr"),
     CMD("to-gdal",           conversion, to_gdal,           WITH_GDAL,     "conv-gdal"),
     CMD("to-magick",         conversion, to_magick,         WITH_MAGICK,   "conv-magick"),

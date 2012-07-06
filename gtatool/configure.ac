@@ -191,6 +191,13 @@ fi
 AC_DEFINE_UNQUOTED([WITH_QT], [`if test "$qt" = "yes"; then echo "1"; else echo "0"; fi`], [Use Qt?])
 AM_CONDITIONAL([WITH_QT], [test "$qt" = "yes"])
 
+dnl conv-csv
+AC_ARG_WITH([csv],
+    [AS_HELP_STRING([--with-csv], [Enable CSV import/export. Enabled by default.])],
+    [if test "$withval" = "yes"; then csv="yes"; else csv="no "; fi], [csv="yes"])
+AC_DEFINE_UNQUOTED([WITH_CSV], [`if test "$csv" = "yes"; then echo "1"; else echo "0"; fi`], [Use csv?])
+AM_CONDITIONAL([WITH_CSV], [test "$csv" = "yes"])
+
 dnl conv-dcmtk: DCMTK
 AC_ARG_WITH([dcmtk],
     [AS_HELP_STRING([--with-dcmtk], [Enable DCMTK import. Enabled by default if libdcmimgle is available.])],
@@ -411,6 +418,7 @@ echo ""
 echo "Dynamic modules:         " "$dynamic_modules" "(Requires system support)"
 echo ""
 echo "component-compute:       " "$muparser" "(Requires muParser, Debian package: libmuparser-dev)"
+echo "from-csv, to-csv:        " "$csv" ""
 echo "from-dcmtk:              " "$dcmtk" "(Requires DCMTK, Debian package: libdcmtk2-dev)"
 echo "from-exr, to-exr:        " "$exr" "(Requires OpenEXR, Debian package: libopenexr-dev)"
 echo "from-ffmpeg:             " "$ffmpeg" "(Requires FFmpeg, Debian package: libavcodec-dev)"

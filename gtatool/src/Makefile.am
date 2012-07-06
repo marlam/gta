@@ -154,6 +154,16 @@ install-data-hook: update-icon-cache update-desktop-database
 uninstall-hook: update-icon-cache update-desktop-database
 endif
 
+if WITH_CSV
+if DYNAMIC_MODULES
+pkglib_LTLIBRARIES += conv-csv.la
+conv_csv_la_SOURCES = conv-csv/delimiter.h conv-csv/delimiter.cpp conv-csv/from-csv.cpp conv-csv/to-csv.cpp
+conv_csv_la_LIBADD = base/libbase.la
+else
+libbuiltin_la_SOURCES += conv-csv/delimiter.h conv-csv/delimiter.cpp conv-csv/from-csv.cpp conv-csv/to-csv.cpp
+endif
+endif
+
 if WITH_DCMTK
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-dcmtk.la
