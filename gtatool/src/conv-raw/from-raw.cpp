@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -35,114 +35,6 @@
 #include "lib.h"
 
 
-class opt_components : public opt::option
-{
-private:
-    std::vector<gta::type> _types;
-
-public:
-    opt_components(const std::string &longname, char shortname, opt::option_policy policy)
-        : opt::option(longname, shortname, policy)
-    {
-    }
-    ~opt_components()
-    {
-    }
-
-    enum opt::option::argument_policy argument_policy() const
-    {
-        return opt::option::required_argument;
-    }
-
-    bool parse_argument(const std::string &s)
-    {
-        size_t i = 0;
-        do
-        {
-            size_t comma = s.find(',', i);
-            size_t component_len = (comma != std::string::npos) ? comma - i : s.length() - i;
-            std::string component = s.substr(i, component_len);
-            if (component.compare("int8") == 0)
-            {
-                _types.push_back(gta::int8);
-            }
-            else if (component.compare("uint8") == 0)
-            {
-                _types.push_back(gta::uint8);
-            }
-            else if (component.compare("int16") == 0)
-            {
-                _types.push_back(gta::int16);
-            }
-            else if (component.compare("uint16") == 0)
-            {
-                _types.push_back(gta::uint16);
-            }
-            else if (component.compare("int32") == 0)
-            {
-                _types.push_back(gta::int32);
-            }
-            else if (component.compare("uint32") == 0)
-            {
-                _types.push_back(gta::uint32);
-            }
-            else if (component.compare("int64") == 0)
-            {
-                _types.push_back(gta::int64);
-            }
-            else if (component.compare("uint64") == 0)
-            {
-                _types.push_back(gta::uint64);
-            }
-            else if (component.compare("int128") == 0)
-            {
-                _types.push_back(gta::int128);
-            }
-            else if (component.compare("uint128") == 0)
-            {
-                _types.push_back(gta::uint128);
-            }
-            else if (component.compare("float32") == 0)
-            {
-                _types.push_back(gta::float32);
-            }
-            else if (component.compare("float64") == 0)
-            {
-                _types.push_back(gta::float64);
-            }
-            else if (component.compare("float128") == 0)
-            {
-                _types.push_back(gta::float128);
-            }
-            else if (component.compare("cfloat32") == 0)
-            {
-                _types.push_back(gta::cfloat32);
-            }
-            else if (component.compare("cfloat64") == 0)
-            {
-                _types.push_back(gta::cfloat64);
-            }
-            else if (component.compare("cfloat128") == 0)
-            {
-                _types.push_back(gta::cfloat128);
-            }
-            else
-            {
-                return false;
-            }
-            i = (comma != std::string::npos) ? comma + 1 : std::string::npos;
-        }
-        while (i < std::string::npos);
-        return true;
-    }
-
-    const std::vector<gta::type> &value() const
-    {
-        return _types;
-    }
-};
-
-
 extern "C" void gtatool_from_raw_help(void)
 {
     msg::req_txt("from-raw -d|--dimensions=<d0,d1,...> -c|--components=<c0,c1,...>\n"
@@ -160,9 +52,9 @@ extern "C" int gtatool_from_raw(int argc, char *argv[])
     std::vector<opt::option *> options;
     opt::info help("help", '\0', opt::optional);
     options.push_back(&help);
-    opt::tuple<uintmax_t> dimensions("dimensions", 'd', opt::required);
+    opt::tuple<uintmax_t> dimensions("dimensions", 'd', opt::required, 1, std::numeric_limits<uintmax_t>::max());
     options.push_back(&dimensions);
-    opt_components components("components", 'c', opt::required);
+    opt::string components("components", 'c', opt::required);
     options.push_back(&components);
     std::vector<std::string> endiannesses;
     endiannesses.push_back("little");
@@ -180,15 +72,6 @@ extern "C" int gtatool_from_raw(int argc, char *argv[])
         return 0;
     }
 
-    for (size_t i = 0; i < dimensions.value().size(); i++)
-    {
-        if (dimensions.value()[i] < 1)
-        {
-            msg::err_txt("Dimension sizes must be greater than zero.");
-            return 1;
-        }
-    }
-
     bool host_endianness;
     if (endianness::endianness == endianness::big)
     {
@@ -199,50 +82,37 @@ extern "C" int gtatool_from_raw(int argc, char *argv[])
         host_endianness = (endian.value().compare("little") == 0);
     }
 
-    FILE *fo = gtatool_stdout;
-    std::string ifilename(arguments[0]);
-    std::string ofilename("standard output");
     try
     {
-        if (arguments.size() == 2)
-        {
-            ofilename = arguments[1];
-            fo = fio::open(ofilename, "w");
-        }
-        if (fio::isatty(fo))
-        {
-            throw exc("refusing to write to a tty");
-        }
-    }
-    catch (std::exception &e)
-    {
-        msg::err_txt("%s", e.what());
-        return 1;
-    }
-
-    try
-    {
-        FILE *fi = fio::open(ifilename, "r");
         gta::header hdr;
         hdr.set_dimensions(dimensions.value().size(), &(dimensions.value()[0]));
-        hdr.set_components(components.value().size(), &(components.value()[0]));
-        hdr.write_to(fo);
-        blob element(checked_cast<size_t>(hdr.element_size()));
-        gta::io_state so;
-        for (uintmax_t e = 0; e < hdr.elements(); e++)
+        std::vector<gta::type> comp_types;
+        std::vector<uintmax_t> comp_sizes;
+        typelist_from_string(components.value(), &comp_types, &comp_sizes);
+        hdr.set_components(comp_types.size(), &(comp_types[0]), comp_sizes.size() == 0 ? NULL : &(comp_sizes[0]));
+
+        array_loop_t array_loop;
+        array_loop.start(std::vector<std::string>(1, arguments[0]), arguments.size() == 2 ? arguments[1] : "");
+        std::string nameo;
+        array_loop.write(hdr, nameo);
+
+        if (host_endianness)
         {
-            fio::read(element.ptr(), hdr.element_size(), 1, fi, ifilename);
-            if (!host_endianness)
+            array_loop.copy_data(hdr, hdr);
+        }
+        else
+        {
+            element_loop_t element_loop;
+            array_loop.start_element_loop(element_loop, hdr, hdr);
+            blob element(checked_cast<size_t>(hdr.element_size()));
+            for (uintmax_t e = 0; e < hdr.elements(); e++)
             {
+                std::memcpy(element.ptr(), element_loop.read(1), hdr.element_size());
                 swap_element_endianness(hdr, element.ptr());
+                element_loop.write(element.ptr());
             }
-            hdr.write_elements(so, fo, 1, element.ptr());
         }
-        fio::close(fi);
-        if (fo != gtatool_stdout)
-        {
-            fio::close(fo);
-        }
+        array_loop.finish();
     }
     catch (std::exception &e)
     {

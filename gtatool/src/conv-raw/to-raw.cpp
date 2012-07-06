@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -75,49 +75,37 @@ extern "C" int gtatool_to_raw(int argc, char *argv[])
         host_endianness = (endian.value().compare("little") == 0);
     }
 
-    FILE *fi = gtatool_stdin;
-    std::string ifilename("standard input");
-    std::string ofilename(arguments[0]);
     try
     {
-        if (arguments.size() == 2)
-        {
-            ifilename = arguments[0];
-            fi = fio::open(ifilename, "r");
-            ofilename = arguments[1];
-        }
-    }
-    catch (std::exception &e)
-    {
-        msg::err_txt("%s", e.what());
-        return 1;
-    }
+        std::string namei;
+        std::string nameo = arguments.size() == 1 ? arguments[0] : arguments[1];
+        gta::header hdri;
+        gta::header hdro;
+        array_loop_t array_loop;
 
-    try
-    {
-        FILE *fo = fio::open(ofilename, "w");
-        gta::header hdr;
-        hdr.read_from(fi);
-        if (hdr.compression() != gta::none)
+        array_loop.start(arguments.size() == 1 ? std::vector<std::string>() : std::vector<std::string>(1, arguments[0]), nameo);
+        while (array_loop.read(hdri, namei))
         {
-            throw exc("cannot export " + ifilename + ": currently only uncompressed GTAs can be exported to raw files");
-        }
-        blob element(checked_cast<size_t>(hdr.element_size()));
-        gta::io_state si;
-        for (uintmax_t e = 0; e < hdr.elements(); e++)
-        {
-            hdr.read_elements(si, fi, 1, element.ptr());
-            if (!host_endianness)
+            hdro = hdri;
+            hdro.set_compression(gta::none);
+            if (host_endianness)
             {
-                swap_element_endianness(hdr, element.ptr());
+                array_loop.copy_data(hdri, hdro);
             }
-            fio::write(element.ptr(), hdr.element_size(), 1, fo, ofilename);
+            else
+            {
+                element_loop_t element_loop;
+                array_loop.start_element_loop(element_loop, hdri, hdro);
+                blob element(checked_cast<size_t>(hdri.element_size()));
+                for (uintmax_t e = 0; e < hdri.elements(); e++)
+                {
+                    std::memcpy(element.ptr(), element_loop.read(1), hdri.element_size());
+                    swap_element_endianness(hdri, element.ptr());
+                    element_loop.write(element.ptr());
+                }
+            }
         }
-        if (fi != gtatool_stdin)
-        {
-            fio::close(fi);
-        }
-        fio::close(fo);
+        array_loop.finish();
     }
     catch (std::exception &e)
     {
