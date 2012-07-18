@@ -3,7 +3,7 @@
 @settitle Gtatool Manual
 
 @copying
-Copyright (C) 2010, 2011
+Copyright (C) 2010, 2011, 2012
 Martin Lambers @email{marlam@@marlam.de}
 
 Copying and distribution of this file, with or without modification, are
