@@ -50,10 +50,7 @@ struct my_error_mgr
     jmp_buf setjmp_buffer;
 };
 
-typedef struct my_error_mgr *my_error_ptr;
-
-METHODDEF(void)
-my_error_exit(j_common_ptr cinfo)
+static void my_error_exit(j_common_ptr cinfo)
 {
     struct my_error_mgr* my_err = reinterpret_cast<struct my_error_mgr*>(cinfo->err);
     longjmp(my_err->setjmp_buffer, 1);
