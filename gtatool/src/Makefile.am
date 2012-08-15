@@ -212,6 +212,17 @@ libbuiltin_la_LIBADD += $(libgdal_LIBS)
 endif
 endif
 
+if WITH_JPEG
+if DYNAMIC_MODULES
+pkglib_LTLIBRARIES += conv-jpeg.la
+conv_jpeg_la_SOURCES = conv-jpeg/from-jpeg.cpp conv-jpeg/to-jpeg.cpp
+conv_jpeg_la_LIBADD = $(LTLIBJPEG) base/libbase.la
+else
+libbuiltin_la_SOURCES += conv-jpeg/from-jpeg.cpp conv-jpeg/to-jpeg.cpp
+libbuiltin_la_LIBADD += $(LTLIBJPEG)
+endif
+endif
+
 if WITH_MAGICK
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-magick.la

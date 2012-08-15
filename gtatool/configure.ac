@@ -292,6 +292,27 @@ fi
 AC_DEFINE_UNQUOTED([WITH_MAGICK], [`if test "$magick" = "yes"; then echo "1"; else echo "0"; fi`], [Use magick?])
 AM_CONDITIONAL([WITH_MAGICK], [test "$magick" = "yes"])
 
+dnl conv-jpeg: libjpeg
+AC_ARG_WITH([jpeg],
+    [AS_HELP_STRING([--with-jpeg], [Enable JPEG import/export. Enabled by default if libjpeg is available.])],
+    [if test "$withval" = "yes"; then jpeg="yes"; else jpeg="no "; fi], [jpeg="yes"])
+if test "$jpeg" = "yes"; then
+    AC_LANG([C])
+    AC_LIB_FROMPACKAGE([jpeg], [jpeg])
+    AC_LIB_HAVE_LINKFLAGS([jpeg], [],
+        [#include <stdio.h>
+	 #include <jpeglib.h>],
+	[jpeg_create_compress(0);])
+    AC_LANG([C++])
+    if test "$HAVE_LIBJPEG" != "yes"; then
+        jpeg="no "
+        AC_MSG_WARN([libjpeg library not found.])
+        AC_MSG_WARN([Disabled the from-jpeg and to-jpeg commands.])
+    fi
+fi
+AC_DEFINE_UNQUOTED([WITH_JPEG], [`if test "$jpeg" = "yes"; then echo "1"; else echo "0"; fi`], [Use jpeg?])
+AM_CONDITIONAL([WITH_JPEG], [test "$jpeg" = "yes"])
+
 dnl conv-mat: MATIO
 AC_ARG_WITH([matio],
     [AS_HELP_STRING([--with-matio], [Enable MATLAB import/export. Enabled by default if libmatio is available.])],
@@ -423,6 +444,7 @@ echo "from-dcmtk:              " "$dcmtk" "(Requires DCMTK, Debian package: libd
 echo "from-exr, to-exr:        " "$exr" "(Requires OpenEXR, Debian package: libopenexr-dev)"
 echo "from-ffmpeg:             " "$ffmpeg" "(Requires FFmpeg, Debian package: libavcodec-dev)"
 echo "from-gdal, to-gdal:      " "$gdal" "(Requires GDAL, Debian package: libgdal-dev)"
+echo "from-jpeg, to-jpeg:      " "$jpeg" "(Requires libjpeg, Debian package: libjpeg-dev)"
 echo "from-magick, to-magick:  " "$magick" "(Requires ImageMagick, Debian package: libmagick++-dev)"
 echo "from-mat, to-mat:        " "$mat" "(Requires matio, Debian package: libmatio-dev)"
 echo "from-netpbm, to-netpbm:  " "$netpbm" "(Requires NetPBM, Debian package: libnetpbm10-dev)"

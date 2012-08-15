@@ -586,6 +586,13 @@ GUI::GUI()
         file_import_gdal_action->setEnabled(false);
     }
     file_import_menu->addAction(file_import_gdal_action);
+    QAction *file_import_jpeg_action = new QAction(tr("JPEG images (via libjpeg)..."), this);
+    connect(file_import_jpeg_action, SIGNAL(triggered()), this, SLOT(file_import_jpeg()));
+    if (!cmd_is_available(cmd_find("from-jpeg")))
+    {
+        file_import_jpeg_action->setEnabled(false);
+    }
+    file_import_menu->addAction(file_import_jpeg_action);
     QAction *file_import_magick_action = new QAction(tr("Image data (via ImageMagick)..."), this);
     connect(file_import_magick_action, SIGNAL(triggered()), this, SLOT(file_import_magick()));
     if (!cmd_is_available(cmd_find("from-magick")))
@@ -671,6 +678,13 @@ GUI::GUI()
         file_export_gdal_action->setEnabled(false);
     }
     file_export_menu->addAction(file_export_gdal_action);
+    QAction *file_export_jpeg_action = new QAction(tr("JPEG images (via libjpeg)..."), this);
+    connect(file_export_jpeg_action, SIGNAL(triggered()), this, SLOT(file_export_jpeg()));
+    if (!cmd_is_available(cmd_find("to-jpeg")))
+    {
+        file_export_jpeg_action->setEnabled(false);
+    }
+    file_export_menu->addAction(file_export_jpeg_action);
     QAction *file_export_magick_action = new QAction(tr("Image data (via ImageMagick)..."), this);
     connect(file_export_magick_action, SIGNAL(triggered()), this, SLOT(file_export_magick()));
     if (!cmd_is_available(cmd_find("to-magick")))
@@ -1463,6 +1477,11 @@ void GUI::file_import_gdal()
     import_from("from-gdal", std::vector<std::string>(), QStringList("TIFF files (*.tif *.tiff)"));
 }
 
+void GUI::file_import_jpeg()
+{
+    import_from("from-jpeg", std::vector<std::string>(), QStringList("JPEG files (*.jpg *.jpeg)"));
+}
+
 void GUI::file_import_magick()
 {
     import_from("from-magick", std::vector<std::string>(), QStringList("Typical image files (*.png *.jpg)"));
@@ -1559,6 +1578,11 @@ void GUI::file_export_exr()
 void GUI::file_export_gdal()
 {
     export_to("to-gdal", std::vector<std::string>(), "tif", QStringList("TIFF files (*.tif *.tiff)"));
+}
+
+void GUI::file_export_jpeg()
+{
+    export_to("to-jpeg", std::vector<std::string>(), "jpg", QStringList("JPEG files (*.jpg *.jpeg)"));
 }
 
 void GUI::file_export_magick()

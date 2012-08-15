@@ -98,6 +98,7 @@ CMD_DECL(from_dcmtk)
 CMD_DECL(from_exr)
 CMD_DECL(from_ffmpeg)
 CMD_DECL(from_gdal)
+CMD_DECL(from_jpeg)
 CMD_DECL(from_magick)
 CMD_DECL(from_mat)
 CMD_DECL(from_netpbm)
@@ -121,6 +122,7 @@ CMD_DECL(tag)
 CMD_DECL(to_csv)
 CMD_DECL(to_exr)
 CMD_DECL(to_gdal)
+CMD_DECL(to_jpeg)
 CMD_DECL(to_magick)
 CMD_DECL(to_mat)
 CMD_DECL(to_netpbm)
@@ -160,6 +162,7 @@ static cmd_t cmds[] =
     CMD("from-exr",          conversion, from_exr,          WITH_EXR,      "conv-exr"),
     CMD("from-ffmpeg",       conversion, from_ffmpeg,       WITH_FFMPEG,   "conv-ffmpeg"),
     CMD("from-gdal",         conversion, from_gdal,         WITH_GDAL,     "conv-gdal"),
+    CMD("from-jpeg",         conversion, from_jpeg,         WITH_JPEG,     "conv-jpeg"),
     CMD("from-magick",       conversion, from_magick,       WITH_MAGICK,   "conv-magick"),
     CMD("from-mat",          conversion, from_mat,          WITH_MAT,      "conv-mat"),
     CMD("from-netpbm",       conversion, from_netpbm,       WITH_NETPBM,   "conv-netpbm"),
@@ -183,6 +186,7 @@ static cmd_t cmds[] =
     CMD("to-csv",            conversion, to_csv,            WITH_CSV,      "conv-csv"),
     CMD("to-exr",            conversion, to_exr,            WITH_EXR,      "conv-exr"),
     CMD("to-gdal",           conversion, to_gdal,           WITH_GDAL,     "conv-gdal"),
+    CMD("to-jpeg",           conversion, to_jpeg,           WITH_JPEG,     "conv-jpeg"),
     CMD("to-magick",         conversion, to_magick,         WITH_MAGICK,   "conv-magick"),
     CMD("to-mat",            conversion, to_mat,            WITH_MAT,      "conv-mat"),
     CMD("to-netpbm",         conversion, to_netpbm,         WITH_NETPBM,   "conv-netpbm"),

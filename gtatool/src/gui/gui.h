@@ -220,6 +220,7 @@ private slots:
     void file_import_exr();
     void file_import_ffmpeg();
     void file_import_gdal();
+    void file_import_jpeg();
     void file_import_magick();
     void file_import_mat();
     void file_import_pcd();
@@ -232,6 +233,7 @@ private slots:
     void file_export_csv();
     void file_export_exr();
     void file_export_gdal();
+    void file_export_jpeg();
     void file_export_magick();
     void file_export_mat();
     void file_export_pcd();
