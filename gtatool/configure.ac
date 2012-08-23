@@ -174,12 +174,14 @@ if test "$qt" = "yes"; then
         AC_MSG_WARN([QtGui library not found:])
         AC_MSG_WARN([$libqtgui_PKG_ERRORS])
         AC_MSG_WARN([Disabled the gui command.])])
-    RCC=""
     AC_ARG_VAR([RCC], [rcc command])
-    AC_CHECK_TOOLS([RCC], [rcc-qt4 rcc])
-    MOC=""
+    if test -z "$RCC"; then
+        AC_CHECK_TOOLS([RCC], [rcc-qt4 rcc])
+    fi
     AC_ARG_VAR([MOC], [moc command])
-    AC_CHECK_TOOLS([MOC], [moc-qt4 moc])
+    if test -z "$MOC"; then
+        AC_CHECK_TOOLS([MOC], [moc-qt4 moc])
+    fi
     dnl Icon and Menu tools. It is ok if these are missing.
     GTK_UPDATE_ICON_CACHE=""
     AC_ARG_VAR([GTK_UPDATE_ICON_CACHE], [gtk-update-icon-cache command])
@@ -261,10 +263,11 @@ AC_ARG_WITH([gdal],
     [AS_HELP_STRING([--with-gdal], [Enable GDAL import/export. Enabled by default if libgdal is available.])],
     [if test "$withval" = "yes"; then gdal="yes"; else gdal="no "; fi], [gdal="yes"])
 if test "$gdal" = "yes"; then
-    GDALCONFIG=""
     AC_ARG_VAR([GDALCONFIG], [gdal-config command])
-    AC_CHECK_TOOLS([GDALCONFIG], [gdal-config], [:])
-    if test "$GDALCONFIG" != ":"; then
+    if test -z "$GDALCONFIG"; then
+        AC_CHECK_TOOLS([GDALCONFIG], [gdal-config], [])
+    fi
+    if test -n "$GDALCONFIG"; then
         libgdal_CFLAGS="`$GDALCONFIG --cflags`"
         libgdal_LIBS="`$GDALCONFIG --libs`"
         AC_SUBST([libgdal_CFLAGS])
