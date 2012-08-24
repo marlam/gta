@@ -6,7 +6,6 @@
 # notice are preserved. This file is offered as-is, without any warranty.
 
 SUBDIRS = doc src tests
-ACLOCAL_AMFLAGS = -I m4
 
 fuzztest:
 	$(MAKE) -C tests fuzztest

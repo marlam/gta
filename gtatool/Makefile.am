@@ -6,7 +6,6 @@
 # notice are preserved. This file is offered as-is, without any warranty.
 
 SUBDIRS = src doc tests
-ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST =
 
 # Create the ChangeLog file from the git log
