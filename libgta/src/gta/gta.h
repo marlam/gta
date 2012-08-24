@@ -129,8 +129,6 @@ typedef signed int intptr_t;
 #           define GTA_EXPORT
 #       endif
 #   endif
-#elif defined GTA_BUILD && defined HAVE_VISIBILITY
-#   define GTA_EXPORT __attribute__((visibility("default")))
 #else
 #   define GTA_EXPORT
 #endif
