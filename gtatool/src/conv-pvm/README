@@ -1,0 +1,4 @@
+The files codebase.h, ddsbase.h, and ddsbase.cpp were copied from the Stefan
+Roettger's V^3 (Versatile Volume Viewer) package, version 3.3.
+
+See the file VIEWER-3.3.zip from <http://code.google.com/p/vvv/>.

@@ -105,6 +105,7 @@ CMD_DECL(from_netpbm)
 CMD_DECL(from_pcd)
 CMD_DECL(from_pfs)
 CMD_DECL(from_ply)
+CMD_DECL(from_pvm)
 CMD_DECL(from_rat)
 CMD_DECL(from_raw)
 CMD_DECL(from_sndfile)
@@ -129,6 +130,7 @@ CMD_DECL(to_netpbm)
 CMD_DECL(to_pcd)
 CMD_DECL(to_pfs)
 CMD_DECL(to_ply)
+CMD_DECL(to_pvm)
 CMD_DECL(to_rat)
 CMD_DECL(to_raw)
 CMD_DECL(to_sndfile)
@@ -169,6 +171,7 @@ static cmd_t cmds[] =
     CMD("from-pcd",          conversion, from_pcd,          WITH_PCD,      "conv-pcd"),
     CMD("from-pfs",          conversion, from_pfs,          WITH_PFS,      "conv-pfs"),
     CMD("from-ply",          conversion, from_ply,          WITH_PLY,      "conv-ply"),
+    CMD("from-pvm",          conversion, from_pvm,          WITH_PVM,      "conv-pvm"),
     CMD("from-rat",          conversion, from_rat,          WITH_RAT,      "conv-rat"),
     CMD("from-raw",          conversion, from_raw,          WITH_RAW,      "conv-raw"),
     CMD("from-sndfile",      conversion, from_sndfile,      WITH_SNDFILE,  "conv-sndfile"),
@@ -193,6 +196,7 @@ static cmd_t cmds[] =
     CMD("to-pcd",            conversion, to_pcd,            WITH_PCD,      "conv-pcd"),
     CMD("to-pfs",            conversion, to_pfs,            WITH_PFS,      "conv-pfs"),
     CMD("to-ply",            conversion, to_ply,            WITH_PLY,      "conv-ply"),
+    CMD("to-pvm",            conversion, to_pvm,            WITH_PVM,      "conv-pvm"),
     CMD("to-rat",            conversion, to_rat,            WITH_RAT,      "conv-rat"),
     CMD("to-raw",            conversion, to_raw,            WITH_RAW,      "conv-raw"),
     CMD("to-sndfile",        conversion, to_sndfile,        WITH_SNDFILE,  "conv-sndfile"),

@@ -288,6 +288,17 @@ libbuiltin_la_SOURCES += conv-ply/from-ply.cpp conv-ply/to-ply.cpp conv-ply/ply.
 endif
 endif
 
+if WITH_PVM
+EXTRA_DIST += conv-pvm/README
+if DYNAMIC_MODULES
+pkglib_LTLIBRARIES += conv-pvm.la
+conv_pvm_la_SOURCES = conv-pvm/from-pvm.cpp conv-pvm/to-pvm.cpp conv-pvm/codebase.h conv-pvm/ddsbase.h conv-pvm/ddsbase.cpp
+conv_pvm_la_LIBADD = base/libbase.la
+else
+libbuiltin_la_SOURCES += conv-pvm/from-pvm.cpp conv-pvm/to-pvm.cpp conv-pvm/codebase.h conv-pvm/ddsbase.h conv-pvm/ddsbase.cpp
+endif
+endif
+
 if WITH_RAT
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-rat.la

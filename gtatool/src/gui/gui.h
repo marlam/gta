@@ -226,6 +226,7 @@ private slots:
     void file_import_pcd();
     void file_import_pfs();
     void file_import_ply();
+    void file_import_pvm();
     void file_import_rat();
     void file_import_raw();
     void file_import_sndfile();
@@ -239,6 +240,7 @@ private slots:
     void file_export_pcd();
     void file_export_pfs();
     void file_export_ply();
+    void file_export_pvm();
     void file_export_rat();
     void file_export_raw();
     void file_export_sndfile();

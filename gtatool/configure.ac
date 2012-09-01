@@ -383,6 +383,13 @@ AC_ARG_WITH([ply],
 AC_DEFINE_UNQUOTED([WITH_PLY], [`if test "$ply" = "yes"; then echo "1"; else echo "0"; fi`], [Use ply?])
 AM_CONDITIONAL([WITH_PLY], [test "$ply" = "yes"])
 
+dnl conv-pvm
+AC_ARG_WITH([pvm],
+    [AS_HELP_STRING([--with-pvm], [Enable PVM import/export. Enabled by default.])],
+    [if test "$withval" = "yes"; then pvm="yes"; else pvm="no "; fi], [pvm="yes"])
+AC_DEFINE_UNQUOTED([WITH_PVM], [`if test "$pvm" = "yes"; then echo "1"; else echo "0"; fi`], [Use pvm?])
+AM_CONDITIONAL([WITH_PVM], [test "$pvm" = "yes"])
+
 dnl conv-rat
 AC_ARG_WITH([rat],
     [AS_HELP_STRING([--with-rat], [Enable RAT import/export. Enabled by default.])],
@@ -454,6 +461,7 @@ echo "from-netpbm, to-netpbm:  " "$netpbm" "(Requires NetPBM, Debian package: li
 echo "from-pcd, to-pcd:        " "$pcd" "(Requires the Point Cloud Library IO module libpcl_io)"
 echo "from-pfs, to-pfs:        " "$pfs" "(Requires pfstools, Debian package: libpfs-dev)"
 echo "from-ply, to-ply:        " "$ply" ""
+echo "from-pvm, to-pvm:        " "$pvm" ""
 echo "from-rat, to-rat:        " "$rat" ""
 echo "from-raw, to-raw:        " "$raw" ""
 echo "from-sndfile, to-sndfile:" "$sndfile" "(Requires libsndfile, Debian package: libsndfile1-dev)"

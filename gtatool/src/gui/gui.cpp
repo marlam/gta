@@ -628,6 +628,13 @@ GUI::GUI()
         file_import_ply_action->setEnabled(false);
     }
     file_import_menu->addAction(file_import_ply_action);
+    QAction *file_import_pvm_action = new QAction(tr("PVM volume data..."), this);
+    connect(file_import_pvm_action, SIGNAL(triggered()), this, SLOT(file_import_pvm()));
+    if (!cmd_is_available(cmd_find("from-pvm")))
+    {
+        file_import_pvm_action->setEnabled(false);
+    }
+    file_import_menu->addAction(file_import_pvm_action);
     QAction *file_import_rat_action = new QAction(tr("RAT RadarTools data..."), this);
     connect(file_import_rat_action, SIGNAL(triggered()), this, SLOT(file_import_rat()));
     if (!cmd_is_available(cmd_find("from-rat")))
@@ -720,6 +727,13 @@ GUI::GUI()
         file_export_ply_action->setEnabled(false);
     }
     file_export_menu->addAction(file_export_ply_action);
+    QAction *file_export_pvm_action = new QAction(tr("PVM volume data..."), this);
+    connect(file_export_pvm_action, SIGNAL(triggered()), this, SLOT(file_export_pvm()));
+    if (!cmd_is_available(cmd_find("to-pvm")))
+    {
+        file_export_pvm_action->setEnabled(false);
+    }
+    file_export_menu->addAction(file_export_pvm_action);
     QAction *file_export_rat_action = new QAction(tr("RAT RadarTools data..."), this);
     connect(file_export_rat_action, SIGNAL(triggered()), this, SLOT(file_export_rat()));
     if (!cmd_is_available(cmd_find("to-rat")))
@@ -1507,6 +1521,11 @@ void GUI::file_import_ply()
     import_from("from-ply", std::vector<std::string>(), QStringList("PLY files (*.ply)"));
 }
 
+void GUI::file_import_pvm()
+{
+    import_from("from-pvm", std::vector<std::string>(), QStringList("PVM files (*.pvm)"));
+}
+
 void GUI::file_import_rat()
 {
     import_from("from-rat", std::vector<std::string>(), QStringList("RAT RadarTools files (*.rat)"));
@@ -1613,6 +1632,11 @@ void GUI::file_export_pfs()
 void GUI::file_export_ply()
 {
     export_to("to-ply", std::vector<std::string>(), "ply", QStringList("PLY files (*.ply)"));
+}
+
+void GUI::file_export_pvm()
+{
+    export_to("to-pvm", std::vector<std::string>(), "pvm", QStringList("PVM files (*.pvm)"));
 }
 
 void GUI::file_export_raw()
