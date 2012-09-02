@@ -26,7 +26,7 @@ TESTS = \
 	elements	\
 	fuzztest.sh
 
-EXTRA_DIST = little-endian.gta big-endian.gta
+EXTRA_DIST = little-endian.gta big-endian.gta fuzztest.sh
 
 AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src
 
