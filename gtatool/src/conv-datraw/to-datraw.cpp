@@ -92,11 +92,12 @@ extern "C" int gtatool_to_datraw(int argc, char *argv[])
                 throw exc(namei + ": unsupported element component type");
 
             FILE* datf = fio::open(nameo, "w");
+            ::fprintf(datf, "ObjectFileName: %s\r\n", fio::basename(raw_nameo.c_str()).c_str());
+            ::fprintf(datf, "TaggedFileName: ---\r\n");                         // only for compat with OpenQVis
             ::fprintf(datf, "Resolution: %s %s %s\r\n",
                     str::from(hdro.dimension_size(0)).c_str(),
                     hdro.dimensions() > 1 ? str::from(hdro.dimension_size(1)).c_str() : "1",
                     hdro.dimensions() > 2 ? str::from(hdro.dimension_size(2)).c_str() : "1");
-            ::fprintf(datf, "ObjectFileName: %s\r\n", fio::basename(raw_nameo.c_str()).c_str());
             const char* tagval0; const char* tagval1; const char* tagval2;
             ::fprintf(datf, "SliceThickness: %s %s %s\r\n",
                     (tagval0 = hdro.dimension_taglist(0).get("SAMPLE-DISTANCE")) ? tagval0 : "1",
@@ -106,6 +107,10 @@ extern "C" int gtatool_to_datraw(int argc, char *argv[])
                     hdro.component_type(0) == gta::uint8 ? "UCHAR"
                     : hdro.component_type(0) == gta::uint16 ? "USHORT"
                     : "FLOAT");
+            ::fprintf(datf, "NbrTags: 0\r\n");                                  // only for compat with OpenQVis
+            ::fprintf(datf, "ObjectType: TEXTURE_VOLUME_OBJECT\r\n");           // only for compat with OpenQVis
+            ::fprintf(datf, "ObjectModel: RGBA\r\n");                           // only for compat with OpenQVis
+            ::fprintf(datf, "GridType: EQUIDISTANT\r\n");                       // only for compat with OpenQVis
             ::fprintf(datf, "ByteOrder: %s\r\n",
                     endianness::endianness == endianness::big ? "big-endian" : "little-endian");
 
