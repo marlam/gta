@@ -558,6 +558,13 @@ GUI::GUI()
         file_import_csv_action->setEnabled(false);
     }
     file_import_menu->addAction(file_import_csv_action);
+    QAction *file_import_datraw_action = new QAction(tr("Volume data in .dat/.raw format..."), this);
+    connect(file_import_datraw_action, SIGNAL(triggered()), this, SLOT(file_import_datraw()));
+    if (!cmd_is_available(cmd_find("from-datraw")))
+    {
+        file_import_datraw_action->setEnabled(false);
+    }
+    file_import_menu->addAction(file_import_datraw_action);
     QAction *file_import_dcmtk_action = new QAction(tr("DICOM files (via DCMTK)..."), this);
     connect(file_import_dcmtk_action, SIGNAL(triggered()), this, SLOT(file_import_dcmtk()));
     if (!cmd_is_available(cmd_find("from-dcmtk")))
@@ -671,6 +678,13 @@ GUI::GUI()
         file_export_csv_action->setEnabled(false);
     }
     file_export_menu->addAction(file_export_csv_action);
+    QAction *file_export_datraw_action = new QAction(tr("Volume data in .dat/.raw format..."), this);
+    connect(file_export_datraw_action, SIGNAL(triggered()), this, SLOT(file_export_datraw()));
+    if (!cmd_is_available(cmd_find("to-datraw")))
+    {
+        file_export_datraw_action->setEnabled(false);
+    }
+    file_export_menu->addAction(file_export_datraw_action);
     QAction *file_export_exr_action = new QAction(tr("EXR HDR images (via EXR)..."), this);
     connect(file_export_exr_action, SIGNAL(triggered()), this, SLOT(file_export_exr()));
     if (!cmd_is_available(cmd_find("to-exr")))
@@ -1471,6 +1485,11 @@ void GUI::file_import_csv()
     import_from("from-csv", std::vector<std::string>(), QStringList("CSV files (*.csv)"));
 }
 
+void GUI::file_import_datraw()
+{
+    import_from("from-datraw", std::vector<std::string>(), QStringList("Volume data files (*.dat)"));
+}
+
 void GUI::file_import_dcmtk()
 {
     import_from("from-dcmtk", std::vector<std::string>(), QStringList("DICOM files (*.dcm)"));
@@ -1587,6 +1606,11 @@ void GUI::file_import_teem()
 void GUI::file_export_csv()
 {
     export_to("to-csv", std::vector<std::string>(), "csv", QStringList("CSV files (*.csv)"));
+}
+
+void GUI::file_export_datraw()
+{
+    export_to("to-datraw", std::vector<std::string>(), "dat", QStringList("Volume data files (*.dat)"));
 }
 
 void GUI::file_export_exr()

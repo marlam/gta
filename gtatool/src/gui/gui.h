@@ -216,6 +216,7 @@ private slots:
     void file_close();
     void file_close_all();
     void file_import_csv();
+    void file_import_datraw();
     void file_import_dcmtk();
     void file_import_exr();
     void file_import_ffmpeg();
@@ -232,6 +233,7 @@ private slots:
     void file_import_sndfile();
     void file_import_teem();
     void file_export_csv();
+    void file_export_datraw();
     void file_export_exr();
     void file_export_gdal();
     void file_export_jpeg();
