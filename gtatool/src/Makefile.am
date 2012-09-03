@@ -99,7 +99,7 @@ if WITH_MUPARSER
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += component-compute.la
 component_compute_la_SOURCES = component/component-compute.cpp
-component_compute_la_LIBADD = $(libmuparser_LIBS) base/libbase.la
+component_compute_la_LIBADD = $(libmuparser_LIBS)
 else
 libbuiltin_la_SOURCES += component/component-compute.cpp
 libbuiltin_la_LIBADD += $(libmuparser_LIBS)
@@ -127,7 +127,7 @@ if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += gui.la
 gui_la_SOURCES = gui/gui.h gui/gui.cpp
 nodist_gui_la_SOURCES = $(GUI_BUILT_SOURCES)
-gui_la_LIBADD = $(libqtgui_LIBS) base/libbase.la
+gui_la_LIBADD = $(libqtgui_LIBS)
 else
 libbuiltin_la_SOURCES += gui/gui.h gui/gui.cpp
 nodist_libbuiltin_la_SOURCES += $(GUI_BUILT_SOURCES)
@@ -158,7 +158,6 @@ if WITH_CSV
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-csv.la
 conv_csv_la_SOURCES = conv-csv/delimiter.h conv-csv/delimiter.cpp conv-csv/from-csv.cpp conv-csv/to-csv.cpp
-conv_csv_la_LIBADD = base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-csv/delimiter.h conv-csv/delimiter.cpp conv-csv/from-csv.cpp conv-csv/to-csv.cpp
 endif
@@ -168,7 +167,6 @@ if WITH_CSV
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-datraw.la
 conv_datraw_la_SOURCES = conv-datraw/from-datraw.cpp conv-datraw/to-datraw.cpp
-conv_datraw_la_LIBADD = base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-datraw/from-datraw.cpp conv-datraw/to-datraw.cpp
 endif
@@ -178,7 +176,7 @@ if WITH_DCMTK
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-dcmtk.la
 conv_dcmtk_la_SOURCES = conv-dcmtk/from-dcmtk.cpp
-conv_dcmtk_la_LIBADD = $(LTLIBDCMIMGLE) base/libbase.la
+conv_dcmtk_la_LIBADD = $(LTLIBDCMIMGLE)
 else
 libbuiltin_la_SOURCES += conv-dcmtk/from-dcmtk.cpp
 libbuiltin_la_LIBADD += $(LTLIBDCMIMGLE)
@@ -189,7 +187,7 @@ if WITH_EXR
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-exr.la
 conv_exr_la_SOURCES = conv-exr/from-exr.cpp conv-exr/to-exr.cpp
-conv_exr_la_LIBADD = $(libopenexr_LIBS) base/libbase.la
+conv_exr_la_LIBADD = $(libopenexr_LIBS)
 else
 libbuiltin_la_SOURCES += conv-exr/from-exr.cpp conv-exr/to-exr.cpp
 libbuiltin_la_LIBADD += $(libopenexr_LIBS)
@@ -202,7 +200,7 @@ pkglib_LTLIBRARIES += conv-ffmpeg.la
 conv_ffmpeg_la_SOURCES = conv-ffmpeg/from-ffmpeg.cpp \
 	conv-ffmpeg/media_data.h conv-ffmpeg/media_data.cpp \
 	conv-ffmpeg/media_object.h conv-ffmpeg/media_object.cpp
-conv_ffmpeg_la_LIBADD = $(libffmpeg_LIBS) base/libbase.la
+conv_ffmpeg_la_LIBADD = $(libffmpeg_LIBS)
 else
 libbuiltin_la_SOURCES += conv-ffmpeg/from-ffmpeg.cpp \
 	conv-ffmpeg/media_data.h conv-ffmpeg/media_data.cpp \
@@ -215,7 +213,7 @@ if WITH_GDAL
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-gdal.la
 conv_gdal_la_SOURCES = conv-gdal/from-gdal.cpp conv-gdal/to-gdal.cpp
-conv_gdal_la_LIBADD = $(libgdal_LIBS) base/libbase.la
+conv_gdal_la_LIBADD = $(libgdal_LIBS)
 else
 libbuiltin_la_SOURCES += conv-gdal/from-gdal.cpp conv-gdal/to-gdal.cpp
 libbuiltin_la_LIBADD += $(libgdal_LIBS)
@@ -226,7 +224,7 @@ if WITH_JPEG
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-jpeg.la
 conv_jpeg_la_SOURCES = conv-jpeg/from-jpeg.cpp conv-jpeg/to-jpeg.cpp
-conv_jpeg_la_LIBADD = $(LTLIBJPEG) base/libbase.la
+conv_jpeg_la_LIBADD = $(LTLIBJPEG)
 else
 libbuiltin_la_SOURCES += conv-jpeg/from-jpeg.cpp conv-jpeg/to-jpeg.cpp
 libbuiltin_la_LIBADD += $(LTLIBJPEG)
@@ -237,7 +235,7 @@ if WITH_MAGICK
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-magick.la
 conv_magick_la_SOURCES = conv-magick/from-magick.cpp conv-magick/to-magick.cpp
-conv_magick_la_LIBADD = $(libmagick_LIBS) base/libbase.la
+conv_magick_la_LIBADD = $(libmagick_LIBS)
 else
 libbuiltin_la_SOURCES += conv-magick/from-magick.cpp conv-magick/to-magick.cpp
 libbuiltin_la_LIBADD += $(libmagick_LIBS)
@@ -248,7 +246,7 @@ if WITH_MAT
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-mat.la
 conv_mat_la_SOURCES = conv-mat/from-mat.cpp conv-mat/to-mat.cpp
-conv_mat_la_LIBADD = $(libmatio_LIBS) base/libbase.la
+conv_mat_la_LIBADD = $(libmatio_LIBS)
 else
 libbuiltin_la_SOURCES += conv-mat/from-mat.cpp conv-mat/to-mat.cpp
 libbuiltin_la_LIBADD += $(libmatio_LIBS)
@@ -259,7 +257,7 @@ if WITH_NETPBM
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-netpbm.la
 conv_netpbm_la_SOURCES = conv-netpbm/from-netpbm.cpp conv-netpbm/to-netpbm.cpp
-conv_netpbm_la_LIBADD = $(LTLIBNETPBM) base/libbase.la
+conv_netpbm_la_LIBADD = $(LTLIBNETPBM)
 else
 libbuiltin_la_SOURCES += conv-netpbm/from-netpbm.cpp conv-netpbm/to-netpbm.cpp
 libbuiltin_la_LIBADD += $(LTLIBNETPBM)
@@ -270,7 +268,7 @@ if WITH_PCD
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-pcd.la
 conv_pcd_la_SOURCES = conv-pcd/from-pcd.cpp conv-pcd/to-pcd.cpp
-conv_pcd_la_LIBADD = $(libpcl_io_LIBS) base/libbase.la
+conv_pcd_la_LIBADD = $(libpcl_io_LIBS)
 else
 libbuiltin_la_SOURCES += conv-pcd/from-pcd.cpp conv-pcd/to-pcd.cpp
 libbuiltin_la_LIBADD += $(libpcl_io_LIBS)
@@ -281,7 +279,7 @@ if WITH_PFS
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-pfs.la
 conv_pfs_la_SOURCES = conv-pfs/from-pfs.cpp conv-pfs/to-pfs.cpp
-conv_pfs_la_LIBADD = $(libpfs_LIBS) base/libbase.la
+conv_pfs_la_LIBADD = $(libpfs_LIBS)
 else
 libbuiltin_la_SOURCES += conv-pfs/from-pfs.cpp conv-pfs/to-pfs.cpp
 libbuiltin_la_LIBADD += $(libpfs_LIBS)
@@ -292,7 +290,6 @@ if WITH_PLY
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-ply.la
 conv_ply_la_SOURCES = conv-ply/from-ply.cpp conv-ply/to-ply.cpp conv-ply/ply.h conv-ply/plyfile.cpp
-conv_ply_la_LIBADD = base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-ply/from-ply.cpp conv-ply/to-ply.cpp conv-ply/ply.h conv-ply/plyfile.cpp
 endif
@@ -303,7 +300,6 @@ EXTRA_DIST += conv-pvm/README
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-pvm.la
 conv_pvm_la_SOURCES = conv-pvm/from-pvm.cpp conv-pvm/to-pvm.cpp conv-pvm/codebase.h conv-pvm/ddsbase.h conv-pvm/ddsbase.cpp
-conv_pvm_la_LIBADD = base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-pvm/from-pvm.cpp conv-pvm/to-pvm.cpp conv-pvm/codebase.h conv-pvm/ddsbase.h conv-pvm/ddsbase.cpp
 endif
@@ -313,7 +309,6 @@ if WITH_RAT
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-rat.la
 conv_rat_la_SOURCES = conv-rat/from-rat.cpp conv-rat/to-rat.cpp
-conv_rat_la_LIBADD = base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-rat/from-rat.cpp conv-rat/to-rat.cpp
 endif
@@ -323,7 +318,6 @@ if WITH_RAW
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-raw.la
 conv_raw_la_SOURCES = conv-raw/from-raw.cpp conv-raw/to-raw.cpp
-conv_raw_la_LIBADD = base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-raw/from-raw.cpp conv-raw/to-raw.cpp
 endif
@@ -333,7 +327,7 @@ if WITH_SNDFILE
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-sndfile.la
 conv_sndfile_la_SOURCES = conv-sndfile/from-sndfile.cpp conv-sndfile/to-sndfile.cpp
-conv_sndfile_la_LIBADD = $(libsndfile_LIBS) base/libbase.la
+conv_sndfile_la_LIBADD = $(libsndfile_LIBS)
 else
 libbuiltin_la_SOURCES += conv-sndfile/from-sndfile.cpp conv-sndfile/to-sndfile.cpp
 libbuiltin_la_LIBADD += $(libsndfile_LIBS)
@@ -344,7 +338,7 @@ if WITH_TEEM
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-teem.la
 conv_teem_la_SOURCES = conv-teem/from-teem.cpp conv-teem/to-teem.cpp
-conv_teem_la_LIBADD = $(LTLIBTEEM) base/libbase.la
+conv_teem_la_LIBADD = $(LTLIBTEEM)
 else
 libbuiltin_la_SOURCES += conv-teem/from-teem.cpp conv-teem/to-teem.cpp
 libbuiltin_la_LIBADD += $(LTLIBTEEM)
