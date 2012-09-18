@@ -360,7 +360,7 @@ AC_ARG_WITH([pcd],
     [AS_HELP_STRING([--with-pcd], [Enable PCD import/export. Enabled by default if libpcl_io is available.])],
     [if test "$withval" = "yes"; then pcd="yes"; else pcd="no "; fi], [pcd="yes"])
 if test "$pcd" = "yes"; then
-    PKG_CHECK_MODULES([libpcl_io], [pcl_io >= 1.0], [],
+    PKG_CHECK_MODULES([libpcl_io], [pcl_io-1.6 >= 1.0], [],
         [pcd="no "
         AC_MSG_WARN([PCL io library not found:])
         AC_MSG_WARN([$libpcl_io_PKG_ERRORS])
