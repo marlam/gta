@@ -102,6 +102,7 @@ CMD_DECL(from_gdal)
 CMD_DECL(from_jpeg)
 CMD_DECL(from_magick)
 CMD_DECL(from_mat)
+CMD_DECL(from_netcdf)
 CMD_DECL(from_netpbm)
 CMD_DECL(from_pcd)
 CMD_DECL(from_pfs)
@@ -128,6 +129,7 @@ CMD_DECL(to_gdal)
 CMD_DECL(to_jpeg)
 CMD_DECL(to_magick)
 CMD_DECL(to_mat)
+CMD_DECL(to_netcdf)
 CMD_DECL(to_netpbm)
 CMD_DECL(to_pcd)
 CMD_DECL(to_pfs)
@@ -170,6 +172,7 @@ static cmd_t cmds[] =
     CMD("from-jpeg",         conversion, from_jpeg,         WITH_JPEG,     "conv-jpeg"),
     CMD("from-magick",       conversion, from_magick,       WITH_MAGICK,   "conv-magick"),
     CMD("from-mat",          conversion, from_mat,          WITH_MAT,      "conv-mat"),
+    CMD("from-netcdf",       conversion, from_netcdf,       WITH_NETCDF,   "conv-netcdf"),
     CMD("from-netpbm",       conversion, from_netpbm,       WITH_NETPBM,   "conv-netpbm"),
     CMD("from-pcd",          conversion, from_pcd,          WITH_PCD,      "conv-pcd"),
     CMD("from-pfs",          conversion, from_pfs,          WITH_PFS,      "conv-pfs"),
@@ -196,6 +199,7 @@ static cmd_t cmds[] =
     CMD("to-jpeg",           conversion, to_jpeg,           WITH_JPEG,     "conv-jpeg"),
     CMD("to-magick",         conversion, to_magick,         WITH_MAGICK,   "conv-magick"),
     CMD("to-mat",            conversion, to_mat,            WITH_MAT,      "conv-mat"),
+    CMD("to-netcdf",         conversion, to_netcdf,         WITH_NETCDF,   "conv-netcdf"),
     CMD("to-netpbm",         conversion, to_netpbm,         WITH_NETPBM,   "conv-netpbm"),
     CMD("to-pcd",            conversion, to_pcd,            WITH_PCD,      "conv-pcd"),
     CMD("to-pfs",            conversion, to_pfs,            WITH_PFS,      "conv-pfs"),

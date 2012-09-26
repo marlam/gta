@@ -19,6 +19,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/src/base -I$(top_srcdir)/src -DPKGLIBDIR=\"$(pkgli
 	$(libgdal_CFLAGS) \
 	$(libmagick_CFLAGS) \
 	$(libmatio_CFLAGS) \
+	$(libnetcdf_CFLAGS) \
 	$(libpcl_io_CFLAGS) \
 	$(libpfs_CFLAGS) \
 	$(libsndfile_CFLAGS) \
@@ -250,6 +251,17 @@ conv_mat_la_LIBADD = $(libmatio_LIBS)
 else
 libbuiltin_la_SOURCES += conv-mat/from-mat.cpp conv-mat/to-mat.cpp
 libbuiltin_la_LIBADD += $(libmatio_LIBS)
+endif
+endif
+
+if WITH_NETCDF
+if DYNAMIC_MODULES
+pkglib_LTLIBRARIES += conv-netcdf.la
+conv_netcdf_la_SOURCES = conv-netcdf/from-netcdf.cpp conv-netcdf/to-netcdf.cpp
+conv_netcdf_la_LIBADD = $(libnetcdf_LIBS)
+else
+libbuiltin_la_SOURCES += conv-netcdf/from-netcdf.cpp conv-netcdf/to-netcdf.cpp
+libbuiltin_la_LIBADD += $(libnetcdf_LIBS)
 endif
 endif
 

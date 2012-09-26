@@ -337,6 +337,20 @@ fi
 AC_DEFINE_UNQUOTED([WITH_MAT], [`if test "$mat" = "yes"; then echo "1"; else echo "0"; fi`], [Use mat?])
 AM_CONDITIONAL([WITH_MAT], [test "$mat" = "yes"])
 
+dnl conv-netcdf: NetCDF
+AC_ARG_WITH([netcdf],
+    [AS_HELP_STRING([--with-netcdf], [Enable NetCDF import/export. Enabled by default if libnetcdf is available.])],
+    [if test "$withval" = "yes"; then netcdf="yes"; else netcdf="no "; fi], [netcdf="yes"])
+if test "$netcdf" = "yes"; then
+    PKG_CHECK_MODULES([libnetcdf], [netcdf >= 0.0], [],
+        [netcdf="no "
+        AC_MSG_WARN([NetCDF library not found:])
+        AC_MSG_WARN([$libnetcdf_PKG_ERRORS])
+        AC_MSG_WARN([Disabled the from-netcdf and to-netcdf commands.])])
+fi
+AC_DEFINE_UNQUOTED([WITH_NETCDF], [`if test "$netcdf" = "yes"; then echo "1"; else echo "0"; fi`], [Use netcdf?])
+AM_CONDITIONAL([WITH_NETCDF], [test "$netcdf" = "yes"])
+
 dnl conv-netpbm: NetPBM
 AC_ARG_WITH([netpbm],
     [AS_HELP_STRING([--with-netpbm], [Enable NetPBM import/export. Enabled by default if libnetpbm is available.])],
@@ -465,6 +479,7 @@ echo "from-gdal, to-gdal:      " "$gdal" "(Requires GDAL, Debian package: libgda
 echo "from-jpeg, to-jpeg:      " "$jpeg" "(Requires libjpeg, Debian package: libjpeg-dev)"
 echo "from-magick, to-magick:  " "$magick" "(Requires ImageMagick, Debian package: libmagick++-dev)"
 echo "from-mat, to-mat:        " "$mat" "(Requires matio, Debian package: libmatio-dev)"
+echo "from-netcdf, to-netcdf:  " "$netcdf" "(Requires NetCDF, Debian package: libnetcdf-dev)"
 echo "from-netpbm, to-netpbm:  " "$netpbm" "(Requires NetPBM, Debian package: libnetpbm10-dev)"
 echo "from-pcd, to-pcd:        " "$pcd" "(Requires the Point Cloud Library IO module libpcl_io)"
 echo "from-pfs, to-pfs:        " "$pfs" "(Requires pfstools, Debian package: libpfs-dev)"
