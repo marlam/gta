@@ -26,6 +26,8 @@ The following tag namespaces are reserved:
 
 - "GDAL/": Reserved for tags used by the GDAL library.
 
+- "NETCDF/": Reserved for tags used by NetCDF.
+
 
 The following tag names are defined for global tags in a GTA file:
 
