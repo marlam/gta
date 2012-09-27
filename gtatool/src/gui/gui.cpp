@@ -553,242 +553,140 @@ GUI::GUI()
     QMenu *file_import_menu = file_menu->addMenu(tr("Import"));
     QAction *file_import_csv_action = new QAction(tr("CSV data..."), this);
     connect(file_import_csv_action, SIGNAL(triggered()), this, SLOT(file_import_csv()));
-    if (!cmd_is_available(cmd_find("from-csv")))
-    {
-        file_import_csv_action->setEnabled(false);
-    }
+    file_import_csv_action->setEnabled(cmd_is_available(cmd_find("from-csv")));
     file_import_menu->addAction(file_import_csv_action);
     QAction *file_import_datraw_action = new QAction(tr("Volume data in .dat/.raw format..."), this);
     connect(file_import_datraw_action, SIGNAL(triggered()), this, SLOT(file_import_datraw()));
-    if (!cmd_is_available(cmd_find("from-datraw")))
-    {
-        file_import_datraw_action->setEnabled(false);
-    }
+    file_import_datraw_action->setEnabled(cmd_is_available(cmd_find("from-datraw")));
     file_import_menu->addAction(file_import_datraw_action);
     QAction *file_import_dcmtk_action = new QAction(tr("DICOM files (via DCMTK)..."), this);
     connect(file_import_dcmtk_action, SIGNAL(triggered()), this, SLOT(file_import_dcmtk()));
-    if (!cmd_is_available(cmd_find("from-dcmtk")))
-    {
-        file_import_dcmtk_action->setEnabled(false);
-    }
+    file_import_dcmtk_action->setEnabled(cmd_is_available(cmd_find("from-dcmtk")));
     file_import_menu->addAction(file_import_dcmtk_action);
     QAction *file_import_exr_action = new QAction(tr("EXR HDR images (via OpenEXR)..."), this);
     connect(file_import_exr_action, SIGNAL(triggered()), this, SLOT(file_import_exr()));
-    if (!cmd_is_available(cmd_find("from-exr")))
-    {
-        file_import_exr_action->setEnabled(false);
-    }
+    file_import_exr_action->setEnabled(cmd_is_available(cmd_find("from-exr")));
     file_import_menu->addAction(file_import_exr_action);
     QAction *file_import_ffmpeg_action = new QAction(tr("Multimedia data (via FFmpeg)..."), this);
     connect(file_import_ffmpeg_action, SIGNAL(triggered()), this, SLOT(file_import_ffmpeg()));
-    if (!cmd_is_available(cmd_find("from-ffmpeg")))
-    {
-        file_import_ffmpeg_action->setEnabled(false);
-    }
+    file_import_ffmpeg_action->setEnabled(cmd_is_available(cmd_find("from-ffmpeg")));
     file_import_menu->addAction(file_import_ffmpeg_action);
     QAction *file_import_gdal_action = new QAction(tr("Remote Sensing data (via GDAL)..."), this);
     connect(file_import_gdal_action, SIGNAL(triggered()), this, SLOT(file_import_gdal()));
-    if (!cmd_is_available(cmd_find("from-gdal")))
-    {
-        file_import_gdal_action->setEnabled(false);
-    }
+    file_import_gdal_action->setEnabled(cmd_is_available(cmd_find("from-gdal")));
     file_import_menu->addAction(file_import_gdal_action);
     QAction *file_import_jpeg_action = new QAction(tr("JPEG images (via libjpeg)..."), this);
     connect(file_import_jpeg_action, SIGNAL(triggered()), this, SLOT(file_import_jpeg()));
-    if (!cmd_is_available(cmd_find("from-jpeg")))
-    {
-        file_import_jpeg_action->setEnabled(false);
-    }
+    file_import_jpeg_action->setEnabled(cmd_is_available(cmd_find("from-jpeg")));
     file_import_menu->addAction(file_import_jpeg_action);
     QAction *file_import_magick_action = new QAction(tr("Image data (via ImageMagick)..."), this);
     connect(file_import_magick_action, SIGNAL(triggered()), this, SLOT(file_import_magick()));
-    if (!cmd_is_available(cmd_find("from-magick")))
-    {
-        file_import_magick_action->setEnabled(false);
-    }
+    file_import_magick_action->setEnabled(cmd_is_available(cmd_find("from-magick")));
     file_import_menu->addAction(file_import_magick_action);
     QAction *file_import_mat_action = new QAction(tr("MATLAB data (via matio)..."), this);
     connect(file_import_mat_action, SIGNAL(triggered()), this, SLOT(file_import_mat()));
-    if (!cmd_is_available(cmd_find("from-mat")))
-    {
-        file_import_mat_action->setEnabled(false);
-    }
+    file_import_mat_action->setEnabled(cmd_is_available(cmd_find("from-mat")));
     file_import_menu->addAction(file_import_mat_action);
     QAction *file_import_netcdf_action = new QAction(tr("NetCDF data (via NetCDF)..."), this);
     connect(file_import_netcdf_action, SIGNAL(triggered()), this, SLOT(file_import_netcdf()));
-    if (!cmd_is_available(cmd_find("from-netcdf")))
-    {
-        file_import_netcdf_action->setEnabled(false);
-    }
+    file_import_netcdf_action->setEnabled(cmd_is_available(cmd_find("from-netcdf")));
     file_import_menu->addAction(file_import_netcdf_action);
     QAction *file_import_pcd_action = new QAction(tr("PCD point cloud data (via PCL)..."), this);
     connect(file_import_pcd_action, SIGNAL(triggered()), this, SLOT(file_import_pcd()));
-    if (!cmd_is_available(cmd_find("from-pcd")))
-    {
-        file_import_pcd_action->setEnabled(false);
-    }
+    file_import_pcd_action->setEnabled(cmd_is_available(cmd_find("from-pcd")));
     file_import_menu->addAction(file_import_pcd_action);
     QAction *file_import_pfs_action = new QAction(tr("PFS floating point data (via PFS)..."), this);
     connect(file_import_pfs_action, SIGNAL(triggered()), this, SLOT(file_import_pfs()));
-    if (!cmd_is_available(cmd_find("from-pfs")))
-    {
-        file_import_pfs_action->setEnabled(false);
-    }
+    file_import_pfs_action->setEnabled(cmd_is_available(cmd_find("from-pfs")));
     file_import_menu->addAction(file_import_pfs_action);
     QAction *file_import_ply_action = new QAction(tr("PLY geometry data..."), this);
     connect(file_import_ply_action, SIGNAL(triggered()), this, SLOT(file_import_ply()));
-    if (!cmd_is_available(cmd_find("from-ply")))
-    {
-        file_import_ply_action->setEnabled(false);
-    }
+    file_import_ply_action->setEnabled(cmd_is_available(cmd_find("from-ply")));
     file_import_menu->addAction(file_import_ply_action);
     QAction *file_import_pvm_action = new QAction(tr("PVM volume data..."), this);
     connect(file_import_pvm_action, SIGNAL(triggered()), this, SLOT(file_import_pvm()));
-    if (!cmd_is_available(cmd_find("from-pvm")))
-    {
-        file_import_pvm_action->setEnabled(false);
-    }
+    file_import_pvm_action->setEnabled(cmd_is_available(cmd_find("from-pvm")));
     file_import_menu->addAction(file_import_pvm_action);
     QAction *file_import_rat_action = new QAction(tr("RAT RadarTools data..."), this);
     connect(file_import_rat_action, SIGNAL(triggered()), this, SLOT(file_import_rat()));
-    if (!cmd_is_available(cmd_find("from-rat")))
-    {
-        file_import_rat_action->setEnabled(false);
-    }
+    file_import_rat_action->setEnabled(cmd_is_available(cmd_find("from-rat")));
     file_import_menu->addAction(file_import_rat_action);
     QAction *file_import_raw_action = new QAction(tr("Raw data..."), this);
     connect(file_import_raw_action, SIGNAL(triggered()), this, SLOT(file_import_raw()));
-    if (!cmd_is_available(cmd_find("from-raw")))
-    {
-        file_import_raw_action->setEnabled(false);
-    }
+    file_import_raw_action->setEnabled(cmd_is_available(cmd_find("from-raw")));
     file_import_menu->addAction(file_import_raw_action);
     QAction *file_import_sndfile_action = new QAction(tr("Audio data (via sndfile)..."), this);
     connect(file_import_sndfile_action, SIGNAL(triggered()), this, SLOT(file_import_sndfile()));
-    if (!cmd_is_available(cmd_find("from-sndfile")))
-    {
-        file_import_sndfile_action->setEnabled(false);
-    }
+    file_import_sndfile_action->setEnabled(cmd_is_available(cmd_find("from-sndfile")));
     file_import_menu->addAction(file_import_sndfile_action);
     QAction *file_import_teem_action = new QAction(tr("NRRD data (via teem)..."), this);
     connect(file_import_teem_action, SIGNAL(triggered()), this, SLOT(file_import_teem()));
-    if (!cmd_is_available(cmd_find("from-teem")))
-    {
-        file_import_teem_action->setEnabled(false);
-    }
+    file_import_teem_action->setEnabled(cmd_is_available(cmd_find("from-teem")));
     file_import_menu->addAction(file_import_teem_action);
     QMenu *file_export_menu = file_menu->addMenu(tr("Export"));
     QAction *file_export_csv_action = new QAction(tr("CSV data..."), this);
     connect(file_export_csv_action, SIGNAL(triggered()), this, SLOT(file_export_csv()));
-    if (!cmd_is_available(cmd_find("to-csv")))
-    {
-        file_export_csv_action->setEnabled(false);
-    }
+    file_export_csv_action->setEnabled(cmd_is_available(cmd_find("to-csv")));
     file_export_menu->addAction(file_export_csv_action);
     QAction *file_export_datraw_action = new QAction(tr("Volume data in .dat/.raw format..."), this);
     connect(file_export_datraw_action, SIGNAL(triggered()), this, SLOT(file_export_datraw()));
-    if (!cmd_is_available(cmd_find("to-datraw")))
-    {
-        file_export_datraw_action->setEnabled(false);
-    }
+    file_export_datraw_action->setEnabled(cmd_is_available(cmd_find("to-datraw")));
     file_export_menu->addAction(file_export_datraw_action);
     QAction *file_export_exr_action = new QAction(tr("EXR HDR images (via EXR)..."), this);
     connect(file_export_exr_action, SIGNAL(triggered()), this, SLOT(file_export_exr()));
-    if (!cmd_is_available(cmd_find("to-exr")))
-    {
-        file_export_exr_action->setEnabled(false);
-    }
+    file_export_exr_action->setEnabled(cmd_is_available(cmd_find("to-exr")));
     file_export_menu->addAction(file_export_exr_action);
     QAction *file_export_gdal_action = new QAction(tr("Remote Sensing data (via GDAL)..."), this);
     connect(file_export_gdal_action, SIGNAL(triggered()), this, SLOT(file_export_gdal()));
-    if (!cmd_is_available(cmd_find("to-gdal")))
-    {
-        file_export_gdal_action->setEnabled(false);
-    }
+    file_export_gdal_action->setEnabled(cmd_is_available(cmd_find("to-gdal")));
     file_export_menu->addAction(file_export_gdal_action);
     QAction *file_export_jpeg_action = new QAction(tr("JPEG images (via libjpeg)..."), this);
     connect(file_export_jpeg_action, SIGNAL(triggered()), this, SLOT(file_export_jpeg()));
-    if (!cmd_is_available(cmd_find("to-jpeg")))
-    {
-        file_export_jpeg_action->setEnabled(false);
-    }
+    file_export_jpeg_action->setEnabled(cmd_is_available(cmd_find("to-jpeg")));
     file_export_menu->addAction(file_export_jpeg_action);
     QAction *file_export_magick_action = new QAction(tr("Image data (via ImageMagick)..."), this);
     connect(file_export_magick_action, SIGNAL(triggered()), this, SLOT(file_export_magick()));
-    if (!cmd_is_available(cmd_find("to-magick")))
-    {
-        file_export_magick_action->setEnabled(false);
-    }
+    file_export_magick_action->setEnabled(cmd_is_available(cmd_find("to-magick")));
     file_export_menu->addAction(file_export_magick_action);
     QAction *file_export_mat_action = new QAction(tr("MATLAB data (via matio)..."), this);
     connect(file_export_mat_action, SIGNAL(triggered()), this, SLOT(file_export_mat()));
-    if (!cmd_is_available(cmd_find("to-mat")))
-    {
-        file_export_mat_action->setEnabled(false);
-    }
+    file_export_mat_action->setEnabled(cmd_is_available(cmd_find("to-mat")));
     file_export_menu->addAction(file_export_mat_action);
     QAction *file_export_netcdf_action = new QAction(tr("NetCDF data (via NetCDF)..."), this);
     connect(file_export_netcdf_action, SIGNAL(triggered()), this, SLOT(file_export_netcdf()));
-    if (!cmd_is_available(cmd_find("to-netcdf")))
-    {
-        file_export_netcdf_action->setEnabled(false);
-    }
+    file_export_netcdf_action->setEnabled(cmd_is_available(cmd_find("to-netcdf")));
     file_export_menu->addAction(file_export_netcdf_action);
     QAction *file_export_pcd_action = new QAction(tr("PCD point cloud data (via PCL)..."), this);
     connect(file_export_pcd_action, SIGNAL(triggered()), this, SLOT(file_export_pcd()));
-    if (!cmd_is_available(cmd_find("to-pcd")))
-    {
-        file_export_pcd_action->setEnabled(false);
-    }
+    file_export_pcd_action->setEnabled(cmd_is_available(cmd_find("to-pcd")));
     file_export_menu->addAction(file_export_pcd_action);
     QAction *file_export_pfs_action = new QAction(tr("PFS floating point data (via PFS)..."), this);
     connect(file_export_pfs_action, SIGNAL(triggered()), this, SLOT(file_export_pfs()));
-    if (!cmd_is_available(cmd_find("to-pfs")))
-    {
-        file_export_pfs_action->setEnabled(false);
-    }
+    file_export_pfs_action->setEnabled(cmd_is_available(cmd_find("to-pfs")));
     file_export_menu->addAction(file_export_pfs_action);
     QAction *file_export_ply_action = new QAction(tr("PLY geometry data..."), this);
     connect(file_export_ply_action, SIGNAL(triggered()), this, SLOT(file_export_ply()));
-    if (!cmd_is_available(cmd_find("to-ply")))
-    {
-        file_export_ply_action->setEnabled(false);
-    }
+    file_export_ply_action->setEnabled(cmd_is_available(cmd_find("to-ply")));
     file_export_menu->addAction(file_export_ply_action);
     QAction *file_export_pvm_action = new QAction(tr("PVM volume data..."), this);
     connect(file_export_pvm_action, SIGNAL(triggered()), this, SLOT(file_export_pvm()));
-    if (!cmd_is_available(cmd_find("to-pvm")))
-    {
-        file_export_pvm_action->setEnabled(false);
-    }
+    file_export_pvm_action->setEnabled(cmd_is_available(cmd_find("to-pvm")));
     file_export_menu->addAction(file_export_pvm_action);
     QAction *file_export_rat_action = new QAction(tr("RAT RadarTools data..."), this);
     connect(file_export_rat_action, SIGNAL(triggered()), this, SLOT(file_export_rat()));
-    if (!cmd_is_available(cmd_find("to-rat")))
-    {
-        file_export_rat_action->setEnabled(false);
-    }
+    file_export_rat_action->setEnabled(cmd_is_available(cmd_find("to-rat")));
     file_export_menu->addAction(file_export_rat_action);
     QAction *file_export_raw_action = new QAction(tr("Raw data..."), this);
     connect(file_export_raw_action, SIGNAL(triggered()), this, SLOT(file_export_raw()));
-    if (!cmd_is_available(cmd_find("to-raw")))
-    {
-        file_export_raw_action->setEnabled(false);
-    }
+    file_export_raw_action->setEnabled(cmd_is_available(cmd_find("to-raw")));
     file_export_menu->addAction(file_export_raw_action);
     QAction *file_export_sndfile_action = new QAction(tr("WAV audio (via sndfile)..."), this);
     connect(file_export_sndfile_action, SIGNAL(triggered()), this, SLOT(file_export_sndfile()));
-    if (!cmd_is_available(cmd_find("to-sndfile")))
-    {
-        file_export_sndfile_action->setEnabled(false);
-    }
+    file_export_sndfile_action->setEnabled(cmd_is_available(cmd_find("to-sndfile")));
     file_export_menu->addAction(file_export_sndfile_action);
     QAction *file_export_teem_action = new QAction(tr("NRRD data (via teem)..."), this);
     connect(file_export_teem_action, SIGNAL(triggered()), this, SLOT(file_export_teem()));
-    if (!cmd_is_available(cmd_find("to-teem")))
-    {
-        file_export_teem_action->setEnabled(false);
-    }
+    file_export_teem_action->setEnabled(cmd_is_available(cmd_find("to-teem")));
     file_export_menu->addAction(file_export_teem_action);
     file_menu->addSeparator();
     QAction *quit_action = new QAction(tr("&Quit"), this);
@@ -1657,11 +1555,6 @@ void GUI::file_export_mat()
     export_to("to-mat", std::vector<std::string>(), "mat", QStringList("MATLAB files (*.mat)"));
 }
 
-void GUI::file_export_rat()
-{
-    export_to("to-rat", std::vector<std::string>(), "rat", QStringList("RAT RadarTools files (*.rat)"));
-}
-
 void GUI::file_export_netcdf()
 {
     export_to("to-netcdf", std::vector<std::string>(), "nc", QStringList("NetCDF files (*.nc *.hdf)"));
@@ -1685,6 +1578,11 @@ void GUI::file_export_ply()
 void GUI::file_export_pvm()
 {
     export_to("to-pvm", std::vector<std::string>(), "pvm", QStringList("PVM files (*.pvm)"));
+}
+
+void GUI::file_export_rat()
+{
+    export_to("to-rat", std::vector<std::string>(), "rat", QStringList("RAT RadarTools files (*.rat)"));
 }
 
 void GUI::file_export_raw()
