@@ -614,6 +614,13 @@ GUI::GUI()
         file_import_mat_action->setEnabled(false);
     }
     file_import_menu->addAction(file_import_mat_action);
+    QAction *file_import_netcdf_action = new QAction(tr("NetCDF data (via NetCDF)..."), this);
+    connect(file_import_netcdf_action, SIGNAL(triggered()), this, SLOT(file_import_netcdf()));
+    if (!cmd_is_available(cmd_find("from-netcdf")))
+    {
+        file_import_netcdf_action->setEnabled(false);
+    }
+    file_import_menu->addAction(file_import_netcdf_action);
     QAction *file_import_pcd_action = new QAction(tr("PCD point cloud data (via PCL)..."), this);
     connect(file_import_pcd_action, SIGNAL(triggered()), this, SLOT(file_import_pcd()));
     if (!cmd_is_available(cmd_find("from-pcd")))
@@ -720,6 +727,13 @@ GUI::GUI()
         file_export_mat_action->setEnabled(false);
     }
     file_export_menu->addAction(file_export_mat_action);
+    QAction *file_export_netcdf_action = new QAction(tr("NetCDF data (via NetCDF)..."), this);
+    connect(file_export_netcdf_action, SIGNAL(triggered()), this, SLOT(file_export_netcdf()));
+    if (!cmd_is_available(cmd_find("to-netcdf")))
+    {
+        file_export_netcdf_action->setEnabled(false);
+    }
+    file_export_menu->addAction(file_export_netcdf_action);
     QAction *file_export_pcd_action = new QAction(tr("PCD point cloud data (via PCL)..."), this);
     connect(file_export_pcd_action, SIGNAL(triggered()), this, SLOT(file_export_pcd()));
     if (!cmd_is_available(cmd_find("to-pcd")))
@@ -1525,6 +1539,11 @@ void GUI::file_import_mat()
     import_from("from-mat", std::vector<std::string>(), QStringList("MATLAB files (*.mat)"));
 }
 
+void GUI::file_import_netcdf()
+{
+    import_from("from-netcdf", std::vector<std::string>(), QStringList("NetCDF files (*.nc *.hdf)"));
+}
+
 void GUI::file_import_pcd()
 {
     import_from("from-pcd", std::vector<std::string>(), QStringList("PCD files (*.pcd)"));
@@ -1641,6 +1660,11 @@ void GUI::file_export_mat()
 void GUI::file_export_rat()
 {
     export_to("to-rat", std::vector<std::string>(), "rat", QStringList("RAT RadarTools files (*.rat)"));
+}
+
+void GUI::file_export_netcdf()
+{
+    export_to("to-netcdf", std::vector<std::string>(), "nc", QStringList("NetCDF files (*.nc *.hdf)"));
 }
 
 void GUI::file_export_pcd()

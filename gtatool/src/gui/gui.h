@@ -224,6 +224,7 @@ private slots:
     void file_import_jpeg();
     void file_import_magick();
     void file_import_mat();
+    void file_import_netcdf();
     void file_import_pcd();
     void file_import_pfs();
     void file_import_ply();
@@ -239,6 +240,7 @@ private slots:
     void file_export_jpeg();
     void file_export_magick();
     void file_export_mat();
+    void file_export_netcdf();
     void file_export_pcd();
     void file_export_pfs();
     void file_export_ply();
