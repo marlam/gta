@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2011
+ * Copyright (C) 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -34,6 +34,7 @@
 #include "opt.h"
 #include "str.h"
 #include "intcheck.h"
+#include "endianness.h"
 
 #include "lib.h"
 
@@ -41,31 +42,9 @@ extern "C" void gtatool_to_ply_help(void)
 {
     msg::req_txt("to-ply [<input-file>] <output-file>\n"
             "\n"
-            "Converts GTAs to the PLY format. Currently only point clouds (vertex lists) are supported, "
-            "but no faces, edges, or materials. The input GTA must be one-dimensional. If you want to "
-            "generate dense point clouds e.g. from an image or a volume, use the dimension-flatten command before.\n"
-            "Supported vertex properties are x,y,z and r,g,b. Only the x property is required. Coordinates must "
-            "have type float32 and color components must have type uint8. Use the component-convert command if "
-            "necessary.");
+            "Converts GTAs to the PLY format.\n"
+            "All array elements are exported into a single vertex list.");
 }
-
-static const char *ply_elem_names[] = { "vertex" };
-
-typedef struct
-{
-    float x, y, z;
-    uint8_t r, g, b;
-} ply_vertex;
-
-static PlyProperty ply_vert_props[] =
-{
-    { "x", PLY_FLOAT, PLY_FLOAT, offsetof(ply_vertex, x), 0, 0, 0, 0 },
-    { "y", PLY_FLOAT, PLY_FLOAT, offsetof(ply_vertex, y), 0, 0, 0, 0 },
-    { "z", PLY_FLOAT, PLY_FLOAT, offsetof(ply_vertex, z), 0, 0, 0, 0 },
-    { "r", PLY_UCHAR, PLY_UCHAR, offsetof(ply_vertex, r), 0, 0, 0, 0 },
-    { "g", PLY_UCHAR, PLY_UCHAR, offsetof(ply_vertex, g), 0, 0, 0, 0 },
-    { "b", PLY_UCHAR, PLY_UCHAR, offsetof(ply_vertex, b), 0, 0, 0, 0 },
-};
 
 extern "C" int gtatool_to_ply(int argc, char *argv[])
 {
@@ -93,129 +72,87 @@ extern "C" int gtatool_to_ply(int argc, char *argv[])
         array_loop.start(arguments.size() == 1 ? std::vector<std::string>() : std::vector<std::string>(1, arguments[0]), nameo);
         while (array_loop.read(hdr, name))
         {
-            if (hdr.dimensions() != 1)
+            if (hdr.elements() == 0)
             {
-                throw exc(name + ": only one-dimensional arrays can be converted to PLY.");
+                msg::wrn(name + ": skipping empty array");
+                continue;
             }
-            if (hdr.components() > 6)
-            {
-                throw exc(name + ": unsupported number of element components.");
-            }
-            if (hdr.components() >= 4)
-            {
-                for (uintmax_t c = hdr.components() - 3; c < hdr.components(); c++)
-                {
-                    if (hdr.component_type(c) != gta::uint8)
-                    {
-                        throw exc(name + ": color components must have type uint8.");
-                    }
-                }
-            }
-            for (uintmax_t c = 0; c < (hdr.components() < 4 ? hdr.components() : hdr.components() - 3); c++)
-            {
-                if (hdr.component_type(c) != gta::float32)
-                {
-                    throw exc(name + ": coordinates must have type float32.");
-                }
-            }
-
             FILE *fo = fio::open(nameo, "w");
-            PlyFile *ply = ply_write(fo, 1, ply_elem_names, PLY_BINARY_LE);
+            static const char *elem_names[] = { "vertex" };
+            PlyFile *ply = ply_write(fo, 1, elem_names,
+                    endianness::endianness == endianness::big ? PLY_BINARY_BE : PLY_BINARY_LE);
             if (!ply)
             {
                 throw exc(nameo + ": cannot write file.");
             }
-
             ply_element_count(ply, "vertex", checked_cast<int>(hdr.elements()));
-
-            if (hdr.components() == 1)
+            PlyProperty prop;
+            prop.offset = 0;
+            prop.is_list = 0;
+            prop.count_external = 0;
+            prop.count_internal = 0;
+            prop.count_offset = 0;
+            for (uintmax_t i = 0; i < hdr.components(); i++)
             {
-                ply_describe_property(ply, "vertex", &ply_vert_props[0]);
-            }
-            else if (hdr.components() == 2)
-            {
-                ply_describe_property(ply, "vertex", &ply_vert_props[0]);
-                ply_describe_property(ply, "vertex", &ply_vert_props[1]);
-            }
-            else if (hdr.components() == 3)
-            {
-                ply_describe_property(ply, "vertex", &ply_vert_props[0]);
-                ply_describe_property(ply, "vertex", &ply_vert_props[1]);
-                ply_describe_property(ply, "vertex", &ply_vert_props[2]);
-            }
-            else if (hdr.components() == 4)
-            {
-                ply_describe_property(ply, "vertex", &ply_vert_props[0]);
-                ply_describe_property(ply, "vertex", &ply_vert_props[3]);
-                ply_describe_property(ply, "vertex", &ply_vert_props[4]);
-                ply_describe_property(ply, "vertex", &ply_vert_props[5]);
-            }
-            else if (hdr.components() == 5)
-            {
-                ply_describe_property(ply, "vertex", &ply_vert_props[0]);
-                ply_describe_property(ply, "vertex", &ply_vert_props[1]);
-                ply_describe_property(ply, "vertex", &ply_vert_props[3]);
-                ply_describe_property(ply, "vertex", &ply_vert_props[4]);
-                ply_describe_property(ply, "vertex", &ply_vert_props[5]);
-            }
-            else
-            {
-                ply_describe_property(ply, "vertex", &ply_vert_props[0]);
-                ply_describe_property(ply, "vertex", &ply_vert_props[1]);
-                ply_describe_property(ply, "vertex", &ply_vert_props[2]);
-                ply_describe_property(ply, "vertex", &ply_vert_props[3]);
-                ply_describe_property(ply, "vertex", &ply_vert_props[4]);
-                ply_describe_property(ply, "vertex", &ply_vert_props[5]);
+                const char* tmptagval = hdr.component_taglist(i).get("INTERPRETATION");
+                std::string tagval;
+                if (tmptagval)
+                    tagval = tmptagval;
+                if (tagval == "X")
+                    tagval = "x";
+                else if (tagval == "Y")
+                    tagval = "y";
+                else if (tagval == "Z")
+                    tagval = "z";
+                else if (tagval == "X-NORMAL-X")
+                    tagval = "nx";
+                else if (tagval == "X-NORMAL-Y")
+                    tagval = "ny";
+                else if (tagval == "X-NORMAL-Z")
+                    tagval = "nz";
+                else if (tagval == "RED" || tagval == "SRGB/RED")
+                    tagval = "r";
+                else if (tagval == "GREEN" || tagval == "SRGB/GREEN")
+                    tagval = "g";
+                else if (tagval == "BLUE" || tagval == "SRGB/BLUE")
+                    tagval = "b";
+                else if (tagval == "ALPHA")
+                    tagval = "a";
+                else if (!tagval.empty() && tagval.substr(0, 2) == "X-")
+                    tagval = tagval.substr(2);
+                else if (tagval.empty())
+                    tagval = std::string("component-") + str::from(i);
+                prop.name = tagval.c_str();
+                if (hdr.component_type(i) == gta::int8 && std::numeric_limits<char>::min() < 0)
+                    prop.external_type = prop.internal_type = PLY_CHAR;
+                else if (hdr.component_type(i) == gta::uint8)
+                    prop.external_type = prop.internal_type = PLY_UCHAR;
+                else if (hdr.component_type(i) == gta::int16)
+                    prop.external_type = prop.internal_type = PLY_SHORT;
+                else if (hdr.component_type(i) == gta::uint16)
+                    prop.external_type = prop.internal_type = PLY_USHORT;
+                else if (hdr.component_type(i) == gta::int32)
+                    prop.external_type = prop.internal_type = PLY_INT;
+                else if (hdr.component_type(i) == gta::uint32)
+                    prop.external_type = prop.internal_type = PLY_UINT;
+                else if (hdr.component_type(i) == gta::float32)
+                    prop.external_type = prop.internal_type = PLY_FLOAT;
+                else if (hdr.component_type(i) == gta::float64)
+                    prop.external_type = prop.internal_type = PLY_DOUBLE;
+                else
+                    throw exc(name + ": unexportable element component type");
+                ply_describe_property(ply, "vertex", &prop);
+                prop.offset = checked_add(prop.offset, checked_cast<int>(hdr.component_size(i)));
             }
             ply_header_complete(ply);
 
             element_loop_t element_loop;
             array_loop.start_element_loop(element_loop, hdr, gta::header());
             ply_put_element_setup(ply, "vertex");
-            ply_vertex v;
             for (uintmax_t e = 0; e < hdr.elements(); e++)
             {
                 const void *p = element_loop.read();
-                if (hdr.components() == 1)
-                {
-                    std::memcpy(&v.x, hdr.component(p, 0), sizeof(float));
-                }
-                else if (hdr.components() == 2)
-                {
-                    std::memcpy(&v.x, hdr.component(p, 0), sizeof(float));
-                    std::memcpy(&v.y, hdr.component(p, 1), sizeof(float));
-                }
-                else if (hdr.components() == 3)
-                {
-                    std::memcpy(&v.x, hdr.component(p, 0), sizeof(float));
-                    std::memcpy(&v.y, hdr.component(p, 1), sizeof(float));
-                    std::memcpy(&v.z, hdr.component(p, 2), sizeof(float));
-                }
-                else if (hdr.components() == 4)
-                {
-                    std::memcpy(&v.x, hdr.component(p, 0), sizeof(float));
-                    std::memcpy(&v.r, hdr.component(p, 1), sizeof(uint8_t));
-                    std::memcpy(&v.g, hdr.component(p, 2), sizeof(uint8_t));
-                    std::memcpy(&v.b, hdr.component(p, 3), sizeof(uint8_t));
-                }
-                else if (hdr.components() == 5)
-                {
-                    std::memcpy(&v.x, hdr.component(p, 0), sizeof(float));
-                    std::memcpy(&v.y, hdr.component(p, 1), sizeof(float));
-                    std::memcpy(&v.r, hdr.component(p, 2), sizeof(uint8_t));
-                    std::memcpy(&v.g, hdr.component(p, 3), sizeof(uint8_t));
-                    std::memcpy(&v.b, hdr.component(p, 4), sizeof(uint8_t));
-                }
-                else
-                {
-                    std::memcpy(&v.x, hdr.component(p, 0), sizeof(float));
-                    std::memcpy(&v.y, hdr.component(p, 1), sizeof(float));
-                    std::memcpy(&v.z, hdr.component(p, 2), sizeof(float));
-                    std::memcpy(&v.r, hdr.component(p, 3), sizeof(uint8_t));
-                    std::memcpy(&v.g, hdr.component(p, 4), sizeof(uint8_t));
-                    std::memcpy(&v.b, hdr.component(p, 5), sizeof(uint8_t));
-                }
-                ply_put_element(ply, &v);
+                ply_put_element(ply, const_cast<void*>(p));
             }
             fio::flush(fo, nameo);
             if (std::ferror(fo))

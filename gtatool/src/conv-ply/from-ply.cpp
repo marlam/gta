@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2011
+ * Copyright (C) 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -42,25 +42,8 @@ extern "C" void gtatool_from_ply_help(void)
     msg::req_txt("from-ply <input-file> [<output-file>]\n"
             "\n"
             "Converts PLY files to GTAs. Currently only point clouds (vertex lists) are supported, "
-            "but no faces, edges, or materials.\n"
-            "Supported vertex properties are x,y,z and r,g,b. Only the x property is required.");
+            "but no faces, edges, or materials. All vertex attributes will be exported.");
 }
-
-typedef struct
-{
-    float x, y, z;
-    uint8_t r, g, b;
-} ply_vertex;
-
-static PlyProperty ply_vert_props[] =
-{
-    { "x", PLY_FLOAT, PLY_FLOAT, offsetof(ply_vertex, x), 0, 0, 0, 0 },
-    { "y", PLY_FLOAT, PLY_FLOAT, offsetof(ply_vertex, y), 0, 0, 0, 0 },
-    { "z", PLY_FLOAT, PLY_FLOAT, offsetof(ply_vertex, z), 0, 0, 0, 0 },
-    { "r", PLY_UCHAR, PLY_UCHAR, offsetof(ply_vertex, r), 0, 0, 0, 0 },
-    { "g", PLY_UCHAR, PLY_UCHAR, offsetof(ply_vertex, g), 0, 0, 0, 0 },
-    { "b", PLY_UCHAR, PLY_UCHAR, offsetof(ply_vertex, b), 0, 0, 0, 0 },
-};
 
 extern "C" int gtatool_from_ply(int argc, char *argv[])
 {
@@ -101,117 +84,112 @@ extern "C" int gtatool_from_ply(int argc, char *argv[])
             {
                 int num_elems = 0;
                 int nprops = 0;
-                (void)ply_get_element_description(ply, const_cast<char *>("vertex"), &num_elems, &nprops);
+                PlyProperty** plyprop = ply_get_element_description(
+                        ply, const_cast<char *>("vertex"), &num_elems, &nprops);
 
                 gta::header hdr;
                 std::string nameo;
                 hdr.set_dimensions(num_elems);
-                if (nprops == 1)
+                std::vector<gta::type> types;
+                std::vector<std::string> typetags;
+                int type_offset = 0;
+                for (int i = 0; i < nprops; i++)
                 {
-                    hdr.set_components(gta::float32);
-                    hdr.component_taglist(0).set("INTERPRETATION", "X");
+                    size_t type_size = 0;
+                    if (plyprop[i]->external_type == PLY_CHAR)
+                    {
+                        if (std::numeric_limits<char>::min() < 0)
+                        {
+                            types.push_back(gta::int8);
+                            type_size = sizeof(int8_t);
+                        }
+                        else
+                        {
+                            types.push_back(gta::uint8);
+                            type_size = sizeof(uint8_t);
+                        }
+                    }
+                    else if (plyprop[i]->external_type == PLY_UCHAR || plyprop[i]->external_type == PLY_UINT8)
+                    {
+                        types.push_back(gta::uint8);
+                        type_size = sizeof(uint8_t);
+                    }
+                    else if (plyprop[i]->external_type == PLY_FLOAT || plyprop[i]->external_type == PLY_FLOAT32)
+                    {
+                        types.push_back(gta::float32);
+                        type_size = sizeof(float);
+                    }
+                    else if (plyprop[i]->external_type == PLY_DOUBLE)
+                    {
+                        types.push_back(gta::float64);
+                        type_size = sizeof(double);
+                    }
+                    else if (plyprop[i]->external_type == PLY_SHORT)
+                    {
+                        types.push_back(gta::int16);
+                        type_size = sizeof(int16_t);
+                    }
+                    else if (plyprop[i]->external_type == PLY_USHORT)
+                    {
+                        types.push_back(gta::uint16);
+                        type_size = sizeof(uint16_t);
+                    }
+                    else if (plyprop[i]->external_type == PLY_INT)
+                    {
+                        types.push_back(gta::int32);
+                        type_size = sizeof(int32_t);
+                    }
+                    else if (plyprop[i]->external_type == PLY_UINT)
+                    {
+                        types.push_back(gta::uint32);
+                        type_size = sizeof(uint32_t);
+                    }
+                    else
+                    {
+                        throw exc(namei + ": unsupported property type");
+                    }
+                    std::string propname = plyprop[i]->name;
+                    if (propname == "x")
+                        typetags.push_back("X");
+                    else if (propname == "y")
+                        typetags.push_back("Y");
+                    else if (propname == "z")
+                        typetags.push_back("Z");
+                    else if (propname == "nx" || propname == "normal_x")
+                        typetags.push_back("X-NORMAL-X");
+                    else if (propname == "ny" || propname == "normal_y")
+                        typetags.push_back("X-NORMAL-Y");
+                    else if (propname == "nz" || propname == "normal_z")
+                        typetags.push_back("X-NORMAL-Z");
+                    else if (propname == "r" || propname == "red")
+                        typetags.push_back("RED");
+                    else if (propname == "g" || propname == "green")
+                        typetags.push_back("GREEN");
+                    else if (propname == "b" || propname == "blue")
+                        typetags.push_back("BLUE");
+                    else if (propname == "a" || propname == "alpha")
+                        typetags.push_back("ALPHA");
+                    else
+                        typetags.push_back(std::string("X-") + propname);
+                    plyprop[i]->internal_type = plyprop[i]->external_type;
+                    plyprop[i]->offset = type_offset;
+                    plyprop[i]->is_list = 0;
+                    plyprop[i]->count_external = 0;
+                    plyprop[i]->count_internal = 0;
+                    plyprop[i]->count_offset = 0;
+                    ply_get_property(ply, "vertex", plyprop[i]);
+                    type_offset += type_size;
                 }
-                else if (nprops == 2)
-                {
-                    hdr.set_components(gta::float32, gta::float32);
-                    hdr.component_taglist(0).set("INTERPRETATION", "X");
-                    hdr.component_taglist(1).set("INTERPRETATION", "Y");
-                }
-                else if (nprops == 3)
-                {
-                    hdr.set_components(gta::float32, gta::float32, gta::float32);
-                    hdr.component_taglist(0).set("INTERPRETATION", "X");
-                    hdr.component_taglist(1).set("INTERPRETATION", "Y");
-                    hdr.component_taglist(2).set("INTERPRETATION", "Z");
-                }
-                else if (nprops == 4)
-                {
-                    std::vector<gta::type> types(1, gta::float32);
-                    types.resize(4, gta::uint8);
-                    hdr.set_components(4, &(types[0]));
-                    hdr.component_taglist(0).set("INTERPRETATION", "X");
-                    hdr.component_taglist(1).set("INTERPRETATION", "RED");
-                    hdr.component_taglist(2).set("INTERPRETATION", "GREEN");
-                    hdr.component_taglist(3).set("INTERPRETATION", "BLUE");
-                }
-                else if (nprops == 5)
-                {
-                    std::vector<gta::type> types(2, gta::float32);
-                    types.resize(5, gta::uint8);
-                    hdr.set_components(5, &(types[0]));
-                    hdr.component_taglist(0).set("INTERPRETATION", "X");
-                    hdr.component_taglist(1).set("INTERPRETATION", "Y");
-                    hdr.component_taglist(2).set("INTERPRETATION", "RED");
-                    hdr.component_taglist(3).set("INTERPRETATION", "GREEN");
-                    hdr.component_taglist(4).set("INTERPRETATION", "BLUE");
-                }
-                else if (nprops == 6)
-                {
-                    std::vector<gta::type> types(3, gta::float32);
-                    types.resize(6, gta::uint8);
-                    hdr.set_components(6, &(types[0]));
-                    hdr.component_taglist(0).set("INTERPRETATION", "X");
-                    hdr.component_taglist(1).set("INTERPRETATION", "Y");
-                    hdr.component_taglist(2).set("INTERPRETATION", "Z");
-                    hdr.component_taglist(3).set("INTERPRETATION", "RED");
-                    hdr.component_taglist(4).set("INTERPRETATION", "GREEN");
-                    hdr.component_taglist(5).set("INTERPRETATION", "BLUE");
-                }
-                else
-                {
-                    throw exc(namei + ": unsupported number of vertex properties.");
-                }
+                hdr.set_components(types.size(), &(types[0]));
+                for (size_t i = 0; i < types.size(); i++)
+                    hdr.component_taglist(i).set("INTERPRETATION", typetags[i].c_str());
                 array_loop.write(hdr, nameo);
-                for (int j = 0; j < nprops; j++)
-                {
-                    ply_get_property(ply, "vertex", &ply_vert_props[j]);
-                }
-                ply_vertex vertex;
                 blob element(hdr.element_size());
                 element_loop_t element_loop;
                 array_loop.start_element_loop(element_loop, gta::header(), hdr);
                 for (uintmax_t e = 0; e < hdr.elements(); e++)
                 {
-                    ply_get_element(ply, &vertex);
-                    if (nprops == 1)
-                    {
-                        std::memcpy(hdr.component(element.ptr(), 0), &vertex.x, sizeof(float));
-                    }
-                    else if (nprops == 2)
-                    {
-                        std::memcpy(hdr.component(element.ptr(), 0), &vertex.x, sizeof(float));
-                        std::memcpy(hdr.component(element.ptr(), 1), &vertex.y, sizeof(float));
-                    }
-                    else if (nprops == 3)
-                    {
-                        std::memcpy(hdr.component(element.ptr(), 0), &vertex.x, sizeof(float));
-                        std::memcpy(hdr.component(element.ptr(), 1), &vertex.y, sizeof(float));
-                        std::memcpy(hdr.component(element.ptr(), 2), &vertex.z, sizeof(float));
-                    }
-                    else if (nprops == 4)
-                    {
-                        std::memcpy(hdr.component(element.ptr(), 0), &vertex.x, sizeof(float));
-                        std::memcpy(hdr.component(element.ptr(), 1), &vertex.r, sizeof(uint8_t));
-                        std::memcpy(hdr.component(element.ptr(), 2), &vertex.g, sizeof(uint8_t));
-                        std::memcpy(hdr.component(element.ptr(), 3), &vertex.b, sizeof(uint8_t));
-                    }
-                    else if (nprops == 5)
-                    {
-                        std::memcpy(hdr.component(element.ptr(), 0), &vertex.x, sizeof(float));
-                        std::memcpy(hdr.component(element.ptr(), 1), &vertex.y, sizeof(float));
-                        std::memcpy(hdr.component(element.ptr(), 2), &vertex.r, sizeof(uint8_t));
-                        std::memcpy(hdr.component(element.ptr(), 3), &vertex.g, sizeof(uint8_t));
-                        std::memcpy(hdr.component(element.ptr(), 4), &vertex.b, sizeof(uint8_t));
-                    }
-                    else
-                    {
-                        std::memcpy(hdr.component(element.ptr(), 0), &vertex.x, sizeof(float));
-                        std::memcpy(hdr.component(element.ptr(), 1), &vertex.y, sizeof(float));
-                        std::memcpy(hdr.component(element.ptr(), 2), &vertex.z, sizeof(float));
-                        std::memcpy(hdr.component(element.ptr(), 3), &vertex.r, sizeof(uint8_t));
-                        std::memcpy(hdr.component(element.ptr(), 4), &vertex.g, sizeof(uint8_t));
-                        std::memcpy(hdr.component(element.ptr(), 5), &vertex.b, sizeof(uint8_t));
-                    }
+                    ply_get_element(ply, element.ptr());
                     element_loop.write(element.ptr());
                 }
                 break;
