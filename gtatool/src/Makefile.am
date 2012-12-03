@@ -88,12 +88,6 @@ AM_LDFLAGS = -module -avoid-version -shrext .so
 # FIXME: Is there a way to tell automake/libtool that we do not want these files installed?
 install-exec-hook:
 	LA_FILES="$(foreach la_file,$(pkglib_LTLIBRARIES),$(DESTDIR)$(pkglibdir)/$(la_file))"; test -z "$$LA_FILES" || rm $$LA_FILES
-else
-# Remove the empty pkglibdir and, if it is otherwise empty, its parent directory
-# FIXME: Is there a way to tell automake that pkglibdir needs not be created?
-install-exec-hook:
-	rmdir $(DESTDIR)$(pkglibdir)
-	rmdir $(DESTDIR)$(libdir) || true
 endif
 
 if WITH_MUPARSER
