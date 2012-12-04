@@ -158,7 +158,7 @@ libbuiltin_la_SOURCES += conv-csv/delimiter.h conv-csv/delimiter.cpp conv-csv/fr
 endif
 endif
 
-if WITH_CSV
+if WITH_DATRAW
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-datraw.la
 conv_datraw_la_SOURCES = conv-datraw/from-datraw.cpp conv-datraw/to-datraw.cpp
