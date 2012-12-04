@@ -195,7 +195,7 @@ pkglib_LTLIBRARIES += conv-ffmpeg.la
 conv_ffmpeg_la_SOURCES = conv-ffmpeg/from-ffmpeg.cpp \
 	conv-ffmpeg/media_data.h conv-ffmpeg/media_data.cpp \
 	conv-ffmpeg/media_object.h conv-ffmpeg/media_object.cpp
-conv_ffmpeg_la_LIBADD = $(libffmpeg_LIBS)
+conv_ffmpeg_la_LIBADD = $(libffmpeg_LIBS) base/libbase.la
 else
 libbuiltin_la_SOURCES += conv-ffmpeg/from-ffmpeg.cpp \
 	conv-ffmpeg/media_data.h conv-ffmpeg/media_data.cpp \
