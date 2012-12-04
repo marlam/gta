@@ -36,6 +36,71 @@ TESTS = \
 	gta-stream-merge.sh \
 	gta-stream-split.sh
 
+if WITH_MUPARSER
+TESTS += gta-component-compute.sh
+endif
+if WITH_QT
+TESTS += gta-gui.sh
+endif
+
+if WITH_CSV
+TESTS += conv-csv.sh
+endif
+if WITH_DATRAW
+TESTS += conv-datraw.sh
+endif
+if WITH_DCMTK
+TESTS += conv-dcmtk.sh
+endif
+if WITH_EXR
+TESTS += conv-exr.sh
+endif
+if WITH_FFMPEG
+TESTS += conv-ffmpeg.sh
+endif
+if WITH_GDAL
+TESTS += conv-gdal.sh
+endif
+if WITH_JPEG
+TESTS += conv-jpeg.sh
+endif
+if WITH_MAGICK
+TESTS += conv-magick.sh
+endif
+if WITH_MAT
+TESTS += conv-mat.sh
+endif
+if WITH_NETCDF
+TESTS += conv-netcdf.sh
+endif
+if WITH_NETPBM
+TESTS += conv-netpbm.sh
+endif
+if WITH_PCD
+TESTS += conv-pcd.sh
+endif
+if WITH_PFS
+TESTS += conv-pfs.sh
+endif
+if WITH_PLY
+TESTS += conv-ply.sh
+endif
+if WITH_PVM
+TESTS += conv-pvm.sh
+endif
+if WITH_RAT
+TESTS += conv-rat.sh
+endif
+if WITH_RAW
+TESTS += conv-raw.sh
+endif
+if WITH_SNDFILE
+TESTS += conv-sndfile.sh
+endif
+if WITH_TEEM
+TESTS += conv-teem.sh
+endif
+
 EXTRA_DIST = $(TESTS)
 
 if VALGRIND_TESTS
