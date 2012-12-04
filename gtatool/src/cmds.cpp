@@ -266,8 +266,10 @@ void cmd_open(int cmd_index)
 #if DYNAMIC_MODULES
     if (cmds[cmd_index].available && !cmds[cmd_index].cmd)
     {
+        const char* env_plugin_path = std::getenv("GTATOOL_PLUGIN_PATH");
+        std::string plugin_path = std::string(env_plugin_path ? env_plugin_path : PKGLIBDIR);
         std::string cmd_name = cmds[cmd_index].name;
-        std::string module_name = std::string(PKGLIBDIR) + "/" + cmds[cmd_index].module_name + ".so";
+        std::string module_name = plugin_path + "/" + cmds[cmd_index].module_name + ".so";
         std::string fn_name = std::string("gtatool_") + str::replace(cmd_name, "-", "_");
         std::string help_fn_name = fn_name + "_help";
         // We used RTLD_LAZY here, but that broke the from-dcmtk command whith dmctk 3.6.0.

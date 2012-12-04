@@ -45,4 +45,6 @@ else
 VALGRIND_CMD =
 endif
 
-TESTS_ENVIRONMENT = GTA="$(VALGRIND_CMD) $(top_builddir)/src/gta"
+TESTS_ENVIRONMENT = \
+	GTA="$(VALGRIND_CMD) $(top_builddir)/src/gta" \
+	GTATOOL_PLUGIN_PATH="$(top_builddir)/src/.libs"
