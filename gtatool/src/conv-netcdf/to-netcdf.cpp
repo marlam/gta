@@ -28,6 +28,7 @@
 #include "msg.h"
 #include "str.h"
 #include "exc.h"
+#include "fio.h"
 #include "opt.h"
 #include "intcheck.h"
 #include "blob.h"
@@ -195,7 +196,7 @@ extern "C" int gtatool_to_netcdf(int argc, char *argv[])
             if ((tagval = hdr.global_taglist().get("NETCDF/NAME")))
                 nc_var_name = tagval;
             if (nc_var_name.empty())
-                nc_var_name = name;
+                nc_var_name = fio::basename(name);
             int nc_var_id;
             std::vector<int> nc_var_dim_ids(nc_dimensions);
             for (int i = 0; i < nc_dimensions; i++)
