@@ -64,10 +64,6 @@ extern "C" int gtatool_info(int argc, char *argv[])
         return 0;
     }
 
-    /* The output of this command should go to stdout */
-    FILE* msg_file_bak = msg::file();
-    msg::set_file(gtatool_stdout);
-
     try
     {
         array_loop_t array_loop;
@@ -324,7 +320,6 @@ extern "C" int gtatool_info(int argc, char *argv[])
     }
     catch (std::exception &e)
     {
-        msg::set_file(msg_file_bak);
         msg::err_txt("%s", e.what());
         return 1;
     }
