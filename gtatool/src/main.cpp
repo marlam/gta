@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
                     || strcmp(argv[argv_cmd_index], "--quiet") == 0))
         {
             argv_cmd_index++;
-            msg::set_level(msg::WRN);
+            msg::set_level(msg::ERR);
         }
         if (argc > argv_cmd_index + 1 && (strcmp(argv[argv_cmd_index], "-v") == 0
                     || strcmp(argv[argv_cmd_index], "--verbose") == 0))
