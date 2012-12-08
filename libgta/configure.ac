@@ -23,7 +23,7 @@ dnl along with Libgta. If not, see <http://www.gnu.org/licenses/>.
 
 dnl Autotools init stuff
 AC_PREREQ([2.65])
-AC_INIT([libgta], [1.0.3], [gta-list@nongnu.org], [libgta], [http://gta.nongnu.org/])
+AC_INIT([libgta], [1.0.4], [gta-list@nongnu.org], [libgta], [http://gta.nongnu.org/])
 AC_CONFIG_SRCDIR([src/gta.c])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
