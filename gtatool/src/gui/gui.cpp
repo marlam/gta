@@ -2447,8 +2447,14 @@ extern int qInitResources();
 
 extern "C" int gtatool_gui(int argc, char *argv[])
 {
+#ifdef Q_WS_X11
+    const char *display = getenv("DISPLAY");
+    bool have_display = (display && display[0] != '\0');
+#else
+    bool have_display = true;
+#endif
     /* Let Qt handle the command line first, so that Qt options work */
-    QApplication *app = new QApplication(argc, argv);
+    QApplication *app = new QApplication(argc, argv, have_display);
     /* Force linking of the Qt resources. Necessary if dynamic modules are disabled. */
     qInitResources();
     /* Now handle our own command line options / arguments */
@@ -2466,6 +2472,11 @@ extern "C" int gtatool_gui(int argc, char *argv[])
         return 0;
     }
     /* Run the GUI */
+    if (!have_display)
+    {
+        msg::err_txt("GUI failure: cannot connect to X server");
+        return 1;
+    }
 #if W32
     DWORD console_process_list[1];
     if (GetConsoleProcessList(console_process_list, 1) == 1)
