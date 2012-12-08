@@ -1,56 +1,58 @@
-# - Find the GTA includes and library
+# - Try to find the GTA library (libgta)
 #
-# This module accepts the following environment variables:
-#  GTA_ROOT - Specify the location of libgta
+# Once done this will define
 #
-# This module defines
-#  GTA_FOUND - If false, do not try to use libgta.
-#  GTA_INCLUDE_DIRS - Where to find the headers.
-#  GTA_LIBRARIES - The libraries to link against to use libgta.
+#  GTA_FOUND - System has libgta
+#  GTA_INCLUDE_DIR - The libgta include directory
+#  GTA_LIBRARIES - The libraries needed to use libgta
 
-# Copyright (C) 2012
-# Martin Lambers <marlam@marlam.de>
+# Adapted from FindGnuTLS.cmake 2012-12-06, Martin Lambers.
+# Original copyright notice:
+#=============================================================================
+# Copyright 2009 Kitware, Inc.
+# Copyright 2009 Philip Lowman <philip@yhbt.com>
+# Copyright 2009 Brad Hards <bradh@kde.org>
+# Copyright 2006 Alexander Neundorf <neundorf@kde.org>
 #
-# Copying and distribution of this file, with or without modification, are
-# permitted in any medium without royalty provided the copyright notice and this
-# notice are preserved. This file is offered as-is, without any warranty.
+# Distributed under the OSI-approved BSD License (the "License");
+# see accompanying file Copyright.txt for details.
+#
+# This software is distributed WITHOUT ANY WARRANTY; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the License for more information.
+#=============================================================================
+# (To distribute this file outside of CMake, substitute the full
+#  License text for the above reference.)
 
-INCLUDE(FindPkgConfig OPTIONAL)
 
+IF(GTA_INCLUDE_DIR AND GTA_LIBRARY)
+    # in cache already
+    SET(GTA_FIND_QUIETLY TRUE)
+ENDIF(GTA_INCLUDE_DIR AND GTA_LIBRARY)
+
+FIND_PACKAGE(PkgConfig QUIET)
 IF(PKG_CONFIG_FOUND)
-    INCLUDE(FindPkgConfig)
-    PKG_CHECK_MODULES(GTA gta)
-ELSE(PKG_CONFIG_FOUND)
-    FIND_PATH(GTA_INCLUDE_DIRS gta/gta.h
-        $ENV{GTA_ROOT}/include
-        $ENV{GTA_ROOT}
-        ~/Library/Frameworks
-        /Library/Frameworks
-        /usr/local/include
-        /usr/include
-        /sw/include # Fink
-        /opt/local/include # DarwinPorts
-        /opt/csw/include # Blastwave
-        /opt/include
-        /usr/freeware/include
-    )
-    FIND_LIBRARY(GTA_LIBRARIES 
-        NAMES gta libgta
-        PATHS
-        $ENV{GTA_ROOT}/lib
-        $ENV{GTA_ROOT}
-        ~/Library/Frameworks
-        /Library/Frameworks
-        /usr/local/lib
-        /usr/lib
-        /sw/lib
-        /opt/local/lib
-        /opt/csw/lib
-        /opt/lib
-        /usr/freeware/lib64
-    )
-    SET(GTA_FOUND "NO")
-    IF(GTA_LIBRARIES AND GTA_INCLUDE_DIRS)
-        SET(GTA_FOUND "YES")
-    ENDIF(GTA_LIBRARIES AND GTA_INCLUDE_DIRS)
-ENDIF(PKG_CONFIG_FOUND)
+    # try using pkg-config to get the directories and then use these values
+    # in the FIND_PATH() and FIND_LIBRARY() calls
+    PKG_CHECK_MODULES(PC_GTA QUIET gta)
+    SET(GTA_VERSION_STRING ${PC_GTA_VERSION})
+ENDIF()
+
+FIND_PATH(GTA_INCLUDE_DIR gta/gta.h HINTS ${PC_GTA_INCLUDE_DIRS})
+
+FIND_LIBRARY(GTA_LIBRARY NAMES gta libgta HINTS ${PC_GTA_LIBRARY_DIRS})
+
+MARK_AS_ADVANCED(GTA_INCLUDE_DIR GTA_LIBRARY)
+
+# handle the QUIETLY and REQUIRED arguments and set GTA_FOUND to TRUE if 
+# all listed variables are TRUE
+INCLUDE(FindPackageHandleStandardArgs)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(GTA
+    REQUIRED_VARS GTA_LIBRARY GTA_INCLUDE_DIR
+    VERSION_VAR GTA_VERSION_STRING
+)
+
+IF(GTA_FOUND)
+    SET(GTA_LIBRARIES ${GTA_LIBRARY})
+    SET(GTA_INCLUDE_DIRS ${GTA_INCLUDE_DIR})
+ENDIF()
