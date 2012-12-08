@@ -54,8 +54,11 @@
 #   endif
 #   undef off_t
 #   define off_t off64_t
+#   undef fseeko
 #   define fseeko(stream, offset, whence) fseeko64(stream, offset, whence)
+#   undef ftello
 #   define ftello(stream) ftello64(stream)
+#   undef lseek
 #   define lseek(fd, offset, whence) _lseeki64(fd, offset, whence)
 #   ifndef SSIZE_MAX
 #       define SSIZE_MAX (sizeof(ssize_t) == sizeof(long long) ? LLONG_MAX \
