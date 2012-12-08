@@ -109,7 +109,7 @@ dnl Interfaces changed/added/removed: CURRENT++ REVISION=0
 dnl Interfaces added:                 AGE++
 dnl Interfaces removed:               AGE=0
 AC_SUBST([LT_CURRENT], [0])
-AC_SUBST([LT_REVISION], [2])
+AC_SUBST([LT_REVISION], [3])
 AC_SUBST([LT_AGE], [0])
 
 dnl Sanity checks for type sizes
