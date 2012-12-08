@@ -49,7 +49,7 @@
 #if W32
 # include <climits>
 # define WIN32_LEAN_AND_MEAN    /* do not include more than necessary */
-# define _WIN32_WINNT 0x0600    /* Windows Vista or later */
+# define _WIN32_WINNT 0x0500    /* Windows 2000 or later */
 # include <windows.h>
 # include <shlwapi.h>
 # include <sys/locking.h>
@@ -59,7 +59,6 @@
 #include "dbg.h"
 #include "msg.h"
 #include "fio.h"
-#include "thread.h"
 
 
 /* Define some POSIX functionality that is missing on W32 */
@@ -118,25 +117,36 @@ static int fnmatch(const char* pattern, const char* string, int flags)
 #endif
 
 #ifndef HAVE_READDIR_R
+// Only Windows lacks readdir_r, so we use a W32 mutex here to avoid
+// depending on the thread module.
 static int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
 {
+    static HANDLE w32_mutex = CreateMutex(NULL, FALSE, NULL);
+    if (w32_mutex == NULL)
+    {
+        errno = EAGAIN;
+        return errno;
+    }
+
+    WaitForSingleObject(w32_mutex, INFINITE);
     struct dirent *r;
-    static mutex m;
-    m.lock();
     errno = 0;
     r = ::readdir(dirp);
     if (!r) {
         if (errno != 0) {
+            ReleaseMutex(w32_mutex);
             return errno;
         } else {
+            ReleaseMutex(w32_mutex);
             *result = NULL;
             return 0;
         }
+    } else {
+        std::memcpy(entry, r, sizeof(struct dirent));
+        ReleaseMutex(w32_mutex);
+        *result = entry;
+        return 0;
     }
-    std::memcpy(entry, r, sizeof(struct dirent));    
-    m.unlock();
-    *result = entry;
-    return 0;
 }
 #endif
 
@@ -190,9 +200,29 @@ static int link(const char *path1, const char *path2)
 #endif
 
 #ifndef HAVE_SYMLINK
+/* Load CreateSymbolicLink() at runtime since it is only available in Windows
+ * Vista and later, but we want the binary to run on XP, too. */
+typedef BOOL (WINAPI* CreateSymbolicLinkFuncType)(LPCSTR, LPCSTR, DWORD);
+static CreateSymbolicLinkFuncType CreateSymbolicLinkFunc = NULL;
+static BOOL CreateSymbolicLinkFuncInitialized = FALSE;
 static int symlink(const char *path1, const char *path2)
 {
-    if (CreateSymbolicLink(path2, path1, 0) == 0)
+    if (!CreateSymbolicLinkFuncInitialized)
+    {
+        HMODULE kernel32 = GetModuleHandle("kernel32.dll");
+        if (kernel32 != NULL)
+        {
+            CreateSymbolicLinkFunc = reinterpret_cast<CreateSymbolicLinkFuncType>(
+                    GetProcAddress(kernel32, "CreateSymbolicLinkA"));
+        }
+        CreateSymbolicLinkFuncInitialized = TRUE;
+    }
+    if (!CreateSymbolicLinkFunc)
+    {
+        errno = EPERM;
+        return -1;
+    }
+    if (CreateSymbolicLinkFunc(path2, path1, 0) == 0)
     {
         DWORD err = GetLastError();
         set_errno_from_last_error(err);

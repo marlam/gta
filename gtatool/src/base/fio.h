@@ -74,7 +74,7 @@
 
 namespace fio
 {
-#if W32
+#if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__
     // Fix off_t
 #   undef off_t
 #   define off_t off64_t
