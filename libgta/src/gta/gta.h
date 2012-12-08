@@ -123,7 +123,7 @@ typedef signed int intptr_t;
 #           define GTA_EXPORT
 #       endif
 #   else
-#       if defined _MSVC && !defined GTA_STATIC
+#       if defined _MSC_VER && !defined GTA_STATIC
 #           define GTA_EXPORT __declspec(dllimport)
 #       else
 #           define GTA_EXPORT
