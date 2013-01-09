@@ -23,6 +23,8 @@
 
 #include <string>
 #include <cstdio>
+#include <cstdlib>
+#include <cerrno>
 
 #include <gta/gta.hpp>
 
@@ -46,6 +48,101 @@ extern "C" void gtatool_from_csv_help(void)
             "This can be changed with the -c option. Supported component types are all integer types and "
             "float32 and float64. The delimiter D must be a single ASCII character; the default is the comma (',').\n"
             "Example: from-csv -c uint8,uint8,uint8 rgb.csv rgb.gta");
+}
+
+static bool parse_component(const std::string& s, gta::type t, void* c)
+{
+    bool ok = false;
+    errno = 0;
+    if (t == gta::int8)
+    {
+        int8_t v;
+        long xv = strtol(s.c_str(), NULL, 0);
+        ok = (errno == 0
+                && xv >= std::numeric_limits<int8_t>::min()
+                && xv <= std::numeric_limits<int8_t>::max());
+        v = xv;
+        std::memcpy(c, &v, sizeof(int8_t));
+    }
+    else if (t == gta::uint8)
+    {
+        uint8_t v;
+        unsigned long xv = strtoul(s.c_str(), NULL, 0);
+        ok = (errno == 0 && xv <= std::numeric_limits<uint8_t>::max());
+        v = xv;
+        std::memcpy(c, &v, sizeof(uint8_t));
+    }
+    else if (t == gta::int16)
+    {
+        int16_t v;
+        long xv = strtol(s.c_str(), NULL, 0);
+        ok = (errno == 0
+                && xv >= std::numeric_limits<int16_t>::min()
+                && xv <= std::numeric_limits<int16_t>::max());
+        v = xv;
+        std::memcpy(c, &v, sizeof(int16_t));
+    }
+    else if (t == gta::uint16)
+    {
+        uint16_t v;
+        unsigned long xv = strtoul(s.c_str(), NULL, 0);
+        ok = (errno == 0 && xv <= std::numeric_limits<uint16_t>::max());
+        v = xv;
+        std::memcpy(c, &v, sizeof(uint16_t));
+    }
+    else if (t == gta::int32)
+    {
+        int32_t v;
+        long xv = strtol(s.c_str(), NULL, 0);
+        ok = (errno == 0
+                && xv >= std::numeric_limits<int32_t>::min()
+                && xv <= std::numeric_limits<int32_t>::max());
+        v = xv;
+        std::memcpy(c, &v, sizeof(int32_t));
+    }
+    else if (t == gta::uint32)
+    {
+        uint32_t v;
+        unsigned long xv = strtoul(s.c_str(), NULL, 0);
+        ok = (errno == 0 && xv <= std::numeric_limits<uint32_t>::max());
+        v = xv;
+        std::memcpy(c, &v, sizeof(uint32_t));
+    }
+    else if (t == gta::int64)
+    {
+        int64_t v;
+        long long xv = strtoll(s.c_str(), NULL, 0);
+        ok = (errno == 0
+                && xv >= std::numeric_limits<int64_t>::min()
+                && xv <= std::numeric_limits<int64_t>::max());
+        v = xv;
+        std::memcpy(c, &v, sizeof(int64_t));
+    }
+    else if (t == gta::uint64)
+    {
+        uint64_t v;
+        unsigned long long xv = strtoul(s.c_str(), NULL, 0);
+        ok = (errno == 0 && xv <= std::numeric_limits<uint64_t>::max());
+        v = xv;
+        std::memcpy(c, &v, sizeof(uint64_t));
+    }
+    else if (t == gta::float32)
+    {
+        float v;
+        errno = 0;
+        v = std::strtof(s.c_str(), NULL);
+        ok = (errno == 0);
+        std::memcpy(c, &v, sizeof(float));
+    }
+    else // t == gta::float64
+    {
+        double v;
+        errno = 0;
+        v = std::strtod(s.c_str(), NULL);
+        ok = (errno == 0);
+        std::memcpy(c, &v, sizeof(double));
+    }
+    return ok;
 }
 
 extern "C" int gtatool_from_csv(int argc, char *argv[])
@@ -164,14 +261,7 @@ extern "C" int gtatool_from_csv(int argc, char *argv[])
                     bool have_value = false;
                     if (value_index < value_strings.size())
                     {
-                        try
-                        {
-                            value_from_string(value_strings[value_index], hdr.component_type(c), 0, component);
-                            have_value = true;
-                        }
-                        catch (...)
-                        {
-                        }
+                        have_value = parse_component(value_strings[value_index], hdr.component_type(c), component);
                         value_index++;
                     }
                     if (!have_value)

@@ -26,6 +26,9 @@
 #include <cstdio>
 #include <cstring>
 
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+
 #include <gta/gta.hpp>
 
 #include "msg.h"
@@ -44,6 +47,70 @@ extern "C" void gtatool_to_csv_help(void)
             "\n"
             "Converts GTAs to csv format, using the field delimiter D. "
             "D is a single ASCII character; the default is the comma (',').");
+}
+
+static void write_component(const void* c, gta::type t, char s[32])
+{
+    if (t == gta::int8)
+    {
+        int8_t v;
+        std::memcpy(&v, c, sizeof(int8_t));
+        std::snprintf(s, 32, "%"PRId8, v);
+    }
+    else if (t == gta::uint8)
+    {
+        uint8_t v;
+        std::memcpy(&v, c, sizeof(uint8_t));
+        std::snprintf(s, 32, "%"PRIu8, v);
+    }
+    else if (t == gta::int16)
+    {
+        int16_t v;
+        std::memcpy(&v, c, sizeof(int16_t));
+        std::snprintf(s, 32, "%"PRId16, v);
+    }
+    else if (t == gta::uint16)
+    {
+        uint16_t v;
+        std::memcpy(&v, c, sizeof(uint16_t));
+        std::snprintf(s, 32, "%"PRIu16, v);
+    }
+    else if (t == gta::int32)
+    {
+        int32_t v;
+        std::memcpy(&v, c, sizeof(int32_t));
+        std::snprintf(s, 32, "%"PRId32, v);
+    }
+    else if (t == gta::uint32)
+    {
+        uint32_t v;
+        std::memcpy(&v, c, sizeof(uint32_t));
+        std::snprintf(s, 32, "%"PRIu32, v);
+    }
+    else if (t == gta::int64)
+    {
+        int64_t v;
+        std::memcpy(&v, c, sizeof(int64_t));
+        std::snprintf(s, 32, "%"PRId64, v);
+    }
+    else if (t == gta::uint64)
+    {
+        uint64_t v;
+        std::memcpy(&v, c, sizeof(uint64_t));
+        std::snprintf(s, 32, "%"PRIu64, v);
+    }
+    else if (t == gta::float32)
+    {
+        float v;
+        std::memcpy(&v, c, sizeof(float));
+        std::snprintf(s, 32, "%.9g", v);
+    }
+    else // t == gta::float64
+    {
+        double v;
+        std::memcpy(&v, c, sizeof(double));
+        std::snprintf(s, 32, "%.17f", v);
+    }
 }
 
 extern "C" int gtatool_to_csv(int argc, char *argv[])
@@ -100,6 +167,7 @@ extern "C" int gtatool_to_csv(int argc, char *argv[])
                 }
             }
 
+            char sbuf[32];
             FILE *fo = fio::open(nameo, "w");
             element_loop_t element_loop;
             array_loop.start_element_loop(element_loop, hdr, gta::header());
@@ -108,68 +176,8 @@ extern "C" int gtatool_to_csv(int argc, char *argv[])
                 const void *p = element_loop.read();
                 for (uintmax_t c = 0; c < hdr.components(); c++)
                 {
-                    std::string s;
-                    if (hdr.component_type(c) == gta::int8)
-                    {
-                        int8_t v;
-                        std::memcpy(&v, hdr.component(p, c), sizeof(int8_t));
-                        s = str::from(v);
-                    }
-                    else if (hdr.component_type(c) == gta::uint8)
-                    {
-                        uint8_t v;
-                        std::memcpy(&v, hdr.component(p, c), sizeof(uint8_t));
-                        s = str::from(v);
-                    }
-                    else if (hdr.component_type(c) == gta::int16)
-                    {
-                        int16_t v;
-                        std::memcpy(&v, hdr.component(p, c), sizeof(int16_t));
-                        s = str::from(v);
-                    }
-                    else if (hdr.component_type(c) == gta::uint16)
-                    {
-                        uint16_t v;
-                        std::memcpy(&v, hdr.component(p, c), sizeof(uint16_t));
-                        s = str::from(v);
-                    }
-                    else if (hdr.component_type(c) == gta::int32)
-                    {
-                        int32_t v;
-                        std::memcpy(&v, hdr.component(p, c), sizeof(int32_t));
-                        s = str::from(v);
-                    }
-                    else if (hdr.component_type(c) == gta::uint32)
-                    {
-                        uint32_t v;
-                        std::memcpy(&v, hdr.component(p, c), sizeof(uint32_t));
-                        s = str::from(v);
-                    }
-                    else if (hdr.component_type(c) == gta::int64)
-                    {
-                        int64_t v;
-                        std::memcpy(&v, hdr.component(p, c), sizeof(int64_t));
-                        s = str::from(v);
-                    }
-                    else if (hdr.component_type(c) == gta::uint64)
-                    {
-                        uint64_t v;
-                        std::memcpy(&v, hdr.component(p, c), sizeof(uint64_t));
-                        s = str::from(v);
-                    }
-                    else if (hdr.component_type(c) == gta::float32)
-                    {
-                        float v;
-                        std::memcpy(&v, hdr.component(p, c), sizeof(float));
-                        s = str::from(v);
-                    }
-                    else // hdr.component_type(c) == gta::float64
-                    {
-                        double v;
-                        std::memcpy(&v, hdr.component(p, c), sizeof(double));
-                        s = str::from(v);
-                    }
-                    if (std::fputs(s.c_str(), fo) == EOF)
+                    write_component(hdr.component(p, c), hdr.component_type(c), sbuf);
+                    if (std::fputs(sbuf, fo) == EOF)
                     {
                         throw exc(nameo + ": output error.");
                     }
