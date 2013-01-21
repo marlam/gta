@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -2435,7 +2435,7 @@ void GUI::help_about()
                 "<p>Use <code>%4 help</code> to get a list of all commands provided by this tool, "
                 "and <code>%4 help &lt;cmd&gt;</code> to get a description of a specific command.</p>"
                 "<p>See <a href=\"%5\">%5</a> for more information on this software.</p>"
-                "<p>Copyright (C) 2012 Martin Lambers.<br>"
+                "<p>Copyright (C) 2013 Martin Lambers.<br>"
                 "This is <a href=\"http://www.gnu.org/philosophy/free-sw.html\">free software</a>. "
                 "You may redistribute copies of it under the terms of the "
                 "<a href=\"http://www.gnu.org/licenses/gpl.html\">GNU General Public License</a>. "

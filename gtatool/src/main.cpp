@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
+ * Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -63,7 +63,7 @@ extern "C" int gtatool_version(int argc, char *argv[])
         return 0;
     }
     msg::req_txt("%s version %s on %s, using libgta version %s\n"
-            "Copyright (C) 2012  Martin Lambers <marlam@marlam.de>.\n"
+            "Copyright (C) 2013  Martin Lambers <marlam@marlam.de>.\n"
             "This is free software. You may redistribute copies of it under the terms of "
             "the GNU General Public License.\n"
             "There is NO WARRANTY, to the extent permitted by law.",
