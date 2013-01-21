@@ -1,4 +1,4 @@
-# Copyright (C) 2010, 2011
+# Copyright (C) 2010, 2011, 2012, 2013
 # Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -24,6 +24,7 @@ TESTS = \
 	gta-dimension-split.sh \
 	gta-compress.sh \
 	gta-create.sh \
+	gta-diff.sh \
 	gta-extract.sh \
 	gta-fill.sh \
 	gta-info.sh \

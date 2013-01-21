@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
+ * Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -84,6 +84,7 @@ CMD_DECL(component_set)
 CMD_DECL(component_split)
 CMD_DECL(compress)
 CMD_DECL(create)
+CMD_DECL(diff)
 CMD_DECL(dimension_add)
 CMD_DECL(dimension_extract)
 CMD_DECL(dimension_flatten)
@@ -154,6 +155,7 @@ static cmd_t cmds[] =
     CMD("component-split",   component,  component_split,   true,          BUILTIN),
     CMD("compress",          array,      compress,          true,          BUILTIN),
     CMD("create",            array,      create,            true,          BUILTIN),
+    CMD("diff",              array,      diff,              true,          BUILTIN),
     CMD("dimension-add",     dimension,  dimension_add,     true,          BUILTIN),
     CMD("dimension-extract", dimension,  dimension_extract, true,          BUILTIN),
     CMD("dimension-flatten", dimension,  dimension_flatten, true,          BUILTIN),

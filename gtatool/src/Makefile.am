@@ -1,4 +1,4 @@
-# Copyright (C) 2010, 2011
+# Copyright (C) 2010, 2011, 2012, 2013
 # Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -63,6 +63,7 @@ libbuiltin_la_SOURCES = \
 	dimension/dimension-split.cpp \
 	array/compress.cpp \
 	array/create.cpp \
+	array/diff.cpp \
 	array/extract.cpp \
 	array/fill.cpp \
 	array/info.cpp \
