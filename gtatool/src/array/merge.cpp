@@ -174,7 +174,6 @@ extern "C" int gtatool_merge(int argc, char *argv[])
                 hdro.component_taglist(c) = hdri[0].component_taglist(c);
             }
             array_loops[0].write(hdro, nameo);
-            blob element_buf(checked_cast<size_t>(hdro.element_size()));
             std::vector<uintmax_t> indices(hdro.dimensions());
             std::vector<element_loop_t> element_loops(arguments.size());
             for (size_t i = 0; i < element_loops.size(); i++)
