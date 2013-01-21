@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -676,13 +676,13 @@ bool array_loop_t::read(gta::header &header_in, std::string &name_in)
         }
         else
         {
-            FILE *f = _file_in;
-            _file_in = NULL;
-            fio::close(f, filename_in());
             if (_filename_index + 1 == _filenames_in.size())
             {
                 return false;
             }
+            FILE *f = _file_in;
+            _file_in = NULL;
+            fio::close(f, filename_in());
             _filename_index++;
             _file_in = fio::open(_filenames_in.at(_filename_index), "r");
             _file_index_in = 0;

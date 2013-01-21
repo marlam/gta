@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011
+ * Copyright (C) 2010, 2011, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -91,9 +91,14 @@ extern "C" int gtatool_merge(int argc, char *argv[])
             {
                 throw exc(namei[0] + ": array has no dimension " + str::from(dimension.value()));
             }
+            bool have_input = true;
             for (size_t i = 1; i < arguments.size(); i++)
             {
-                array_loops[i].read(hdri[i], namei[i]);
+                if (!array_loops[i].read(hdri[i], namei[i]))
+                {
+                    have_input = false;
+                    break;
+                }
                 if (hdri[i].components() != hdri[0].components())
                 {
                     throw exc(namei[i] + ": incompatible array");
@@ -121,6 +126,11 @@ extern "C" int gtatool_merge(int argc, char *argv[])
                         throw exc(namei[i] + ": incompatible array");
                     }
                 }
+            }
+            if (!have_input)
+            {
+                msg::wrn_txt("ignoring additional array(s) from %s", arguments[0].c_str());
+                break;
             }
             gta::header hdro;
             std::string nameo;
