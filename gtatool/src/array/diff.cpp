@@ -115,8 +115,6 @@ extern "C" int gtatool_diff(int argc, char *argv[])
     std::vector<opt::option *> options;
     opt::info help("help", '\0', opt::optional);
     options.push_back(&help);
-    opt::flag statistics("statistics", 's', opt::optional);
-    options.push_back(&statistics);
     opt::flag absolute("absolute", 'a', opt::optional);
     options.push_back(&absolute);
     std::vector<std::string> arguments;
