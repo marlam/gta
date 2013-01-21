@@ -28,6 +28,7 @@ TESTS = \
 	gta-extract.sh \
 	gta-fill.sh \
 	gta-info.sh \
+	gta-layer.sh \
 	gta-merge.sh \
 	gta-resize.sh \
 	gta-set.sh \

@@ -116,6 +116,7 @@ CMD_DECL(from_teem)
 CMD_DECL(gui)
 CMD_DECL(help)
 CMD_DECL(info)
+CMD_DECL(layer)
 CMD_DECL(merge)
 CMD_DECL(resize)
 CMD_DECL(set)
@@ -187,6 +188,7 @@ static cmd_t cmds[] =
     CMD("gui",               misc,       gui,               WITH_QT,       "gui"),
     CMD("help",              misc,       help,              true,          BUILTIN),
     CMD("info",              array,      info,              true,          BUILTIN),
+    CMD("layer",             array,      layer,             true,          BUILTIN),
     CMD("merge",             array,      merge,             true,          BUILTIN),
     CMD("resize",            array,      resize,            true,          BUILTIN),
     CMD("set",               array,      set,               true,          BUILTIN),

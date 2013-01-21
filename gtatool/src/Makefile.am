@@ -67,6 +67,7 @@ libbuiltin_la_SOURCES = \
 	array/extract.cpp \
 	array/fill.cpp \
 	array/info.cpp \
+	array/layer.cpp \
 	array/merge.cpp \
 	array/resize.cpp \
 	array/set.cpp \
