@@ -709,12 +709,18 @@ GUI::GUI()
     QAction *array_create_action = new QAction(tr("&Create array..."), this);
     connect(array_create_action, SIGNAL(triggered()), this, SLOT(array_create()));
     array_menu->addAction(array_create_action);
+    QAction *array_diff_action = new QAction(tr("Compute &difference of two open files..."), this);
+    connect(array_diff_action, SIGNAL(triggered()), this, SLOT(array_diff()));
+    array_menu->addAction(array_diff_action);
     QAction *array_extract_action = new QAction(tr("&Extract sub-arrays..."), this);
     connect(array_extract_action, SIGNAL(triggered()), this, SLOT(array_extract()));
     array_menu->addAction(array_extract_action);
     QAction *array_fill_action = new QAction(tr("&Fill sub-arrays..."), this);
     connect(array_fill_action, SIGNAL(triggered()), this, SLOT(array_fill()));
     array_menu->addAction(array_fill_action);
+    QAction *array_layer_action = new QAction(tr("&Layer arrays from open files..."), this);
+    connect(array_layer_action, SIGNAL(triggered()), this, SLOT(array_layer()));
+    array_menu->addAction(array_layer_action);
     QAction *array_merge_action = new QAction(tr("&Merge arrays from open files..."), this);
     connect(array_merge_action, SIGNAL(triggered()), this, SLOT(array_merge()));
     array_menu->addAction(array_merge_action);
@@ -1727,6 +1733,52 @@ void GUI::array_create()
     output_cmd("create", args, "");
 }
 
+void GUI::array_diff()
+{
+    if (!check_have_file() || !check_file_unchanged())
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Compute differences between two sets of arrays");
+    QGridLayout *layout = new QGridLayout;
+    QCheckBox *abs_box = new QCheckBox("Compute absolute difference");
+    layout->addWidget(abs_box, 0, 0, 1, 2);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 1, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 1, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    if (abs_box->isChecked())
+    {
+        args.push_back("-a");
+    }
+    if (_files_widget->count() >= 2)
+    {
+        for (int i = _files_widget->count() - 2; i < _files_widget->count(); i++)
+        {
+            FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
+            args.push_back(fio::to_sys(fw->save_name()));
+        }
+    }
+    else
+    {
+        FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->widget(0));
+        args.push_back(fio::to_sys(fw->save_name()));
+        args.push_back(fio::to_sys(fw->save_name()));
+    }
+    output_cmd("diff", args, "");
+}
+
 void GUI::array_extract()
 {
     if (!check_have_file() || !check_file_unchanged())
@@ -1806,6 +1858,51 @@ void GUI::array_fill()
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
     args.push_back(fio::to_sys(fw->save_name()));
     output_cmd("fill", args, "");
+}
+
+void GUI::array_layer()
+{
+    if (!check_have_file() || !check_file_unchanged())
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Layer arrays");
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(new QLabel("Mode:"), 0, 0);
+    QComboBox* mode_box = new QComboBox();
+    layout->addWidget(mode_box, 0, 1);
+    mode_box->addItem("min");
+    mode_box->addItem("max");
+    mode_box->addItem("add");
+    mode_box->addItem("sub");
+    mode_box->addItem("mul");
+    mode_box->addItem("div");
+    mode_box->addItem("and");
+    mode_box->addItem("or");
+    mode_box->addItem("xor");
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 1, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 1, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    std::vector<std::string> args;
+    args.push_back("-m");
+    args.push_back(qPrintable(mode_box->currentText()));
+    for (int i = 0; i < _files_widget->count(); i++)
+    {
+        FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
+        args.push_back(fio::to_sys(fw->save_name()));
+    }
+    output_cmd("layer", args, "");
 }
 
 void GUI::array_merge()

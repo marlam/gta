@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -253,8 +253,10 @@ private slots:
     void stream_split();
     void stream_extract();
     void array_create();
+    void array_diff();
     void array_extract();
     void array_fill();
+    void array_layer();
     void array_merge();
     void array_resize();
     void array_set();
