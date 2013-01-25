@@ -15,7 +15,8 @@ $GTA create -d 6,8 -c uint8 -v 42 "$TMPD"/a.gta
 
 $GTA to-mat "$TMPD"/a.gta "$TMPD"/b.mat
 $GTA to-mat "$TMPD"/c.mat < "$TMPD"/a.gta
-cmp "$TMPD"/b.mat "$TMPD"/c.mat
+# Cannot compare MAT files because libmatio stores the creation time in them.
+#cmp "$TMPD"/b.mat "$TMPD"/c.mat
 
 $GTA from-mat "$TMPD"/b.mat "$TMPD"/b.gta
 $GTA from-mat "$TMPD"/c.mat > "$TMPD"/c.gta
