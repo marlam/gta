@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -94,24 +94,29 @@ extern "C" int gtatool_from_raw(int argc, char *argv[])
         array_loop_t array_loop;
         array_loop.start(std::vector<std::string>(1, arguments[0]), arguments.size() == 2 ? arguments[1] : "");
         std::string nameo;
-        array_loop.write(hdr, nameo);
 
-        if (host_endianness)
+        do
         {
-            array_loop.copy_data(hdr, hdr);
-        }
-        else
-        {
-            element_loop_t element_loop;
-            array_loop.start_element_loop(element_loop, hdr, hdr);
-            blob element(checked_cast<size_t>(hdr.element_size()));
-            for (uintmax_t e = 0; e < hdr.elements(); e++)
+            array_loop.write(hdr, nameo);
+
+            if (host_endianness)
             {
-                std::memcpy(element.ptr(), element_loop.read(1), hdr.element_size());
-                swap_element_endianness(hdr, element.ptr());
-                element_loop.write(element.ptr());
+                array_loop.copy_data(hdr, hdr);
+            }
+            else
+            {
+                element_loop_t element_loop;
+                array_loop.start_element_loop(element_loop, hdr, hdr);
+                blob element(checked_cast<size_t>(hdr.element_size()));
+                for (uintmax_t e = 0; e < hdr.elements(); e++)
+                {
+                    std::memcpy(element.ptr(), element_loop.read(1), hdr.element_size());
+                    swap_element_endianness(hdr, element.ptr());
+                    element_loop.write(element.ptr());
+                }
             }
         }
+        while (fio::has_more(array_loop.file_in()));
         array_loop.finish();
     }
     catch (std::exception &e)
