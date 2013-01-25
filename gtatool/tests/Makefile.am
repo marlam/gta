@@ -22,13 +22,13 @@ TESTS = \
 	gta-dimension-reorder.sh \
 	gta-dimension-reverse.sh \
 	gta-dimension-split.sh \
+	gta-combine.sh \
 	gta-compress.sh \
 	gta-create.sh \
 	gta-diff.sh \
 	gta-extract.sh \
 	gta-fill.sh \
 	gta-info.sh \
-	gta-layer.sh \
 	gta-merge.sh \
 	gta-resize.sh \
 	gta-set.sh \

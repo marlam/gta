@@ -61,13 +61,13 @@ libbuiltin_la_SOURCES = \
 	dimension/dimension-reorder.cpp \
 	dimension/dimension-reverse.cpp \
 	dimension/dimension-split.cpp \
+	array/combine.cpp \
 	array/compress.cpp \
 	array/create.cpp \
 	array/diff.cpp \
 	array/extract.cpp \
 	array/fill.cpp \
 	array/info.cpp \
-	array/layer.cpp \
 	array/merge.cpp \
 	array/resize.cpp \
 	array/set.cpp \

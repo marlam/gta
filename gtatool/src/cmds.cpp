@@ -74,6 +74,7 @@ typedef struct
             AVAILABLE ? gtatool_ ## FNBASE ## _help : NULL }
 #endif
 
+CMD_DECL(combine)
 CMD_DECL(component_add)
 CMD_DECL(component_compute)
 CMD_DECL(component_convert)
@@ -116,7 +117,6 @@ CMD_DECL(from_teem)
 CMD_DECL(gui)
 CMD_DECL(help)
 CMD_DECL(info)
-CMD_DECL(layer)
 CMD_DECL(merge)
 CMD_DECL(resize)
 CMD_DECL(set)
@@ -146,6 +146,7 @@ CMD_DECL(version)
 
 static cmd_t cmds[] =
 {
+    CMD("combine",           array,      combine,           true,          BUILTIN),
     CMD("component-add",     component,  component_add,     true,          BUILTIN),
     CMD("component-compute", component,  component_compute, WITH_MUPARSER, "component-compute"),
     CMD("component-convert", component,  component_convert, true,          BUILTIN),
@@ -188,7 +189,6 @@ static cmd_t cmds[] =
     CMD("gui",               misc,       gui,               WITH_QT,       "gui"),
     CMD("help",              misc,       help,              true,          BUILTIN),
     CMD("info",              array,      info,              true,          BUILTIN),
-    CMD("layer",             array,      layer,             true,          BUILTIN),
     CMD("merge",             array,      merge,             true,          BUILTIN),
     CMD("resize",            array,      resize,            true,          BUILTIN),
     CMD("set",               array,      set,               true,          BUILTIN),

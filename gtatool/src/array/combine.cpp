@@ -33,27 +33,27 @@
 #include "lib.h"
 
 
-extern "C" void gtatool_layer_help(void)
+extern "C" void gtatool_combine_help(void)
 {
     msg::req_txt(
-            "layer -m|--mode=min|max|add|sub|mul|div|or|and|xor <files>...\n"
+            "combine -m|--mode=min|max|add|sub|mul|div|or|and|xor <files>...\n"
             "\n"
-            "Layers the input GTAs in the given mode and writes the result to stdout.\n"
+            "Combines the input GTAs in the given mode and writes the result to stdout.\n"
             "The GTAs must be compatible in dimensions and component types. This command produces "
-            "output GTAs of the same kind. Each component will contain the result of layering "
+            "output GTAs of the same kind. Each component will contain the result of combining "
             "the corresponding components in the input GTAs.\n"
-            "Beware of type limitations! If a layer cannot be represented in the given component type, "
-            "this command will abort. Use component-convert to convert between component types.\n"
-            "Example: layer -m min a.gta b.gta > min.gta");
+            "Beware of type limitations! If a combination cannot be represented in the given component type, "
+            "this command will abort. Use component-convert if necessary.\n"
+            "Example: combine -m min a.gta b.gta > min.gta");
 }
 
 typedef enum
 {
     mode_min, mode_max, mode_add, mode_sub, mode_mul, mode_div, mode_and, mode_or, mode_xor
-} layer_mode_t;
+} combine_mode_t;
 
 template<typename T>
-static void int_arith_layer(layer_mode_t mode, size_t n, const void** c, void* l)
+static void int_arith_combine(combine_mode_t mode, size_t n, const void** c, void* l)
 {
     T r;
     std::memcpy(&r, c[0], sizeof(T));
@@ -92,7 +92,7 @@ static void int_arith_layer(layer_mode_t mode, size_t n, const void** c, void* l
 }
 
 template<typename T>
-static void float_arith_layer(layer_mode_t mode, size_t n, const void** c, void* l)
+static void float_arith_combine(combine_mode_t mode, size_t n, const void** c, void* l)
 {
     T r;
     std::memcpy(&r, c[0], sizeof(T));
@@ -131,7 +131,7 @@ static void float_arith_layer(layer_mode_t mode, size_t n, const void** c, void*
 }
 
 template<typename T>
-static void bit_layer(layer_mode_t mode, size_t n, const void** c, void* l)
+static void bit_combine(combine_mode_t mode, size_t n, const void** c, void* l)
 {
     T r;
     std::memcpy(&r, c[0], sizeof(T));
@@ -158,45 +158,45 @@ static void bit_layer(layer_mode_t mode, size_t n, const void** c, void* l)
     std::memcpy(l, &r, sizeof(T));
 }
 
-static void layer(gta::type t, layer_mode_t mode, size_t n, const void** c, void* l)
+static void combine(gta::type t, combine_mode_t mode, size_t n, const void** c, void* l)
 {
     if (mode == mode_and || mode == mode_or || mode == mode_xor)
     {
         if (t == gta::int8 || t == gta::uint8)
-            bit_layer<uint8_t>(mode, n, c, l);
+            bit_combine<uint8_t>(mode, n, c, l);
         else if (t == gta::int16 || t == gta::uint16)
-            bit_layer<uint16_t>(mode, n, c, l);
+            bit_combine<uint16_t>(mode, n, c, l);
         else if (t == gta::int32 || t == gta::uint32 || t == gta::float32)
-            bit_layer<uint32_t>(mode, n, c, l);
+            bit_combine<uint32_t>(mode, n, c, l);
         else // (t == gta::int64 || t == gta::uint64 || t == gta::float64)
-            bit_layer<uint64_t>(mode, n, c, l);
+            bit_combine<uint64_t>(mode, n, c, l);
     }
     else
     {
         if (t == gta::int8)
-            int_arith_layer<int8_t>(mode, n, c, l);
+            int_arith_combine<int8_t>(mode, n, c, l);
         else if (t == gta::uint8)
-            int_arith_layer<uint8_t>(mode, n, c, l);
+            int_arith_combine<uint8_t>(mode, n, c, l);
         else if (t == gta::int16)
-            int_arith_layer<int16_t>(mode, n, c, l);
+            int_arith_combine<int16_t>(mode, n, c, l);
         else if (t == gta::uint16)
-            int_arith_layer<uint16_t>(mode, n, c, l);
+            int_arith_combine<uint16_t>(mode, n, c, l);
         else if (t == gta::int32)
-            int_arith_layer<int32_t>(mode, n, c, l);
+            int_arith_combine<int32_t>(mode, n, c, l);
         else if (t == gta::uint32)
-            int_arith_layer<uint32_t>(mode, n, c, l);
+            int_arith_combine<uint32_t>(mode, n, c, l);
         else if (t == gta::int64)
-            int_arith_layer<int64_t>(mode, n, c, l);
+            int_arith_combine<int64_t>(mode, n, c, l);
         else if (t == gta::uint64)
-            int_arith_layer<uint64_t>(mode, n, c, l);
+            int_arith_combine<uint64_t>(mode, n, c, l);
         else if (t == gta::float32)
-            float_arith_layer<float>(mode, n, c, l);
+            float_arith_combine<float>(mode, n, c, l);
         else // t == gta::float64
-            float_arith_layer<double>(mode, n, c, l);
+            float_arith_combine<double>(mode, n, c, l);
     }
 }
 
-extern "C" int gtatool_layer(int argc, char *argv[])
+extern "C" int gtatool_combine(int argc, char *argv[])
 {
     std::vector<opt::option *> options;
     opt::info help("help", '\0', opt::optional);
@@ -220,7 +220,7 @@ extern "C" int gtatool_layer(int argc, char *argv[])
     }
     if (help.value())
     {
-        gtatool_layer_help();
+        gtatool_combine_help();
         return 0;
     }
 
@@ -230,7 +230,7 @@ extern "C" int gtatool_layer(int argc, char *argv[])
         return 1;
     }
 
-    layer_mode_t m
+    combine_mode_t m
         (  mode.value().compare("min") == 0 ? mode_min
          : mode.value().compare("max") == 0 ? mode_max
          : mode.value().compare("add") == 0 ? mode_add
@@ -283,7 +283,7 @@ extern "C" int gtatool_layer(int argc, char *argv[])
                             && hdri[i].component_type(c) != gta::float32
                             && hdri[i].component_type(c) != gta::float64)
                     {
-                        throw exc(namei[i] + ": cannot compute layererences of type "
+                        throw exc(namei[i] + ": cannot compute combinations of type "
                                 + type_to_string(hdri[i].component_type(c), hdri[i].component_size(c)));
                     }
                 }
@@ -343,7 +343,7 @@ extern "C" int gtatool_layer(int argc, char *argv[])
                     {
                         component_ptrs[i] = static_cast<const char*>(element_ptrs[i]) + component_offsets[c];
                     }
-                    layer(hdro.component_type(c), m, arguments.size(), &component_ptrs[0],
+                    combine(hdro.component_type(c), m, arguments.size(), &component_ptrs[0],
                             static_cast<void*>(element_buf.ptr<char>(component_offsets[c])));
                 }
                 element_loops[0].write(element_buf.ptr());
