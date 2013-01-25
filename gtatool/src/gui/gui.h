@@ -37,10 +37,10 @@
 #include <QDir>
 #include <QStringList>
 #include <QComboBox>
+#include <QSpinBox>
+#include <QGridLayout>
 
 #include <gta/gta.hpp>
-
-#include "fio.h"        // For a fixed off_t on W32
 
 
 class MyTabWidget : public QTabWidget
@@ -92,6 +92,7 @@ class ArrayWidget : public QWidget
 Q_OBJECT
 
 private:
+    size_t _index;
     gta::header *_header;
     QLineEdit *_dimensions_ledt;
     QLineEdit *_components_ledt;
@@ -104,7 +105,7 @@ private slots:
     void taglist_changed(gta::header *header, int type, uintmax_t index);
 
 public:
-    ArrayWidget(gta::header *_header, QWidget *parent = NULL);
+    ArrayWidget(size_t index, gta::header *_header, QWidget *parent = NULL);
     ~ArrayWidget();
 
     void saved();
@@ -113,7 +114,7 @@ public slots:
     void update();
 
 signals:
-    void changed(gta::header *header);
+    void changed(size_t index);
 };
 
 class FileWidget : public QWidget
@@ -125,10 +126,16 @@ private:
     std::string _save_name;
     bool _is_changed;
     std::vector<gta::header *> _headers;
-    MyTabWidget *_arrays_widget;
+    std::vector<bool> _array_changed;
+    QLabel *_array_label;
+    QSpinBox *_array_spinbox;
+    QGridLayout *_array_widget_layout;
+    ArrayWidget* _array_widget;
 
 private slots:
-    void array_changed(gta::header *header);
+    void update_label();
+    void update_array();
+    void array_changed(size_t index);
 
 public:
 
@@ -162,9 +169,9 @@ public:
         return _headers;
     }
 
-    MyTabWidget *arrays_widget()
+    int array_index() const
     {
-        return _arrays_widget;
+        return _array_spinbox->value();
     }
 
     void set_file_name(const std::string &file_name);

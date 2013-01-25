@@ -283,8 +283,8 @@ void TaglistWidget::remove()
     emit changed(_header, _type, _index);
 }
 
-ArrayWidget::ArrayWidget(gta::header *header, QWidget *parent)
-    : QWidget(parent), _header(header)
+ArrayWidget::ArrayWidget(size_t index, gta::header *header, QWidget *parent)
+    : QWidget(parent), _index(index), _header(header)
 {
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(new QLabel("Dimensions:"), 0, 0, 1, 1);
@@ -336,7 +336,7 @@ void ArrayWidget::compression_changed(int index)
     if (index != static_cast<int>(_header->compression()))
     {
         _header->set_compression(static_cast<gta::compression>(index));
-        emit changed(_header);
+        emit changed(_index);
     }
 }
 
@@ -354,7 +354,7 @@ void ArrayWidget::taglist_changed(gta::header *, int type, uintmax_t index)
     {
         _taglists_widget->tabBar()->setTabTextColor(1 + _header->dimensions() + index, QColor("red"));
     }
-    emit changed(_header);
+    emit changed(_index);
 }
 
 void ArrayWidget::saved()
@@ -449,20 +449,28 @@ FileWidget::FileWidget(const std::string &file_name, const std::string &save_nam
         const std::vector<gta::header *> &headers,
         QWidget *parent)
     : QWidget(parent),
-    _file_name(file_name), _save_name(save_name), _is_changed(false), _headers(headers)
+    _file_name(file_name), _save_name(save_name), _is_changed(false),
+    _headers(headers), _array_changed(_headers.size(), false)
 {
-    _arrays_widget = new MyTabWidget;
-    for (size_t i = 0; i < headers.size(); i++)
-    {
-        ArrayWidget *aw = new ArrayWidget(headers[i]);
-        connect(aw, SIGNAL(changed(gta::header *)), this, SLOT(array_changed(gta::header *)));
-        _arrays_widget->addTab(aw, QString((std::string("Array ") + str::from(i)).c_str()));
-        _arrays_widget->tabBar()->setTabTextColor(_arrays_widget->indexOf(aw), "black");
-    }    
+    _array_label = new QLabel("Array index:");
+    _array_spinbox = new QSpinBox;
+    _array_spinbox->setRange(0, checked_cast<int>(_headers.size() - 1));
+    _array_spinbox->setValue(0);
+    connect(_array_spinbox, SIGNAL(valueChanged(int)), this, SLOT(update_array()));
+    QGridLayout *l0 = new QGridLayout;
+    l0->addWidget(_array_label, 0, 0);
+    l0->addWidget(_array_spinbox, 0, 1);
+    l0->addWidget(new QLabel(QString(" / ") + QString::number(_headers.size())), 0, 2);
+    l0->addItem(new QSpacerItem(0, _array_label->minimumSizeHint().height() / 3 * 2,
+                QSizePolicy::Minimum, QSizePolicy::Fixed), 1, 0, 1, 4);
+    l0->setColumnStretch(3, 1);
+    _array_widget_layout = new QGridLayout;
+    _array_widget = NULL;
+    update_array();
     QGridLayout *layout = new QGridLayout;
-    layout->addWidget(_arrays_widget, 0, 0);
-    layout->setRowStretch(0, 1);
-    layout->setColumnStretch(0, 1);
+    layout->addLayout(l0, 0, 0);
+    layout->addLayout(_array_widget_layout, 1, 0);
+    layout->setRowStretch(1, 1);
     setLayout(layout);
 }
 
@@ -474,18 +482,33 @@ FileWidget::~FileWidget()
     }
 }
 
-void FileWidget::array_changed(gta::header *header)
+void FileWidget::update_label()
 {
-    size_t array_index = 0;
-    for (size_t i = 0; i < _headers.size(); i++)
-    {
-        if (_headers[i] == header)
-        {
-            array_index = i;
-            break;
-        }
+    size_t index = _array_spinbox->value();
+    QPalette p = _array_label->palette();
+    p.setColor(_array_label->foregroundRole(),
+            _array_changed[index] ? QColor("red") : QColor("black"));
+    _array_label->setPalette(p);
+}
+
+void FileWidget::update_array()
+{
+    size_t index = _array_spinbox->value();
+    if (_array_widget) {
+        _array_widget_layout->removeWidget(_array_widget);
+        delete _array_widget;
     }
-    _arrays_widget->tabBar()->setTabTextColor(array_index, QColor("red"));
+    _array_widget = new ArrayWidget(index, _headers[index]);
+    connect(_array_widget, SIGNAL(changed(size_t)), this, SLOT(array_changed(size_t)));
+    _array_widget->layout()->setContentsMargins(0, 0, 0, 0);
+    _array_widget_layout->addWidget(_array_widget, 0, 0);
+    update_label();
+}
+
+void FileWidget::array_changed(size_t index)
+{
+    _array_changed[index] = true;
+    update_label();
     _is_changed = true;
     emit changed(_file_name, _save_name);
 }
@@ -505,12 +528,10 @@ void FileWidget::saved_to(const std::string &save_name)
     _is_changed = false;
     if (is_saved())
     {
-        for (int i = 0; i < _arrays_widget->count(); i++)
-        {
-            ArrayWidget *aw = reinterpret_cast<ArrayWidget *>(_arrays_widget->widget(i));
-            aw->saved();
-            _arrays_widget->tabBar()->setTabTextColor(i, QColor("black"));
-        }
+        _array_widget->saved();
+        for (size_t i = 0; i < _headers.size(); i++)
+            _array_changed[i] = false;
+        update_label();
     }
 }
 
@@ -1690,10 +1711,9 @@ void GUI::stream_extract()
         return;
     }
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    int index = fw->arrays_widget()->currentIndex();
     std::vector<std::string> args;
     args.push_back(fio::to_sys(fw->save_name()));
-    args.push_back(str::from(index));
+    args.push_back(str::from(fw->array_index()));
     output_cmd("stream-extract", args, "");
 }
 
