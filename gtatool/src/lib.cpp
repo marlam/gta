@@ -788,3 +788,11 @@ void array_loop_t::start_element_loop(element_loop_t &element_loop,
     element_loop.start(header_in, _array_name_in, _file_in,
             header_out, _array_name_out, _file_out);
 }
+
+void buffer_data(const gta::header &header, FILE *f, gta::header &buf_header, FILE **buf_f)
+{
+    *buf_f = fio::tempfile();
+    buf_header = header;
+    buf_header.set_compression(gta::none);
+    header.copy_data(f, buf_header, *buf_f);
+}

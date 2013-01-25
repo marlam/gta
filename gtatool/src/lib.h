@@ -155,4 +155,17 @@ public:
     void finish();
 };
 
+/* Buffer array data in a temporary file. Useful if a command needs the input
+ * data to be seekable for block-based i/o.
+ *
+ * The output is a temporary file in buf_f which contains the data, and a
+ * suitable GTA header to read it block-wise in buf_header. buf_f is a temporary
+ * file; simply closing it will delete it.
+ *
+ * The file pointer in file f must point to the start of the data. After
+ * this function finishes, the pointer will point at the next byte after the
+ * data.
+ */
+void buffer_data(const gta::header &header, FILE *f, gta::header &buf_header, FILE **buf_f);
+
 #endif

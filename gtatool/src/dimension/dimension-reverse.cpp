@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011
+ * Copyright (C) 2010, 2011, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -43,7 +43,7 @@ extern "C" void gtatool_dimension_reverse_help(void)
             "dimension-reverse [-i|--indices=<i0>[,<i1>[,...]]] [<files>...]\n"
             "\n"
             "Reverses the given dimensions of the input GTAs.\n"
-            "The input GTAs must be uncompressed and seekable for this purpose.\n"
+            "The default is to make no changes.\n"
             "Example: dimension-reverse -i 0 image.gta > flipped-image.gta");
 }
 
@@ -85,14 +85,6 @@ extern "C" int gtatool_dimension_reverse(int argc, char *argv[])
         array_loop.start(arguments, "");
         while (array_loop.read(hdri, namei))
         {
-            if (!fio::seekable(array_loop.file_in()))
-            {
-                throw exc(array_loop.filename_in() + ": input is not seekable");
-            }
-            if (hdri.compression() != gta::none)
-            {
-                throw exc(namei + ": array is compressed");
-            }
             if (!indices.value().empty())
             {
                 for (size_t i = 0; i < indices.value().size(); i++)
@@ -103,7 +95,17 @@ extern "C" int gtatool_dimension_reverse(int argc, char *argv[])
                     }
                 }
             }
-            uintmax_t data_offset = fio::tell(array_loop.file_in(), array_loop.filename_in());
+            uintmax_t data_offset = 0;
+            FILE *fbuf = NULL;
+            gta::header hbuf;
+            if (!fio::seekable(array_loop.file_in()) || hdri.compression() != gta::none)
+            {
+                buffer_data(hdri, array_loop.file_in(), hbuf, &fbuf);
+            }
+            else
+            {
+                data_offset = fio::tell(array_loop.file_in(), array_loop.filename_in());
+            }
             hdro = hdri;
             hdro.set_compression(gta::none);
             array_loop.write(hdro, nameo);
@@ -122,11 +124,25 @@ extern "C" int gtatool_dimension_reverse(int argc, char *argv[])
                         ind[j] = hdri.dimension_size(j) - 1 - ind[j];
                     }
                 }
-                hdri.read_block(array_loop.file_in(), data_offset, &(ind[0]), &(ind[0]), element.ptr());
+                if (fbuf)
+                {
+                    hbuf.read_block(fbuf, 0, &(ind[0]), &(ind[0]), element.ptr());
+                }
+                else
+                {
+                    hdri.read_block(array_loop.file_in(), data_offset, &(ind[0]), &(ind[0]), element.ptr());
+                }
                 element_loop.write(element.ptr());
             }
-            fio::seek(array_loop.file_in(), data_offset, SEEK_SET, array_loop.filename_in());
-            array_loop.skip_data(hdri);
+            if (fbuf)
+            {
+                fclose(fbuf);
+            }
+            else
+            {
+                fio::seek(array_loop.file_in(), data_offset, SEEK_SET, array_loop.filename_in());
+                array_loop.skip_data(hdri);
+            }
         }
         array_loop.finish();
     }
