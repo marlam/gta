@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011
+ * Copyright (C) 2010, 2011, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -39,9 +39,9 @@ extern "C" void gtatool_compress_help(void)
     msg::req_txt(
             "compress [-m|--method=zlib[1-9]|bzip2|xz] [<files>...]\n"
             "\n"
-            "Compresses GTAs. The default method is bzip2.\n"
+            "Compresses GTAs, with method zlib, bzip2, or xz. The default method is bzip2.\n"
             "The zlib method can optionally be followed by the compression level (1-9). If no level is specified, "
-            "the default level is used.\n");
+            "the default level is used.");
 }
 
 extern "C" int gtatool_compress(int argc, char *argv[])
