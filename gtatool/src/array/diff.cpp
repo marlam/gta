@@ -189,6 +189,7 @@ extern "C" int gtatool_diff(int argc, char *argv[])
             }
             
             gta::header hdro = hdri[0];
+            hdro.set_compression(gta::none);
             std::string nameo;
             array_loops[0].write(hdro, nameo);
             if (hdri[1].data_size() == 0)
