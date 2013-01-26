@@ -259,11 +259,11 @@ private slots:
     void stream_merge();
     void stream_split();
     void stream_extract();
+    void array_combine();
     void array_create();
     void array_diff();
     void array_extract();
     void array_fill();
-    void array_layer();
     void array_merge();
     void array_resize();
     void array_set();

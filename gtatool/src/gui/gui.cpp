@@ -748,9 +748,9 @@ GUI::GUI()
     QAction *array_diff_action = new QAction(tr("Compute &difference of two open files..."), this);
     connect(array_diff_action, SIGNAL(triggered()), this, SLOT(array_diff()));
     array_menu->addAction(array_diff_action);
-    QAction *array_layer_action = new QAction(tr("&Layer arrays from open files..."), this);
-    connect(array_layer_action, SIGNAL(triggered()), this, SLOT(array_layer()));
-    array_menu->addAction(array_layer_action);
+    QAction *array_combine_action = new QAction(tr("&Combine arrays from open files..."), this);
+    connect(array_combine_action, SIGNAL(triggered()), this, SLOT(array_combine()));
+    array_menu->addAction(array_combine_action);
 
     QMenu *dimension_menu = menuBar()->addMenu(tr("&Dimensions"));
     QAction *dimension_add_action = new QAction(tr("&Add dimension to current array..."), this);
@@ -1880,7 +1880,7 @@ void GUI::array_fill()
     output_cmd("fill", args, "");
 }
 
-void GUI::array_layer()
+void GUI::array_combine()
 {
     if (!check_have_file() || !check_file_unchanged())
     {
@@ -1888,7 +1888,7 @@ void GUI::array_layer()
     }
     QDialog *dialog = new QDialog(this);
     dialog->setModal(true);
-    dialog->setWindowTitle("Layer arrays");
+    dialog->setWindowTitle("Combine arrays");
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(new QLabel("Mode:"), 0, 0);
     QComboBox* mode_box = new QComboBox();
@@ -1922,7 +1922,7 @@ void GUI::array_layer()
         FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
         args.push_back(fio::to_sys(fw->save_name()));
     }
-    output_cmd("layer", args, "");
+    output_cmd("combine", args, "");
 }
 
 void GUI::array_merge()
