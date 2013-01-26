@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011
+ * Copyright (C) 2010, 2011, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -164,12 +164,22 @@ extern "C" int gtatool_component_add(int argc, char *argv[])
             }
             for (uintmax_t e = 0; e < hdro.elements(); e++)
             {
-                const void *element_in = element_loop.read();
-                std::memcpy(element_out.ptr(), element_in, old_comp_pre_size);
+                const void *element_in = NULL;
+                if (hdri.element_size() > 0)
+                {
+                    element_in = element_loop.read();
+                }
+                if (element_in)
+                {
+                    std::memcpy(element_out.ptr(), element_in, old_comp_pre_size);
+                }
                 std::memcpy(element_out.ptr(old_comp_pre_size), comp_values.ptr(), hdrt.element_size());
-                std::memcpy(element_out.ptr(old_comp_pre_size + hdrt.element_size()),
-                        static_cast<const char *>(element_in) + old_comp_pre_size,
-                        hdri.element_size() - old_comp_pre_size);
+                if (element_in)
+                {
+                    std::memcpy(element_out.ptr(old_comp_pre_size + hdrt.element_size()),
+                            static_cast<const char *>(element_in) + old_comp_pre_size,
+                            hdri.element_size() - old_comp_pre_size);
+                }
                 element_loop.write(element_out.ptr());
             }
         }

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (C) 2010, 2011
+# Copyright (C) 2010, 2011, 2013
 # Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -20,5 +20,14 @@ for i in zlib bzip2 xz zlib1 zlib2 zlib3 zlib4 zlib5 zlib6 zlib7 zlib8 zlib9; do
 	$GTA uncompress "$TMPD"/a-$i.gta > "$TMPD"/a-$i-u.gta
 	cmp "$TMPD"/a.gta "$TMPD"/a-$i-u.gta
 done
+
+$GTA create -d 10 -n5 > "$TMPD"/empty0.gta
+$GTA create -c uint8 -n5 > "$TMPD"/empty1.gta
+$GTA compress "$TMPD"/empty0.gta > "$TMPD"/zempty0.gta
+$GTA uncompress "$TMPD"/zempty0.gta > "$TMPD"/xempty0.gta
+cmp "$TMPD"/empty0.gta "$TMPD"/xempty0.gta
+$GTA compress "$TMPD"/empty1.gta > "$TMPD"/zempty1.gta
+$GTA uncompress "$TMPD"/zempty1.gta > "$TMPD"/xempty1.gta
+cmp "$TMPD"/empty1.gta "$TMPD"/xempty1.gta
 
 rm -r "$TMPD"

@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011
+ * Copyright (C) 2010, 2011, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -110,17 +110,24 @@ extern "C" int gtatool_dimension_extract(int argc, char *argv[])
                 }
             }
             array_loop.write(hdro, nameo);
-            element_loop_t element_loop;
-            array_loop.start_element_loop(element_loop, hdri, hdro);
-            std::vector<uintmax_t> indices(hdri.dimensions());
-            for (uintmax_t i = 0; i < hdri.elements(); i++)
+            if (hdro.data_size() > 0)
             {
-                const void *e = element_loop.read();
-                hdri.linear_index_to_indices(i, &(indices[0]));
-                if (indices[dim] == ind)
+                element_loop_t element_loop;
+                array_loop.start_element_loop(element_loop, hdri, hdro);
+                std::vector<uintmax_t> indices(hdri.dimensions());
+                for (uintmax_t i = 0; i < hdri.elements(); i++)
                 {
-                    element_loop.write(e);
+                    const void *e = element_loop.read();
+                    hdri.linear_index_to_indices(i, &(indices[0]));
+                    if (indices[dim] == ind)
+                    {
+                        element_loop.write(e);
+                    }
                 }
+            }
+            else
+            {
+                array_loop.skip_data(hdri);
             }
         }
         array_loop.finish();

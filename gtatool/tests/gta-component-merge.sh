@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (C) 2011
+# Copyright (C) 2011, 2013
 # Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -27,5 +27,13 @@ $GTA component-merge "$TMPD"/a.gta "$TMPD"/b.gta > "$TMPD"/xab.gta
 cmp "$TMPD"/abcd.gta "$TMPD"/xabcd.gta
 cmp "$TMPD"/bd.gta "$TMPD"/xbd.gta
 cmp "$TMPD"/ab.gta "$TMPD"/xab.gta
+
+$GTA create -d 10 -n5 > "$TMPD"/empty0.gta
+$GTA create -c uint8 -n5 > "$TMPD"/empty1.gta
+$GTA create -c uint8,uint8 -n5 > "$TMPD"/empty2.gta
+$GTA component-merge "$TMPD"/empty0.gta "$TMPD"/empty0.gta > "$TMPD"/xempty0.gta
+cmp "$TMPD"/empty0.gta "$TMPD"/xempty0.gta
+$GTA component-merge "$TMPD"/empty1.gta "$TMPD"/empty1.gta > "$TMPD"/xempty2.gta
+cmp "$TMPD"/empty2.gta "$TMPD"/xempty2.gta
 
 rm -r "$TMPD"

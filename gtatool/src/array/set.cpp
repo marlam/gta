@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011
+ * Copyright (C) 2010, 2011, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -110,53 +110,56 @@ extern "C" int gtatool_set(int argc, char *argv[])
             hdro.set_compression(gta::none);
             array_loop.write(hdro, nameo);
 
-            element_loop_t element_loop;
-            element_loop_t element_loop_src;
-            uintmax_t read_src_elements = 0;
-            std::vector<intmax_t> src_index(hdr_src.dimensions());
-            std::vector<uintmax_t> out_index(hdro.dimensions());
-            array_loop.start_element_loop(element_loop, hdri, hdro);
-            array_loop_src.start_element_loop(element_loop_src, hdr_src, gta::header());
-            for (uintmax_t linear_out_index = 0; linear_out_index < hdro.elements(); linear_out_index++)
+            if (hdro.data_size() > 0)
             {
-                hdro.linear_index_to_indices(linear_out_index, &(out_index[0]));
-                bool from_src = true;
-                for (uintmax_t i = 0; i < hdr_src.dimensions(); i++)
+                element_loop_t element_loop;
+                element_loop_t element_loop_src;
+                uintmax_t read_src_elements = 0;
+                std::vector<intmax_t> src_index(hdr_src.dimensions());
+                std::vector<uintmax_t> out_index(hdro.dimensions());
+                array_loop.start_element_loop(element_loop, hdri, hdro);
+                array_loop_src.start_element_loop(element_loop_src, hdr_src, gta::header());
+                for (uintmax_t linear_out_index = 0; linear_out_index < hdro.elements(); linear_out_index++)
                 {
-                    if (!index.values().empty())
+                    hdro.linear_index_to_indices(linear_out_index, &(out_index[0]));
+                    bool from_src = true;
+                    for (uintmax_t i = 0; i < hdr_src.dimensions(); i++)
                     {
-                        src_index[i] = checked_sub(checked_cast<intmax_t>(out_index[i]), index.value()[i]);
+                        if (!index.values().empty())
+                        {
+                            src_index[i] = checked_sub(checked_cast<intmax_t>(out_index[i]), index.value()[i]);
+                        }
+                        else
+                        {
+                            src_index[i] = out_index[i];
+                        }
+                        if (src_index[i] < 0 || static_cast<uintmax_t>(src_index[i]) >= hdr_src.dimension_size(i))
+                        {
+                            from_src = false;
+                        }
                     }
-                    else
+                    const void *src = element_loop.read();
+                    if (from_src)
                     {
-                        src_index[i] = out_index[i];
+                        std::vector<uintmax_t> requested_src_index(src_index.size());
+                        for (size_t i = 0; i < requested_src_index.size(); i++)
+                        {
+                            requested_src_index[i] = src_index[i];
+                        }
+                        uintmax_t requested_linear_src_index = hdr_src.indices_to_linear_index(&(requested_src_index[0]));
+                        // elements are guaranteed to be in ascending order
+                        for (uintmax_t i = read_src_elements; i <= requested_linear_src_index; i++)
+                        {
+                            src = element_loop_src.read();
+                        }
+                        read_src_elements = requested_linear_src_index + 1;
                     }
-                    if (src_index[i] < 0 || static_cast<uintmax_t>(src_index[i]) >= hdr_src.dimension_size(i))
-                    {
-                        from_src = false;
-                    }
+                    element_loop.write(src);
                 }
-                const void *src = element_loop.read();
-                if (from_src)
+                for (uintmax_t i = read_src_elements; i < hdr_src.elements(); i++)
                 {
-                    std::vector<uintmax_t> requested_src_index(src_index.size());
-                    for (size_t i = 0; i < requested_src_index.size(); i++)
-                    {
-                        requested_src_index[i] = src_index[i];
-                    }
-                    uintmax_t requested_linear_src_index = hdr_src.indices_to_linear_index(&(requested_src_index[0]));
-                    // elements are guaranteed to be in ascending order
-                    for (uintmax_t i = read_src_elements; i <= requested_linear_src_index; i++)
-                    {
-                        src = element_loop_src.read();
-                    }
-                    read_src_elements = requested_linear_src_index + 1;
+                    element_loop_src.read();
                 }
-                element_loop.write(src);
-            }
-            for (uintmax_t i = read_src_elements; i < hdr_src.elements(); i++)
-            {
-                element_loop_src.read();
             }
             array_loop_src.finish();
         }

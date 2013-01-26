@@ -145,20 +145,23 @@ extern "C" int gtatool_component_merge(int argc, char *argv[])
                 }
             }
             array_loops[0].write(hdro, nameo);
-            element_loop_t element_loop;
-            array_loops[0].start_element_loop(element_loop, hdris[0], hdro);
-            blob element_out(checked_cast<size_t>(hdro.element_size()));
-            for (uintmax_t e = 0; e < hdro.elements(); e++)
+            if (hdro.data_size() > 0)
             {
-                void *p = element_out.ptr();
-                std::memcpy(p, element_loop.read(), hdris[0].element_size());
-                p = static_cast<void *>(static_cast<char *>(p) + hdris[0].element_size());
-                for (size_t i = 1; i < arguments.size(); i++)
+                element_loop_t element_loop;
+                array_loops[0].start_element_loop(element_loop, hdris[0], hdro);
+                blob element_out(checked_cast<size_t>(hdro.element_size()));
+                for (uintmax_t e = 0; e < hdro.elements(); e++)
                 {
-                    std::memcpy(p, element_loops[i].read(), hdris[i].element_size());
-                    p = static_cast<void *>(static_cast<char *>(p) + hdris[i].element_size());
+                    void *p = element_out.ptr();
+                    std::memcpy(p, element_loop.read(), hdris[0].element_size());
+                    p = static_cast<void *>(static_cast<char *>(p) + hdris[0].element_size());
+                    for (size_t i = 1; i < arguments.size(); i++)
+                    {
+                        std::memcpy(p, element_loops[i].read(), hdris[i].element_size());
+                        p = static_cast<void *>(static_cast<char *>(p) + hdris[i].element_size());
+                    }
+                    element_loop.write(element_out.ptr());
                 }
-                element_loop.write(element_out.ptr());
             }
         }
         for (size_t i = 0; i < arguments.size(); i++)

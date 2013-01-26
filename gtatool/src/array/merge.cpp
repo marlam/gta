@@ -174,26 +174,29 @@ extern "C" int gtatool_merge(int argc, char *argv[])
                 hdro.component_taglist(c) = hdri[0].component_taglist(c);
             }
             array_loops[0].write(hdro, nameo);
-            std::vector<uintmax_t> indices(hdro.dimensions());
-            std::vector<element_loop_t> element_loops(arguments.size());
-            for (size_t i = 0; i < element_loops.size(); i++)
+            if (hdro.data_size() > 0)
             {
-                array_loops[i].start_element_loop(element_loops[i], hdri[i], hdro);
-            }
-            for (uintmax_t e = 0; e < hdro.elements(); e++)
-            {
-                hdro.linear_index_to_indices(e, &(indices[0]));
-                uintmax_t dim = 0;
-                size_t j;
-                for (j = 0; j < arguments.size(); j++)
+                std::vector<uintmax_t> indices(hdro.dimensions());
+                std::vector<element_loop_t> element_loops(arguments.size());
+                for (size_t i = 0; i < element_loops.size(); i++)
                 {
-                    dim += hdri[j].dimension_size(dimension.value());
-                    if (indices[dimension.value()] < dim)
-                    {
-                        break;
-                    }
+                    array_loops[i].start_element_loop(element_loops[i], hdri[i], hdro);
                 }
-                element_loops[0].write(element_loops[j].read());
+                for (uintmax_t e = 0; e < hdro.elements(); e++)
+                {
+                    hdro.linear_index_to_indices(e, &(indices[0]));
+                    uintmax_t dim = 0;
+                    size_t j;
+                    for (j = 0; j < arguments.size(); j++)
+                    {
+                        dim += hdri[j].dimension_size(dimension.value());
+                        if (indices[dimension.value()] < dim)
+                        {
+                            break;
+                        }
+                    }
+                    element_loops[0].write(element_loops[j].read());
+                }
             }
         }
         array_loops[0].finish();

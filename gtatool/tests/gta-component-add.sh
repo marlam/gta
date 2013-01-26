@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (C) 2011
+# Copyright (C) 2011, 2013
 # Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -23,5 +23,13 @@ $GTA component-add -c int16,int32 -i 1 -v 1,2 < "$TMPD"/d.gta > "$TMPD"/xxc.gta
 cmp "$TMPD"/b.gta "$TMPD"/xb.gta
 cmp "$TMPD"/c.gta "$TMPD"/xc.gta
 cmp "$TMPD"/c.gta "$TMPD"/xxc.gta
+
+$GTA create -d 10,10 > "$TMPD"/empty0.gta
+$GTA create -c uint8 > "$TMPD"/empty1.gta
+$GTA create -c uint8,uint8 > "$TMPD"/empty2.gta
+$GTA component-add -c int16,int32 -i 0 -v 1,2 "$TMPD"/empty0.gta > "$TMPD"/xxa.gta
+cmp "$TMPD"/a.gta "$TMPD"/xxa.gta
+$GTA component-add -c uint8 -i 1 -v 17 "$TMPD"/empty1.gta > "$TMPD"/xempty2.gta
+cmp "$TMPD"/empty2.gta "$TMPD"/xempty2.gta
 
 rm -r "$TMPD"

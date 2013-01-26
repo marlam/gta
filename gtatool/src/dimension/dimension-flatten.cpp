@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2011
+ * Copyright (C) 2011, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -78,7 +78,10 @@ extern "C" int gtatool_dimension_flatten(int argc, char *argv[])
         {
             hdro = hdri;
             hdro.set_compression(gta::none);
-            hdro.set_dimensions(hdri.elements());
+            if (hdri.elements() > 0)
+            {
+                hdro.set_dimensions(hdri.elements());
+            }
             if (prepend_coordinates.value())
             {
                 std::vector<gta::type> hdro_comp_types;
@@ -102,24 +105,46 @@ extern "C" int gtatool_dimension_flatten(int argc, char *argv[])
                 index.resize(hdri.dimensions());
             }
             array_loop.write(hdro, nameo);
-            element_loop_t element_loop;
-            array_loop.start_element_loop(element_loop, hdri, hdro);
-            for (uintmax_t e = 0; e < hdro.elements(); e++)
+            if (hdro.data_size() > 0)
             {
-                if (prepend_coordinates.value())
+                if (hdri.element_size() > 0)
                 {
-                    hdri.linear_index_to_indices(e, &(index[0]));
-                    for (size_t i = 0; i < index.size(); i++)
+                    element_loop_t element_loop;
+                    array_loop.start_element_loop(element_loop, hdri, hdro);
+                    for (uintmax_t e = 0; e < hdro.elements(); e++)
                     {
-                        eo.ptr<uint64_t>()[i] = checked_cast<uint64_t>(index[i]);
+                        if (prepend_coordinates.value())
+                        {
+                            hdri.linear_index_to_indices(e, &(index[0]));
+                            for (size_t i = 0; i < index.size(); i++)
+                            {
+                                eo.ptr<uint64_t>()[i] = checked_cast<uint64_t>(index[i]);
+                            }
+                            std::memcpy(eo.ptr(hdro.element_size() - hdri.element_size()),
+                                    element_loop.read(), hdri.element_size());
+                            element_loop.write(eo.ptr());
+                        }
+                        else
+                        {
+                            element_loop.write(element_loop.read());
+                        }
                     }
-                    std::memcpy(eo.ptr(hdro.element_size() - hdri.element_size()),
-                            element_loop.read(), hdri.element_size());
-                    element_loop.write(eo.ptr());
                 }
                 else
                 {
-                    element_loop.write(element_loop.read());
+                    // There were no element components, and now there are only the prepended
+                    // coordinates. Generate them.
+                    element_loop_t element_loop;
+                    array_loop.start_element_loop(element_loop, hdri, hdro);
+                    for (uintmax_t e = 0; e < hdro.elements(); e++)
+                    {
+                        hdri.linear_index_to_indices(e, &(index[0]));
+                        for (size_t i = 0; i < index.size(); i++)
+                        {
+                            eo.ptr<uint64_t>()[i] = checked_cast<uint64_t>(index[i]);
+                        }
+                        element_loop.write(eo.ptr());
+                    }
                 }
             }
         }

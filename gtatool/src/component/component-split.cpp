@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011
+ * Copyright (C) 2010, 2011, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -121,23 +121,26 @@ extern "C" int gtatool_component_split(int argc, char *argv[])
                 tmpaloops[i].start_element_loop(tmpeloops[i], hdri, hdros[i]);
             }
             // Write the GTA data to temporary files
-            element_loop_t element_loop;
-            array_loop.start_element_loop(element_loop, hdri, hdro);
-            for (uintmax_t e = 0; e < hdri.elements(); e++)
+            if (hdri.data_size() > 0)
             {
-                const void *element = element_loop.read();
-                if (hdros.size() > 0)
+                element_loop_t element_loop;
+                array_loop.start_element_loop(element_loop, hdri, hdro);
+                for (uintmax_t e = 0; e < hdri.elements(); e++)
                 {
-                    size_t out_index = 0;
-                    size_t out_comp_offset = 0;
-                    for (uintmax_t i = 0; i < hdri.components(); i++)
+                    const void *element = element_loop.read();
+                    if (hdros.size() > 0)
                     {
-                        if (i == comp_indices[out_index])
+                        size_t out_index = 0;
+                        size_t out_comp_offset = 0;
+                        for (uintmax_t i = 0; i < hdri.components(); i++)
                         {
-                            tmpeloops[out_index].write(static_cast<const char *>(element) + out_comp_offset);
-                            out_index++;
+                            if (i == comp_indices[out_index])
+                            {
+                                tmpeloops[out_index].write(static_cast<const char *>(element) + out_comp_offset);
+                                out_index++;
+                            }
+                            out_comp_offset += hdri.component_size(i);
                         }
-                        out_comp_offset += hdri.component_size(i);
                     }
                 }
             }

@@ -35,4 +35,14 @@ cmp "$TMPD"/e.gta "$TMPD"/a321.gta
 cat "$TMPD"/a123.gta | $GTA dimension-reverse -i 1 > "$TMPD"/f.gta
 cmp "$TMPD"/f.gta "$TMPD"/a321.gta
 
+$GTA create -n5 > "$TMPD"/empty0.gta
+$GTA create -n5 -c uint8 > "$TMPD"/empty1.gta
+$GTA create -d 5,7,3 "$TMPD"/empty2.gta
+$GTA dimension-reverse "$TMPD"/empty0.gta > "$TMPD"/xempty0.gta
+cmp "$TMPD"/empty0.gta "$TMPD"/xempty0.gta
+$GTA dimension-reverse "$TMPD"/empty1.gta > "$TMPD"/xempty1.gta
+cmp "$TMPD"/empty1.gta "$TMPD"/xempty1.gta
+$GTA dimension-reverse "$TMPD"/empty2.gta > "$TMPD"/xempty2.gta
+cmp "$TMPD"/empty2.gta "$TMPD"/xempty2.gta
+
 rm -r "$TMPD"

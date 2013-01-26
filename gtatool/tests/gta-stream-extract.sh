@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (C) 2010, 2011
+# Copyright (C) 2010, 2011, 2013
 # Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -29,5 +29,14 @@ cmp "$TMPD"/x2.gta "$TMPD"/2.gta
 
 $GTA stream-extract 0,1-1,-2 "$TMPD"/012.gta > "$TMPD"/x012.gta
 cmp "$TMPD"/x012.gta "$TMPD"/012.gta
+
+$GTA create -d 10 -n5 > "$TMPD"/empty0.gta
+$GTA create -d 10 -n2 > "$TMPD"/empty1.gta
+$GTA create -c uint8 -n5 > "$TMPD"/empty2.gta
+$GTA create -c uint8 -n2 > "$TMPD"/empty3.gta
+$GTA stream-extract 0,4 "$TMPD"/empty0.gta > "$TMPD"/xempty1.gta
+cmp "$TMPD"/empty1.gta "$TMPD"/xempty1.gta
+$GTA stream-extract 0,4 "$TMPD"/empty2.gta > "$TMPD"/xempty3.gta
+cmp "$TMPD"/empty3.gta "$TMPD"/xempty3.gta
 
 rm -r "$TMPD"

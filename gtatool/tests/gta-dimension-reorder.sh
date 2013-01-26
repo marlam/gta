@@ -35,4 +35,15 @@ cmp "$TMPD"/g.gta "$TMPD"/a.gta
 cat "$TMPD"/b.gta | $GTA dimension-reorder -i 2,1,0 > "$TMPD"/h.gta
 cmp "$TMPD"/h.gta "$TMPD"/a.gta
 
+$GTA create -n5 > "$TMPD"/empty0.gta
+$GTA create -n5 -c uint8 > "$TMPD"/empty1.gta
+$GTA create -d 5,7,3 "$TMPD"/empty2.gta
+$GTA create -d 3,7,5 "$TMPD"/empty3.gta
+$GTA dimension-reorder "$TMPD"/empty0.gta > "$TMPD"/xempty0.gta
+cmp "$TMPD"/empty0.gta "$TMPD"/xempty0.gta
+$GTA dimension-reorder "$TMPD"/empty1.gta > "$TMPD"/xempty1.gta
+cmp "$TMPD"/empty1.gta "$TMPD"/xempty1.gta
+$GTA dimension-reorder -i 2,1,0 "$TMPD"/empty2.gta > "$TMPD"/xempty3.gta
+cmp "$TMPD"/empty3.gta "$TMPD"/xempty3.gta
+
 rm -r "$TMPD"

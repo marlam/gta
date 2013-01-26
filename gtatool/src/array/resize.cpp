@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011
+ * Copyright (C) 2010, 2011, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -115,55 +115,58 @@ extern "C" int gtatool_resize(int argc, char *argv[])
             }
             array_loop.write(hdro, nameo);
 
-            element_loop_t element_loop;
-            uintmax_t read_in_elements = 0;
-            std::vector<intmax_t> in_index(hdri.dimensions());
-            std::vector<uintmax_t> out_index(hdro.dimensions());
-            array_loop.start_element_loop(element_loop, hdri, hdro);
-            for (uintmax_t linear_out_index = 0; linear_out_index < hdro.elements(); linear_out_index++)
+            if (hdro.data_size() > 0)
             {
-                hdro.linear_index_to_indices(linear_out_index, &(out_index[0]));
-                bool from_input = true;
-                for (uintmax_t i = 0; i < hdri.dimensions(); i++)
+                element_loop_t element_loop;
+                uintmax_t read_in_elements = 0;
+                std::vector<intmax_t> in_index(hdri.dimensions());
+                std::vector<uintmax_t> out_index(hdro.dimensions());
+                array_loop.start_element_loop(element_loop, hdri, hdro);
+                for (uintmax_t linear_out_index = 0; linear_out_index < hdro.elements(); linear_out_index++)
                 {
-                    if (!index.values().empty())
+                    hdro.linear_index_to_indices(linear_out_index, &(out_index[0]));
+                    bool from_input = true;
+                    for (uintmax_t i = 0; i < hdri.dimensions(); i++)
                     {
-                        in_index[i] = checked_sub(checked_cast<intmax_t>(out_index[i]), index.value()[i]);
+                        if (!index.values().empty())
+                        {
+                            in_index[i] = checked_sub(checked_cast<intmax_t>(out_index[i]), index.value()[i]);
+                        }
+                        else
+                        {
+                            in_index[i] = out_index[i];
+                        }
+                        if (in_index[i] < 0 || static_cast<uintmax_t>(in_index[i]) >= hdri.dimension_size(i))
+                        {
+                            from_input = false;
+                        }
+                    }
+                    const void *src = NULL;
+                    if (from_input)
+                    {
+                        std::vector<uintmax_t> requested_in_index(in_index.size());
+                        for (size_t i = 0; i < requested_in_index.size(); i++)
+                        {
+                            requested_in_index[i] = in_index[i];
+                        }
+                        uintmax_t requested_linear_in_index = hdri.indices_to_linear_index(&(requested_in_index[0]));
+                        // elements are guaranteed to be in ascending order
+                        for (uintmax_t i = read_in_elements; i <= requested_linear_in_index; i++)
+                        {
+                            src = element_loop.read();
+                        }
+                        read_in_elements = requested_linear_in_index + 1;
                     }
                     else
                     {
-                        in_index[i] = out_index[i];
+                        src = v.ptr();
                     }
-                    if (in_index[i] < 0 || static_cast<uintmax_t>(in_index[i]) >= hdri.dimension_size(i))
-                    {
-                        from_input = false;
-                    }
+                    element_loop.write(src);
                 }
-                const void *src = NULL;
-                if (from_input)
+                for (uintmax_t i = read_in_elements; i < hdri.elements(); i++)
                 {
-                    std::vector<uintmax_t> requested_in_index(in_index.size());
-                    for (size_t i = 0; i < requested_in_index.size(); i++)
-                    {
-                        requested_in_index[i] = in_index[i];
-                    }
-                    uintmax_t requested_linear_in_index = hdri.indices_to_linear_index(&(requested_in_index[0]));
-                    // elements are guaranteed to be in ascending order
-                    for (uintmax_t i = read_in_elements; i <= requested_linear_in_index; i++)
-                    {
-                        src = element_loop.read();
-                    }
-                    read_in_elements = requested_linear_in_index + 1;
+                    element_loop.read();
                 }
-                else
-                {
-                    src = v.ptr();
-                }
-                element_loop.write(src);
-            }
-            for (uintmax_t i = read_in_elements; i < hdri.elements(); i++)
-            {
-                element_loop.read();
             }
         }
         array_loop.finish();

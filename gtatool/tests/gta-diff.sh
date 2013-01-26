@@ -21,4 +21,11 @@ cmp "$TMPD"/c.gta "$TMPD"/d.gta
 $GTA diff -a "$TMPD"/b.gta "$TMPD"/a.gta > "$TMPD"/e.gta
 cmp "$TMPD"/c.gta "$TMPD"/e.gta
 
+$GTA create -d 10 -n5 > "$TMPD"/empty0.gta
+$GTA create -c uint8 -n5 > "$TMPD"/empty1.gta
+$GTA diff "$TMPD"/empty0.gta "$TMPD"/empty0.gta > "$TMPD"/xempty0.gta
+cmp "$TMPD"/empty0.gta "$TMPD"/xempty0.gta
+$GTA diff "$TMPD"/empty1.gta "$TMPD"/empty1.gta > "$TMPD"/xempty1.gta
+cmp "$TMPD"/empty1.gta "$TMPD"/xempty1.gta
+
 rm -r "$TMPD"

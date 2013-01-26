@@ -66,4 +66,11 @@ cmp "$TMPD"/f8.gta "$TMPD"/n.gta
 $GTA combine -m div "$TMPD"/f8.gta "$TMPD"/f4.gta > "$TMPD"/o.gta
 cmp "$TMPD"/f2.gta "$TMPD"/o.gta
 
+$GTA create -d 10 -n5 > "$TMPD"/empty0.gta
+$GTA create -c uint8 -n5 > "$TMPD"/empty1.gta
+$GTA combine -m min "$TMPD"/empty0.gta "$TMPD"/empty0.gta > "$TMPD"/xempty0.gta
+cmp "$TMPD"/empty0.gta "$TMPD"/xempty0.gta
+$GTA combine -m min "$TMPD"/empty1.gta "$TMPD"/empty1.gta > "$TMPD"/xempty1.gta
+cmp "$TMPD"/empty1.gta "$TMPD"/xempty1.gta
+
 rm -r "$TMPD"

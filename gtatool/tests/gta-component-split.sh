@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (C) 2011
+# Copyright (C) 2011, 2013
 # Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -25,5 +25,13 @@ $GTA component-split -d 0,3 "$TMPD"/all.gta > "$TMPD"/x12.gta
 
 cmp "$TMPD"/alls.gta "$TMPD"/xalls.gta
 cmp "$TMPD"/12.gta "$TMPD"/x12.gta
+
+$GTA create -d 10 -n5 > "$TMPD"/empty0.gta
+$GTA create -c uint8,uint8 -n5 > "$TMPD"/empty1.gta
+$GTA create -c uint8 -n10 > "$TMPD"/empty2.gta
+$GTA component-split "$TMPD"/empty0.gta > "$TMPD"/xdevnull.gta
+cmp /dev/null "$TMPD"/xdevnull.gta
+$GTA component-split "$TMPD"/empty1.gta > "$TMPD"/xempty2.gta
+cmp "$TMPD"/empty2.gta "$TMPD"/xempty2.gta
 
 rm -r "$TMPD"

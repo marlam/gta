@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011
+ * Copyright (C) 2010, 2011, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -121,26 +121,29 @@ extern "C" int gtatool_fill(int argc, char *argv[])
             hdro.set_compression(gta::none);
             array_loop.write(hdro, nameo);
 
-            element_loop_t element_loop;
-            std::vector<uintmax_t> index(hdri.dimensions());
-            array_loop.start_element_loop(element_loop, hdri, hdro);
-            for (uintmax_t e = 0; e < hdro.elements(); e++)
+            if (hdro.data_size() > 0)
             {
-                const void *src = element_loop.read();
-                hdro.linear_index_to_indices(e, &(index[0]));
-                bool replace = true;
-                if (!low.values().empty())
+                element_loop_t element_loop;
+                std::vector<uintmax_t> index(hdri.dimensions());
+                array_loop.start_element_loop(element_loop, hdri, hdro);
+                for (uintmax_t e = 0; e < hdro.elements(); e++)
                 {
-                    for (size_t i = 0; i < index.size(); i++)
+                    const void *src = element_loop.read();
+                    hdro.linear_index_to_indices(e, &(index[0]));
+                    bool replace = true;
+                    if (!low.values().empty())
                     {
-                        if (index[i] < low.value()[i] || index[i] > high.value()[i])
+                        for (size_t i = 0; i < index.size(); i++)
                         {
-                            replace = false;
-                            break;
+                            if (index[i] < low.value()[i] || index[i] > high.value()[i])
+                            {
+                                replace = false;
+                                break;
+                            }
                         }
                     }
+                    element_loop.write(replace ? v.ptr() : src);
                 }
-                element_loop.write(replace ? v.ptr() : src);
             }
         }
         array_loop.finish();

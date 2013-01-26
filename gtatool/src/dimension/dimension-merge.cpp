@@ -85,6 +85,10 @@ extern "C" int gtatool_dimension_merge(int argc, char *argv[])
                     have_input = false;
                     break;
                 }
+                if (hdris[i].data_size() == 0)
+                {
+                    throw exc(nameis[i] + ": empty array");
+                }
                 if (hdris[i].components() != hdris[0].components())
                 {
                     throw exc(nameis[i] + ": incompatible array (number of components differs)");

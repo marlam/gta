@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (C) 2010, 2011
+# Copyright (C) 2010, 2011, 2013
 # Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -23,5 +23,10 @@ cmp "$TMPD"/e.gta "$TMPD"/a.gta
 
 $GTA resize -d 10,10 -i -20,-20 -v 0 "$TMPD"/a.gta > "$TMPD"/f.gta
 cmp "$TMPD"/f.gta "$TMPD"/b.gta
+
+$GTA create -d 1,1 -n2 > "$TMPD"/empty0.gta
+$GTA create -d 2,2 -n2 > "$TMPD"/empty1.gta
+$GTA resize -d 2,2 "$TMPD"/empty0.gta > "$TMPD"/xempty1.gta
+cmp "$TMPD"/empty1.gta "$TMPD"/xempty1.gta
 
 rm -r "$TMPD"

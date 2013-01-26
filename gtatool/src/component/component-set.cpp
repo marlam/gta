@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011
+ * Copyright (C) 2010, 2011, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -117,19 +117,22 @@ extern "C" int gtatool_component_set(int argc, char *argv[])
             hdro = hdri;
             hdro.set_compression(gta::none);
             array_loop.write(hdro, nameo);
-            element_loop_t element_loop;
-            array_loop.start_element_loop(element_loop, hdri, hdro);
-            blob element(checked_cast<size_t>(hdri.element_size()));
-            for (uintmax_t e = 0; e < hdro.elements(); e++)
+            if (hdro.data_size() > 0)
             {
-                std::memcpy(element.ptr(), element_loop.read(), hdri.element_size());
-                for (size_t i = 0; i < current_indices.size(); i++)
+                element_loop_t element_loop;
+                array_loop.start_element_loop(element_loop, hdri, hdro);
+                blob element(checked_cast<size_t>(hdri.element_size()));
+                for (uintmax_t e = 0; e < hdro.elements(); e++)
                 {
-                    void *component_dst = hdri.component(element.ptr(), current_indices[i]);
-                    void *component_src = hdrt.component(comp_values.ptr(), i);
-                    memcpy(component_dst, component_src, hdri.component_size(current_indices[i]));
+                    std::memcpy(element.ptr(), element_loop.read(), hdri.element_size());
+                    for (size_t i = 0; i < current_indices.size(); i++)
+                    {
+                        void *component_dst = hdri.component(element.ptr(), current_indices[i]);
+                        void *component_src = hdrt.component(comp_values.ptr(), i);
+                        memcpy(component_dst, component_src, hdri.component_size(current_indices[i]));
+                    }
+                    element_loop.write(element.ptr());
                 }
-                element_loop.write(element.ptr());
             }
         }
         array_loop.finish();

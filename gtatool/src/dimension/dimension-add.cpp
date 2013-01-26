@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011
+ * Copyright (C) 2010, 2011, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,7 +23,7 @@
 
 #include <sstream>
 #include <cstdio>
-#include <cctype>
+#include <cstring>
 
 #include <gta/gta.hpp>
 
@@ -107,11 +107,25 @@ extern "C" int gtatool_dimension_add(int argc, char *argv[])
             // Write the GTA header
             array_loop.write(hdro, nameo);
             // Write the GTA data
-            element_loop_t element_loop;
-            array_loop.start_element_loop(element_loop, hdri, hdro);
-            for (uintmax_t i = 0; i < hdri.elements(); i++)
+            if (hdro.data_size() > 0)
             {
-                element_loop.write(element_loop.read());
+                if (hdri.data_size() == 0)
+                {
+                    // We had an empty (dimensionless) array before, and now have
+                    // one with exactly one element. Create the data.
+                    blob element(checked_cast<size_t>(hdro.element_size()));
+                    std::memset(element.ptr(), 0, hdro.element_size());
+                    array_loop.write_data(hdro, element.ptr());
+                }
+                else
+                {
+                    element_loop_t element_loop;
+                    array_loop.start_element_loop(element_loop, hdri, hdro);
+                    for (uintmax_t i = 0; i < hdri.elements(); i++)
+                    {
+                        element_loop.write(element_loop.read());
+                    }
+                }
             }
         }
         array_loop.finish();

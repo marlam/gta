@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011
+ * Copyright (C) 2010, 2011, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -145,19 +145,25 @@ extern "C" int gtatool_component_extract(int argc, char *argv[])
             }
 
             array_loop.write(hdro, nameo);
-            element_loop_t element_loop;
-            array_loop.start_element_loop(element_loop, hdri, hdro);
-            blob element_out(checked_cast<size_t>(hdro.element_size()));
-            for (uintmax_t e = 0; e < hdro.elements(); e++)
+            if (hdri.data_size() > 0)
             {
-                const void *element_in = element_loop.read();
-                for (uintmax_t i = 0; i < hdro.components(); i++)
+                element_loop_t element_loop;
+                array_loop.start_element_loop(element_loop, hdri, hdro);
+                blob element_out(checked_cast<size_t>(hdro.element_size()));
+                for (uintmax_t e = 0; e < hdro.elements(); e++)
                 {
-                    std::memcpy(hdro.component(element_out.ptr(), i),
-                            hdri.component(element_in, hdro_comp_indices[i]),
-                            hdro.component_size(i));
+                    const void *element_in = element_loop.read();
+                    for (uintmax_t i = 0; i < hdro.components(); i++)
+                    {
+                        std::memcpy(hdro.component(element_out.ptr(), i),
+                                hdri.component(element_in, hdro_comp_indices[i]),
+                                hdro.component_size(i));
+                    }
+                    if (hdro.data_size() > 0)
+                    {
+                        element_loop.write(element_out.ptr());
+                    }
                 }
-                element_loop.write(element_out.ptr());
             }
         }
         array_loop.finish();

@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011
+ * Copyright (C) 2010, 2011, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -83,10 +83,6 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
         array_loop.start(arguments, "");
         while (array_loop.read(hdri, namei))
         {
-            if (hdri.dimensions() > std::numeric_limits<size_t>::max())
-            {
-                throw exc(namei + ": too many dimensions");
-            }
             // Set up variables
             std::vector<double> comp_vars;
             for (uintmax_t i = 0; i < hdri.components(); i++)
@@ -112,7 +108,7 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
             }
             double components_var;
             double dimensions_var;
-            std::vector<double> dim_vars(hdri.dimensions());
+            std::vector<double> dim_vars(checked_cast<size_t>(hdri.dimensions()));
             std::vector<uintmax_t> index_vars_orig(hdri.dimensions());
             std::vector<double> index_vars(hdri.dimensions());
             std::vector<mu::Parser> parsers;
@@ -145,207 +141,210 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
             hdro = hdri;
             hdro.set_compression(gta::none);
             array_loop.write(hdro, nameo);
-            element_loop_t element_loop;
-            array_loop.start_element_loop(element_loop, hdri, hdro);
-            blob element(checked_cast<size_t>(hdri.element_size()));
-            for (uintmax_t e = 0; e < hdro.elements(); e++)
+            if (hdro.data_size() > 0)
             {
-                std::memcpy(element.ptr(), element_loop.read(), hdri.element_size());
-                // set the variables
-                components_var = hdri.components();
-                dimensions_var = hdri.dimensions();
-                for (uintmax_t i = 0; i < hdri.dimensions(); i++)
+                element_loop_t element_loop;
+                array_loop.start_element_loop(element_loop, hdri, hdro);
+                blob element(checked_cast<size_t>(hdri.element_size()));
+                for (uintmax_t e = 0; e < hdro.elements(); e++)
                 {
-                    dim_vars[i] = hdri.dimension_size(i);
-                }
-                hdri.linear_index_to_indices(e, &(index_vars_orig[0]));
-                for (uintmax_t i = 0; i < hdri.dimensions(); i++)
-                {
-                    index_vars[i] = index_vars_orig[i];
-                }
-                size_t comp_var_index = 0;
-                for (uintmax_t i = 0; i < hdri.components(); i++)
-                {
-                    switch (hdri.component_type(i))
+                    std::memcpy(element.ptr(), element_loop.read(), hdri.element_size());
+                    // set the variables
+                    components_var = hdri.components();
+                    dimensions_var = hdri.dimensions();
+                    for (uintmax_t i = 0; i < hdri.dimensions(); i++)
                     {
-                    case gta::int8:
-                        {
-                            int8_t v;
-                            std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(int8_t));
-                            comp_vars[comp_var_index++] = v;
-                        }
-                        break;
-                    case gta::uint8:
-                        {
-                            uint8_t v;
-                            std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(uint8_t));
-                            comp_vars[comp_var_index++] = v;
-                        }
-                        break;
-                    case gta::int16:
-                        {
-                            int16_t v;
-                            std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(int16_t));
-                            comp_vars[comp_var_index++] = v;
-                        }
-                        break;
-                    case gta::uint16:
-                        {
-                            uint16_t v;
-                            std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(uint16_t));
-                            comp_vars[comp_var_index++] = v;
-                        }
-                        break;
-                    case gta::int32:
-                        {
-                            int32_t v;
-                            std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(int32_t));
-                            comp_vars[comp_var_index++] = v;
-                        }
-                        break;
-                    case gta::uint32:
-                        {
-                            uint32_t v;
-                            std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(uint32_t));
-                            comp_vars[comp_var_index++] = v;
-                        }
-                        break;
-                    case gta::int64:
-                        {
-                            int64_t v;
-                            std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(int64_t));
-                            comp_vars[comp_var_index++] = v;
-                        }
-                        break;
-                    case gta::uint64:
-                        {
-                            uint64_t v;
-                            std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(uint64_t));
-                            comp_vars[comp_var_index++] = v;
-                        }
-                        break;
-                    case gta::float32:
-                        {
-                            float v;
-                            std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(float));
-                            comp_vars[comp_var_index++] = v;
-                        }
-                        break;
-                    case gta::float64:
-                        {
-                            std::memcpy(&(comp_vars[comp_var_index++]), hdri.component(element.ptr(), i), sizeof(double));
-                        }
-                        break;
-                    case gta::cfloat32:
-                        {
-                            float v[2];
-                            std::memcpy(v, hdri.component(element.ptr(), i), 2 * sizeof(float));
-                            comp_vars[comp_var_index++] = v[0];
-                            comp_vars[comp_var_index++] = v[1];
-                        }
-                        break;
-                    case gta::cfloat64:
-                        {
-                            double v[2];
-                            std::memcpy(v, hdri.component(element.ptr(), i), 2 * sizeof(double));
-                            comp_vars[comp_var_index++] = v[0];
-                            comp_vars[comp_var_index++] = v[1];
-                        }
-                        break;
-                    default:
-                        // cannot happen
-                        break;
+                        dim_vars[i] = hdri.dimension_size(i);
                     }
-                }
-                // evaluate the expressions
-                for (size_t p = 0; p < parsers.size(); p++)
-                {
-                    parsers[p].Eval();
-                }
-                // read back the component variables
-                comp_var_index = 0;
-                for (uintmax_t i = 0; i < hdro.components(); i++)
-                {
-                    switch (hdro.component_type(i))
+                    hdri.linear_index_to_indices(e, &(index_vars_orig[0]));
+                    for (uintmax_t i = 0; i < hdri.dimensions(); i++)
                     {
-                    case gta::int8:
-                        {
-                            int8_t v = comp_vars[comp_var_index++];
-                            std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(int8_t));
-                        }
-                        break;
-                    case gta::uint8:
-                        {
-                            uint8_t v = comp_vars[comp_var_index++];
-                            std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(uint8_t));
-                        }
-                        break;
-                    case gta::int16:
-                        {
-                            int16_t v = comp_vars[comp_var_index++];
-                            std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(int16_t));
-                        }
-                        break;
-                    case gta::uint16:
-                        {
-                            uint16_t v = comp_vars[comp_var_index++];
-                            std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(uint16_t));
-                        }
-                        break;
-                    case gta::int32:
-                        {
-                            int32_t v = comp_vars[comp_var_index++];
-                            std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(int32_t));
-                        }
-                        break;
-                    case gta::uint32:
-                        {
-                            uint32_t v = comp_vars[comp_var_index++];
-                            std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(uint32_t));
-                        }
-                        break;
-                    case gta::int64:
-                        {
-                            int64_t v = comp_vars[comp_var_index++];
-                            std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(int64_t));
-                        }
-                        break;
-                    case gta::uint64:
-                        {
-                            uint64_t v = comp_vars[comp_var_index++];
-                            std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(uint64_t));
-                        }
-                        break;
-                    case gta::float32:
-                        {
-                            float v = comp_vars[comp_var_index++];
-                            std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(float));
-                        }
-                        break;
-                    case gta::float64:
-                        {
-                            std::memcpy(hdri.component(element.ptr(), i), &(comp_vars[comp_var_index++]), sizeof(double));
-                        }
-                        break;
-                    case gta::cfloat32:
-                        {
-                            float v[2] = { static_cast<float>(comp_vars[comp_var_index]), static_cast<float>(comp_vars[comp_var_index + 1]) };
-                            comp_var_index += 2;
-                            std::memcpy(hdri.component(element.ptr(), i), v, 2 * sizeof(float));
-                        }
-                        break;
-                    case gta::cfloat64:
-                        {
-                            std::memcpy(hdri.component(element.ptr(), i), &(comp_vars[comp_var_index]), 2 * sizeof(double));
-                            comp_var_index += 2;
-                        }
-                        break;
-                    default:
-                        // cannot happen
-                        break;
+                        index_vars[i] = index_vars_orig[i];
                     }
+                    size_t comp_var_index = 0;
+                    for (uintmax_t i = 0; i < hdri.components(); i++)
+                    {
+                        switch (hdri.component_type(i))
+                        {
+                        case gta::int8:
+                            {
+                                int8_t v;
+                                std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(int8_t));
+                                comp_vars[comp_var_index++] = v;
+                            }
+                            break;
+                        case gta::uint8:
+                            {
+                                uint8_t v;
+                                std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(uint8_t));
+                                comp_vars[comp_var_index++] = v;
+                            }
+                            break;
+                        case gta::int16:
+                            {
+                                int16_t v;
+                                std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(int16_t));
+                                comp_vars[comp_var_index++] = v;
+                            }
+                            break;
+                        case gta::uint16:
+                            {
+                                uint16_t v;
+                                std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(uint16_t));
+                                comp_vars[comp_var_index++] = v;
+                            }
+                            break;
+                        case gta::int32:
+                            {
+                                int32_t v;
+                                std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(int32_t));
+                                comp_vars[comp_var_index++] = v;
+                            }
+                            break;
+                        case gta::uint32:
+                            {
+                                uint32_t v;
+                                std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(uint32_t));
+                                comp_vars[comp_var_index++] = v;
+                            }
+                            break;
+                        case gta::int64:
+                            {
+                                int64_t v;
+                                std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(int64_t));
+                                comp_vars[comp_var_index++] = v;
+                            }
+                            break;
+                        case gta::uint64:
+                            {
+                                uint64_t v;
+                                std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(uint64_t));
+                                comp_vars[comp_var_index++] = v;
+                            }
+                            break;
+                        case gta::float32:
+                            {
+                                float v;
+                                std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(float));
+                                comp_vars[comp_var_index++] = v;
+                            }
+                            break;
+                        case gta::float64:
+                            {
+                                std::memcpy(&(comp_vars[comp_var_index++]), hdri.component(element.ptr(), i), sizeof(double));
+                            }
+                            break;
+                        case gta::cfloat32:
+                            {
+                                float v[2];
+                                std::memcpy(v, hdri.component(element.ptr(), i), 2 * sizeof(float));
+                                comp_vars[comp_var_index++] = v[0];
+                                comp_vars[comp_var_index++] = v[1];
+                            }
+                            break;
+                        case gta::cfloat64:
+                            {
+                                double v[2];
+                                std::memcpy(v, hdri.component(element.ptr(), i), 2 * sizeof(double));
+                                comp_vars[comp_var_index++] = v[0];
+                                comp_vars[comp_var_index++] = v[1];
+                            }
+                            break;
+                        default:
+                            // cannot happen
+                            break;
+                        }
+                    }
+                    // evaluate the expressions
+                    for (size_t p = 0; p < parsers.size(); p++)
+                    {
+                        parsers[p].Eval();
+                    }
+                    // read back the component variables
+                    comp_var_index = 0;
+                    for (uintmax_t i = 0; i < hdro.components(); i++)
+                    {
+                        switch (hdro.component_type(i))
+                        {
+                        case gta::int8:
+                            {
+                                int8_t v = comp_vars[comp_var_index++];
+                                std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(int8_t));
+                            }
+                            break;
+                        case gta::uint8:
+                            {
+                                uint8_t v = comp_vars[comp_var_index++];
+                                std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(uint8_t));
+                            }
+                            break;
+                        case gta::int16:
+                            {
+                                int16_t v = comp_vars[comp_var_index++];
+                                std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(int16_t));
+                            }
+                            break;
+                        case gta::uint16:
+                            {
+                                uint16_t v = comp_vars[comp_var_index++];
+                                std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(uint16_t));
+                            }
+                            break;
+                        case gta::int32:
+                            {
+                                int32_t v = comp_vars[comp_var_index++];
+                                std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(int32_t));
+                            }
+                            break;
+                        case gta::uint32:
+                            {
+                                uint32_t v = comp_vars[comp_var_index++];
+                                std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(uint32_t));
+                            }
+                            break;
+                        case gta::int64:
+                            {
+                                int64_t v = comp_vars[comp_var_index++];
+                                std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(int64_t));
+                            }
+                            break;
+                        case gta::uint64:
+                            {
+                                uint64_t v = comp_vars[comp_var_index++];
+                                std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(uint64_t));
+                            }
+                            break;
+                        case gta::float32:
+                            {
+                                float v = comp_vars[comp_var_index++];
+                                std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(float));
+                            }
+                            break;
+                        case gta::float64:
+                            {
+                                std::memcpy(hdri.component(element.ptr(), i), &(comp_vars[comp_var_index++]), sizeof(double));
+                            }
+                            break;
+                        case gta::cfloat32:
+                            {
+                                float v[2] = { static_cast<float>(comp_vars[comp_var_index]), static_cast<float>(comp_vars[comp_var_index + 1]) };
+                                comp_var_index += 2;
+                                std::memcpy(hdri.component(element.ptr(), i), v, 2 * sizeof(float));
+                            }
+                            break;
+                        case gta::cfloat64:
+                            {
+                                std::memcpy(hdri.component(element.ptr(), i), &(comp_vars[comp_var_index]), 2 * sizeof(double));
+                                comp_var_index += 2;
+                            }
+                            break;
+                        default:
+                            // cannot happen
+                            break;
+                        }
+                    }
+                    element_loop.write(element.ptr());
                 }
-                element_loop.write(element.ptr());
             }
         }
         array_loop.finish();
