@@ -1,4 +1,4 @@
-# Copyright (C) 2010, 2011
+# Copyright (C) 2010, 2011, 2013
 # Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -15,8 +15,6 @@ libbase_la_SOURCES = \
 	fio.h fio.cpp \
 	opt.h opt.cpp \
 	endianness.h \
-	s11n.h s11n.cpp \
-	thread.h thread.cpp \
 	blob.h \
 	gettext.h
 libbase_la_LDFLAGS = -static
