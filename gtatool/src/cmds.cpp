@@ -95,6 +95,7 @@ CMD_DECL(dimension_reverse)
 CMD_DECL(dimension_split)
 CMD_DECL(extract)
 CMD_DECL(fill)
+CMD_DECL(from)
 CMD_DECL(from_csv)
 CMD_DECL(from_datraw)
 CMD_DECL(from_dcmtk)
@@ -124,6 +125,7 @@ CMD_DECL(stream_extract)
 CMD_DECL(stream_merge)
 CMD_DECL(stream_split)
 CMD_DECL(tag)
+CMD_DECL(to)
 CMD_DECL(to_csv)
 CMD_DECL(to_datraw)
 CMD_DECL(to_exr)
@@ -167,6 +169,7 @@ static cmd_t cmds[] =
     CMD("dimension-split",   dimension,  dimension_split,   true,          BUILTIN),
     CMD("extract",           array,      extract,           true,          BUILTIN),
     CMD("fill",              array,      fill,              true,          BUILTIN),
+    CMD("from",              conversion, from,              true,          BUILTIN),
     CMD("from-csv",          conversion, from_csv,          WITH_CSV,      "conv-csv"),
     CMD("from-datraw",       conversion, from_datraw,       WITH_DATRAW,   "conv-datraw"),
     CMD("from-dcmtk",        conversion, from_dcmtk,        WITH_DCMTK,    "conv-dcmtk"),
@@ -196,6 +199,7 @@ static cmd_t cmds[] =
     CMD("stream-merge",      stream,     stream_merge,      true,          BUILTIN),
     CMD("stream-split",      stream,     stream_split,      true,          BUILTIN),
     CMD("tag",               array,      tag,               true,          BUILTIN),
+    CMD("to",                conversion, to,                true,          BUILTIN),
     CMD("to-csv",            conversion, to_csv,            WITH_CSV,      "conv-csv"),
     CMD("to-datraw",         conversion, to_datraw,         WITH_DATRAW,   "conv-datraw"),
     CMD("to-exr",            conversion, to_exr,            WITH_EXR,      "conv-exr"),
