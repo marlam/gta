@@ -571,7 +571,11 @@ GUI::GUI()
     connect(file_close_all_action, SIGNAL(triggered()), this, SLOT(file_close_all()));
     file_menu->addAction(file_close_all_action);
     file_menu->addSeparator();
-    QMenu *file_import_menu = file_menu->addMenu(tr("Import"));
+    QAction *file_import_action = new QAction(tr("Automatic &import..."), this);
+    file_import_action->setShortcut(tr("Ctrl+I"));
+    connect(file_import_action, SIGNAL(triggered()), this, SLOT(file_import()));
+    file_menu->addAction(file_import_action);
+    QMenu *file_import_menu = file_menu->addMenu(tr("Manual import"));
     QAction *file_import_csv_action = new QAction(tr("CSV data..."), this);
     connect(file_import_csv_action, SIGNAL(triggered()), this, SLOT(file_import_csv()));
     file_import_csv_action->setEnabled(cmd_is_available(cmd_find("from-csv")));
@@ -644,7 +648,11 @@ GUI::GUI()
     connect(file_import_teem_action, SIGNAL(triggered()), this, SLOT(file_import_teem()));
     file_import_teem_action->setEnabled(cmd_is_available(cmd_find("from-teem")));
     file_import_menu->addAction(file_import_teem_action);
-    QMenu *file_export_menu = file_menu->addMenu(tr("Export"));
+    QAction *file_export_action = new QAction(tr("Automatic &export..."), this);
+    file_export_action->setShortcut(tr("Ctrl+E"));
+    connect(file_export_action, SIGNAL(triggered()), this, SLOT(file_export()));
+    file_menu->addAction(file_export_action);
+    QMenu *file_export_menu = file_menu->addMenu(tr("Manual export"));
     QAction *file_export_csv_action = new QAction(tr("CSV data..."), this);
     connect(file_export_csv_action, SIGNAL(triggered()), this, SLOT(file_export_csv()));
     file_export_csv_action->setEnabled(cmd_is_available(cmd_find("to-csv")));
@@ -1419,6 +1427,11 @@ void GUI::file_close_all()
     }
 }
 
+void GUI::file_import()
+{
+    import_from("from", std::vector<std::string>(), QStringList());
+}
+
 void GUI::file_import_csv()
 {
     import_from("from-csv", std::vector<std::string>(), QStringList("CSV files (*.csv)"));
@@ -1545,6 +1558,11 @@ void GUI::file_import_sndfile()
 void GUI::file_import_teem()
 {
     import_from("from-teem", std::vector<std::string>(), QStringList("NRRD files (*.nrrd)"));
+}
+
+void GUI::file_export()
+{
+    export_to("to", std::vector<std::string>(), QString(), QStringList());
 }
 
 void GUI::file_export_csv()
