@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011
+ * Copyright (C) 2010, 2011, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -21,6 +21,7 @@
 
 #include "config.h"
 
+#include <cstring>
 #include <string>
 #include <limits>
 
@@ -122,8 +123,13 @@ extern "C" int gtatool_to_netpbm(int argc, char *argv[])
             }
 
             struct pam outpam;
+            std::memset(&outpam, 0, sizeof(outpam));
             outpam.size = sizeof(struct pam);
+#ifdef PAM_STRUCT_SIZE
+            outpam.len = PAM_STRUCT_SIZE(tuple_type);
+#else
             outpam.len = outpam.size;
+#endif
             outpam.file = fo;
             outpam.width = hdr.dimension_size(0);
             outpam.height = hdr.dimension_size(1);
@@ -132,24 +138,30 @@ extern "C" int gtatool_to_netpbm(int argc, char *argv[])
                     : type == gta::uint16 ? std::numeric_limits<uint16_t>::max()
                     : type == gta::uint32 ? std::numeric_limits<uint32_t>::max()
                     : std::numeric_limits<uint64_t>::max());
+            outpam.bytes_per_sample = (type == gta::uint8 ? sizeof(uint8_t)
+                    : type == gta::uint16 ? sizeof(uint16_t)
+                    : type == gta::uint32 ? sizeof(uint32_t)
+                    : sizeof(uint64_t));
             outpam.plainformat = 0;
             if (hdr.components() == 1)
             {
                 outpam.format = RPGM_FORMAT;
+                std::strcpy(outpam.tuple_type, PAM_PGM_TUPLETYPE);
             }
             else if (hdr.components() == 2)
             {
                 outpam.format = PAM_FORMAT;
-                strcpy(outpam.tuple_type, "GRAYSCALE_ALPHA");
+                std::strcpy(outpam.tuple_type, "GRAYSCALE_ALPHA");
             }
             else if (hdr.components() == 3)
             {
                 outpam.format = RPPM_FORMAT;
+                std::strcpy(outpam.tuple_type, PAM_PPM_TUPLETYPE);
             }
             else
             {
                 outpam.format = PAM_FORMAT;
-                strcpy(outpam.tuple_type, "RGB_ALPHA");
+                std::strcpy(outpam.tuple_type, "RGB_ALPHA");
             }
             pnm_writepaminit(&outpam);
 
