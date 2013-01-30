@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2012
+ * Copyright (C) 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,6 +20,8 @@
  */
 
 #include "config.h"
+
+#include <cctype>
 
 #include <gta/gta.hpp>
 
@@ -44,6 +46,17 @@ extern "C" void gtatool_to_netcdf_help(void)
             "You can create groups inside the NetCDF file by assigning NETCDF/GROUP=GROUPNAME tags "
             "to the global taglists of the GTAs. By default, only the single group \"/\" exists.\n"
             "The first GTA in a group defines the dimensions for all following variables in the same group.");
+}
+
+static std::string to_nc_name(const std::string& str)
+{
+    std::string s = str;
+    for (size_t i = 0; i < s.length(); i++)
+    {
+        if (s[i] < 33 || s [i] > 126 || !std::isalnum(s[i]))
+            s[i] = '_';
+    }
+    return s;
 }
 
 extern "C" int gtatool_to_netcdf(int argc, char *argv[])
@@ -166,7 +179,7 @@ extern "C" int gtatool_to_netcdf(int argc, char *argv[])
                     if (nc_dim_name.empty())
                         nc_dim_name = std::string("DIM") + str::from(d);
                     int nc_dim_id;
-                    nc_err = nc_def_dim(nc_group_id, nc_dim_name.c_str(), checked_cast<size_t>(hdr.dimension_size(d)), &nc_dim_id);
+                    nc_err = nc_def_dim(nc_group_id, to_nc_name(nc_dim_name).c_str(), checked_cast<size_t>(hdr.dimension_size(d)), &nc_dim_id);
                     if (nc_err != 0)
                         throw exc(nameo + ": " + nc_strerror(nc_err));
                     msg::dbg(name + ": GTA dimension " + str::from(d)
@@ -201,7 +214,7 @@ extern "C" int gtatool_to_netcdf(int argc, char *argv[])
             std::vector<int> nc_var_dim_ids(nc_dimensions);
             for (int i = 0; i < nc_dimensions; i++)
                 nc_var_dim_ids[i] = i;
-            nc_err = nc_def_var(nc_group_id, nc_var_name.c_str(), nc_xtype, nc_dimensions, &(nc_var_dim_ids[0]), &nc_var_id);
+            nc_err = nc_def_var(nc_group_id, to_nc_name(nc_var_name).c_str(), nc_xtype, nc_dimensions, &(nc_var_dim_ids[0]), &nc_var_id);
             if (nc_err != 0)
                 throw exc(nameo + ": " + nc_strerror(nc_err));
 
@@ -216,7 +229,7 @@ extern "C" int gtatool_to_netcdf(int argc, char *argv[])
                     continue;
                 if (nc_att_name.substr(0, 7) == std::string("NETCDF/"))
                     nc_att_name = nc_att_name.substr(7);
-                nc_err = nc_put_att_text(nc_group_id, nc_var_id, nc_att_name.c_str(), nc_att_value.length(), nc_att_value.c_str());
+                nc_err = nc_put_att_text(nc_group_id, nc_var_id, to_nc_name(nc_att_name).c_str(), nc_att_value.length(), nc_att_value.c_str());
                 if (nc_err != 0)
                     throw exc(nameo + ": " + nc_strerror(nc_err));
             }
@@ -230,7 +243,7 @@ extern "C" int gtatool_to_netcdf(int argc, char *argv[])
                         continue;
                     else
                         nc_att_name = std::string("DIM") + str::from(d) + std::string("/") + nc_att_name;
-                    nc_err = nc_put_att_text(nc_group_id, nc_var_id, nc_att_name.c_str(), nc_att_value.length(), nc_att_value.c_str());
+                    nc_err = nc_put_att_text(nc_group_id, nc_var_id, to_nc_name(nc_att_name).c_str(), nc_att_value.length(), nc_att_value.c_str());
                     if (nc_err != 0)
                         throw exc(nameo + ": " + nc_strerror(nc_err));
                 }
@@ -302,7 +315,7 @@ extern "C" int gtatool_to_netcdf(int argc, char *argv[])
                 {
                     nc_att_name = std::string("COMPONENT/") + nc_att_name;
                 }
-                nc_err = nc_put_att_text(nc_group_id, nc_var_id, nc_att_name.c_str(), nc_att_value.length(), nc_att_value.c_str());
+                nc_err = nc_put_att_text(nc_group_id, nc_var_id, to_nc_name(nc_att_name).c_str(), nc_att_value.length(), nc_att_value.c_str());
                 if (nc_err != 0)
                     throw exc(nameo + ": " + nc_strerror(nc_err));
             }
