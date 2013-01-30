@@ -460,7 +460,7 @@ FileWidget::FileWidget(const std::string &file_name, const std::string &save_nam
     QGridLayout *l0 = new QGridLayout;
     l0->addWidget(_array_label, 0, 0);
     l0->addWidget(_array_spinbox, 0, 1);
-    l0->addWidget(new QLabel(QString(" / ") + QString::number(_headers.size())), 0, 2);
+    l0->addWidget(new QLabel(QString("(Total: ") + QString::number(_headers.size()) + QString(")")), 0, 2);
     l0->addItem(new QSpacerItem(0, _array_label->minimumSizeHint().height() / 3 * 2,
                 QSizePolicy::Minimum, QSizePolicy::Fixed), 1, 0, 1, 4);
     l0->setColumnStretch(3, 1);
