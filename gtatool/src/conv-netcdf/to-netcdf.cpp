@@ -186,7 +186,7 @@ extern "C" int gtatool_to_netcdf(int argc, char *argv[])
                     nc_err = nc_inq_dimlen(nc_group_id, checked_cast<int>(d), &nc_dim_len);
                     if (nc_err != 0)
                         throw exc(nameo + ": " + nc_strerror(nc_err));
-                    if (nc_dim_len != hdr.dimension_size(d))
+                    if (nc_dim_len != hdr.dimension_size(dd))
                         throw exc(name + ": dimensions differ from previous GTA in the same NetCDF group");
                 }
             }
