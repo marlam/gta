@@ -1175,7 +1175,7 @@ void GUI::output_cmd(const std::string &cmd, const std::vector<std::string> &arg
     }
     catch (std::exception &e)
     {
-        QMessageBox::critical(this, "Error", e.what());
+        QMessageBox::critical(this, "Error", QTextCodec::codecForLocale()->toUnicode(e.what()));
     }
 }
 
@@ -1236,7 +1236,7 @@ void GUI::export_to(const std::string &cmd, const std::vector<std::string> &opti
         }
         catch (std::exception &e)
         {
-            QMessageBox::critical(this, "Error", e.what());
+            QMessageBox::critical(this, "Error", QTextCodec::codecForLocale()->toUnicode(e.what()));
         }
     }
 }
@@ -1708,17 +1708,24 @@ void GUI::stream_split()
     }
     if (file_dialog->exec())
     {
-        QString dir_name = file_dialog->selectedFiles().at(0);
-        _last_file_save_as_dir = file_dialog->directory();
-        FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-        std::vector<std::string> args;
-        args.push_back(fio::to_sys(fw->save_name()));
-        args.push_back(fio::to_sys(std::string(qPrintable(QDir(dir_name).canonicalPath())) + "/%9N.gta"));
-        std::string std_err;
-        int retval = run("stream-split", args, std_err, NULL, NULL);
-        if (retval != 0)
+        try
         {
-            throw exc(std::string("<p>Command failed.</p><pre>") + std_err + "</pre>");
+            QString dir_name = file_dialog->selectedFiles().at(0);
+            _last_file_save_as_dir = file_dialog->directory();
+            FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+            std::vector<std::string> args;
+            args.push_back(fio::to_sys(fw->save_name()));
+            args.push_back(fio::to_sys(std::string(qPrintable(QDir(dir_name).canonicalPath())) + "/%9N.gta"));
+            std::string std_err;
+            int retval = run("stream-split", args, std_err, NULL, NULL);
+            if (retval != 0)
+            {
+                throw exc(std::string("<p>Command failed.</p><pre>") + std_err + "</pre>");
+            }
+        }
+        catch (std::exception &e)
+        {
+            QMessageBox::critical(this, "Error", QTextCodec::codecForLocale()->toUnicode(e.what()));
         }
     }
 }
