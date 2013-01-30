@@ -21,6 +21,7 @@
 
 #include "config.h"
 
+#include <cstring>
 #include <locale.h>
 
 #if W32
@@ -117,6 +118,19 @@ extern "C" int gtatool_help(int argc, char *argv[])
             "Commands to convert from/to other file formats",
             "Miscellaneous commands"
         };
+        size_t max_name_len = 0;
+        for (int j = 0; j < cmd_count(); j++)
+        {
+            size_t name_len = std::strlen(cmd_name(j));
+            if (!cmd_is_available(j))
+            {
+                name_len += 4; // " [u]"
+            }
+            if (name_len > max_name_len)
+            {
+                max_name_len = name_len;
+            }
+        }
         for (size_t i = 0; i < sizeof(categories) / sizeof(categories[0]); i++)
         {
             msg::req_txt("\n%s:", descriptions[i]);
@@ -124,14 +138,22 @@ extern "C" int gtatool_help(int argc, char *argv[])
             {
                 if (cmd_category(j) == categories[i])
                 {
-                    msg::req("%s%s", cmd_name(j), cmd_is_available(j) ? "" : " [unavailable]");
+                    std::string line = cmd_name(j);
+                    if (!cmd_is_available(j))
+                    {
+                        line += " [u]";
+                    }
+                    line += std::string(max_name_len - line.length() + 2, ' ');
+                    line += cmd_description(j);
+                    msg::req("%s", line.c_str());
                 }
             }
         }
         msg::req_txt(
                 "\n"
+                "Commands marked with [u] are unavailable in this %s version.\n"
                 "Use \"%s help <command>\" for command specific help.\n"
-                "Report bugs to <%s>.", program_name, PACKAGE_BUGREPORT);
+                "Report bugs to <%s>.", program_name, program_name, PACKAGE_BUGREPORT);
         return 0;
     }
     else

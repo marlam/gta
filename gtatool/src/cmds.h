@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011
+ * Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -32,6 +32,9 @@ int cmd_count();
 
 /* Get the name of the command with the given index. */
 const char *cmd_name(int cmd_index);
+
+/* Get the description of the command with the given index. */
+const char *cmd_description(int cmd_index);
 
 /* Get the category of the command with the given index. */
 typedef enum

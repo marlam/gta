@@ -54,6 +54,7 @@ typedef struct
     void *module_handle;
     int (*cmd)(int argc, char *argv[]);
     void (*cmd_print_help)(void);
+    const char* description;
 } cmd_t;
 
 #define CMD_DECL(FNBASE)      \
@@ -63,15 +64,17 @@ typedef struct
 #define BUILTIN NULL
 
 #if DYNAMIC_MODULES
-#   define CMD(NAME, CATEGORY, FNBASE, AVAILABLE, MODULE) \
+#   define CMD(NAME, CATEGORY, FNBASE, AVAILABLE, MODULE, DESCR) \
         { NAME, CATEGORY, AVAILABLE, MODULE, NULL, \
             AVAILABLE && !MODULE ? gtatool_ ## FNBASE : NULL, \
-            AVAILABLE && !MODULE ? gtatool_ ## FNBASE ## _help : NULL }
+            AVAILABLE && !MODULE ? gtatool_ ## FNBASE ## _help : NULL, \
+            DESCR }
 #else
-#   define CMD(NAME, CATEGORY, FNBASE, AVAILABLE, MODULE) \
+#   define CMD(NAME, CATEGORY, FNBASE, AVAILABLE, MODULE, DESCR) \
         { NAME, CATEGORY, AVAILABLE, BUILTIN, NULL, \
             AVAILABLE ? gtatool_ ## FNBASE : NULL, \
-            AVAILABLE ? gtatool_ ## FNBASE ## _help : NULL }
+            AVAILABLE ? gtatool_ ## FNBASE ## _help : NULL, \
+            DESCR }
 #endif
 
 CMD_DECL(combine)
@@ -148,77 +151,148 @@ CMD_DECL(version)
 
 static cmd_t cmds[] =
 {
-    CMD("combine",           array,      combine,           true,          BUILTIN),
-    CMD("component-add",     component,  component_add,     true,          BUILTIN),
-    CMD("component-compute", component,  component_compute, WITH_MUPARSER, "component-compute"),
-    CMD("component-convert", component,  component_convert, true,          BUILTIN),
-    CMD("component-extract", component,  component_extract, true,          BUILTIN),
-    CMD("component-merge",   component,  component_merge,   true,          BUILTIN),
-    CMD("component-reorder", component,  component_reorder, true,          BUILTIN),
-    CMD("component-set",     component,  component_set,     true,          BUILTIN),
-    CMD("component-split",   component,  component_split,   true,          BUILTIN),
-    CMD("compress",          array,      compress,          true,          BUILTIN),
-    CMD("create",            array,      create,            true,          BUILTIN),
-    CMD("diff",              array,      diff,              true,          BUILTIN),
-    CMD("dimension-add",     dimension,  dimension_add,     true,          BUILTIN),
-    CMD("dimension-extract", dimension,  dimension_extract, true,          BUILTIN),
-    CMD("dimension-flatten", dimension,  dimension_flatten, true,          BUILTIN),
-    CMD("dimension-merge",   dimension,  dimension_merge,   true,          BUILTIN),
-    CMD("dimension-reorder", dimension,  dimension_reorder, true,          BUILTIN),
-    CMD("dimension-reverse", dimension,  dimension_reverse, true,          BUILTIN),
-    CMD("dimension-split",   dimension,  dimension_split,   true,          BUILTIN),
-    CMD("extract",           array,      extract,           true,          BUILTIN),
-    CMD("fill",              array,      fill,              true,          BUILTIN),
-    CMD("from",              conversion, from,              true,          BUILTIN),
-    CMD("from-csv",          conversion, from_csv,          WITH_CSV,      "conv-csv"),
-    CMD("from-datraw",       conversion, from_datraw,       WITH_DATRAW,   "conv-datraw"),
-    CMD("from-dcmtk",        conversion, from_dcmtk,        WITH_DCMTK,    "conv-dcmtk"),
-    CMD("from-exr",          conversion, from_exr,          WITH_EXR,      "conv-exr"),
-    CMD("from-ffmpeg",       conversion, from_ffmpeg,       WITH_FFMPEG,   "conv-ffmpeg"),
-    CMD("from-gdal",         conversion, from_gdal,         WITH_GDAL,     "conv-gdal"),
-    CMD("from-jpeg",         conversion, from_jpeg,         WITH_JPEG,     "conv-jpeg"),
-    CMD("from-magick",       conversion, from_magick,       WITH_MAGICK,   "conv-magick"),
-    CMD("from-mat",          conversion, from_mat,          WITH_MAT,      "conv-mat"),
-    CMD("from-netcdf",       conversion, from_netcdf,       WITH_NETCDF,   "conv-netcdf"),
-    CMD("from-netpbm",       conversion, from_netpbm,       WITH_NETPBM,   "conv-netpbm"),
-    CMD("from-pcd",          conversion, from_pcd,          WITH_PCD,      "conv-pcd"),
-    CMD("from-pfs",          conversion, from_pfs,          WITH_PFS,      "conv-pfs"),
-    CMD("from-ply",          conversion, from_ply,          WITH_PLY,      "conv-ply"),
-    CMD("from-pvm",          conversion, from_pvm,          WITH_PVM,      "conv-pvm"),
-    CMD("from-rat",          conversion, from_rat,          WITH_RAT,      "conv-rat"),
-    CMD("from-raw",          conversion, from_raw,          WITH_RAW,      "conv-raw"),
-    CMD("from-sndfile",      conversion, from_sndfile,      WITH_SNDFILE,  "conv-sndfile"),
-    CMD("from-teem",         conversion, from_teem,         WITH_TEEM,     "conv-teem"),
-    CMD("gui",               misc,       gui,               WITH_QT,       "gui"),
-    CMD("help",              misc,       help,              true,          BUILTIN),
-    CMD("info",              array,      info,              true,          BUILTIN),
-    CMD("merge",             array,      merge,             true,          BUILTIN),
-    CMD("resize",            array,      resize,            true,          BUILTIN),
-    CMD("set",               array,      set,               true,          BUILTIN),
-    CMD("stream-extract",    stream,     stream_extract,    true,          BUILTIN),
-    CMD("stream-merge",      stream,     stream_merge,      true,          BUILTIN),
-    CMD("stream-split",      stream,     stream_split,      true,          BUILTIN),
-    CMD("tag",               array,      tag,               true,          BUILTIN),
-    CMD("to",                conversion, to,                true,          BUILTIN),
-    CMD("to-csv",            conversion, to_csv,            WITH_CSV,      "conv-csv"),
-    CMD("to-datraw",         conversion, to_datraw,         WITH_DATRAW,   "conv-datraw"),
-    CMD("to-exr",            conversion, to_exr,            WITH_EXR,      "conv-exr"),
-    CMD("to-gdal",           conversion, to_gdal,           WITH_GDAL,     "conv-gdal"),
-    CMD("to-jpeg",           conversion, to_jpeg,           WITH_JPEG,     "conv-jpeg"),
-    CMD("to-magick",         conversion, to_magick,         WITH_MAGICK,   "conv-magick"),
-    CMD("to-mat",            conversion, to_mat,            WITH_MAT,      "conv-mat"),
-    CMD("to-netcdf",         conversion, to_netcdf,         WITH_NETCDF,   "conv-netcdf"),
-    CMD("to-netpbm",         conversion, to_netpbm,         WITH_NETPBM,   "conv-netpbm"),
-    CMD("to-pcd",            conversion, to_pcd,            WITH_PCD,      "conv-pcd"),
-    CMD("to-pfs",            conversion, to_pfs,            WITH_PFS,      "conv-pfs"),
-    CMD("to-ply",            conversion, to_ply,            WITH_PLY,      "conv-ply"),
-    CMD("to-pvm",            conversion, to_pvm,            WITH_PVM,      "conv-pvm"),
-    CMD("to-rat",            conversion, to_rat,            WITH_RAT,      "conv-rat"),
-    CMD("to-raw",            conversion, to_raw,            WITH_RAW,      "conv-raw"),
-    CMD("to-sndfile",        conversion, to_sndfile,        WITH_SNDFILE,  "conv-sndfile"),
-    CMD("to-teem",           conversion, to_teem,           WITH_TEEM,     "conv-teem"),
-    CMD("uncompress",        array,      uncompress,        true,          BUILTIN),
-    CMD("version",           misc,       version,           true,          BUILTIN),
+    CMD("combine",           array,      combine,           true,          BUILTIN,
+            "Combine arrays values (e.g. with min,max,add,mul,...)"),
+    CMD("component-add",     component,  component_add,     true,          BUILTIN,
+            "Add components to arrays (e.g. add A to RGB)"),
+    CMD("component-compute", component,  component_compute, WITH_MUPARSER, "component-compute",
+            "Compute array component values"),
+    CMD("component-convert", component,  component_convert, true,          BUILTIN,
+            "Convert array component types (e.g. uint8 to float32)"),
+    CMD("component-extract", component,  component_extract, true,          BUILTIN,
+            "Extract components from arrays (e.g. R from RGB)"),
+    CMD("component-merge",   component,  component_merge,   true,          BUILTIN,
+            "Merge arrays on component level (e.g. R,G,B to RGB)"),
+    CMD("component-reorder", component,  component_reorder, true,          BUILTIN,
+            "Reorder array components (e.g. RGB to BGR)"),
+    CMD("component-set",     component,  component_set,     true,          BUILTIN,
+            "Set array component values"),
+    CMD("component-split",   component,  component_split,   true,          BUILTIN,
+            "Split arrays along components (e.g. RGB to R,G,B)"),
+    CMD("compress",          array,      compress,          true,          BUILTIN,
+            "Compress arrays"),
+    CMD("create",            array,      create,            true,          BUILTIN,
+            "Create arrays"),
+    CMD("diff",              array,      diff,              true,          BUILTIN,
+            "Compute differences between arrays"),
+    CMD("dimension-add",     dimension,  dimension_add,     true,          BUILTIN,
+            "Add dimensions to arrays (e.g. slice to flat volume"),
+    CMD("dimension-extract", dimension,  dimension_extract, true,          BUILTIN,
+            "Extract dimension from arrays (e.g. slice from volume)"),
+    CMD("dimension-flatten", dimension,  dimension_flatten, true,          BUILTIN,
+            "Make arrays one-dimensional"),
+    CMD("dimension-merge",   dimension,  dimension_merge,   true,          BUILTIN,
+            "Merge arrays along dimension (e.g. slices to volume)"),
+    CMD("dimension-reorder", dimension,  dimension_reorder, true,          BUILTIN,
+            "Reorder array dimensions (e.g. transpose matrix)"),
+    CMD("dimension-reverse", dimension,  dimension_reverse, true,          BUILTIN,
+            "Reverse array dimension (e.g. flip image)"),
+    CMD("dimension-split",   dimension,  dimension_split,   true,          BUILTIN,
+            "Split arrays along dimension (e.g. volume to slices)"),
+    CMD("extract",           array,      extract,           true,          BUILTIN,
+            "Extract parts of arrays"),
+    CMD("fill",              array,      fill,              true,          BUILTIN,
+            "Fill parts of arrays"),
+    CMD("from",              conversion, from,              true,          BUILTIN,
+            "Import arrays"),
+    CMD("from-csv",          conversion, from_csv,          WITH_CSV,      "conv-csv",
+            "Import arrays from CSV files"),
+    CMD("from-datraw",       conversion, from_datraw,       WITH_DATRAW,   "conv-datraw",
+            "Import arrays from .dat/.raw volume data"),
+    CMD("from-dcmtk",        conversion, from_dcmtk,        WITH_DCMTK,    "conv-dcmtk",
+            "Import arrays from DICOM data"),
+    CMD("from-exr",          conversion, from_exr,          WITH_EXR,      "conv-exr",
+            "Import arrays from OpenEXR files"),
+    CMD("from-ffmpeg",       conversion, from_ffmpeg,       WITH_FFMPEG,   "conv-ffmpeg",
+            "Import arrays from multimedia files via FFmpeg"),
+    CMD("from-gdal",         conversion, from_gdal,         WITH_GDAL,     "conv-gdal",
+            "Import arrays from remote sensing data via GDAL"),
+    CMD("from-jpeg",         conversion, from_jpeg,         WITH_JPEG,     "conv-jpeg",
+            "Import arrays from JPEG images"),
+    CMD("from-magick",       conversion, from_magick,       WITH_MAGICK,   "conv-magick",
+            "Import arrays from images via ImageMagick"),
+    CMD("from-mat",          conversion, from_mat,          WITH_MAT,      "conv-mat",
+            "Import arrays from Matlab files"),
+    CMD("from-netcdf",       conversion, from_netcdf,       WITH_NETCDF,   "conv-netcdf",
+            "Import arrays from NetCDF files (incl. HDF4/5)"),
+    CMD("from-netpbm",       conversion, from_netpbm,       WITH_NETPBM,   "conv-netpbm",
+            "Import arrays from NetPBM images"),
+    CMD("from-pcd",          conversion, from_pcd,          WITH_PCD,      "conv-pcd",
+            "Import arrays from PCD point cloud data"),
+    CMD("from-pfs",          conversion, from_pfs,          WITH_PFS,      "conv-pfs",
+            "Import arrays from PFS images"),
+    CMD("from-ply",          conversion, from_ply,          WITH_PLY,      "conv-ply",
+            "Import arrays from PLY point data"),
+    CMD("from-pvm",          conversion, from_pvm,          WITH_PVM,      "conv-pvm",
+            "Import arrays from PVM volume data"),
+    CMD("from-rat",          conversion, from_rat,          WITH_RAT,      "conv-rat",
+            "Import arrays from RAT RadarTools data"),
+    CMD("from-raw",          conversion, from_raw,          WITH_RAW,      "conv-raw",
+            "Import arrays from raw binary data"),
+    CMD("from-sndfile",      conversion, from_sndfile,      WITH_SNDFILE,  "conv-sndfile",
+            "Import arrays from audio files via libsndfile"),
+    CMD("from-teem",         conversion, from_teem,         WITH_TEEM,     "conv-teem",
+            "Import arrays from NRRD files via Teem"),
+    CMD("gui",               misc,       gui,               WITH_QT,       "gui",
+            "Graphical user interface"),
+    CMD("help",              misc,       help,              true,          BUILTIN,
+            "Show help"),
+    CMD("info",              array,      info,              true,          BUILTIN,
+            "Show information about arrays"),
+    CMD("merge",             array,      merge,             true,          BUILTIN,
+            "Merge arrays into larger arrays"),
+    CMD("resize",            array,      resize,            true,          BUILTIN,
+            "Resize arrays"),
+    CMD("set",               array,      set,               true,          BUILTIN,
+            "Set parts of arrays"),
+    CMD("stream-extract",    stream,     stream_extract,    true,          BUILTIN,
+            "Extract arrays from stream"),
+    CMD("stream-merge",      stream,     stream_merge,      true,          BUILTIN,
+            "Merge arrays into stream"),
+    CMD("stream-split",      stream,     stream_split,      true,          BUILTIN,
+            "Split stream into separate arrays"),
+    CMD("tag",               array,      tag,               true,          BUILTIN,
+            "Set, unset, and query array tags"),
+    CMD("to",                conversion, to,                true,          BUILTIN,
+            "Export arrays"),
+    CMD("to-csv",            conversion, to_csv,            WITH_CSV,      "conv-csv",
+            "Export arrays to CSV files"),
+    CMD("to-datraw",         conversion, to_datraw,         WITH_DATRAW,   "conv-datraw",
+            "Export arrays to .dat/.raw volume data"),
+    CMD("to-exr",            conversion, to_exr,            WITH_EXR,      "conv-exr",
+            "Export arrays to OpenEXR images"),
+    CMD("to-gdal",           conversion, to_gdal,           WITH_GDAL,     "conv-gdal",
+            "Export arrays to remote sensing formats via GDAL"),
+    CMD("to-jpeg",           conversion, to_jpeg,           WITH_JPEG,     "conv-jpeg",
+            "Export arrays to JPEG images"),
+    CMD("to-magick",         conversion, to_magick,         WITH_MAGICK,   "conv-magick",
+            "Export arrays to images via ImageMagick"),
+    CMD("to-mat",            conversion, to_mat,            WITH_MAT,      "conv-mat",
+            "Export arrays to Matlab files"),
+    CMD("to-netcdf",         conversion, to_netcdf,         WITH_NETCDF,   "conv-netcdf",
+            "Export arrays to NetCDF files"),
+    CMD("to-netpbm",         conversion, to_netpbm,         WITH_NETPBM,   "conv-netpbm",
+            "Export arrays to NetPBM images"),
+    CMD("to-pcd",            conversion, to_pcd,            WITH_PCD,      "conv-pcd",
+            "Export arrays to PCD point cloud data"),
+    CMD("to-pfs",            conversion, to_pfs,            WITH_PFS,      "conv-pfs",
+            "Export arrays to PFS images"),
+    CMD("to-ply",            conversion, to_ply,            WITH_PLY,      "conv-ply",
+            "Export arrays to PLY point data"),
+    CMD("to-pvm",            conversion, to_pvm,            WITH_PVM,      "conv-pvm",
+            "Export arrays to PVM volume data"),
+    CMD("to-rat",            conversion, to_rat,            WITH_RAT,      "conv-rat",
+            "Export arrays to RAT RadarTools data"),
+    CMD("to-raw",            conversion, to_raw,            WITH_RAW,      "conv-raw",
+            "Export arrays to raw binary data"),
+    CMD("to-sndfile",        conversion, to_sndfile,        WITH_SNDFILE,  "conv-sndfile",
+            "Export arrays to audio files via libsndfile"),
+    CMD("to-teem",           conversion, to_teem,           WITH_TEEM,     "conv-teem",
+            "Export arrays to NRRD files via Teem"),
+    CMD("uncompress",        array,      uncompress,        true,          BUILTIN,
+            "Uncompress arrays"),
+    CMD("version",           misc,       version,           true,          BUILTIN,
+            "Show program version"),
 };
 
 
@@ -235,6 +309,11 @@ int cmd_count()
 const char *cmd_name(int cmd_index)
 {
     return cmds[cmd_index].name;
+}
+
+const char *cmd_description(int cmd_index)
+{
+    return cmds[cmd_index].description;
 }
 
 cmd_category_t cmd_category(int cmd_index)
@@ -257,7 +336,7 @@ static int cmd_strcmp(const void *a, const void *b)
 int cmd_find(const char *cmd)
 {
     cmd_t *p;
-    cmd_t key = { cmd, misc, false, NULL, NULL, NULL, NULL };
+    cmd_t key = { cmd, misc, false, NULL, NULL, NULL, NULL, NULL };
 
     p = static_cast<cmd_t *>(bsearch(
                 static_cast<void *>(&key),
