@@ -2625,11 +2625,12 @@ extern "C" int gtatool_gui(int argc, char *argv[])
     int retval = 0;
     try
     {
-        // Set the correct encoding so that qPrintable() returns strings in the
-        // correct locale (and not just latin1).
-        std::string localcharset = str::localcharset();
-        QTextCodec::setCodecForCStrings(QTextCodec::codecForName(localcharset.c_str()));
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName(localcharset.c_str()));
+        // Qt5 always interprets C strings as UTF-8. Make Qt4 do the same.
+ #if QT_VERSION < 0x050000
+        QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+ #endif
+        // Set the correct encoding for the locale. Required e.g. for qPrintable() to work.
+        QTextCodec::setCodecForLocale(QTextCodec::codecForName(str::localcharset().c_str()));
         GUI *gui = new GUI();
         gui->show();
         for (size_t i = 0; i < arguments.size(); i++)
