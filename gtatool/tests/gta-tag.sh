@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (C) 2010, 2011
+# Copyright (C) 2010, 2011, 2013
 # Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -34,8 +34,8 @@ PTMP="$PING"; PING="$PONG"; PONG="$PTMP"
 $GTA tag --set-component=2,cmp2foo=bar "$PING" > "$PONG"
 PTMP="$PING"; PING="$PONG"; PONG="$PTMP"
 
-$GTA tag --get-global=baz "$PING" > /dev/null 2> "$TMPD"/out.txt
-$GTA tag --get-global=foo "$PING" > /dev/null 2> "$TMPD"/out.txt
+$GTA tag --get-global=baz "$PING" > "$TMPD/devnull.gta" 2> "$TMPD"/out0.txt
+$GTA tag --get-global=foo "$PING" > "$TMPD/devnull.gta" 2> "$TMPD"/out1.txt
 
 $GTA tag --unset-global=baz \
 	--unset-global-all \
