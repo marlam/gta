@@ -1282,7 +1282,8 @@ void GUI::open(const std::string &file_name, const std::string &save_name)
         {
             FileWidget *fw = new FileWidget(file_name, save_name, headers);
             connect(fw, SIGNAL(changed(const std::string &, const std::string &)), this, SLOT(file_changed(const std::string &, const std::string &)));
-            _files_widget->addTab(fw, (file_name.length() == 0 ? "(unnamed)" : QString(fio::to_sys(fio::basename(file_name)).c_str())));
+            _files_widget->addTab(fw, (file_name.length() == 0 ? "(unnamed)" :
+                        QTextCodec::codecForLocale()->toUnicode(fio::to_sys(fio::basename(file_name)).c_str())));
             _files_widget->tabBar()->setTabTextColor(_files_widget->indexOf(fw), (fw->is_saved() ? "black" : "red"));
             _files_widget->setCurrentWidget(fw);
         }
