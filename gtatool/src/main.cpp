@@ -21,6 +21,8 @@
 
 #include "config.h"
 
+#include <locale.h>
+
 #if W32
 #   include <stdlib.h>
 #   include <io.h>
@@ -157,6 +159,10 @@ extern "C" int gtatool_help(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
+    // We want the character set of the user's locale, but everything else
+    // should remain the C locale.
+    setlocale(LC_CTYPE, "");
+
     int exitcode = 0;
 #if W32
     _setmode(_fileno(stdin), _O_BINARY);
