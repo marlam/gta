@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011
+ * Copyright (C) 2010, 2011, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -89,6 +89,7 @@ extern "C" int gtatool_from_magick(int argc, char *argv[])
 
     try
     {
+        Magick::InitializeMagick(*argv);
         std::vector<Magick::Image> imgs;
         Magick::readImages(&imgs, arguments[0].c_str());
         for (size_t i = 0; i < imgs.size(); i++)
