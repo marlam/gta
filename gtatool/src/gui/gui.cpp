@@ -733,6 +733,12 @@ GUI::GUI()
     QAction *stream_merge_action = new QAction(tr("&Merge open files..."), this);
     connect(stream_merge_action, SIGNAL(triggered()), this, SLOT(stream_merge()));
     stream_menu->addAction(stream_merge_action);
+    QAction *stream_foreach_action = new QAction(tr("&Run command for each array in open file..."), this);
+    connect(stream_foreach_action, SIGNAL(triggered()), this, SLOT(stream_foreach()));
+    stream_menu->addAction(stream_foreach_action);
+#if W32
+    stream_foreach_action->setEnabled(false); // does not work on Windows; see comments in the implementation
+#endif
 
     QMenu *array_menu = menuBar()->addMenu(tr("&Arrays"));
     QAction *array_create_action = new QAction(tr("&Create array..."), this);
@@ -1685,6 +1691,38 @@ void GUI::stream_extract()
     args.push_back(str::from(fw->array_index()));
     args.push_back(fio::to_sys(fw->save_name()));
     output_cmd("stream-extract", args, "");
+}
+
+void GUI::stream_foreach()
+{
+    if (!check_have_file() || !check_file_unchanged())
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Run command for each array");
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(new QLabel("Enter command. %I will be replaced with the array index."), 0, 0, 1, 2);
+    QLineEdit *edt = new QLineEdit("");
+    layout->addWidget(edt, 1, 0, 1, 2);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 2, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 2, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    std::vector<std::string> args;
+    args.push_back(qPrintable(edt->text()));
+    args.push_back(fio::to_sys(fw->save_name()));
+    output_cmd("stream-foreach", args, "");
 }
 
 void GUI::stream_merge()

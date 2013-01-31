@@ -150,6 +150,10 @@ fi
 dnl The GTA library
 PKG_CHECK_MODULES([libgta], [gta >= 0.9.4])
 
+dnl stream-foreach: some checks required
+AC_CHECK_FUNCS([sigaction])
+AC_CHECK_HEADERS([sys/wait.h])
+
 dnl component-compute: muParser
 AC_ARG_WITH([muparser],
     [AS_HELP_STRING([--with-muparser], [Enable the component-compute command. Enabled by default if libmuparser is available.])],
