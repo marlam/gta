@@ -258,9 +258,9 @@ private slots:
     void file_export_raw();
     void file_export_sndfile();
     void file_export_teem();
+    void stream_extract();
     void stream_merge();
     void stream_split();
-    void stream_extract();
     void array_combine();
     void array_create();
     void array_diff();

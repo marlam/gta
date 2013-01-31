@@ -1674,6 +1674,19 @@ void GUI::file_export_teem()
     export_to("to-teem", std::vector<std::string>(), "nrrd", QStringList("NRRD files (*.nrrd)"));
 }
 
+void GUI::stream_extract()
+{
+    if (!check_have_file() || !check_file_unchanged())
+    {
+        return;
+    }
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    std::vector<std::string> args;
+    args.push_back(str::from(fw->array_index()));
+    args.push_back(fio::to_sys(fw->save_name()));
+    output_cmd("stream-extract", args, "");
+}
+
 void GUI::stream_merge()
 {
     if (!check_have_file() || !check_all_files_unchanged())
@@ -1728,19 +1741,6 @@ void GUI::stream_split()
             QMessageBox::critical(this, "Error", QTextCodec::codecForLocale()->toUnicode(e.what()));
         }
     }
-}
-
-void GUI::stream_extract()
-{
-    if (!check_have_file() || !check_file_unchanged())
-    {
-        return;
-    }
-    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    std::vector<std::string> args;
-    args.push_back(str::from(fw->array_index()));
-    args.push_back(fio::to_sys(fw->save_name()));
-    output_cmd("stream-extract", args, "");
 }
 
 void GUI::array_create()
