@@ -128,12 +128,6 @@ extern "C" int gtatool_diff(int argc, char *argv[])
         return 0;
     }
 
-    if (fio::isatty(gtatool_stdout))
-    {
-        msg::err_txt("refusing to write to a tty");
-        return 1;
-    }
-
     try
     {
         array_loop_t array_loops[2];

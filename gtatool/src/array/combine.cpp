@@ -224,12 +224,6 @@ extern "C" int gtatool_combine(int argc, char *argv[])
         return 0;
     }
 
-    if (fio::isatty(gtatool_stdout))
-    {
-        msg::err_txt("refusing to write to a tty");
-        return 1;
-    }
-
     combine_mode_t m
         (  mode.value().compare("min") == 0 ? mode_min
          : mode.value().compare("max") == 0 ? mode_max
