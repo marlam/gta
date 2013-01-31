@@ -1714,8 +1714,8 @@ void GUI::stream_split()
             _last_file_save_as_dir = file_dialog->directory();
             FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
             std::vector<std::string> args;
-            args.push_back(fio::to_sys(fw->save_name()));
             args.push_back(fio::to_sys(std::string(qPrintable(QDir(dir_name).canonicalPath())) + "/%9N.gta"));
+            args.push_back(fio::to_sys(fw->save_name()));
             std::string std_err;
             int retval = run("stream-split", args, std_err, NULL, NULL);
             if (retval != 0)
@@ -1738,8 +1738,8 @@ void GUI::stream_extract()
     }
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
     std::vector<std::string> args;
-    args.push_back(fio::to_sys(fw->save_name()));
     args.push_back(str::from(fw->array_index()));
+    args.push_back(fio::to_sys(fw->save_name()));
     output_cmd("stream-extract", args, "");
 }
 
