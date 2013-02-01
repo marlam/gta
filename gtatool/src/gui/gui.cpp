@@ -736,9 +736,6 @@ GUI::GUI()
     QAction *stream_foreach_action = new QAction(tr("&Run command for each array in open file..."), this);
     connect(stream_foreach_action, SIGNAL(triggered()), this, SLOT(stream_foreach()));
     stream_menu->addAction(stream_foreach_action);
-#if W32
-    stream_foreach_action->setEnabled(false); // does not work on Windows; see comments in the implementation
-#endif
 
     QMenu *array_menu = menuBar()->addMenu(tr("&Arrays"));
     QAction *array_create_action = new QAction(tr("&Create array..."), this);
@@ -2664,8 +2661,13 @@ extern "C" int gtatool_gui(int argc, char *argv[])
     {
         // We are the only process using the console. In particular, the user did not call us
         // via the command interpreter and thus will not watch the console for output.
-        // Therefore, we can get rid of it.
+        // Therefore, we can get rid of it with FreeConsole().
+        // But this closes our stdout, and some commands need a valid stdout (e.g.
+        // stream-foreach), so be sure to create a new one.
+        HANDLE rpl_stdout = CreateFile("NUL", GENERIC_WRITE, 0, NULL,
+                OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
         FreeConsole();
+        SetStdHandle(STD_OUTPUT_HANDLE, rpl_stdout);
     }
 #endif
     int retval = 0;

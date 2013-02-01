@@ -103,18 +103,17 @@ extern "C" int gtatool_stream_foreach(int argc, char *argv[])
     (void)sigaction(SIGPIPE, &new_sigpipe_handler, &old_sigpipe_handler);
 #endif
 
-#if !(W32)
-    // Because of the needs of the GUI, we must only write GTAs to gtatool_stdout,
-    // so make sure the child process uses that as its standard output.
-    // This does not work on Windows, which means we cannot use this
-    // command from the GUI on that platform.
-    int stdout_bak;
-    if ((stdout_bak = dup(1)) < 0 || dup2(fileno(gtatool_stdout), 1) < 0)
+    // If gtatool_stdout != stdout, then we are running under the GUI, and we
+    // must make sure that our child processes also write to gtatool_stdout.
+    int stdout_bak = -1;
+    if (gtatool_stdout != stdout)
     {
-        msg::err_txt("cannot set stdout for child process: %s", std::strerror(errno));
-        return 1;
+        if ((stdout_bak = dup(1)) < 0 || dup2(fileno(gtatool_stdout), 1) < 0)
+        {
+            msg::err_txt("cannot set stdout for child process: %s", std::strerror(errno));
+            return 1;
+        }
     }
-#endif
 
     int retval = 0;
     try
@@ -200,13 +199,14 @@ extern "C" int gtatool_stream_foreach(int argc, char *argv[])
         retval = 1;
     }
 
-#if !(W32)
-    if (close(1) < 0 || dup2(stdout_bak, 1) < 0 || close(stdout_bak) < 0)
+    if (gtatool_stdout != stdout)
     {
-        msg::err_txt("cannot restore stdout: %s", strerror(errno));
-        retval = 1;
+        if (close(1) < 0 || dup2(stdout_bak, 1) < 0 || close(stdout_bak) < 0)
+        {
+            msg::err_txt("cannot restore stdout: %s", strerror(errno));
+            retval = 1;
+        }
     }
-#endif
 
 #ifdef HAVE_SIGACTION
     (void)sigaction(SIGPIPE, &old_sigpipe_handler, NULL);
