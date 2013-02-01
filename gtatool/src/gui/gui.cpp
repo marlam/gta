@@ -1174,6 +1174,13 @@ void GUI::output_cmd(const std::string &cmd, const std::vector<std::string> &arg
             errmsg += "</pre>";
             throw exc(errmsg);
         }
+        else if (std_err.length() > 0)
+        {
+            // print warnings (if any) so that they are not lost
+            if (std_err[std_err.length() - 1] == '\n')
+                std_err.resize(std_err.length() - 1);
+            msg::req_txt(std_err);
+        }
         open(output_name, save_name);
     }
     catch (std::exception &e)
