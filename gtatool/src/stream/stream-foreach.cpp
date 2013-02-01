@@ -63,7 +63,7 @@ extern "C" void gtatool_stream_foreach_help(void)
 
 #ifdef HAVE_SIGACTION
 static volatile sig_atomic_t sigpipe_flag = 0;
-void sigpipe_handler(int /* signum */)
+static void sigpipe_handler(int /* signum */)
 {
     sigpipe_flag = 1;
 }
