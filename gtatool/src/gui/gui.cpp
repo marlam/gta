@@ -735,10 +735,10 @@ GUI::GUI()
     QAction *stream_merge_action = new QAction(tr("&Merge open files..."), this);
     connect(stream_merge_action, SIGNAL(triggered()), this, SLOT(stream_merge()));
     stream_menu->addAction(stream_merge_action);
-    QAction *stream_foreach_action = new QAction(tr("&Run command for each array in open file..."), this);
+    QAction *stream_foreach_action = new QAction(tr("&Run command for each array in current file..."), this);
     connect(stream_foreach_action, SIGNAL(triggered()), this, SLOT(stream_foreach()));
     stream_menu->addAction(stream_foreach_action);
-    QAction *stream_grep_action = new QAction(tr("&Select specific arrays from open file (grep)..."), this);
+    QAction *stream_grep_action = new QAction(tr("Select specific arrays from current file (&grep)..."), this);
     connect(stream_grep_action, SIGNAL(triggered()), this, SLOT(stream_grep()));
     stream_menu->addAction(stream_grep_action);
 
@@ -775,7 +775,7 @@ GUI::GUI()
     QAction *dimension_extract_action = new QAction(tr("&Extract dimension from current array..."), this);
     connect(dimension_extract_action, SIGNAL(triggered()), this, SLOT(dimension_extract()));
     dimension_menu->addAction(dimension_extract_action);
-    QAction *dimension_reverse_action = new QAction(tr("Re&verse current array in dimensions..."), this);
+    QAction *dimension_reverse_action = new QAction(tr("Re&verse current array in one dimension..."), this);
     connect(dimension_reverse_action, SIGNAL(triggered()), this, SLOT(dimension_reverse()));
     dimension_menu->addAction(dimension_reverse_action);
     QAction *dimension_reorder_action = new QAction(tr("&Reorder dimensions of current array..."), this);
@@ -814,7 +814,7 @@ GUI::GUI()
         component_compute_action->setEnabled(false);
     }
     component_menu->addAction(component_compute_action);
-    QAction *component_split_action = new QAction(tr("Split components of current array..."), this);
+    QAction *component_split_action = new QAction(tr("S&plit components of current array..."), this);
     connect(component_split_action, SIGNAL(triggered()), this, SLOT(component_split()));
     component_menu->addAction(component_split_action);
     QAction *component_merge_action = new QAction(tr("&Merge array components of open files..."), this);
