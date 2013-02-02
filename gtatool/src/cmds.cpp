@@ -126,6 +126,7 @@ CMD_DECL(resize)
 CMD_DECL(set)
 CMD_DECL(stream_extract)
 CMD_DECL(stream_foreach)
+CMD_DECL(stream_grep)
 CMD_DECL(stream_merge)
 CMD_DECL(stream_split)
 CMD_DECL(tag)
@@ -250,6 +251,8 @@ static cmd_t cmds[] =
             "Extract arrays from stream"),
     CMD("stream-foreach",    stream,     stream_foreach,    true,          BUILTIN,
             "Run a command for each array in a stream"),
+    CMD("stream-grep",       stream,     stream_grep,       true,          BUILTIN,
+            "Select arrays from stream based on checks"),
     CMD("stream-merge",      stream,     stream_merge,      true,          BUILTIN,
             "Merge arrays into stream"),
     CMD("stream-split",      stream,     stream_split,      true,          BUILTIN,

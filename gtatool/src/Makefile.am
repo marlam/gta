@@ -75,6 +75,7 @@ libbuiltin_la_SOURCES = \
 	array/uncompress.cpp \
 	stream/stream-extract.cpp \
 	stream/stream-foreach.cpp \
+	stream/stream-grep.cpp \
 	stream/stream-merge.cpp \
 	stream/stream-split.cpp \
 	conv/from.cpp conv/to.cpp conv/filters.h conv/filters.cpp conv/conv.h conv/conv.cpp

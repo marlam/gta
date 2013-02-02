@@ -36,6 +36,7 @@ TESTS = \
 	gta-uncompress.sh \
 	gta-stream-extract.sh \
 	gta-stream-foreach.sh \
+	gta-stream-grep.sh \
 	gta-stream-merge.sh \
 	gta-stream-split.sh
 

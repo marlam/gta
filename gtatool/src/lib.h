@@ -149,6 +149,11 @@ public:
         return _file_in;
     }
 
+    FILE *file_out() const throw ()
+    {
+        return _file_out;
+    }
+
     const std::string &filename_in() throw ();
     const std::string &filename_out() throw ();
 

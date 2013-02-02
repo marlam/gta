@@ -260,6 +260,7 @@ private slots:
     void file_export_teem();
     void stream_extract();
     void stream_foreach();
+    void stream_grep();
     void stream_merge();
     void stream_split();
     void array_combine();

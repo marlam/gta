@@ -736,6 +736,9 @@ GUI::GUI()
     QAction *stream_foreach_action = new QAction(tr("&Run command for each array in open file..."), this);
     connect(stream_foreach_action, SIGNAL(triggered()), this, SLOT(stream_foreach()));
     stream_menu->addAction(stream_foreach_action);
+    QAction *stream_grep_action = new QAction(tr("&Select specific arrays from open file (grep)..."), this);
+    connect(stream_grep_action, SIGNAL(triggered()), this, SLOT(stream_grep()));
+    stream_menu->addAction(stream_grep_action);
 
     QMenu *array_menu = menuBar()->addMenu(tr("&Arrays"));
     QAction *array_create_action = new QAction(tr("&Create array..."), this);
@@ -1729,6 +1732,39 @@ void GUI::stream_foreach()
     output_cmd("stream-foreach", args, "");
 }
 
+void GUI::stream_grep()
+{
+    if (!check_have_file() || !check_file_unchanged())
+    {
+        return;
+    }
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Select arrays from stream based on checks");
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(new QLabel("Enter command. Exit status 0 will select a GTA."), 0, 0, 1, 2);
+    layout->addWidget(new QLabel("Example: gta info 2>&1 > /dev/null | grep \"dimension 0: 42\""), 1, 0, 1, 2);
+    QLineEdit *edt = new QLineEdit("");
+    layout->addWidget(edt, 2, 0, 1, 2);
+    QPushButton *ok_btn = new QPushButton(tr("&OK"));
+    ok_btn->setDefault(true);
+    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_btn, 3, 0);
+    QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_btn, 3, 1);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
+    std::vector<std::string> args;
+    args.push_back(qPrintable(edt->text()));
+    args.push_back(fio::to_sys(fw->save_name()));
+    output_cmd("stream-grep", args, "");
+}
+
 void GUI::stream_merge()
 {
     if (!check_have_file() || !check_all_files_unchanged())
@@ -2670,7 +2706,7 @@ extern "C" int gtatool_gui(int argc, char *argv[])
         // via the command interpreter and thus will not watch the console for output.
         // Therefore, we can get rid of it with FreeConsole().
         // But this closes our stdout, and some commands need a valid stdout (e.g.
-        // stream-foreach), so be sure to create a new one.
+        // stream-foreach, stream-grep), so be sure to create a new one.
         HANDLE rpl_stdout = CreateFile("NUL", GENERIC_WRITE, 0, NULL,
                 OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
         FreeConsole();
