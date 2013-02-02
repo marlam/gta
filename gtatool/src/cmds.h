@@ -39,12 +39,12 @@ const char *cmd_description(int cmd_index);
 /* Get the category of the command with the given index. */
 typedef enum
 {
-    component,
-    dimension,
-    array,
-    stream,
-    conversion,
-    misc
+    cmd_stream,
+    cmd_array,
+    cmd_dimension,
+    cmd_component,
+    cmd_conversion,
+    cmd_misc
 } cmd_category_t;
 cmd_category_t cmd_category(int cmd_index);
 
