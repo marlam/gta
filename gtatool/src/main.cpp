@@ -103,18 +103,18 @@ extern "C" int gtatool_help(int argc, char *argv[])
                 "Usage: %s [-q|--quiet] [-v|--verbose] <command> [argument...]",
                 program_name);
         cmd_category_t categories[] = {
-            component,
-            dimension,
-            array,
-            stream,
-            conversion,
-            misc
+            cmd_stream,
+            cmd_array,
+            cmd_dimension,
+            cmd_component,
+            cmd_conversion,
+            cmd_misc
         };
         const char *descriptions[] = {
-            "Commands that operate on element component level",
-            "Commands that operate on dimension level",
-            "Commands that operate on array level",
             "Commands that operate on stream level",
+            "Commands that operate on array level",
+            "Commands that operate on dimension level",
+            "Commands that operate on element component level",
             "Commands to convert from/to other file formats",
             "Miscellaneous commands"
         };
