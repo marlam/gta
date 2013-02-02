@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012
+ * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -95,9 +95,9 @@ namespace fio
     void close(FILE *f, const std::string &filename = std::string(""));
 
     // temporary files and directories
-    FILE *tempfile(const std::string &base = std::string(""));
-    std::string mktempfile(FILE **f, const std::string &base = std::string(""), const std::string &dir = std::string(""));
-    std::string mktempdir(const std::string &base = std::string(""), const std::string &dir = std::string(""));
+    FILE *tempfile();
+    std::string mktempfile(FILE **f, const std::string &dir = std::string(""));
+    std::string mktempdir(const std::string &dir = std::string(""));
 
     // buffering
     void disable_buffering(FILE *f, const std::string &filename = std::string(""));

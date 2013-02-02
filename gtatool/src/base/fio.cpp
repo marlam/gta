@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012
+ * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -481,8 +481,9 @@ namespace fio
      * returned, file will be deleted) and a non-NULL 'pathname' to get mktempfile()
      * behaviour (name returned, file will not be deleted). If the function fails,
      * the returned stream will be NULL, and errno will be set. */
-    static void real_mktemp(const char *dir, const char *base, FILE **file, char **pathname)
+    static void real_mktemp(const char *dir, FILE **file, char **pathname)
     {
+        const char *base = PACKAGE_TARNAME "-tmp-";
         FILE *f;
         size_t baselen;
         size_t dirlen;
@@ -491,10 +492,6 @@ namespace fio
         int fd = -1;
         int saved_errno;
 
-        if (!base)
-        {
-            base = "tmp";
-        }
         dirlen = strlen(dir);
 
         /* The name prefix */
@@ -622,11 +619,11 @@ error_exit:
         return dir;
     }
 
-    FILE *tempfile(const std::string &base)
+    FILE *tempfile()
     {
         FILE *f;
 
-        real_mktemp(default_tmpdir(), !base.empty() ? base.c_str() : NULL, &f, NULL);
+        real_mktemp(default_tmpdir(), &f, NULL);
         if (!f)
         {
             throw exc(std::string("Cannot create temporary file: ") + std::strerror(errno), errno);
@@ -634,11 +631,10 @@ error_exit:
         return f;
     }
 
-    std::string mktempfile(FILE **f, const std::string &base, const std::string &dir)
+    std::string mktempfile(FILE **f, const std::string &dir)
     {
         char *filename;
-        real_mktemp(dir.empty() ? default_tmpdir() : to_sys(dir).c_str(),
-                !base.empty() ? base.c_str() : NULL, f, &filename);
+        real_mktemp(dir.empty() ? default_tmpdir() : to_sys(dir).c_str(), f, &filename);
         if (!(*f))
         {
             throw exc(std::string("Cannot create temporary file: ") + std::strerror(errno), errno);
@@ -648,11 +644,10 @@ error_exit:
         return from_sys(s);
     }
 
-    std::string mktempdir(const std::string &base, const std::string &dir)
+    std::string mktempdir(const std::string &dir)
     {
         char *dirname;
-        real_mktemp(dir.empty() ? default_tmpdir() : to_sys(dir).c_str(),
-                !base.empty() ? base.c_str() : NULL, NULL, &dirname);
+        real_mktemp(dir.empty() ? default_tmpdir() : to_sys(dir).c_str(), NULL, &dirname);
         if (!dirname)
         {
             throw exc(std::string("Cannot create temporary directory: ") + std::strerror(errno), errno);

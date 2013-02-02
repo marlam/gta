@@ -132,7 +132,7 @@ extern "C" int gtatool_dimension_split(int argc, char *argv[])
                         }
                     }
                 }
-                tmpfilenames[i] = fio::mktempfile(&(tmpfiles[i]), PACKAGE_NAME);
+                tmpfilenames[i] = fio::mktempfile(&(tmpfiles[i]));
                 tmpaloops[i].start("", tmpfilenames[i]);
                 tmpaloops[i].start_element_loop(tmpeloops[i], hdri, hdros[i]);
             }

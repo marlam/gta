@@ -116,7 +116,7 @@ extern "C" int gtatool_component_split(int argc, char *argv[])
                 hdros[i].set_compression(gta::none);
                 hdros[i].set_components(hdri.component_type(comp_indices[i]), hdri.component_size(comp_indices[i]));
                 hdros[i].component_taglist(0) = hdri.component_taglist(comp_indices[i]);
-                tmpfilenames[i] = fio::mktempfile(&(tmpfiles[i]), PACKAGE_NAME);
+                tmpfilenames[i] = fio::mktempfile(&(tmpfiles[i]));
                 tmpaloops[i].start("", tmpfilenames[i]);
                 tmpaloops[i].start_element_loop(tmpeloops[i], hdri, hdros[i]);
             }

@@ -876,7 +876,7 @@ bool GUI::check_file_unchanged()
             QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
             FILE *fi = fio::open(fw->save_name(), "r");
             FILE *save_file;
-            std::string save_name = fio::mktempfile(&save_file, PACKAGE_NAME "-");
+            std::string save_name = fio::mktempfile(&save_file);
             for (size_t i = 0; i < fw->headers().size(); i++)
             {
                 gta::header dummy_header;
@@ -1063,7 +1063,7 @@ int GUI::run(const std::string &cmd, const std::vector<std::string> &args,
     FILE *std_err_tmp;
     try
     {
-        std_err_tmp = fio::tempfile(PACKAGE_NAME);
+        std_err_tmp = fio::tempfile();
     }
     catch (std::exception &e)
     {
@@ -1160,7 +1160,7 @@ void GUI::output_cmd(const std::string &cmd, const std::vector<std::string> &arg
     try
     {
         FILE *save_file;
-        std::string save_name = fio::mktempfile(&save_file, PACKAGE_NAME "-");
+        std::string save_name = fio::mktempfile(&save_file);
         std::string std_err;
         int retval = run(cmd, args, std_err, save_file, NULL);
         fio::close(save_file, save_name);
