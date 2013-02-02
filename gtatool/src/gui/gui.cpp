@@ -48,6 +48,8 @@
 #include <QRadioButton>
 #include <QTextCodec>
 #include <QCheckBox>
+#include <QDesktopServices>
+#include <QUrl>
 
 #include <gta/gta.hpp>
 
@@ -820,6 +822,12 @@ GUI::GUI()
     component_menu->addAction(component_merge_action);
 
     QMenu *help_menu = menuBar()->addMenu(tr("&Help"));
+    QAction *help_overview_act = new QAction(tr("&Overview"), this);
+    connect(help_overview_act, SIGNAL(triggered()), this, SLOT(help_overview()));
+    help_menu->addAction(help_overview_act);
+    QAction *help_website_act = new QAction(tr("&Website..."), this);
+    connect(help_website_act, SIGNAL(triggered()), this, SLOT(help_website()));
+    help_menu->addAction(help_website_act);
     QAction *help_about_action = new QAction(tr("&About"), this);
     connect(help_about_action, SIGNAL(triggered()), this, SLOT(help_about()));
     help_menu->addAction(help_about_action);
@@ -2648,21 +2656,57 @@ void GUI::component_split()
     output_cmd("component-split", args, "");
 }
 
+void GUI::help_overview()
+{
+    QMessageBox::about(this, tr("Overview"), tr(
+                "<p>This program manipulates Generic Tagged Arrays (GTAs).</p>"
+                "<p>A GTA is an n-dimensional <i>array</i> with metadata in the form "
+                "of <i>tags</i> (key-value pairs). "
+                "A GTA file or <i>stream</i> contains a sequence of such arrays. "
+                "Each array has n <i>dimensions</i>. For example, images have 2 dimensions, and "
+                "volume data sets have 3. "
+                "Each array element consists of m <i>components</i>. These components can have "
+                "different types. For example, image data is commonly stored "
+                "using 3 components of type <code>uint8</code>.</p>"
+                "<p>The <code>%1</code> tool provides commands to manipulate GTAs. These commands are "
+                "organized in the following categories:<ul>"
+                "<li>Commands that operate on element component level. "
+                "For example, these commands add or remove components, or change their types."
+                "<li>Commands that operate on dimension level. "
+                "For example, these commands add or remove dimensions, or change their sizes."
+                "<li>Commands that operate on array level. "
+                "For example, these commands create or compare arrays, or modify array tags."
+                "<li>Commands that operate on stream level. "
+                "For example, these commands add or remove arrays."
+                "<li>Commands to convert from/to other file formats. "
+                "These commands import and export GTAs from/to many different file formats."
+                "</ul></p>"
+                "<p>This user interface is a frontend for the command line tool, "
+                "and provides only a limited subset of the full functionality.</p>"
+                "<p>Use <code>%1 help</code> to get a list of all commands provided by this tool, "
+                "and <code>%1 help &lt;cmd&gt;</code> to get a description of a specific command.</p>"
+                ).arg(program_name));
+}
+
+void GUI::help_website()
+{
+    if (!QDesktopServices::openUrl(QUrl(PACKAGE_URL)))
+    {
+        QMessageBox::critical(this, "Error", "Cannot open website.");
+    }
+}
+
 void GUI::help_about()
 {
     QMessageBox::about(this, tr("About " PACKAGE_NAME), tr(
                 "<p>This is %1 version %2, using libgta version %3.</p>"
-                "<p>This graphical user interface is a frontend for the command line interface of this tool, "
-                "and provides only a limited subset of the full functionality.</p>"
-                "<p>Use <code>%4 help</code> to get a list of all commands provided by this tool, "
-                "and <code>%4 help &lt;cmd&gt;</code> to get a description of a specific command.</p>"
-                "<p>See <a href=\"%5\">%5</a> for more information on this software.</p>"
-                "<p>Copyright (C) 2013 Martin Lambers.<br>"
+                "<p>Copyright (C) 2013 Martin Lambers.</p>"
+                "<p>See <a href=\"%4\">%4</a> for more information on this software.</p>"
                 "This is <a href=\"http://www.gnu.org/philosophy/free-sw.html\">free software</a>. "
                 "You may redistribute copies of it under the terms of the "
                 "<a href=\"http://www.gnu.org/licenses/gpl.html\">GNU General Public License</a>. "
                 "There is NO WARRANTY, to the extent permitted by law.</p>")
-            .arg(PACKAGE_NAME).arg(VERSION).arg(gta::version()).arg(program_name).arg(PACKAGE_URL));
+            .arg(PACKAGE_NAME).arg(VERSION).arg(gta::version()).arg(PACKAGE_URL));
 }
 
 extern int qInitResources();

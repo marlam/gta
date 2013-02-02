@@ -3,30 +3,53 @@
 @settitle Gtatool Manual
 
 @copying
-Copyright (C) 2010, 2011, 2012
+Copyright (C) 2010, 2011, 2012, 2013
 Martin Lambers @email{marlam@@marlam.de}
 
 Copying and distribution of this file, with or without modification, are
 permitted in any medium without royalty provided the copyright notice and this
 notice are preserved. This file is offered as-is, without any warranty.
-This is a short example of a complete Texinfo file.
 @end copying
 
 @node Top
-@top Gtatool Manual
+@top GTA Manual
 @insertcopying
 
 @unnumbered About
 
-Gtatool manipulates Generic Tagged Array (GTA) files.
+Gtatool (@code{gta}) manipulates Generic Tagged Arrays (GTAs).
 
-The @code{gta} tool provides a set of commands that manipulate GTAs on various
-levels (element components, dimensions, arrays, or streams) and allow import
-from and export to other file formats.
+A GTA is an n-dimensional @emph{array} with metadata in the form of @emph{tags}
+(key-value pairs).
 
-Use @code{gta help} to get a list of available commands, and
-@code{gta help cmd} to get help for command @code{cmd}.
+A GTA file or @emph{stream} contains a sequence of such arrays.
+
+Each array has n @emph{dimensions}. For example, images have 2 dimensions, and
+volume data sets have 3.
+
+Each array element consists of m @emph{components}. These components can have
+different types. For example, image data is commonly stored using 3 components
+of type @code{uint8}.
+
+The @code{gta} tool provides commands to manipulate GTAs. These commands are
+organized in the following categories:
+@itemize
+@item Commands that operate on element component level.@*
+For example, these commands add or remove components, or change their types.
+@item Commands that operate on dimension level.@*
+For example, these commands add or remove dimensions, or change their sizes.
+@item Commands that operate on array level.@*
+For example, these commands create or compare arrays, or modify array tags.
+@item Commands that operate on stream level.@*
+For example, these commands add or remove arrays.
+@item Commands to convert from/to other file formats.@*
+These commands import and export GTAs from/to many different file formats.
+@end itemize
+
+Use @code{gta help} to get a list of available commands, and @code{gta help
+cmd} to get help for command @code{cmd}.
 
 (Alternatively, you can use @code{gta --help} and @code{gta cmd --help}.)
+
 
 @bye

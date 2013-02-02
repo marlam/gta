@@ -286,6 +286,8 @@ private slots:
     void component_reorder();
     void component_set();
     void component_split();
+    void help_overview();
+    void help_website();
     void help_about();
 };
 

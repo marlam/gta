@@ -1,18 +1,39 @@
 .\" -*-nroff-*-
 .\"
-.\" Copyright (C) 2010, 2011, 2012
+.\" Copyright (C) 2010, 2011, 2012, 2013
 .\" Martin Lambers <marlam@marlam.de>
 .\"
 .\" Copying and distribution of this file, with or without modification, are
 .\" permitted in any medium without royalty provided the copyright notice and this
 .\" notice are preserved. This file is offered as-is, without any warranty.
-.TH GTA 1 2012-12
+.TH GTA 1 2013-01
 .SH NAME
-gta \- a tool to manipulate Generic Tagged Array (GTA) files.
+gta \- a tool to manipulate Generic Tagged Arrays (GTAs).
 .SH DESCRIPTION
-The \fBgta\fP tool provides a set of commands that manipulate GTAs on various
-levels (element components, dimensions, arrays, or streams) and allow import
-from and export to other file formats.
+A GTA is an n-dimensional \fIarray\fP with metadata in the form of \fItags\fP
+(key-value pairs).
+.br
+A GTA file or \fIstream\fP contains a sequence of such arrays.
+.br
+Each array has n \fIdimensions\fP. For example, images have 2 dimensions, and
+volume data sets have 3.
+.br
+Each array element consists of m \fIcomponents\fP. These components can have
+different types. For example, image data is commonly stored using 3 components
+of type \fIuint8\fP.
+.PP
+The \fBgta\fP tool provides commands to manipulate GTAs. These commands are
+organized in the following categories:
+.IP "Commands that operate on element component level."
+For example, these commands add or remove components, or change their types.
+.IP "Commands that operate on dimension level."
+For example, these commands add or remove dimensions, or change their sizes.
+.IP "Commands that operate on array level."
+For example, these commands create or compare arrays, or modify array tags.
+.IP "Commands that operate on stream level."
+For example, these commands add or remove arrays.
+.IP "Commands to convert from/to other file formats."
+These commands import and export GTAs from/to many different file formats.
 .SH USAGE
 Use \fBgta help\fP to get a list of available commands, and
 \fBgta help cmd\fP to get help for command \fBcmd\fP.
