@@ -1711,15 +1711,16 @@ void GUI::stream_foreach()
     dialog->setWindowTitle("Run command for each array");
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(new QLabel("Enter command. %I will be replaced with the array index."), 0, 0, 1, 2);
+    layout->addWidget(new QLabel("Example: gta tag --set-global=\"X-INDEX=%I\""), 1, 0, 1, 2);
     QLineEdit *edt = new QLineEdit("");
-    layout->addWidget(edt, 1, 0, 1, 2);
+    layout->addWidget(edt, 2, 0, 1, 2);
     QPushButton *ok_btn = new QPushButton(tr("&OK"));
     ok_btn->setDefault(true);
     connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
-    layout->addWidget(ok_btn, 2, 0);
+    layout->addWidget(ok_btn, 3, 0);
     QPushButton *cancel_btn = new QPushButton(tr("&Cancel"), dialog);
     connect(cancel_btn, SIGNAL(clicked()), dialog, SLOT(reject()));
-    layout->addWidget(cancel_btn, 2, 1);
+    layout->addWidget(cancel_btn, 3, 1);
     dialog->setLayout(layout);
     if (dialog->exec() == QDialog::Rejected)
     {
