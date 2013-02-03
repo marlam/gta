@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2012
+ * Copyright (C) 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -42,7 +42,7 @@
 extern "C" void gtatool_from_csv_help(void)
 {
     msg::req_txt("from-csv [-c|--components=<c0,c1,...>] [-D|--delimiter=D]\n"
-            "    [-N|--no-data-values=<n0,n1,...>] <input-file> [<output-file>]\n"
+            "    [-N|--no-data-value=<n0,n1,...>] <input-file> [<output-file>]\n"
             "\n"
             "Converts CSV files to GTAs. By default, each array element has one component of type float64. "
             "This can be changed with the -c option. Supported component types are all integer types and "
@@ -155,8 +155,8 @@ extern "C" int gtatool_from_csv(int argc, char *argv[])
     std::vector<std::string> delimiters = gta_csv_create_delimiters();
     opt::string delimiter("delimiter", 'D', opt::optional, delimiters, std::string(","));
     options.push_back(&delimiter);
-    opt::string no_data_values("no-data-values", 'N', opt::optional);
-    options.push_back(&no_data_values);
+    opt::string no_data_value("no-data-value", 'N', opt::optional);
+    options.push_back(&no_data_value);
     std::vector<std::string> arguments;
     if (!opt::parse(argc, argv, options, 1, 2, arguments))
     {
@@ -201,13 +201,13 @@ extern "C" int gtatool_from_csv(int argc, char *argv[])
         }
         hdr.set_components(comp_types.size(), &(comp_types[0]), NULL);
         blob no_data_element(checked_cast<size_t>(hdr.element_size()));
-        if (no_data_values.values().empty())
+        if (no_data_value.value().empty())
         {
             memset(no_data_element.ptr(), 0, hdr.element_size());
         }
         else
         {
-            valuelist_from_string(no_data_values.value(), comp_types, comp_sizes, no_data_element.ptr());
+            valuelist_from_string(no_data_value.value(), comp_types, comp_sizes, no_data_element.ptr());
         }
         uintmax_t w = 0, h = 0;
 
