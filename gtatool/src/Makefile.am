@@ -40,6 +40,8 @@ gta_SOURCES += appicon.ico
 .ico.o:
 	echo "IDI_ICON1 ICON DISCARDABLE \"$<\"" | $(WINDRES) -o $@
 endif
+bashdir = $(sysconfdir)/bash_completion.d
+dist_bash_DATA = gta-completion.bash
 
 #
 # Builtin commands
