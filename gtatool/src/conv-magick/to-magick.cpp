@@ -86,7 +86,7 @@ extern "C" int gtatool_to_magick(int argc, char *argv[])
 
     try
     {
-        Magick::InitializeMagick(*argv);
+        Magick::InitializeMagick(0);
         std::vector<Magick::Image> imgs;
         uintmax_t array_index = 0;
         while (fio::has_more(fi, filename))

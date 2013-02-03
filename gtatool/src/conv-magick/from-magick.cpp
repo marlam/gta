@@ -89,7 +89,7 @@ extern "C" int gtatool_from_magick(int argc, char *argv[])
 
     try
     {
-        Magick::InitializeMagick(*argv);
+        Magick::InitializeMagick(0);
         std::vector<Magick::Image> imgs;
         Magick::readImages(&imgs, arguments[0].c_str());
         for (size_t i = 0; i < imgs.size(); i++)
