@@ -151,9 +151,9 @@ extern "C" int gtatool_help(int argc, char *argv[])
         }
         msg::req_txt(
                 "\n"
-                "Commands marked with [u] are unavailable in this %s version.\n"
+                "Commands marked with [u] are unavailable.\n"
                 "Use \"%s help <command>\" for command specific help.\n"
-                "Report bugs to <%s>.", program_name, program_name, PACKAGE_BUGREPORT);
+                "Report bugs to <%s>.", program_name, PACKAGE_BUGREPORT);
         return 0;
     }
     else

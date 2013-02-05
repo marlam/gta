@@ -30,6 +30,7 @@
 #include "msg.h"
 #include "opt.h"
 #include "str.h"
+#include "fio.h"
 
 #include "cmds.h"
 
@@ -327,9 +328,24 @@ cmd_category_t cmd_category(int cmd_index)
     return cmds[cmd_index].category;
 }
 
+static std::string cmd_module_name(int cmd_index)
+{
+    const char* env_plugin_path = std::getenv("GTATOOL_PLUGIN_PATH");
+    std::string plugin_path = std::string(env_plugin_path ? env_plugin_path : PKGLIBDIR);
+    std::string module_name = plugin_path + "/" + cmds[cmd_index].module_name + ".so";
+    return module_name;
+}
+
 bool cmd_is_available(int cmd_index)
 {
-    return cmds[cmd_index].available;
+    bool available = cmds[cmd_index].available;
+#if DYNAMIC_MODULES
+    if (available && !cmds[cmd_index].cmd)
+    {
+        available = fio::test_f(cmd_module_name(cmd_index));
+    }
+#endif
+    return available;
 }
 
 static int cmd_strcmp(const void *a, const void *b)
@@ -359,14 +375,11 @@ void cmd_open(int cmd_index)
 #if DYNAMIC_MODULES
     if (cmds[cmd_index].available && !cmds[cmd_index].cmd)
     {
-        const char* env_plugin_path = std::getenv("GTATOOL_PLUGIN_PATH");
-        std::string plugin_path = std::string(env_plugin_path ? env_plugin_path : PKGLIBDIR);
         std::string cmd_name = cmds[cmd_index].name;
-        std::string module_name = plugin_path + "/" + cmds[cmd_index].module_name + ".so";
         std::string fn_name = std::string("gtatool_") + str::replace(cmd_name, "-", "_");
         std::string help_fn_name = fn_name + "_help";
         // We used RTLD_LAZY here, but that broke the from-dcmtk command whith dmctk 3.6.0.
-        cmds[cmd_index].module_handle = dlopen(module_name.c_str(), RTLD_NOW);
+        cmds[cmd_index].module_handle = dlopen(cmd_module_name(cmd_index).c_str(), RTLD_NOW);
         if (!cmds[cmd_index].module_handle)
         {
             msg::err("%s", dlerror());
