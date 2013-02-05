@@ -1289,16 +1289,24 @@ void GUI::open(const std::string &file_name, const std::string &save_name)
     {
         const std::string &name = (save_name.length() == 0 ? file_name : save_name);
         FILE *f = fio::open(name, "r");
-        while (fio::has_more(f, name))
-        {
-            gta::header *hdr = new gta::header;
-            hdr->read_from(f);
-            hdr->skip_data(f);
-            headers.push_back(hdr);
+        try {
+            while (fio::has_more(f, name)) {
+                gta::header *hdr = new gta::header;
+                hdr->read_from(f);
+                hdr->skip_data(f);
+                headers.push_back(hdr);
+            }
         }
+        catch (...) {
+            fio::close(f, name);
+            for (size_t i = 0; i < headers.size(); i++)
+                delete headers[i];
+            headers.clear();
+            throw;
+        }
+        fio::close(f, name);
         if (headers.size() == 0)
         {
-            fio::close(f, name);
             QMessageBox::critical(this, "Error", "File is empty");
         }
         else
@@ -1313,10 +1321,6 @@ void GUI::open(const std::string &file_name, const std::string &save_name)
     }
     catch (std::exception &e)
     {
-        for (size_t i = 0; i < headers.size(); i++)
-        {
-            delete headers[i];
-        }
         QMessageBox::critical(this, "Error", e.what());
     }
 }
