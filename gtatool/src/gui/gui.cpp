@@ -1363,7 +1363,7 @@ void GUI::open(const std::string &file_name, const std::string &save_name, int t
             int ti = (tab_index >= 0 ? _files_widget->insertTab(tab_index, fw, tn) : _files_widget->addTab(fw, tn));
             _files_widget->tabBar()->setTabTextColor(ti, (fw->is_saved() ? "black" : "red"));
             _files_widget->setCurrentIndex(ti);
-            if (file_name.length() > 0)
+            if (file_name.compare(name) == 0)
                 _files_watcher->addPath(to_qt(file_name));
         }
     }
