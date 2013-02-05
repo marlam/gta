@@ -208,6 +208,7 @@ private:
 private slots:
     void file_changed(const std::string &file_name, const std::string &save_name);
     void file_changed_on_disk(const QString& name);
+    void tab_close(int index);
 
 protected:
     void closeEvent(QCloseEvent *event);	

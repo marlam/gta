@@ -555,6 +555,8 @@ GUI::GUI()
     QWidget *widget = new QWidget;
     QGridLayout *layout = new QGridLayout;
     _files_widget = new MyTabWidget;
+    _files_widget->setTabsClosable(true);
+    connect(_files_widget, SIGNAL(tabCloseRequested(int)), this, SLOT(tab_close(int)));
     layout->addWidget(_files_widget, 0, 0);
     layout->setRowStretch(0, 1);
     layout->setColumnStretch(0, 1);
@@ -964,6 +966,16 @@ void GUI::file_changed_on_disk(const QString& fn)
     if (changes_lost) {
         QMessageBox::warning(this, "Warning", QString("File %1 was changed on disk. Changes are lost.").arg(fn));
     }
+}
+
+void GUI::tab_close(int index)
+{
+    int old_index = _files_widget->currentIndex();
+    _files_widget->setCurrentIndex(index);
+    file_close();
+    if (index < old_index)
+        old_index--;
+    _files_widget->setCurrentIndex(old_index);
 }
 
 QStringList GUI::file_open_dialog(const QStringList &filters)
