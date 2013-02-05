@@ -39,6 +39,7 @@
 #include <QComboBox>
 #include <QSpinBox>
 #include <QGridLayout>
+#include <QFileSystemWatcher>
 
 #include <gta/gta.hpp>
 
@@ -188,6 +189,7 @@ Q_OBJECT
 
 private:
     MyTabWidget *_files_widget;
+    QFileSystemWatcher* _files_watcher;
     QDir _last_file_open_dir;
     QDir _last_file_save_as_dir;
 
@@ -205,6 +207,7 @@ private:
 
 private slots:
     void file_changed(const std::string &file_name, const std::string &save_name);
+    void file_changed_on_disk(const QString& name);
 
 protected:
     void closeEvent(QCloseEvent *event);	
@@ -213,7 +216,7 @@ public:
     GUI();
     ~GUI();
 
-    void open(const std::string &file_name, const std::string &save_name);
+    void open(const std::string &file_name, const std::string &save_name, int tab_index = -1);
 
 private slots:
     void file_open();

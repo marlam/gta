@@ -844,6 +844,9 @@ GUI::GUI()
     help_menu->addAction(help_about_action);
 
     resize(menuBar()->sizeHint().width(), 200);
+
+    _files_watcher = new QFileSystemWatcher(this);
+    connect(_files_watcher, SIGNAL(fileChanged(const QString&)), this, SLOT(file_changed_on_disk(const QString&)));
 }
 
 GUI::~GUI()
@@ -941,6 +944,26 @@ void GUI::file_changed(const std::string &file_name, const std::string &save_nam
         }
     }
     _files_widget->tabBar()->setTabTextColor(file_index, QColor("red"));
+}
+
+void GUI::file_changed_on_disk(const QString& fn)
+{
+    std::string file_name = from_qt(fn);
+    FileWidget* fw = NULL;
+    int fi;
+    for (fi = 0; fi < _files_widget->count(); fi++) {
+        fw = reinterpret_cast<FileWidget *>(_files_widget->widget(fi));
+        if (fw->file_name().compare(file_name) == 0)
+            break;
+    }
+    _files_watcher->removePath(fn);
+    bool changes_lost = !fw->is_saved();
+    _files_widget->removeTab(fi);
+    delete fw;
+    open(file_name, file_name, fi);
+    if (changes_lost) {
+        QMessageBox::warning(this, "Warning", QString("File %1 was changed on disk. Changes are lost.").arg(fn));
+    }
 }
 
 QStringList GUI::file_open_dialog(const QStringList &filters)
@@ -1273,7 +1296,7 @@ void GUI::export_to(const std::string &cmd, const std::vector<std::string> &opti
     }
 }
 
-void GUI::open(const std::string &file_name, const std::string &save_name)
+void GUI::open(const std::string &file_name, const std::string &save_name, int tab_index)
 {
     if (file_name.length() > 0)
     {
@@ -1322,9 +1345,13 @@ void GUI::open(const std::string &file_name, const std::string &save_name)
         {
             FileWidget *fw = new FileWidget(file_name, save_name, headers);
             connect(fw, SIGNAL(changed(const std::string &, const std::string &)), this, SLOT(file_changed(const std::string &, const std::string &)));
-            _files_widget->addTab(fw, (file_name.length() == 0 ? QString("(unnamed)") : to_qt(fio::basename(file_name))));
-            _files_widget->tabBar()->setTabTextColor(_files_widget->indexOf(fw), (fw->is_saved() ? "black" : "red"));
-            _files_widget->setCurrentWidget(fw);
+            QString fn = to_qt(fio::basename(file_name));
+            QString tn = (file_name.length() == 0 ? QString("(unnamed)") : fn);
+            int ti = (tab_index >= 0 ? _files_widget->insertTab(tab_index, fw, tn) : _files_widget->addTab(fw, tn));
+            _files_widget->tabBar()->setTabTextColor(ti, (fw->is_saved() ? "black" : "red"));
+            _files_widget->setCurrentIndex(ti);
+            if (file_name.length() > 0)
+                _files_watcher->addPath(to_qt(file_name));
         }
     }
     catch (std::exception &e)
@@ -1375,8 +1402,10 @@ void GUI::file_save()
          * has the expected contents. */
         fio::close(fo, fw->file_name() + ".tmp");
         fio::close(fi, fw->file_name());
+        _files_watcher->removePath(to_qt(fw->file_name()));
         try { fio::remove(fw->file_name()); } catch (...) { }
         fio::rename(fw->file_name() + ".tmp", fw->file_name());
+        _files_watcher->addPath(to_qt(fw->file_name()));
         fw->saved_to(fw->file_name());
         _files_widget->tabBar()->setTabTextColor(_files_widget->indexOf(fw), "black");
         _files_widget->tabBar()->setTabText(_files_widget->indexOf(fw), fio::basename(fw->file_name()).c_str());
@@ -1399,6 +1428,8 @@ void GUI::file_save_as()
     QString file_name = file_save_dialog();
     if (!file_name.isEmpty())
     {
+        if (fw->file_name().length() > 0)
+            _files_watcher->removePath(to_qt(fw->file_name()));
         fw->set_file_name(from_qt(file_name));
         file_save();
     }
@@ -1435,6 +1466,8 @@ void GUI::file_close()
             return;
         }
     }
+    if (fw->file_name().length() > 0)
+        _files_watcher->removePath(to_qt(fw->file_name()));
     _files_widget->removeTab(_files_widget->indexOf(fw));
     delete fw;
 }
@@ -1458,6 +1491,8 @@ void GUI::file_close_all()
     while (_files_widget->count() > 0)
     {
         FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->widget(0));
+        if (fw->file_name().length() > 0)
+            _files_watcher->removePath(to_qt(fw->file_name()));
         _files_widget->removeTab(0);
         delete fw;
     }
