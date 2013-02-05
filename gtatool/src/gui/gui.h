@@ -190,8 +190,7 @@ Q_OBJECT
 private:
     MyTabWidget *_files_widget;
     QFileSystemWatcher* _files_watcher;
-    QDir _last_file_open_dir;
-    QDir _last_file_save_as_dir;
+    QDir _last_dir;
 
     bool check_have_file();
     bool check_file_unchanged();

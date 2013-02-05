@@ -984,9 +984,9 @@ QStringList GUI::file_open_dialog(const QStringList &filters)
     file_dialog->setWindowTitle(tr("Open"));
     file_dialog->setAcceptMode(QFileDialog::AcceptOpen);
     file_dialog->setFileMode(QFileDialog::ExistingFiles);
-    if (_last_file_open_dir.exists())
+    if (_last_dir.exists())
     {
-        file_dialog->setDirectory(_last_file_open_dir);
+        file_dialog->setDirectory(_last_dir);
     }
     QStringList complete_filters;
     complete_filters << filters << tr("All files (*)");
@@ -996,7 +996,7 @@ QStringList GUI::file_open_dialog(const QStringList &filters)
     {
         file_names = file_dialog->selectedFiles();
         file_names.sort();
-        _last_file_open_dir = file_dialog->directory();
+        _last_dir = file_dialog->directory();
     }
     return file_names;
 }
@@ -1010,7 +1010,7 @@ QString GUI::file_save_dialog(const QString &default_suffix, const QStringList &
     }
     else
     {
-        file_dialog_dir = _last_file_save_as_dir;
+        file_dialog_dir = _last_dir;
     }
     QFileDialog *file_dialog = new QFileDialog(this);
     file_dialog->setWindowTitle(tr("Save"));
@@ -1033,7 +1033,7 @@ QString GUI::file_save_dialog(const QString &default_suffix, const QStringList &
     {
         file_name = file_dialog->selectedFiles().at(0);
         QFileInfo file_info(file_name);
-        _last_file_save_as_dir = file_dialog->directory();
+        _last_dir = file_dialog->directory();
         for (int i = 0; i < _files_widget->count(); i++)
         {
             FileWidget *existing_fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
@@ -1863,16 +1863,16 @@ void GUI::stream_split()
     file_dialog->setWindowTitle(tr("Split"));
     file_dialog->setAcceptMode(QFileDialog::AcceptSave);
     file_dialog->setFileMode(QFileDialog::DirectoryOnly);
-    if (_last_file_save_as_dir.exists())
+    if (_last_dir.exists())
     {
-        file_dialog->setDirectory(_last_file_save_as_dir);
+        file_dialog->setDirectory(_last_dir);
     }
     if (file_dialog->exec())
     {
         try
         {
             QString dir_name = file_dialog->selectedFiles().at(0);
-            _last_file_save_as_dir = file_dialog->directory();
+            _last_dir = file_dialog->directory();
             FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
             std::vector<std::string> args;
             args.push_back(fio::to_sys(std::string(qPrintable(QDir(dir_name).canonicalPath())) + "/%9N.gta"));
