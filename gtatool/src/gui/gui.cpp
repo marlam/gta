@@ -556,6 +556,7 @@ GUI::GUI()
     QGridLayout *layout = new QGridLayout;
     _files_widget = new MyTabWidget;
     _files_widget->setTabsClosable(true);
+    _files_widget->setMovable(true);
     connect(_files_widget, SIGNAL(tabCloseRequested(int)), this, SLOT(tab_close(int)));
     layout->addWidget(_files_widget, 0, 0);
     layout->setRowStretch(0, 1);
