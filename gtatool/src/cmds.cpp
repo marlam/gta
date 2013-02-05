@@ -328,6 +328,7 @@ cmd_category_t cmd_category(int cmd_index)
     return cmds[cmd_index].category;
 }
 
+#if DYNAMIC_MODULES
 static std::string cmd_module_name(int cmd_index)
 {
     const char* env_plugin_path = std::getenv("GTATOOL_PLUGIN_PATH");
@@ -335,6 +336,7 @@ static std::string cmd_module_name(int cmd_index)
     std::string module_name = plugin_path + "/" + cmds[cmd_index].module_name + ".so";
     return module_name;
 }
+#endif
 
 bool cmd_is_available(int cmd_index)
 {
