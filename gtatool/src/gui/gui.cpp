@@ -72,6 +72,15 @@ extern "C" void gtatool_gui_help(void)
             "Starts a graphical user interface (GUI) and opens the given GTA files, if any.");
 }
 
+// Helper functions: convert path names between our representation and Qt's representation
+static QString to_qt(const std::string& path)
+{
+    return QTextCodec::codecForLocale()->toUnicode(fio::to_sys(path).c_str());
+}
+static std::string from_qt(const QString& path)
+{
+    return fio::from_sys(qPrintable(path));
+}
 
 TaglistWidget::TaglistWidget(gta::header *header, enum type type, uintmax_t index, QWidget *parent)
     : QWidget(parent), _header(header), _type(type), _index(index),
@@ -995,7 +1004,7 @@ QString GUI::file_save_dialog(const QString &default_suffix, const QStringList &
             FileWidget *existing_fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
             if (existing_fw->file_name().length() > 0)
             {
-                QFileInfo existing_file_info(fio::to_sys(existing_fw->file_name()).c_str());
+                QFileInfo existing_file_info(to_qt(existing_fw->file_name()));
                 if (existing_file_info.canonicalFilePath().length() > 0
                         && file_info.canonicalFilePath() == existing_file_info.canonicalFilePath())
                 {
@@ -1210,7 +1219,7 @@ void GUI::import_from(const std::string &cmd, const std::vector<std::string> &op
         try
         {
             std::vector<std::string> args = options;
-            args.push_back(fio::to_sys(qPrintable(open_file_names[i])));
+            args.push_back(from_qt(open_file_names[i]));
             std::string output_name(qPrintable(open_file_names[i]));
             size_t last_slash = output_name.find_last_of('/');
             size_t last_dot = output_name.find_last_of('.');
@@ -1242,7 +1251,7 @@ void GUI::export_to(const std::string &cmd, const std::vector<std::string> &opti
         return;
     }
     FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
-    QString save_file_name = file_save_dialog(default_suffix, filters, fio::to_sys(fw->file_name()).c_str());
+    QString save_file_name = file_save_dialog(default_suffix, filters, to_qt(fw->file_name()));
     if (!save_file_name.isEmpty())
     {
         try
@@ -1250,7 +1259,7 @@ void GUI::export_to(const std::string &cmd, const std::vector<std::string> &opti
             std::string std_err;
             std::vector<std::string> args = options;
             args.push_back(fio::to_sys(fw->save_name()));
-            args.push_back(fio::to_sys(qPrintable(save_file_name)));
+            args.push_back(from_qt(save_file_name));
             int retval = run(cmd, args, std_err, NULL, NULL);
             if (retval != 0)
             {
@@ -1268,13 +1277,13 @@ void GUI::open(const std::string &file_name, const std::string &save_name)
 {
     if (file_name.length() > 0)
     {
-        QFileInfo file_info(fio::to_sys(file_name).c_str());
+        QFileInfo file_info(to_qt(file_name));
         for (int i = 0; i < _files_widget->count(); i++)
         {
             FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
             if (fw->file_name().length() > 0)
             {
-                QFileInfo existing_file_info(fio::to_sys(fw->file_name()).c_str());
+                QFileInfo existing_file_info(to_qt(fw->file_name()));
                 if (existing_file_info.canonicalFilePath().length() > 0
                         && file_info.canonicalFilePath() == existing_file_info.canonicalFilePath())
                 {
@@ -1313,8 +1322,7 @@ void GUI::open(const std::string &file_name, const std::string &save_name)
         {
             FileWidget *fw = new FileWidget(file_name, save_name, headers);
             connect(fw, SIGNAL(changed(const std::string &, const std::string &)), this, SLOT(file_changed(const std::string &, const std::string &)));
-            _files_widget->addTab(fw, (file_name.length() == 0 ? "(unnamed)" :
-                        QTextCodec::codecForLocale()->toUnicode(fio::to_sys(fio::basename(file_name)).c_str())));
+            _files_widget->addTab(fw, (file_name.length() == 0 ? QString("(unnamed)") : to_qt(fio::basename(file_name))));
             _files_widget->tabBar()->setTabTextColor(_files_widget->indexOf(fw), (fw->is_saved() ? "black" : "red"));
             _files_widget->setCurrentWidget(fw);
         }
@@ -1391,7 +1399,7 @@ void GUI::file_save_as()
     QString file_name = file_save_dialog();
     if (!file_name.isEmpty())
     {
-        fw->set_file_name(fio::from_sys(qPrintable(file_name)));
+        fw->set_file_name(from_qt(file_name));
         file_save();
     }
 }
