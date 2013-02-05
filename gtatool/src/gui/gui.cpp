@@ -1401,8 +1401,8 @@ void GUI::file_save()
     try
     {
         QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-        FILE *fi = fio::open(fw->save_name(), "r");
-        FILE *fo = fio::open(fw->file_name() + ".tmp", "w");
+        FILE *fi = fio::open(fio::to_sys(fw->save_name()), "r");
+        FILE *fo = fio::open(fio::to_sys(fw->file_name()) + ".tmp", "w");
         for (size_t i = 0; i < fw->headers().size(); i++)
         {
             gta::header dummy_header;
@@ -1413,15 +1413,15 @@ void GUI::file_save()
         /* This is a stupid and unsafe way to switch to the new file, but it works
          * cross-platform and also over NFS etc: after this, the file exists and
          * has the expected contents. */
-        fio::close(fo, fw->file_name() + ".tmp");
-        fio::close(fi, fw->file_name());
+        fio::close(fo, fio::to_sys(fw->file_name()) + ".tmp");
+        fio::close(fi, fio::to_sys(fw->file_name()));
         _files_watcher->removePath(to_qt(fw->file_name()));
         try { fio::remove(fw->file_name()); } catch (...) { }
         fio::rename(fw->file_name() + ".tmp", fw->file_name());
         _files_watcher->addPath(to_qt(fw->file_name()));
         fw->saved_to(fw->file_name());
         _files_widget->tabBar()->setTabTextColor(_files_widget->indexOf(fw), "black");
-        _files_widget->tabBar()->setTabText(_files_widget->indexOf(fw), fio::basename(fw->file_name()).c_str());
+        _files_widget->tabBar()->setTabText(_files_widget->indexOf(fw), to_qt(fio::basename(fw->file_name())));
         QApplication::restoreOverrideCursor();
     }
     catch (std::exception &e)
