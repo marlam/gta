@@ -11,6 +11,11 @@ permitted in any medium without royalty provided the copyright notice and this
 notice are preserved. This file is offered as-is, without any warranty.
 @end copying
 
+@dircategory
+@direntry
+* Gtatool: (gta).                           Manipulate Generic Tagged Array (GTA) files.
+@end direntry
+
 @node Top
 @top GTA Manual
 @insertcopying
