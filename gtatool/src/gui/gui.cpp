@@ -482,6 +482,8 @@ FileWidget::~FileWidget()
     {
         try { fio::remove(_save_name); } catch (...) {}
     }
+    for (size_t i = 0; i < _headers.size(); i++)
+        delete _headers[i];
 }
 
 void FileWidget::update_label()
