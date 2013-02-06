@@ -1,4 +1,4 @@
-% Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+% Copyright (C) 2010, 2013  Martin Lambers <marlam@marlam.de>
 %
 
 \documentclass[a4paper,11pt]{article}
@@ -24,7 +24,7 @@
 
 \noindent
 {\scriptsize
-Copyright (C) 2010 Martin Lambers\\~\\
+Copyright (C) 2010, 2013 Martin Lambers\\~\\
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
@@ -39,6 +39,7 @@ Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
 \section*{Changes}
 
 \begin{itemize}
+\item \textbf{2013-02-06} Fixed typos.
 \item \textbf{2010-08-17} Remove the meaning of the second lowest bit in the
 flag byte of the header. The same information can be extracted from the sixth
 header byte instead. This allows to simplify the libgta API. Compatibility with
@@ -144,12 +145,12 @@ An array does not need to have any tags in its tag lists. If it does have
 tags, these are subject to certain rules, see the external documentation about
 reserved tags.
 
-For example, an image might have a global tag list containing the tag
-\mbox{\code{DATE=Fri,~~4 Dec 2009 22:29:43 +0100 (CET)}}, 
+For example, an image might have a global tag list containing the tag\linebreak
+\code{DATE=Fri,~~4~Dec~2009 22:29:43 +0100 (CET)}, 
 a tag list for the first dimension containing the tag \code{INTERPRETATION=X},
 a tag list for the second dimensions containing the tag
 \code{INTERPRETATION=Y}, and three component tag lists, containing the tags
-\code{INTERPRETATION=SRGB/RED}, \code{INTERPRETATION=SRGB/GREEN},
+\code{INTERPRETATION=SRGB/RED}, \code{INTERPRETATION=SRGB/GREEN},\linebreak
 \code{INTERPRETATION=SRGB/BLUE} respectively.
 
 
@@ -161,7 +162,7 @@ It begins with a chunk header, defined as follows:
 \item The first 8 bytes of the chunk header contain a value of type \code{GTA\_UINT64},
 subject to the endianness type of the file (see next section for details).
 This value is the number of bytes of the chunk data (excluding the
-header). Currently, it is limited to $2^24$, so that a chunk cannot store more
+header). Currently, it is limited to $2^{24}$, so that a chunk cannot store more
 than 16 MiB.
 \item Only if the previous value is not zero, the next byte of the chunk
 contains a value of type \code{GTA\_UINT8}.  This value specifies the
@@ -269,7 +270,7 @@ method which may differ from this recommendation.
 At byte 7 of the header, a chunk list starts. This chunk list contains the
 information described in the next paragraphs.
 
-The fist information in the chunk list is the list of element components. It
+The first information in the chunk list is the list of element components. It
 consists of zero or more component definitions. A component definition starts
 with one byte of type \code{GTA\_UINT8} that contains one of the values
 defined in Tab.~\ref{tab:types}. If the type is \code{GTA\_BLOB}, then the
@@ -294,7 +295,7 @@ After the global tag list, the tag lists of all element components follows, and
 after that the tag lists of all dimensions. These tag lists are stored in the
 same manner as the global tag list.
 
-After these tag list definitions, the GTA header chunk list ends, i.e. a
+After these tag list definitions, the GTA header chunk list ends, i.e.~a
 single zero-sized chunk must signal the end of the header chunk list.
 
 The GTA array data follows immediately after the header.
@@ -309,7 +310,7 @@ the same as that of a C array when the first dimension is specified last
 (row-major for two-dimensional data). The following is an example for a
 three-dimensional array: \code{element\_type array[size2][size1][size0]}.
 
-The array data is stored as-is if the compression method recommended in
+The array data is stored as-is if the compression method recommended in the
 sixth byte of the header is \code{GTA\_NONE}. Otherwise, it is stored in a chunk
 list.
 
