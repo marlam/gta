@@ -130,7 +130,7 @@ static bool parse_component(const std::string& s, gta::type t, void* c)
     {
         float v;
         errno = 0;
-        v = std::strtof(s.c_str(), NULL);
+        v = strtof(s.c_str(), NULL);
         ok = (errno == 0);
         std::memcpy(c, &v, sizeof(float));
     }

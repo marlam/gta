@@ -55,61 +55,61 @@ static void write_component(const void* c, gta::type t, char s[32])
     {
         int8_t v;
         std::memcpy(&v, c, sizeof(int8_t));
-        std::snprintf(s, 32, "%"PRId8, v);
+        snprintf(s, 32, "%"PRId8, v);
     }
     else if (t == gta::uint8)
     {
         uint8_t v;
         std::memcpy(&v, c, sizeof(uint8_t));
-        std::snprintf(s, 32, "%"PRIu8, v);
+        snprintf(s, 32, "%"PRIu8, v);
     }
     else if (t == gta::int16)
     {
         int16_t v;
         std::memcpy(&v, c, sizeof(int16_t));
-        std::snprintf(s, 32, "%"PRId16, v);
+        snprintf(s, 32, "%"PRId16, v);
     }
     else if (t == gta::uint16)
     {
         uint16_t v;
         std::memcpy(&v, c, sizeof(uint16_t));
-        std::snprintf(s, 32, "%"PRIu16, v);
+        snprintf(s, 32, "%"PRIu16, v);
     }
     else if (t == gta::int32)
     {
         int32_t v;
         std::memcpy(&v, c, sizeof(int32_t));
-        std::snprintf(s, 32, "%"PRId32, v);
+        snprintf(s, 32, "%"PRId32, v);
     }
     else if (t == gta::uint32)
     {
         uint32_t v;
         std::memcpy(&v, c, sizeof(uint32_t));
-        std::snprintf(s, 32, "%"PRIu32, v);
+        snprintf(s, 32, "%"PRIu32, v);
     }
     else if (t == gta::int64)
     {
         int64_t v;
         std::memcpy(&v, c, sizeof(int64_t));
-        std::snprintf(s, 32, "%"PRId64, v);
+        snprintf(s, 32, "%"PRId64, v);
     }
     else if (t == gta::uint64)
     {
         uint64_t v;
         std::memcpy(&v, c, sizeof(uint64_t));
-        std::snprintf(s, 32, "%"PRIu64, v);
+        snprintf(s, 32, "%"PRIu64, v);
     }
     else if (t == gta::float32)
     {
         float v;
         std::memcpy(&v, c, sizeof(float));
-        std::snprintf(s, 32, "%.9g", v);
+        snprintf(s, 32, "%.9g", v);
     }
     else // t == gta::float64
     {
         double v;
         std::memcpy(&v, c, sizeof(double));
-        std::snprintf(s, 32, "%.17f", v);
+        snprintf(s, 32, "%.17f", v);
     }
 }
 
