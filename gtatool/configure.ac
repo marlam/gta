@@ -115,6 +115,7 @@ if test "$ndebug" = "1"; then
 fi
 
 dnl Feature checks needed by the base modules
+AC_LANG_PUSH([C])
 dnl - dbg
 AC_CHECK_FUNCS([backtrace sigaction])
 dnl - endianness
@@ -150,6 +151,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], [], [CPPFLAGS="$CPPFLAGS_bak"; LDFLAGS=
 dnl - timer
 dnl AC_SEARCH_LIBS([clock_gettime], [rt])
 dnl AC_CHECK_FUNCS([clock_gettime])
+AC_LANG_POP([C])
 
 dnl pkg-config
 PKG_PROG_PKG_CONFIG([])
