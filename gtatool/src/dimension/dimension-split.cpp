@@ -70,6 +70,7 @@ extern "C" int gtatool_dimension_split(int argc, char *argv[])
         return 0;
     }
 
+    std::string tempdir;
     try
     {
         array_loop_t array_loop;
@@ -87,7 +88,8 @@ extern "C" int gtatool_dimension_split(int argc, char *argv[])
             {
                 throw exc(namei + ": array has no dimension " + str::from(dim));
             }
-            // Determine the new dimensions
+            uintmax_t dim_size = hdri.dimension_size(dim);
+            // Determine the new dimensions and create the new header
             std::vector<uintmax_t> dim_sizes;
             if (hdri.dimensions() == 1)
             {
@@ -103,42 +105,32 @@ extern "C" int gtatool_dimension_split(int argc, char *argv[])
                     }
                 }
             }
-            // Define the GTA headers and create temporary files
-            std::vector<gta::header> hdros(checked_cast<size_t>(hdri.dimension_size(dim)));
-            std::vector<std::string> nameos(hdros.size());
-            std::vector<FILE *> tmpfiles(hdros.size());
-            std::vector<std::string> tmpfilenames(hdros.size());
-            std::vector<array_loop_t> tmpaloops(hdros.size());
-            std::vector<element_loop_t> tmpeloops(hdros.size());
-            std::vector<std::string> tmpnameos(hdros.size());
-            for (size_t i = 0; i < hdros.size(); i++)
+            gta::header hdro = hdri;
+            hdro.set_compression(gta::none);
+            hdro.set_dimensions(dim_sizes.size(), &(dim_sizes[0]));
+            uintmax_t hdro_dim = 0;
+            if (hdri.dimensions() == 1)
             {
-                hdros[i] = hdri;
-                hdros[i].set_compression(gta::none);
-                hdros[i].set_dimensions(dim_sizes.size(), &(dim_sizes[0]));
-                uintmax_t hdro_dim = 0;
-                if (hdri.dimensions() == 1)
+                hdro.dimension_taglist(0) = hdri.dimension_taglist(0);
+            }
+            else
+            {
+                for (uintmax_t j = 0; j < hdri.dimensions(); j++)
                 {
-                    hdros[i].dimension_taglist(0) = hdri.dimension_taglist(0);
-                }
-                else
-                {
-                    for (uintmax_t j = 0; j < hdri.dimensions(); j++)
+                    if (j != dim)
                     {
-                        if (j != dim)
-                        {
-                            hdros[i].dimension_taglist(hdro_dim) = hdri.dimension_taglist(j);
-                            hdro_dim++;
-                        }
+                        hdro.dimension_taglist(hdro_dim) = hdri.dimension_taglist(j);
+                        hdro_dim++;
                     }
                 }
-                tmpfilenames[i] = fio::mktempfile(&(tmpfiles[i]));
-                tmpaloops[i].start("", tmpfilenames[i]);
-                tmpaloops[i].start_element_loop(tmpeloops[i], hdri, hdros[i]);
             }
-            // Write the GTA data to temporary files
             if (hdri.element_size() > 0)
             {
+                // Write the GTA data to temporary files "tempdir/index"
+                tempdir = fio::mktempdir();
+                FILE* tmpf = NULL;
+                std::string tmpf_name;
+                uintmax_t tmpf_index = 0;
                 element_loop_t element_loop;
                 array_loop.start_element_loop(element_loop, hdri, hdro);
                 blob element(checked_cast<size_t>(hdri.element_size()));
@@ -147,21 +139,43 @@ extern "C" int gtatool_dimension_split(int argc, char *argv[])
                 {
                     const void *e = element_loop.read();
                     hdri.linear_index_to_indices(i, &(indices[0]));
-                    size_t j = indices[dim];
-                    tmpeloops[j].write(e);
+                    uintmax_t j = indices[dim];
+                    if (!tmpf || tmpf_index != j)
+                    {
+                        if (tmpf)
+                        {
+                            fio::close(tmpf, tmpf_name);
+                        }
+                        tmpf_name = tempdir + "/" + str::from(j);
+                        tmpf = fio::open(tmpf_name, "a");
+                        tmpf_index = j;
+                    }
+                    fio::write(e, element.size(), 1, tmpf, tmpf_name);
                 }
+                if (tmpf)
+                {
+                    fio::close(tmpf, tmpf_name);
+                }
+                // Combine the GTAs to a single output stream
+                for (uintmax_t i = 0; i < dim_size; i++)
+                {
+                    std::string nameo;
+                    array_loop_t tmploop;
+                    tmpf_name = tempdir + "/" + str::from(i);
+                    tmploop.start(tmpf_name, "");
+                    tmploop.write(hdro, nameo);
+                    tmploop.copy_data(hdro, hdro);
+                    tmploop.finish();
+                    fio::remove(tmpf_name);
+                }
+                fio::rmdir(tempdir);
             }
-            // Combine the GTA data to a single output stream
-            for (size_t i = 0; i < hdros.size(); i++)
+            else
             {
-                tmpaloops[i].finish();
-                array_loop_t tmploop;
-                tmploop.start(tmpfilenames[i], "");
-                tmploop.write(hdros[i], nameos[i]);
-                tmploop.copy_data(hdros[i], hdros[i]);
-                tmploop.finish();
-                fio::close(tmpfiles[i], tmpfilenames[i]);
-                fio::remove(tmpfilenames[i]);
+                for (uintmax_t i = 0; i < dim_size; i++)
+                {
+                    array_loop.write(hdro, nameo);
+                }
             }
         }
         array_loop.finish();
@@ -169,6 +183,10 @@ extern "C" int gtatool_dimension_split(int argc, char *argv[])
     catch (std::exception &e)
     {
         msg::err_txt("%s", e.what());
+        if (tempdir.length() > 0 && fio::test_d(tempdir))
+        {
+            fio::rm_r(tempdir);
+        }
         return 1;
     }
 
