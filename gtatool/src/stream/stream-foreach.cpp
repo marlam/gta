@@ -130,6 +130,7 @@ extern "C" int gtatool_stream_foreach(int argc, char *argv[])
             // Open command
             std::string cmd = command;
             str::replace(cmd, "%I", str::from(block_index));
+            fflush(msg::file());
             errno = 0;
             FILE* p = popen(cmd.c_str(), "w");
             if (!p)
@@ -154,7 +155,9 @@ extern "C" int gtatool_stream_foreach(int argc, char *argv[])
                 }
                 if (i < n.value())
                 {
+                    fflush(msg::file());
                     msg::wrn(std::string("last input block only has ") + str::from(i) + " GTAs");
+                    fflush(msg::file());
                 }
             }
             catch (gta::exception& e)
@@ -177,6 +180,7 @@ extern "C" int gtatool_stream_foreach(int argc, char *argv[])
 
             // Close command
             int r = pclose(p);
+            fflush(msg::file());
             if (r == -1 || !WIFEXITED(r) || WEXITSTATUS(r) == 127)
             {
                 throw exc(std::string("command '") + cmd + "' failed to execute");

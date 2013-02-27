@@ -122,6 +122,7 @@ extern "C" int gtatool_stream_grep(int argc, char *argv[])
             }
             // Open command
             std::string cmd = command;
+            fflush(msg::file());
             errno = 0;
             FILE* p = popen(cmd.c_str(), "w");
             if (!p)
@@ -162,6 +163,7 @@ extern "C" int gtatool_stream_grep(int argc, char *argv[])
             // Close command
             bool keep_gta = true;
             int r = pclose(p);
+            fflush(msg::file());
             if (r == -1 || !WIFEXITED(r) || WEXITSTATUS(r) == 127)
             {
                 throw exc(std::string("command '") + cmd + "' failed to execute");
