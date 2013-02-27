@@ -27,11 +27,15 @@ $GTA tag --set-dimension=1,dim1foo=bar "$PING" > "$PONG"
 PTMP="$PING"; PING="$PONG"; PONG="$PTMP"
 $GTA tag --set-dimension=2,dim2foo=bar "$PING" > "$PONG"
 PTMP="$PING"; PING="$PONG"; PONG="$PTMP"
+$GTA tag --set-dimension=all,dimfoo=bar "$PING" > "$PONG"
+PTMP="$PING"; PING="$PONG"; PONG="$PTMP"
 $GTA tag --set-component=0,cmp0foo=bar "$PING" > "$PONG"
 PTMP="$PING"; PING="$PONG"; PONG="$PTMP"
 $GTA tag --set-component=1,cmp1foo=bar "$PING" > "$PONG"
 PTMP="$PING"; PING="$PONG"; PONG="$PTMP"
 $GTA tag --set-component=2,cmp2foo=bar "$PING" > "$PONG"
+PTMP="$PING"; PING="$PONG"; PONG="$PTMP"
+$GTA tag --set-component=all,cmpfoo=bar "$PING" > "$PONG"
 PTMP="$PING"; PING="$PONG"; PONG="$PTMP"
 
 $GTA tag --get-global=baz "$PING" > "$TMPD/devnull.gta" 2> "$TMPD"/out0.txt
@@ -43,9 +47,11 @@ $GTA tag --unset-global=baz \
 	--unset-dimension-all=0 \
 	--unset-dimension-all=1 \
 	--unset-dimension-all=2 \
+	--unset-dimension-all=all \
 	--unset-component-all=0 \
 	--unset-component-all=1 \
 	--unset-component-all=2 \
+	--unset-component-all=all \
 	--unset-all "$PING" > "$PONG"
 cmp "$TMPD"/a.gta "$PONG"
 

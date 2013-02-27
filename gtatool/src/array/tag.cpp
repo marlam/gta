@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011
+ * Copyright (C) 2010, 2011, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -33,6 +33,22 @@
 
 #include "lib.h"
 
+
+extern "C" void gtatool_tag_help(void)
+{
+    msg::req_txt(
+            "tag [--get-global=<name>] [--set-global=<name=value>] [--unset-global=<name>] [--unset-global-all] "
+            "[--get-dimension=<dim>,<name>] [--set-dimension=<dim>,<name=value>] [--unset-dimension=<dim>,<name>] [--unset-dimension-all=<dim>] "
+            "[--get-component=<cmp>,<name>] [--set-component=<cmp>,<name=value>] [--unset-component=<cmp>,<name>] [--unset-component-all=<cmp>] "
+            "[--unset-all] [<files...>]\n"
+            "\n"
+            "Read GTAs, get or set tags as requested, and write the GTAs to standard output.\n"
+            "Control characters are automatically stripped from the beginning and end of tag names and values.\n"
+            "A tag name must not be empty, and must not contain control characters or the character '='.\n"
+            "A tag value must not contain control characters (but can be empty or contain '=').\n"
+            "Options that require a dimension index <dim> or a component index <cmp> also accept the keyword 'all' instead, "
+            "with the effect that the option is applied to all dimensions or components.");
+}
 
 class tag_command
 {
@@ -115,8 +131,8 @@ public:
                 }
                 for (uintmax_t i = a; i <= b; i++)
                 {
-                    const char *val = hdr.dimension_taglist(_index).get(to_utf8(_name).c_str());
-                    msg::req(array_name + " dimension " + str::from(_index) + ": "
+                    const char *val = hdr.dimension_taglist(i).get(to_utf8(_name).c_str());
+                    msg::req(array_name + " dimension " + str::from(i) + ": "
                             + _name + (val ? std::string("=") + from_utf8(val) : std::string(" not set")));
                 }
             }
@@ -140,7 +156,7 @@ public:
                 }
                 for (uintmax_t i = a; i <= b; i++)
                 {
-                    hdr.dimension_taglist(_index).set(to_utf8(_name).c_str(), to_utf8(_value).c_str());
+                    hdr.dimension_taglist(i).set(to_utf8(_name).c_str(), to_utf8(_value).c_str());
                 }
             }
             break;
@@ -163,7 +179,7 @@ public:
                 }
                 for (uintmax_t i = a; i <= b; i++)
                 {
-                    hdr.dimension_taglist(_index).unset(to_utf8(_name).c_str());
+                    hdr.dimension_taglist(i).unset(to_utf8(_name).c_str());
                 }
             }
             break;
@@ -186,7 +202,7 @@ public:
                 }
                 for (uintmax_t i = a; i <= b; i++)
                 {
-                    hdr.dimension_taglist(_index).unset_all();
+                    hdr.dimension_taglist(i).unset_all();
                 }
             }
             break;
@@ -209,8 +225,8 @@ public:
                 }
                 for (uintmax_t i = a; i <= b; i++)
                 {
-                    const char *val = hdr.component_taglist(_index).get(to_utf8(_name).c_str());
-                    msg::req(array_name + " component " + str::from(_index) + ": "
+                    const char *val = hdr.component_taglist(i).get(to_utf8(_name).c_str());
+                    msg::req(array_name + " component " + str::from(i) + ": "
                             + _name + (val ? std::string("=") + from_utf8(val) : std::string(" not set")));
                 }
             }
@@ -234,7 +250,7 @@ public:
                 }
                 for (uintmax_t i = a; i <= b; i++)
                 {
-                    hdr.component_taglist(_index).set(to_utf8(_name).c_str(), to_utf8(_value).c_str());
+                    hdr.component_taglist(i).set(to_utf8(_name).c_str(), to_utf8(_value).c_str());
                 }
             }
             break;
@@ -257,7 +273,7 @@ public:
                 }
                 for (uintmax_t i = a; i <= b; i++)
                 {
-                    hdr.component_taglist(_index).unset(to_utf8(_name).c_str());
+                    hdr.component_taglist(i).unset(to_utf8(_name).c_str());
                 }
             }
             break;
@@ -280,7 +296,7 @@ public:
                 }
                 for (uintmax_t i = a; i <= b; i++)
                 {
-                    hdr.component_taglist(_index).unset_all();
+                    hdr.component_taglist(i).unset_all();
                 }
             }
             break;
@@ -499,17 +515,6 @@ class opt_tag_command : public opt::option
             return true;
         }
 };
-
-extern "C" void gtatool_tag_help(void)
-{
-    msg::req_txt(
-            "tag [--get-global=<name>] [--set-global=<name=value>] [--unset-global=<name>] [--unset-global-all] "
-            "[--get-dimension=<dim>,<name>] [--set-dimension=<dim>,<name=value>] [--unset-dimension=<dim>,<name>] [--unset-dimension-all=<dim>] "
-            "[--get-component=<cmp>,<name>] [--set-component=<cmp>,<name=value>] [--unset-component=<cmp>,<name>] [--unset-component-all=<cmp>] "
-            "[--unset-all] [<files...>]\n"
-            "\n"
-            "Get and set GTA tags. The input GTAs are modified (if requested) and written to standard output.");
-}
 
 extern "C" int gtatool_tag(int argc, char *argv[])
 {
