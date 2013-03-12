@@ -111,13 +111,13 @@ extern "C" int gtatool_to_ply(int argc, char *argv[])
                 else if (tagval == "X-NORMAL-Z")
                     tagval = "nz";
                 else if (tagval == "RED" || tagval == "SRGB/RED")
-                    tagval = "r";
+                    tagval = "red";
                 else if (tagval == "GREEN" || tagval == "SRGB/GREEN")
-                    tagval = "g";
+                    tagval = "green";
                 else if (tagval == "BLUE" || tagval == "SRGB/BLUE")
-                    tagval = "b";
+                    tagval = "blue";
                 else if (tagval == "ALPHA")
-                    tagval = "a";
+                    tagval = "alpha";
                 else if (!tagval.empty() && tagval.substr(0, 2) == "X-")
                     tagval = tagval.substr(2);
                 else if (tagval.empty())
