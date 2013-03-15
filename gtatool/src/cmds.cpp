@@ -179,7 +179,7 @@ static cmd_t cmds[] =
     CMD("diff",              cmd_array,      diff,              true,          BUILTIN,
             "Compute differences between arrays"),
     CMD("dimension-add",     cmd_dimension,  dimension_add,     true,          BUILTIN,
-            "Add dimensions to arrays (e.g. slice to flat volume"),
+            "Add dimensions to arrays (e.g. slice to flat volume)"),
     CMD("dimension-extract", cmd_dimension,  dimension_extract, true,          BUILTIN,
             "Extract dimension from arrays (e.g. slice from volume)"),
     CMD("dimension-flatten", cmd_dimension,  dimension_flatten, true,          BUILTIN,
