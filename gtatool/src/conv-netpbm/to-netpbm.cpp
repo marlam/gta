@@ -117,10 +117,6 @@ extern "C" int gtatool_to_netpbm(int argc, char *argv[])
                     throw exc("cannot export " + ifilename + ": only arrays with element components that have a single type can be exported via NetPBM");
                 }
             }
-            if (hdr.compression() != gta::none)
-            {
-                throw exc("cannot export " + ifilename + ": currently only uncompressed GTAs can be exported via NetPBM");
-            }
 
             struct pam outpam;
             std::memset(&outpam, 0, sizeof(outpam));
