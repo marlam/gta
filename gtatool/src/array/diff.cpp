@@ -36,41 +36,72 @@
 extern "C" void gtatool_diff_help(void)
 {
     msg::req_txt(
-            "diff [-a|--absolute] <file0> <file1>\n"
+            "diff [-a|--absolute] [-f|--force] <file0> <file1>\n"
             "\n"
-            "Compute the differences between the two GTA streams.\n"
+            "Compute the differences between two GTA streams.\n"
             "The GTAs must be compatible in dimensions and component types. This command produces "
-            "output GTAs of the same kind. Each component will contain the absolute difference between "
-            "the corresponding components in the input GTAs.\n"
+            "output GTAs of the same kind. Each component will contain the difference between "
+            "the corresponding components in the input GTAs (<file0> - <file1>).\n"
             "If -a is given, the absolute difference is computed.\n"
             "Run the output GTAs through the info command with the -s option to gather statistics.\n"
-            "Beware of type limitations! If a difference cannot be represented in the given component type, "
-            "this command will abort. Use component-convert to convert between component types.\n"
+            "Beware of limitations of the integer type range! If a difference cannot be represented "
+            "in the given component type (e.g. 10 - 20 in uint8), this command will abort by default. "
+            "Use -f to force clamping of values to the representable range instead, or use the "
+            "component-convert command to work with different component types.\n"
             "Example: diff a.gta b.gta > diff.gta");
 }
 
 template<typename T>
-static void signed_int_diff(bool absolute, const void* c0, const void* c1, void* d)
+static void signed_int_diff(bool absolute, bool force, const void* c0, const void* c1, void* d)
 {
     T x, y, z;
     std::memcpy(&x, c0, sizeof(T));
     std::memcpy(&y, c1, sizeof(T));
-    z = checked_sub(x, y);
-    if (absolute)
-        z = checked_abs(z);
+    try {
+        z = checked_sub(x, y);
+        if (absolute)
+            z = checked_abs(z);
+    }
+    catch (std::overflow_error&) {
+        if (force)
+            z = std::numeric_limits<T>::max();
+        else
+            throw;
+    }
+    catch (std::underflow_error&) {
+        if (force)
+            z = std::numeric_limits<T>::min();
+        else
+            throw;
+    }
     std::memcpy(d, &z, sizeof(T));
 }
 
 template<typename T>
-static void unsigned_int_diff(bool absolute, const void* c0, const void* c1, void* d)
+static void unsigned_int_diff(bool absolute, bool force, const void* c0, const void* c1, void* d)
 {
     T x, y, z;
     std::memcpy(&x, c0, sizeof(T));
     std::memcpy(&y, c1, sizeof(T));
-    if (absolute)
+    if (absolute) {
         z = (x > y ? x - y : y - x);
-    else
-        z = checked_sub(x, y);
+    } else {
+        try {
+            z = checked_sub(x, y);
+        }
+        catch (std::overflow_error&) {
+            if (force)
+                z = std::numeric_limits<T>::max();
+            else
+                throw;
+        }
+        catch (std::underflow_error&) {
+            if (force)
+                z = std::numeric_limits<T>::min();
+            else
+                throw;
+        }
+    }
     std::memcpy(d, &z, sizeof(T));
 }
 
@@ -86,24 +117,24 @@ static void float_diff(bool absolute, const void* c0, const void* c1, void* d)
     std::memcpy(d, &z, sizeof(T));
 }
 
-static void diff(gta::type t, bool absolute, const void* c0, const void* c1, void* d)
+static void diff(gta::type t, bool absolute, bool force, const void* c0, const void* c1, void* d)
 {
     if (t == gta::int8)
-        signed_int_diff<int8_t>(absolute, c0, c1, d);
+        signed_int_diff<int8_t>(absolute, force, c0, c1, d);
     else if (t == gta::uint8)
-        unsigned_int_diff<uint8_t>(absolute, c0, c1, d);
+        unsigned_int_diff<uint8_t>(absolute, force, c0, c1, d);
     else if (t == gta::int16)
-        signed_int_diff<int16_t>(absolute, c0, c1, d);
+        signed_int_diff<int16_t>(absolute, force, c0, c1, d);
     else if (t == gta::uint16)
-        unsigned_int_diff<uint16_t>(absolute, c0, c1, d);
+        unsigned_int_diff<uint16_t>(absolute, force, c0, c1, d);
     else if (t == gta::int32)
-        signed_int_diff<int32_t>(absolute, c0, c1, d);
+        signed_int_diff<int32_t>(absolute, force, c0, c1, d);
     else if (t == gta::uint32)
-        unsigned_int_diff<uint32_t>(absolute, c0, c1, d);
+        unsigned_int_diff<uint32_t>(absolute, force, c0, c1, d);
     else if (t == gta::int64)
-        signed_int_diff<int64_t>(absolute, c0, c1, d);
+        signed_int_diff<int64_t>(absolute, force, c0, c1, d);
     else if (t == gta::uint64)
-        unsigned_int_diff<uint64_t>(absolute, c0, c1, d);
+        unsigned_int_diff<uint64_t>(absolute, force, c0, c1, d);
     else if (t == gta::float32)
         float_diff<float>(absolute, c0, c1, d);
     else // t == gta::float64
@@ -117,6 +148,8 @@ extern "C" int gtatool_diff(int argc, char *argv[])
     options.push_back(&help);
     opt::flag absolute("absolute", 'a', opt::optional);
     options.push_back(&absolute);
+    opt::flag force("force", 'f', opt::optional);
+    options.push_back(&force);
     std::vector<std::string> arguments;
     if (!opt::parse(argc, argv, options, 2, 2, arguments))
     {
@@ -210,7 +243,7 @@ extern "C" int gtatool_diff(int argc, char *argv[])
                 const void* e1 = element_loops[1].read();
                 for (uintmax_t c = 0; c < hdro.components(); c++)
                 {
-                    diff(hdro.component_type(c), absolute.value(),
+                    diff(hdro.component_type(c), absolute.value(), force.value(),
                             static_cast<const void*>(static_cast<const char*>(e0) + component_offsets[c]),
                             static_cast<const void*>(static_cast<const char*>(e1) + component_offsets[c]),
                             static_cast<void*>(element_buf.ptr<char>(component_offsets[c])));
