@@ -178,7 +178,7 @@ _gta()
 	;;
     diff)
 	if [[ ${cur} == -* ]]; then
-	    COMPREPLY=( $(compgen -W "--help --absolute" -- ${cur}) )
+	    COMPREPLY=( $(compgen -W "--help --absolute --force" -- ${cur}) )
 	else
 	    COMPREPLY=( $(compgen -f -o plusdirs -X '!*.gta' -- ${cur}) )
 	fi
