@@ -36,14 +36,16 @@
 extern "C" void gtatool_combine_help(void)
 {
     msg::req_txt(
-            "combine -m|--mode=min|max|add|sub|mul|div|or|and|xor <files>...\n"
+            "combine -m|--mode=min|max|add|sub|mul|div|or|and|xor [-f|--force] <files>...\n"
             "\n"
             "Combines the input GTAs in the given mode and writes the result to stdout.\n"
             "The GTAs must be compatible in dimensions and component types. This command produces "
             "output GTAs of the same kind. Each component will contain the result of combining "
             "the corresponding components in the input GTAs.\n"
-            "Beware of type limitations! If a combination cannot be represented in the given component type, "
-            "this command will abort. Use component-convert if necessary.\n"
+            "Beware of limitations of the integer type range! If a difference cannot be represented "
+            "in the given component type (e.g. 10 - 20 in uint8), this command will abort by default. "
+            "Use -f to force clamping of values to the representable range instead, or use the "
+            "component-convert command to work with different component types.\n"
             "Example: combine -m min a.gta b.gta > min.gta");
 }
 
@@ -53,40 +55,55 @@ typedef enum
 } combine_mode_t;
 
 template<typename T>
-static void int_arith_combine(combine_mode_t mode, size_t n, const void** c, void* l)
+static void int_arith_combine(combine_mode_t mode, bool force, size_t n, const void** c, void* l)
 {
     T r;
     std::memcpy(&r, c[0], sizeof(T));
-    for (size_t i = 1; i < n; i++)
+    try
     {
-        T s;
-        std::memcpy(&s, c[i], sizeof(T));
-        switch (mode)
+        for (size_t i = 1; i < n; i++)
         {
-        case mode_min:
-            if (s < r)
-                r = s;
-            break;
-        case mode_max:
-            if (s > r)
-                r = s;
-            break;
-        case mode_add:
-            r = checked_add(r, s);
-            break;
-        case mode_sub:
-            r = checked_sub(r, s);
-            break;
-        case mode_mul:
-            r = checked_mul(r, s);
-            break;
-        case mode_div:
-            r = checked_div(r, s);
-            break;
-        default:
-            // cannot happen
-            break;
+            T s;
+            std::memcpy(&s, c[i], sizeof(T));
+            switch (mode)
+            {
+            case mode_min:
+                if (s < r)
+                    r = s;
+                break;
+            case mode_max:
+                if (s > r)
+                    r = s;
+                break;
+            case mode_add:
+                r = checked_add(r, s);
+                break;
+            case mode_sub:
+                r = checked_sub(r, s);
+                break;
+            case mode_mul:
+                r = checked_mul(r, s);
+                break;
+            case mode_div:
+                r = checked_div(r, s);
+                break;
+            default:
+                // cannot happen
+                break;
+            }
         }
+    }
+    catch (std::overflow_error&) {
+        if (force)
+            r = std::numeric_limits<T>::max();
+        else
+            throw;
+    }
+    catch (std::underflow_error&) {
+        if (force)
+            r = std::numeric_limits<T>::min();
+        else
+            throw;
     }
     std::memcpy(l, &r, sizeof(T));
 }
@@ -158,7 +175,7 @@ static void bit_combine(combine_mode_t mode, size_t n, const void** c, void* l)
     std::memcpy(l, &r, sizeof(T));
 }
 
-static void combine(gta::type t, combine_mode_t mode, size_t n, const void** c, void* l)
+static void combine(gta::type t, combine_mode_t mode, bool force, size_t n, const void** c, void* l)
 {
     if (mode == mode_and || mode == mode_or || mode == mode_xor)
     {
@@ -174,21 +191,21 @@ static void combine(gta::type t, combine_mode_t mode, size_t n, const void** c, 
     else
     {
         if (t == gta::int8)
-            int_arith_combine<int8_t>(mode, n, c, l);
+            int_arith_combine<int8_t>(mode, force, n, c, l);
         else if (t == gta::uint8)
-            int_arith_combine<uint8_t>(mode, n, c, l);
+            int_arith_combine<uint8_t>(mode, force, n, c, l);
         else if (t == gta::int16)
-            int_arith_combine<int16_t>(mode, n, c, l);
+            int_arith_combine<int16_t>(mode, force, n, c, l);
         else if (t == gta::uint16)
-            int_arith_combine<uint16_t>(mode, n, c, l);
+            int_arith_combine<uint16_t>(mode, force, n, c, l);
         else if (t == gta::int32)
-            int_arith_combine<int32_t>(mode, n, c, l);
+            int_arith_combine<int32_t>(mode, force, n, c, l);
         else if (t == gta::uint32)
-            int_arith_combine<uint32_t>(mode, n, c, l);
+            int_arith_combine<uint32_t>(mode, force, n, c, l);
         else if (t == gta::int64)
-            int_arith_combine<int64_t>(mode, n, c, l);
+            int_arith_combine<int64_t>(mode, force, n, c, l);
         else if (t == gta::uint64)
-            int_arith_combine<uint64_t>(mode, n, c, l);
+            int_arith_combine<uint64_t>(mode, force, n, c, l);
         else if (t == gta::float32)
             float_arith_combine<float>(mode, n, c, l);
         else // t == gta::float64
@@ -213,6 +230,8 @@ extern "C" int gtatool_combine(int argc, char *argv[])
     modes.push_back("xor");
     opt::val<std::string> mode("mode", 'm', opt::required, modes);
     options.push_back(&mode);
+    opt::flag force("force", 'f', opt::optional);
+    options.push_back(&force);
     std::vector<std::string> arguments;
     if (!opt::parse(argc, argv, options, 1, -1, arguments))
     {
@@ -337,7 +356,7 @@ extern "C" int gtatool_combine(int argc, char *argv[])
                     {
                         component_ptrs[i] = static_cast<const char*>(element_ptrs[i]) + component_offsets[c];
                     }
-                    combine(hdro.component_type(c), m, arguments.size(), &component_ptrs[0],
+                    combine(hdro.component_type(c), m, force.value(), arguments.size(), &component_ptrs[0],
                             static_cast<void*>(element_buf.ptr<char>(component_offsets[c])));
                 }
                 element_loops[0].write(element_buf.ptr());

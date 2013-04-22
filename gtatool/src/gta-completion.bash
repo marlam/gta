@@ -101,7 +101,7 @@ _gta()
     case "$cmd" in
     combine)
 	if [[ ${cur} == -* ]]; then
-	    COMPREPLY=( $(compgen -W "--help --mode" -- ${cur}) )
+	    COMPREPLY=( $(compgen -W "--help --mode --force" -- ${cur}) )
 	else
 	    COMPREPLY=( $(compgen -f -o plusdirs -X '!*.gta' -- ${cur}) )
 	fi
