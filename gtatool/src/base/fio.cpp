@@ -633,7 +633,7 @@ error_exit:
 
     std::string mktempfile(FILE **f, const std::string &dir)
     {
-        char *filename;
+        char *filename = NULL;
         real_mktemp(dir.empty() ? default_tmpdir() : to_sys(dir).c_str(), f, &filename);
         if (!(*f))
         {
