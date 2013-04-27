@@ -37,10 +37,10 @@
 
 #include <gta/gta.hpp>
 
-#include "msg.h"
-#include "opt.h"
-#include "str.h"
-#include "fio.h"
+#include "base/msg.h"
+#include "base/opt.h"
+#include "base/str.h"
+#include "base/fio.h"
 
 #include "lib.h"
 
@@ -128,8 +128,7 @@ extern "C" int gtatool_stream_foreach(int argc, char *argv[])
         while (array_loop.read(hdri, namei))
         {
             // Open command
-            std::string cmd = command;
-            str::replace(cmd, "%I", str::from(block_index));
+            std::string cmd = str::replace(command, "%I", str::from(block_index));
             fflush(msg::file());
             errno = 0;
             FILE* p = popen(cmd.c_str(), "w");

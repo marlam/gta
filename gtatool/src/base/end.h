@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2010, 2011, 2012
+ * Copyright (C) 2009, 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,15 +17,15 @@
  */
 
 /**
- * \file endianness.h
+ * \file end.h
  * \brief Swap endianness.
  *
  * Swap endianness.
  */
 
 
-#ifndef ENDIANNESS_H
-#define ENDIANNESS_H
+#ifndef END_H
+#define END_H
 
 #include <cstring>
 #include <stdint.h>

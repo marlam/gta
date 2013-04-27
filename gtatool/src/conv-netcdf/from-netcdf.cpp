@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2012
+ * Copyright (C) 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -29,14 +29,14 @@
 
 #include <gta/gta.hpp>
 
-#include "msg.h"
-#include "str.h"
-#include "exc.h"
-#include "opt.h"
-#include "intcheck.h"
-#include "blob.h"
-#include "fio.h"
-#include "dbg.h"
+#include "base/msg.h"
+#include "base/str.h"
+#include "base/exc.h"
+#include "base/opt.h"
+#include "base/chk.h"
+#include "base/blb.h"
+#include "base/fio.h"
+#include "base/dbg.h"
 
 #include "lib.h"
 

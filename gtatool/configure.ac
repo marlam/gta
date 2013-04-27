@@ -118,7 +118,7 @@ dnl Feature checks needed by the base modules
 AC_LANG_PUSH([C])
 dnl - dbg
 AC_CHECK_FUNCS([backtrace sigaction])
-dnl - endianness
+dnl - end
 AC_C_BIGENDIAN
 dnl - fio
 case "${target}" in *-*-mingw*) LIBS="$LIBS -lshlwapi" ;; esac
@@ -126,12 +126,7 @@ AC_CHECK_FUNCS([fdatasync fnmatch fseeko ftello getpwuid link mmap posix_fadvise
 dnl - opt
 case "${target}" in *-*-mingw*) CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE" ;; esac
 AC_CHECK_DECLS([optreset], [], [], [#include <getopt.h>])
-dnl - str
-AM_ICONV([])
-AC_CHECK_FUNCS([nl_langinfo vasprintf wcswidth])
-dnl - sys
-dnl AC_CHECK_FUNCS([nanosleep sysconf sched_yield])
-dnl - thread
+dnl - pth
 AC_MSG_CHECKING([for GCC atomic builtins])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],
     [[int b, x = 0; b = __sync_bool_compare_and_swap(&x, 0, 1);]])],
@@ -148,7 +143,12 @@ LDFLAGS_bak="$LDFLAGS"
 CPPFLAGS="-pthread $CPPFLAGS"
 LDFLAGS="-pthread $LDFLAGS"
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], [], [CPPFLAGS="$CPPFLAGS_bak"; LDFLAGS="$LDFLAGS_bak"])
-dnl - timer
+dnl - str
+AM_ICONV([])
+AC_CHECK_FUNCS([nl_langinfo vasprintf wcswidth])
+dnl - sys
+dnl AC_CHECK_FUNCS([nanosleep sysconf sched_yield])
+dnl - tmr
 dnl AC_SEARCH_LIBS([clock_gettime], [rt])
 dnl AC_CHECK_FUNCS([clock_gettime])
 AC_LANG_POP([C])

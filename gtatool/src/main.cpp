@@ -34,9 +34,9 @@
 
 #include <gta/gta.hpp>
 
-#include "msg.h"
-#include "opt.h"
-#include "dbg.h"
+#include "base/msg.h"
+#include "base/opt.h"
+#include "base/dbg.h"
 
 #include "lib.h"
 #include "cmds.h"

@@ -53,11 +53,11 @@
 
 #include <gta/gta.hpp>
 
-#include "msg.h"
-#include "opt.h"
-#include "fio.h"
-#include "str.h"
-#include "intcheck.h"
+#include "base/msg.h"
+#include "base/opt.h"
+#include "base/fio.h"
+#include "base/str.h"
+#include "base/chk.h"
 
 #include "lib.h"
 #include "cmds.h"

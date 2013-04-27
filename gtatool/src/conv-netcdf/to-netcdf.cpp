@@ -27,13 +27,13 @@
 
 #include <netcdf.h>
 
-#include "msg.h"
-#include "str.h"
-#include "exc.h"
-#include "fio.h"
-#include "opt.h"
-#include "intcheck.h"
-#include "blob.h"
+#include "base/msg.h"
+#include "base/str.h"
+#include "base/exc.h"
+#include "base/fio.h"
+#include "base/opt.h"
+#include "base/chk.h"
+#include "base/blb.h"
 
 #include "lib.h"
 

@@ -25,12 +25,12 @@
 
 #include <gta/gta.hpp>
 
-#include "msg.h"
-#include "blob.h"
-#include "fio.h"
-#include "opt.h"
-#include "intcheck.h"
-#include "endianness.h"
+#include "base/msg.h"
+#include "base/blb.h"
+#include "base/fio.h"
+#include "base/opt.h"
+#include "base/chk.h"
+#include "base/end.h"
 
 #include "lib.h"
 

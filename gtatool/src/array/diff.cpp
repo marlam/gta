@@ -25,10 +25,10 @@
 
 #include <gta/gta.hpp>
 
-#include "msg.h"
-#include "opt.h"
-#include "fio.h"
-#include "intcheck.h"
+#include "base/msg.h"
+#include "base/opt.h"
+#include "base/fio.h"
+#include "base/chk.h"
 
 #include "lib.h"
 

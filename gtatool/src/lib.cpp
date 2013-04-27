@@ -26,12 +26,12 @@
 #include <cstring>
 #include <cstddef>
 
-#include "str.h"
-#include "fio.h"
-#include "msg.h"
-#include "intcheck.h"
-#include "endianness.h"
-#include "dbg.h"
+#include "base/str.h"
+#include "base/fio.h"
+#include "base/msg.h"
+#include "base/chk.h"
+#include "base/end.h"
+#include "base/dbg.h"
 
 #include "lib.h"
 

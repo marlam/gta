@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,7 +17,7 @@
  */
 
 /**
- * \file blob.h
+ * \file blb.h
  *
  * This class provides an opaque memory block of a given size which can
  * store any kind of data. Such memory blocks are a pain to manage with
@@ -25,15 +25,15 @@
  * type casting. This class provides easy access pointers and a destructor.
  */
 
-#ifndef BLOB_H
-#define BLOB_H
+#ifndef BLB_H
+#define BLB_H
 
 #include <cstdlib>
 #include <cstring>
 #include <cerrno>
+#include <stdexcept>
 
-#include "exc.h"
-#include "intcheck.h"
+#include "chk.h"
 
 
 class blob
@@ -47,7 +47,7 @@ private:
     {
         void* ptr = std::malloc(s);
         if (s != 0 && !ptr) {
-            throw exc(ENOMEM);
+            throw std::runtime_error(std::strerror(ENOMEM));
         }
         return ptr;
     }
@@ -56,7 +56,7 @@ private:
     {
         void* ptr = std::realloc(p, s);
         if (s != 0 && !ptr) {
-            throw exc(ENOMEM);
+            throw std::runtime_error(std::strerror(ENOMEM));
         }
         return ptr;
     }

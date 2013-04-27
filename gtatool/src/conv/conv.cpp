@@ -25,8 +25,8 @@
 #include <string>
 #include <cctype>
 
-#include "exc.h"
-#include "msg.h"
+#include "base/exc.h"
+#include "base/msg.h"
 
 #include "cmds.h"
 

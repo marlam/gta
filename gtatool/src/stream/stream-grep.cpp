@@ -37,10 +37,10 @@
 
 #include <gta/gta.hpp>
 
-#include "msg.h"
-#include "opt.h"
-#include "str.h"
-#include "fio.h"
+#include "base/msg.h"
+#include "base/opt.h"
+#include "base/str.h"
+#include "base/fio.h"
 
 #include "lib.h"
 

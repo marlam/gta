@@ -44,14 +44,14 @@ extern "C"
 #  include <windows.h>
 #endif
 
-#include "gettext.h"
+#include "base/gettext.h"
 #define _(string) gettext(string)
 
-#include "dbg.h"
-#include "blob.h"
-#include "exc.h"
-#include "msg.h"
-#include "str.h"
+#include "base/dbg.h"
+#include "base/blb.h"
+#include "base/exc.h"
+#include "base/msg.h"
+#include "base/str.h"
 #include "thread.h"
 
 #include "media_object.h"

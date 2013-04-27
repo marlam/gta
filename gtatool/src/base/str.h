@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2010, 2011, 2012
+ * Copyright (C) 2009, 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -29,9 +29,6 @@
 #include <vector>
 #include <cstdarg>
 #include <cerrno>
-#include <stdint.h>
-
-#include "exc.h"
 
 #ifdef __GNUC__
 # define STR_AFP(a, b) __attribute__ ((format (printf, a, b)))
@@ -103,17 +100,17 @@ namespace str
     std::string asprintf(const char *format, ...) STR_AFP(1, 2);
 
     /* Replace all instances of s with r in str */
-    std::string &replace(std::string &str, const std::string &s, const std::string &r);
+    std::string replace(const std::string &str, const std::string &s, const std::string &r);
 
     /* Create a hex string from binary data */
     std::string hex(const std::string &s, bool uppercase = false);
     std::string hex(const void *buf, size_t n, bool uppercase = false);
 
     /* Convert various values to human readable strings */
-    std::string human_readable_memsize(const uintmax_t size);
-    std::string human_readable_length(const double length);
+    std::string human_readable_memsize(unsigned long long size);
+    std::string human_readable_length(double length);
     std::string human_readable_geodetic(double lat, double lon, double elev);
-    std::string human_readable_time(int64_t microseconds);
+    std::string human_readable_time(long long microseconds);
 
     /* Get the name of the user's character set */
     std::string localcharset();

@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2012
+ * Copyright (C) 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,12 +23,12 @@
 
 #include <gta/gta.hpp>
 
-#include "msg.h"
-#include "str.h"
-#include "exc.h"
-#include "opt.h"
-#include "intcheck.h"
-#include "blob.h"
+#include "base/msg.h"
+#include "base/str.h"
+#include "base/exc.h"
+#include "base/opt.h"
+#include "base/chk.h"
+#include "base/blb.h"
 
 #include "lib.h"
 
@@ -114,7 +114,7 @@ extern "C" int gtatool_to_pvm(int argc, char *argv[])
             if ((tagval = hdr.global_taglist().get("DESCRIPTION")))
             {
                 multiline_description = tagval;
-                str::replace(multiline_description, "\\n", "\n");
+                multiline_description = str::replace(multiline_description, "\\n", "\n");
                 pvm_description = reinterpret_cast<unsigned char*>(const_cast<char*>(multiline_description.c_str()));
             }
             unsigned char* pvm_courtesy = NULL;
@@ -122,7 +122,7 @@ extern "C" int gtatool_to_pvm(int argc, char *argv[])
             if ((tagval = hdr.global_taglist().get("COPYRIGHT")))
             {
                 multiline_courtesy = tagval;
-                str::replace(multiline_courtesy, "\\n", "\n");
+                multiline_courtesy = str::replace(multiline_courtesy, "\\n", "\n");
                 pvm_courtesy = reinterpret_cast<unsigned char*>(const_cast<char*>(multiline_courtesy.c_str()));
             }
             unsigned char* pvm_parameter = NULL;
@@ -130,7 +130,7 @@ extern "C" int gtatool_to_pvm(int argc, char *argv[])
             if ((tagval = hdr.global_taglist().get("X-PARAMETER")))
             {
                 multiline_parameter = tagval;
-                str::replace(multiline_parameter, "\\n", "\n");
+                multiline_parameter = str::replace(multiline_parameter, "\\n", "\n");
                 pvm_parameter = reinterpret_cast<unsigned char*>(const_cast<char*>(multiline_parameter.c_str()));
             }
             unsigned char* pvm_comment = NULL;
@@ -138,7 +138,7 @@ extern "C" int gtatool_to_pvm(int argc, char *argv[])
             if ((tagval = hdr.global_taglist().get("COMMENT")))
             {
                 multiline_comment = tagval;
-                str::replace(multiline_comment, "\\n", "\n");
+                multiline_comment = str::replace(multiline_comment, "\\n", "\n");
                 pvm_comment = reinterpret_cast<unsigned char*>(const_cast<char*>(multiline_comment.c_str()));
             }
 

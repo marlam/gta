@@ -27,14 +27,14 @@
 #include <cstring>
 #include <cmath>
 
-#include "gettext.h"
+#include "base/gettext.h"
 #define _(string) gettext(string)
 
 #include "media_data.h"
 
-#include "str.h"
-#include "msg.h"
-#include "dbg.h"
+#include "base/str.h"
+#include "base/msg.h"
+#include "base/dbg.h"
 
 #if HAVE_LIBXNVCTRL
 #include "NVCtrl.h"

@@ -27,9 +27,9 @@
 
 #include <gta/gta.hpp>
 
-#include "msg.h"
-#include "opt.h"
-#include "str.h"
+#include "base/msg.h"
+#include "base/opt.h"
+#include "base/str.h"
 
 #include "lib.h"
 

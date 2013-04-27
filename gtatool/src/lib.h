@@ -29,8 +29,8 @@
 
 #include <gta/gta.hpp>
 
-#include "exc.h"
-#include "blob.h"
+#include "base/exc.h"
+#include "base/blb.h"
 
 // The name of the binary of this program.
 extern char *program_name;

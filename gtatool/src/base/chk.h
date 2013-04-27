@@ -17,14 +17,14 @@
  */
 
 /**
- * \file intcheck.h
+ * \file chk.h
  *
  * This file provides functions that operate on integers and check
  * for over- and underflow.
  */
 
-#ifndef INTCHECK_H
-#define INTCHECK_H
+#ifndef CHK_H
+#define CHK_H
 
 #include <cstring>
 #include <cerrno>

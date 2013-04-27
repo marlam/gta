@@ -10,7 +10,7 @@ SUBDIRS = base
 BUILT_SOURCES =
 CLEANFILES =
 EXTRA_DIST =
-AM_CPPFLAGS = -I$(top_srcdir)/src/base -I$(top_srcdir)/src -DPKGLIBDIR=\"$(pkglibdir)\" \
+AM_CPPFLAGS = -I$(top_srcdir)/src -DPKGLIBDIR=\"$(pkglibdir)\" \
 	$(libgta_CFLAGS) \
 	$(libmuparser_CFLAGS) \
 	$(libqtgui_CFLAGS) \

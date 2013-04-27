@@ -23,7 +23,7 @@
 #include <pthread.h>
 #include <sched.h>
 
-#include "gettext.h"
+#include "base/gettext.h"
 #define _(string) gettext(string)
 
 #include "thread.h"

@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2012
+ * Copyright (C) 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,12 +23,12 @@
 
 #include <gta/gta.hpp>
 
-#include "msg.h"
-#include "str.h"
-#include "exc.h"
-#include "opt.h"
-#include "intcheck.h"
-#include "blob.h"
+#include "base/msg.h"
+#include "base/str.h"
+#include "base/exc.h"
+#include "base/opt.h"
+#include "base/chk.h"
+#include "base/blb.h"
 
 #include "lib.h"
 
@@ -107,28 +107,28 @@ extern "C" int gtatool_from_pvm(int argc, char *argv[])
         if (pvm_description)
         {
             std::string oneline(reinterpret_cast<char*>(pvm_description));
-            str::replace(oneline, "\n", "\\n");
+            oneline = str::replace(oneline, "\n", "\\n");
             try { hdr.global_taglist().set("DESCRIPTION", oneline.c_str()); }
             catch (...) { msg::wrn("cannot set DESCRIPTION tag"); }
         }
         if (pvm_courtesy)
         {
             std::string oneline(reinterpret_cast<char*>(pvm_courtesy));
-            str::replace(oneline, "\n", "\\n");
+            oneline = str::replace(oneline, "\n", "\\n");
             try { hdr.global_taglist().set("COPYRIGHT", oneline.c_str()); }
             catch (...) { msg::wrn("cannot set COPYRIGHT tag"); }
         }
         if (pvm_parameter)
         {
             std::string oneline(reinterpret_cast<char*>(pvm_parameter));
-            str::replace(oneline, "\n", "\\n");
+            oneline = str::replace(oneline, "\n", "\\n");
             try { hdr.global_taglist().set("X-PARAMETER", oneline.c_str()); }
             catch (...) { msg::wrn("cannot set X-PARAMETER tag"); }
         }
         if (pvm_comment)
         {
             std::string oneline(reinterpret_cast<char*>(pvm_comment));
-            str::replace(oneline, "\n", "\\n");
+            oneline = str::replace(oneline, "\n", "\\n");
             try { hdr.global_taglist().set("COMMENT", oneline.c_str()); }
             catch (...) { msg::wrn("cannot set COMMENT tag"); }
         }

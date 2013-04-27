@@ -63,11 +63,13 @@
 
 /* Define some POSIX functionality that is missing on W32 */
 
-#ifndef HAVE_FTELLO
+#if HAVE_FTELLO
+#else
 # define ftello(f) ftello64(f)
 #endif
 
-#ifndef HAVE_FSEEKO
+#if HAVE_FSEEKO
+#else
 # define fseeko(stream, offset, whence) fseeko64(stream, offset, whence)
 #endif
 
@@ -108,7 +110,8 @@
 # define S_IRWXO (S_IROTH | S_IWOTH | S_IXOTH)
 #endif
 
-#ifndef HAVE_FNMATCH
+#if HAVE_FNMATCH
+#else
 # define FNM_NOMATCH 1
 static int fnmatch(const char* pattern, const char* string, int flags)
 {
@@ -116,7 +119,8 @@ static int fnmatch(const char* pattern, const char* string, int flags)
 }
 #endif
 
-#ifndef HAVE_READDIR_R
+#if HAVE_READDIR_R
+#else
 // Only Windows lacks readdir_r, so we use a W32 mutex here to avoid
 // depending on the thread module.
 static int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
@@ -150,7 +154,8 @@ static int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
 }
 #endif
 
-#if not defined(HAVE_LINK) || not defined(HAVE_SYMLINK)
+#if HAVE_LINK && HAVE_SYMLINK
+#else
 static void set_errno_from_last_error(DWORD err)
 {
     /* It is not documented which errors CreateHardLink() can produce.
@@ -186,7 +191,8 @@ static void set_errno_from_last_error(DWORD err)
 }
 #endif
 
-#ifndef HAVE_LINK
+#if HAVE_LINK
+#else
 static int link(const char *path1, const char *path2)
 {
     if (CreateHardLink(path2, path1, NULL) == 0)
@@ -199,7 +205,8 @@ static int link(const char *path1, const char *path2)
 }
 #endif
 
-#ifndef HAVE_SYMLINK
+#if HAVE_SYMLINK
+#else
 /* Load CreateSymbolicLink() at runtime since it is only available in Windows
  * Vista and later, but we want the binary to run on XP, too. */
 typedef BOOL (WINAPI* CreateSymbolicLinkFuncType)(LPCSTR, LPCSTR, DWORD);
@@ -646,7 +653,7 @@ error_exit:
 
     std::string mktempdir(const std::string &dir)
     {
-        char *dirname;
+        char *dirname = NULL;
         real_mktemp(dir.empty() ? default_tmpdir() : to_sys(dir).c_str(), NULL, &dirname);
         if (!dirname)
         {
@@ -722,9 +729,9 @@ error_exit:
                         + (!filename.empty() ? to_sys(filename) : "temporary file")
                         + ": "
 #ifdef ENODATA
-                        + std::strerror(ENODATA), ENODATA
+                        + std::strerror(ENODATA), EAGAIN
 #else
-                        + "No data available"
+                        + "No data available", EAGAIN
 #endif
                         );
             }
@@ -1111,7 +1118,7 @@ error_exit:
         }
 #endif
         std::string s = p + d + '\0';
-        bool excor = false;
+        bool error = false;
         for (int i = (pl == 0 ? 1 : pl); i <= pl + dl; i++)
         {
             if (s[i] == DIRSEP || s[i] == '\0')
@@ -1128,16 +1135,16 @@ error_exit:
                         int r = ::stat(s.c_str(), &buf);
                         if (r != 0 || !S_ISDIR(buf.st_mode))
                         {
-                            excor = true;
+                            error = true;
                             errno = EEXIST;
                         }
                     }
                     else
                     {
-                        excor = true;
+                        error = true;
                     }
                 }
-                if (excor)
+                if (error)
                 {
                     throw exc(std::string("Cannot create directory ")
                             + s + ": " + std::strerror(errno), errno);
@@ -1309,6 +1316,19 @@ error_exit:
         }
 
         return std::string(home ? home : "/");
+#endif
+    }
+
+    std::string executable()
+    {
+#if W32
+        static char buf[MAX_PATH + 1];
+        DWORD v = GetModuleFileName(NULL, buf, MAX_PATH);
+        return (v > 0 && v < MAX_PATH ? std::string(buf) : std::string());
+#else
+        char buf[PATH_MAX + 1];
+        ssize_t r = ::readlink("/proc/self/exe", buf, sizeof(buf));
+        return (r > 0 ? std::string(buf) : std::string());
 #endif
     }
 }

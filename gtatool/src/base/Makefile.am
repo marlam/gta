@@ -7,14 +7,14 @@
 
 noinst_LTLIBRARIES = libbase.la
 libbase_la_SOURCES = \
-	str.h str.cpp \
-	msg.h msg.cpp \
+	blb.h \
+	chk.h \
 	dbg.h dbg.cpp \
+	end.h \
 	exc.h exc.cpp \
-	intcheck.h \
 	fio.h fio.cpp \
+	msg.h msg.cpp \
 	opt.h opt.cpp \
-	endianness.h \
-	blob.h \
+	str.h str.cpp \
 	gettext.h
 libbase_la_LDFLAGS = -static

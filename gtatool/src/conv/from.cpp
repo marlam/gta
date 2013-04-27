@@ -21,8 +21,8 @@
 
 #include "config.h"
 
-#include "msg.h"
-#include "opt.h"
+#include "base/msg.h"
+#include "base/opt.h"
 
 #include "conv.h"
 

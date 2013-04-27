@@ -19,17 +19,18 @@
 #include "config.h"
 
 #include <cstdio>
-#include <cstring>
 #include <cstdlib>
 #include <cctype>
 #include <cmath>
 #include <cerrno>
+#include <cstring>
 #include <limits>
 #include <sstream>
 #include <locale>
 #include <cwchar>
+#include <stdexcept>
 
-#ifdef HAVE_NL_LANGINFO
+#if HAVE_NL_LANGINFO
 # include <locale.h>
 # include <langinfo.h>
 #else
@@ -37,7 +38,7 @@
 # include <windows.h>
 #endif
 
-#ifdef HAVE_ICONV
+#if HAVE_ICONV
 # include <iconv.h>
 #endif
 
@@ -45,12 +46,14 @@
 #define _(string) gettext(string)
 
 #include "dbg.h"
+#include "exc.h"
 #include "msg.h"
 
 #include "str.h"
 
 
-#ifndef HAVE_VASPRINTF
+#if HAVE_VASPRINTF
+#else
 static int vasprintf(char **strp, const char *format, va_list args)
 {
     /* vasprintf() is only missing on Windows nowadays.
@@ -266,7 +269,7 @@ namespace str
         is >> v;
         if (is.fail() || !is.eof())
         {
-            throw exc(str::asprintf(_("Cannot convert string to %s."), name), EINVAL);
+            throw std::invalid_argument(str::asprintf(_("Cannot convert string to %s."), name));
         }
         return v;
     }
@@ -354,18 +357,19 @@ namespace str
      * Replaces all occurences of \a s in \a str with \a r.
      * Returns \a str.
      */
-    std::string &replace(std::string &str, const std::string &s, const std::string &r)
+    std::string replace(const std::string &str, const std::string &s, const std::string &r)
     {
+        std::string ts(str);
         size_t s_len = s.length();
         size_t r_len = r.length();
         size_t p = 0;
 
-        while ((p = str.find(s, p)) != std::string::npos)
+        while ((p = ts.find(s, p)) != std::string::npos)
         {
-            str.replace(p, s_len, r);
+            ts.replace(p, s_len, r);
             p += r_len;
         }
-        return str;
+        return ts;
     }
 
     /* Create a hex string from binary data */
@@ -384,7 +388,7 @@ namespace str
         s.resize(2 * n);
 
         const char *hex_chars = uppercase ? hex_chars_upper : hex_chars_lower;
-        const uint8_t *buffer = static_cast<const uint8_t *>(buf);
+        const unsigned char *buffer = static_cast<const unsigned char *>(buf);
         for (size_t i = 0; i < n; i++)
         {
             s[2 * i + 0] = hex_chars[buffer[i] >> 4];
@@ -396,10 +400,10 @@ namespace str
 
     /* Convert various values to human readable strings */
 
-    std::string human_readable_memsize(const uintmax_t size)
+    std::string human_readable_memsize(const unsigned long long size)
     {
         const double dsize = static_cast<double>(size);
-        const uintmax_t u1024 = static_cast<uintmax_t>(1024);
+        const unsigned long long u1024 = static_cast<unsigned long long>(1024);
 
         if (size >= u1024 * u1024 * u1024 * u1024)
         {
@@ -461,13 +465,13 @@ namespace str
         return s;
     }
 
-    std::string human_readable_time(int64_t microseconds)
+    std::string human_readable_time(long long microseconds)
     {
-        int64_t hours = microseconds / (1000000ll * 60ll * 60ll);
+        long long hours = microseconds / (1000000ll * 60ll * 60ll);
         microseconds -= hours * (1000000ll * 60ll * 60ll);
-        int64_t minutes = microseconds / (1000000ll * 60ll);
+        long long minutes = microseconds / (1000000ll * 60ll);
         microseconds -= minutes * (1000000ll * 60ll);
-        int64_t seconds = microseconds / 1000000ll;
+        long long seconds = microseconds / 1000000ll;
         std::string hr;
         if (hours > 0)
         {
@@ -480,7 +484,7 @@ namespace str
     /* Get the name of the user's character set */
     std::string localcharset()
     {
-#ifdef HAVE_NL_LANGINFO
+#if HAVE_NL_LANGINFO
         std::string bak = setlocale(LC_CTYPE, NULL);
         setlocale(LC_CTYPE, "");
         char *charset = nl_langinfo(CODESET);
@@ -510,7 +514,7 @@ namespace str
             return src;
         }
 
-#ifdef HAVE_ICONV
+#if HAVE_ICONV
         iconv_t cd = iconv_open(to_charset.c_str(), from_charset.c_str());
         if (cd == reinterpret_cast<iconv_t>(static_cast<size_t>(-1)))
         {
@@ -553,7 +557,7 @@ namespace str
         {
             dst.assign(orig_outbuf);
         }
-        catch (std::exception &e)
+        catch (...)
         {
             free(orig_outbuf);
             throw exc(str::asprintf(_("Cannot convert %s to %s: %s"),
@@ -584,7 +588,7 @@ namespace str
 
     size_t display_width(const std::wstring& ws)
     {
-#ifdef HAVE_WCSWIDTH
+#if HAVE_WCSWIDTH
         return std::max(0, ::wcswidth(ws.c_str(), ws.length()));
 #else
         return ws.length();

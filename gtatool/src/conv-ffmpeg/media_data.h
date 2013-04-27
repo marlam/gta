@@ -28,7 +28,7 @@
 #include <stdint.h>
 
 #include "s11n.h"
-#include "msg.h"
+#include "base/msg.h"
 
 
 class device_request : public serializable

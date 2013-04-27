@@ -20,7 +20,7 @@
 
 #include <cstring>
 
-#include "str.h"
+#include "base/str.h"
 
 #include "s11n.h"
 

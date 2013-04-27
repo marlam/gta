@@ -31,8 +31,6 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#include "exc.h"
-
 
 /**
  * C-style IO for C++, with exception handling.
@@ -186,8 +184,9 @@ namespace fio
     // dirname name
     std::string dirname(const std::string &name);
 
-    // Get special directories
+    // Get special paths
     std::string homedir();
+    std::string executable();
 };
 
 #endif
