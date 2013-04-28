@@ -951,6 +951,12 @@ void GUI::file_changed(const std::string &file_name, const std::string &save_nam
 
 void GUI::file_changed_on_disk(const QString& fn)
 {
+    if (QFileInfo(fn).size() == 0) {
+        // Ignore this notification: Most likely the file was just truncated
+        // (e.g. by stdout redirection in the shell) and a subsequent
+        // notification will tell use when the actual file update is complete.
+        return;
+    }
     std::string file_name = from_qt(fn);
     FileWidget* fw = NULL;
     int fi;
