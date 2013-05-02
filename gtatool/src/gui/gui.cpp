@@ -31,6 +31,7 @@
 #   include <windows.h>
 #endif
 
+#include <QtPlugin>
 #include <QApplication>
 #include <QMainWindow>
 #include <QPushButton>
@@ -93,7 +94,7 @@ TaglistWidget::TaglistWidget(gta::header *header, enum type type, uintmax_t inde
     header_labels.append("Value");
     _tablewidget->setHorizontalHeaderLabels(header_labels);
     _tablewidget->setSelectionBehavior(QAbstractItemView::SelectRows);
-    _tablewidget->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
+    _tablewidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     _tablewidget->horizontalHeader()->hide();
     _tablewidget->verticalHeader()->hide();
     connect(_tablewidget, SIGNAL(itemSelectionChanged()), this, SLOT(selection_changed()));
@@ -997,7 +998,7 @@ QStringList GUI::file_open_dialog(const QStringList &filters)
     }
     QStringList complete_filters;
     complete_filters << filters << tr("All files (*)");
-    file_dialog->setFilters(complete_filters);
+    file_dialog->setNameFilters(complete_filters);
     QStringList file_names;
     if (file_dialog->exec())
     {
@@ -1034,7 +1035,7 @@ QString GUI::file_save_dialog(const QString &default_suffix, const QStringList &
     QStringList complete_filters;
     complete_filters << filters;
     complete_filters << tr("All files (*)");
-    file_dialog->setFilters(complete_filters);
+    file_dialog->setNameFilters(complete_filters);
     QString file_name;
     if (file_dialog->exec())
     {
@@ -2778,6 +2779,10 @@ void GUI::help_about()
 }
 
 extern int qInitResources();
+#if W32
+Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)
+Q_IMPORT_PLUGIN(AccessibleFactory)
+#endif
 
 extern "C" int gtatool_gui(int argc, char *argv[])
 {
@@ -2798,17 +2803,20 @@ extern "C" int gtatool_gui(int argc, char *argv[])
     std::vector<std::string> arguments;
     if (!opt::parse(argc, argv, options, -1, -1, arguments))
     {
+        delete app;
         return 1;
     }
     if (help.value())
     {
         gtatool_gui_help();
+        delete app;
         return 0;
     }
     /* Run the GUI */
     if (!have_display)
     {
         msg::err_txt("GUI failure: cannot connect to X server");
+        delete app;
         return 1;
     }
 #if W32
@@ -2829,10 +2837,6 @@ extern "C" int gtatool_gui(int argc, char *argv[])
     int retval = 0;
     try
     {
-        // Qt5 always interprets C strings as UTF-8. Make Qt4 do the same.
- #if QT_VERSION < 0x050000
-        QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
- #endif
         // Set the correct encoding for the locale. Required e.g. for qPrintable() to work.
         QTextCodec::setCodecForLocale(QTextCodec::codecForName(str::localcharset().c_str()));
         GUI *gui = new GUI();
@@ -2843,7 +2847,6 @@ extern "C" int gtatool_gui(int argc, char *argv[])
         }
         retval = app->exec();
         delete gui;
-        delete app;
     }
     catch (std::exception &e)
     {
@@ -2855,5 +2858,6 @@ extern "C" int gtatool_gui(int argc, char *argv[])
         msg::err_txt("GUI failure");
         retval = 1;
     }
+    delete app;
     return retval;
 }

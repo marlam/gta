@@ -420,6 +420,11 @@ void cmd_close(int cmd_index)
 #if DYNAMIC_MODULES
     if (cmds[cmd_index].module_handle)
     {
+        // XXX HACK for Qt5: do not close a module using Qt5 because that library
+        // seems to register atexit() handlers, which results in a jump to an
+        // invalid address when main() returns but the handlers are not present anymore.
+        if (strcmp(cmds[cmd_index].name, "gui") == 0)
+            return;
         (void)dlclose(cmds[cmd_index].module_handle);
         cmds[cmd_index].module_handle = NULL;
         cmds[cmd_index].cmd_print_help = NULL;

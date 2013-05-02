@@ -185,18 +185,25 @@ AC_ARG_WITH([qt],
     [AS_HELP_STRING([--with-qt], [Enable Qt GUI. Enabled by default if Qt is available.])],
     [if test "$withval" = "yes"; then qt="yes"; else qt="no "; fi], [qt="yes"])
 if test "$qt" = "yes"; then
-    PKG_CHECK_MODULES([libqtgui], [QtGui >= 4.6], [],
+    PKG_CHECK_MODULES([libqtgui], [Qt5Widgets >= 5.0], [],
         [qt="no "
-        AC_MSG_WARN([QtGui library not found:])
+        AC_MSG_WARN([Qt5Widgets library not found:])
         AC_MSG_WARN([$libqtgui_PKG_ERRORS])
         AC_MSG_WARN([Disabled the gui command.])])
     AC_ARG_VAR([RCC], [rcc command])
     if test -z "$RCC"; then
-        AC_CHECK_TOOLS([RCC], [rcc-qt4 rcc])
+        AC_CHECK_TOOLS([RCC], [rcc-qt5 rcc])
     fi
     AC_ARG_VAR([MOC], [moc command])
     if test -z "$MOC"; then
-        AC_CHECK_TOOLS([MOC], [moc-qt4 moc])
+        AC_CHECK_TOOLS([MOC], [moc-qt5 moc])
+    fi
+    dnl For a static Windows build with MXE, we need to statically link the
+    dnl QWindowsIntegrationPlugin and AccessibleFactory plugins.
+    if test "$w32" = "yes"; then
+        libqtgui_plugin_L="`$PKG_CONFIG --libs-only-L Qt5Core | $SED -e 's/ //g'`/../plugins"
+        libqtgui_LIBS="$libqtgui_plugin_L/platforms -lqwindows $libqtgui_plugin_L/accessible -lqtaccessiblewidgets $libqtgui_LIBS"
+        libqtgui_CFLAGS="$libqtgui_CFLAGS -DQT_STATICPLUGIN"
     fi
     dnl Icon and Menu tools. It is ok if these are missing.
     GTK_UPDATE_ICON_CACHE=""
@@ -506,5 +513,5 @@ echo "from-rat, to-rat:        " "$rat" ""
 echo "from-raw, to-raw:        " "$raw" ""
 echo "from-sndfile, to-sndfile:" "$sndfile" "(Requires libsndfile)"
 echo "from-teem, to-teem:      " "$teem" "(Requires libteem)"
-echo "gui:                     " "$qt" "(Requires the Qt GUI module)"
+echo "gui:                     " "$qt" "(Requires Qt)"
 echo ""
