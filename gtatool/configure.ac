@@ -481,6 +481,25 @@ fi
 AC_DEFINE_UNQUOTED([WITH_TEEM], [`if test "$teem" = "yes"; then echo "1"; else echo "0"; fi`], [Use teem?])
 AM_CONDITIONAL([WITH_TEEM], [test "$teem" = "yes"])
 
+dnl bash-completion
+AC_ARG_WITH([bashcompletion],
+    [AS_HELP_STRING([--with-bash-completion], [Enable bash-completion support. Enabled by default if bash-completion is available.])],
+    [if test "$withval" = "yes"; then bashcompletion="yes"; else bashcompletion="no "; fi], [bashcompletion="yes"])
+if test "$bashcompletion" = "yes"; then
+    AC_MSG_CHECKING([for bash-completion])
+    PKG_CHECK_EXISTS([bash-completion >= 0.0], [AC_MSG_RESULT([yes])],
+        [AC_MSG_RESULT([no])
+	bashcompletion="no "
+        AC_MSG_WARN([bash-completion not found.])
+        AC_MSG_WARN([Disabled installation of bash-completion script.])])
+fi
+AC_ARG_VAR([BASHCOMPLETIONDIR], [directory for bash completion script])
+if test "$bashcompletion" = "yes" -a -z "$BASHCOMPLETIONDIR"; then
+    BASHCOMPLETIONDIR="`$PKG_CONFIG --variable=completionsdir bash-completion`"
+fi
+AM_CONDITIONAL([WITH_BASHCOMPLETION], [test "$bashcompletion" = "yes"])
+
+
 dnl Output
 AC_CONFIG_FILES([Makefile \
     src/Makefile \
@@ -492,6 +511,7 @@ AC_OUTPUT
 
 echo ""
 echo "Dynamic modules:         " "$dynamic_modules" "(Requires system support)"
+echo "Bash completion script:  " "$bashcompletion" "(Requires bash-completion)"
 echo ""
 echo "component-compute:       " "$muparser" "(Requires muParser)"
 echo "from-csv, to-csv:        " "$csv" ""
