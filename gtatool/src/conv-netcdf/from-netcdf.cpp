@@ -24,6 +24,7 @@
 #include <vector>
 #include <list>
 #include <limits>
+#include <algorithm>
 
 #include <netcdf.h>
 
@@ -80,13 +81,20 @@ int nc_att_to_tag(int nc_file, int nc_var_id, int nc_att_index, std::string& nam
     {
         return 0;
     }
-    else if (nc_t == NC_STRING || nc_t == NC_CHAR)
+    else if (nc_t == NC_STRING)
     {
-        char* tmpstr = new char[nc_l + 1];
-        nc_err = nc_get_att_text(nc_file, nc_var_id, nc_name, tmpstr);
-        tmpstr[nc_l] = '\0';
-        value = str::sanitize(std::string(tmpstr));
-        delete[] tmpstr;
+        char** tmpstrs = new char*[nc_l];
+        nc_err = nc_get_att_string(nc_file, nc_var_id, nc_name, tmpstrs);
+        for (size_t l = 0; l < nc_l - 1; l++)
+            value += std::string(tmpstrs[l]) + "\\n";
+        value += tmpstrs[nc_l - 1];
+        delete[] tmpstrs;
+        if (nc_err != 0)
+            return nc_err;
+    }
+    else if (nc_t == NC_CHAR)
+    {
+        nc_err = nc_attval_to_string<char>(nc_file, nc_var_id, nc_name, nc_l, value);
         if (nc_err != 0)
             return nc_err;
     }
@@ -162,8 +170,9 @@ extern "C" void gtatool_from_netcdf_help(void)
 {
     msg::req_txt("from-netcdf <input-file> [<output-file>]\n"
             "\n"
-            "Converts NetCDF files (*.nc) to GTAs.");
+            "Converts NetCDF files (*.nc, *.cdf) as well as HDF4 files (*.h4, *.hdf4) and HDF5 files (*.h5, *.hdf5) to GTAs.");
 }
+
 
 extern "C" int gtatool_from_netcdf(int argc, char *argv[])
 {
@@ -246,8 +255,8 @@ extern "C" int gtatool_from_netcdf(int argc, char *argv[])
                 hdr.global_taglist().set("NETCDF/NAME", nc_name);
                 if (nc_var_dims > 0)
                 {
-                    std::vector<uintmax_t> dim_sizes(nc_var_dims);
-                    std::vector<std::string> dim_names(nc_var_dims);
+                    std::vector<uintmax_t> dim_sizes;;
+                    std::vector<std::string> dim_names;
                     for (int d = 0; d < nc_var_dims; d++)
                     {
                         size_t nc_dim_size;
@@ -256,9 +265,16 @@ extern "C" int gtatool_from_netcdf(int argc, char *argv[])
                             throw exc(namei + ": " + nc_strerror(nc_err));
                         if (nc_dim_size == 0)
                             throw exc(namei + ": cannot handle zero-size dimensions");
-                        dim_sizes[nc_var_dims - d - 1] = nc_dim_size;
-                        dim_names[nc_var_dims - d - 1] = std::string(nc_name);
+                        if (nc_dim_size == 1) {
+                            msg::wrn(namei + ": variable '" + hdr.global_taglist().get("NETCDF/NAME")
+                                    + "': ignoring dimension '" + nc_name + "' with size 1");
+                            continue;
+                        }
+                        dim_sizes.push_back(nc_dim_size);
+                        dim_names.push_back(std::string(nc_name));
                     }
+                    std::reverse(dim_sizes.begin(), dim_sizes.end());
+                    std::reverse(dim_names.begin(), dim_names.end());
                     hdr.set_dimensions(dim_sizes.size(), &(dim_sizes[0]));
                     for (size_t d = 0; d < dim_names.size(); d++)
                         hdr.dimension_taglist(d).set("NETCDF/NAME", dim_names[d].c_str());
