@@ -94,7 +94,11 @@ int nc_att_to_tag(int nc_file, int nc_var_id, int nc_att_index, std::string& nam
     }
     else if (nc_t == NC_CHAR)
     {
-        nc_err = nc_attval_to_string<char>(nc_file, nc_var_id, nc_name, nc_l, value);
+        char* tmpstr = new char[nc_l + 1];
+        nc_err = nc_get_att_text(nc_file, nc_var_id, nc_name, tmpstr);
+        tmpstr[nc_l] = '\0';
+        value = str::sanitize(std::string(tmpstr));
+        delete[] tmpstr;
         if (nc_err != 0)
             return nc_err;
     }
