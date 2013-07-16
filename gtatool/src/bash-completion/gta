@@ -47,6 +47,7 @@ _gta()
 	from-pcd
 	from-pfs
 	from-ply
+	from-pmd
 	from-pvm
 	from-rat
 	from-raw
@@ -345,6 +346,13 @@ _gta()
 	fi
 	;;
     from-ply)
+	if [[ ${cur} == -* ]]; then
+	    COMPREPLY=( $(compgen -W "--help" -- ${cur}) )
+	else
+	    COMPREPLY=( $(compgen -f -o plusdirs -- ${cur}) )
+	fi
+	;;
+    from-pmd)
 	if [[ ${cur} == -* ]]; then
 	    COMPREPLY=( $(compgen -W "--help" -- ${cur}) )
 	else
