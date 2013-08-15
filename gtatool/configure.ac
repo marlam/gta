@@ -397,12 +397,14 @@ AC_ARG_WITH([pcd],
     [AS_HELP_STRING([--with-pcd], [Enable PCD import/export. Enabled by default if libpcl_io is available.])],
     [if test "$withval" = "yes"; then pcd="yes"; else pcd="no "; fi], [pcd="yes"])
 if test "$pcd" = "yes"; then
+    dnl The PCL team puts the PCL version number into the module name. Ouch.
     PKG_CHECK_MODULES([libpcl_io], [pcl_io >= 1.6], [],
-        [PKG_CHECK_MODULES([libpcl_io], [pcl_io-1.6 >= 1.6], [],
-            [pcd="no "
-            AC_MSG_WARN([PCL io library not found:])
-            AC_MSG_WARN([$libpcl_io_PKG_ERRORS])
-            AC_MSG_WARN([Disabled the from-pcd and to-pcd commands.])])])
+        [PKG_CHECK_MODULES([libpcl_io], [pcl_io-1.7 >= 1.7], [],
+            [PKG_CHECK_MODULES([libpcl_io], [pcl_io-1.6 >= 1.6], [],
+                [pcd="no "
+                AC_MSG_WARN([PCL io library not found:])
+                AC_MSG_WARN([$libpcl_io_PKG_ERRORS])
+                AC_MSG_WARN([Disabled the from-pcd and to-pcd commands.])])])])
 fi
 AC_DEFINE_UNQUOTED([WITH_PCD], [`if test "$pcd" = "yes"; then echo "1"; else echo "0"; fi`], [Use pcd?])
 AM_CONDITIONAL([WITH_PCD], [test "$pcd" = "yes"])

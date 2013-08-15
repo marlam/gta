@@ -28,6 +28,11 @@
 
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
+#if PCL_VERSION >= PCL_VERSION_CALC(1, 7, 0)
+# define sensor_msgs pcl
+# define PointCloud2 PCLPointCloud2
+# define fromROSMsg fromPCLPointCloud2
+#endif
 
 #include "base/msg.h"
 #include "base/blb.h"
