@@ -830,7 +830,7 @@ error_exit:
     std::string readline(FILE *f, const std::string &filename)
     {
         std::string line;
-        char c;
+        int c;
 
         while ((c = getc(f, filename)) != EOF)
         {
