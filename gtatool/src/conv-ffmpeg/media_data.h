@@ -1,11 +1,12 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  * Joe <joe@wpj.cz>
  * D. Matz <bandregent@yahoo.de>
  * Binocle <http://binocle.com> (author: Olivier Letz <oletz@binocle.com>)
+ * Frédéric Bour <frederic.bour@lakaban.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -200,6 +201,7 @@ public:
     PARAMETER(stereo_layout_t, stereo_layout) // Assume this stereo layout
     PARAMETER(bool, stereo_layout_swap)       // Assume this stereo layout
     PARAMETER(float, crop_aspect_ratio)       // Crop the video to this aspect ratio, 0 = don't crop.
+    PARAMETER(float, source_aspect_ratio)     // Force video source to this aspect ratio, 0 = don't force.
     PARAMETER(float, parallax)                // Parallax adjustment, -1 .. +1
     PARAMETER(float, ghostbust)               // Amount of crosstalk ghostbusting, 0 .. 1
     PARAMETER(float, subtitle_parallax)       // Subtitle parallax adjustment, -1 .. +1

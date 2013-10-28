@@ -150,7 +150,8 @@ public:
 // Hide the FFmpeg stuff so that their messy header files cannot cause problems
 // in other source files.
 
-static const size_t audio_tmpbuf_size = (AVCODEC_MAX_AUDIO_FRAME_SIZE * 3) / 2;
+static const size_t max_audio_frame_size = 19200; // 1 second of 48khz 32bit audio
+static const size_t audio_tmpbuf_size = (max_audio_frame_size * 3) / 2;
 
 struct ffmpeg_stuff
 {
@@ -1199,14 +1200,20 @@ int media_object::video_frame_rate_numerator(int index) const
 {
     assert(index >= 0);
     assert(index < video_streams());
-    return _ffmpeg->format_ctx->streams[_ffmpeg->video_streams.at(index)]->r_frame_rate.num;
+    int n = _ffmpeg->format_ctx->streams[_ffmpeg->video_streams.at(index)]->r_frame_rate.num;
+    if (n <= 0)
+        n = 1;
+    return n;
 }
 
 int media_object::video_frame_rate_denominator(int index) const
 {
     assert(index >= 0);
     assert(index < video_streams());
-    return _ffmpeg->format_ctx->streams[_ffmpeg->video_streams.at(index)]->r_frame_rate.den;
+    int d = _ffmpeg->format_ctx->streams[_ffmpeg->video_streams.at(index)]->r_frame_rate.den;
+    if (d <= 0)
+        d = 1;
+    return d;
 }
 
 int64_t media_object::video_duration(int index) const
