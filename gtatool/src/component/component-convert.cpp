@@ -101,6 +101,7 @@ static uint64_t to_uint64(const void *val, gta::type type, uint64_t normalizatio
         }
         break;
     case gta::float32:
+    case gta::cfloat32:
         {
             float v;
             std::memcpy(&v, val, sizeof(float));
@@ -110,32 +111,13 @@ static uint64_t to_uint64(const void *val, gta::type type, uint64_t normalizatio
         }
         break;
     case gta::float64:
+    case gta::cfloat64:
         {
             double v;
             std::memcpy(&v, val, sizeof(double));
             if (normalization_max)
                 v *= normalization_max;
             x = ((!std::isfinite(v) || v < 0.0f) ? 0 : v);
-        }
-        break;
-    case gta::cfloat32:
-        {
-            float v[2];
-            std::memcpy(v, val, 2 * sizeof(float));
-            float a = std::sqrt(v[0] * v[0] + v[1] * v[1]);
-            if (normalization_max)
-                a *= normalization_max;
-            x = (!std::isfinite(a) ? 0 : a);
-        }
-        break;
-    case gta::cfloat64:
-        {
-            double v[2];
-            std::memcpy(v, val, 2 * sizeof(double));
-            double a = std::sqrt(v[0] * v[0] + v[1] * v[1]);
-            if (normalization_max)
-                a *= normalization_max;
-            x = (!std::isfinite(a) ? 0 : a);
         }
         break;
     default:
@@ -208,6 +190,7 @@ static int64_t to_int64(const void *val, gta::type type, int64_t normalization_m
         }
         break;
     case gta::float32:
+    case gta::cfloat32:
         {
             float v;
             std::memcpy(&v, val, sizeof(float));
@@ -219,6 +202,7 @@ static int64_t to_int64(const void *val, gta::type type, int64_t normalization_m
         }
         break;
     case gta::float64:
+    case gta::cfloat64:
         {
             double v;
             std::memcpy(&v, val, sizeof(double));
@@ -227,30 +211,6 @@ static int64_t to_int64(const void *val, gta::type type, int64_t normalization_m
             if (normalization_max && v > 0.0f)
                 v *= normalization_max;
             x = (!std::isfinite(v) ? 0 : v);
-        }
-        break;
-    case gta::cfloat32:
-        {
-            float v[2];
-            std::memcpy(v, val, 2 * sizeof(float));
-            float a = std::sqrt(v[0] * v[0] + v[1] * v[1]);
-            if (normalization_min && a < 0.0f)
-                a *= -1.0f * normalization_min;
-            if (normalization_max && a > 0.0f)
-                a *= normalization_max;
-            x = (!std::isfinite(a) ? 0 : a);
-        }
-        break;
-    case gta::cfloat64:
-        {
-            double v[2];
-            std::memcpy(v, val, 2 * sizeof(double));
-            double a = std::sqrt(v[0] * v[0] + v[1] * v[1]);
-            if (normalization_min && a < 0.0f)
-                a *= -1.0f * normalization_min;
-            if (normalization_max && a > 0.0f)
-                a *= normalization_max;
-            x = (!std::isfinite(a) ? 0 : a);
         }
         break;
     default:
@@ -347,6 +307,7 @@ static double to_float64(const void *val, gta::type type, bool normalize)
         }
         break;
     case gta::float32:
+    case gta::cfloat32:
         {
             float v;
             std::memcpy(&v, val, sizeof(float));
@@ -354,24 +315,11 @@ static double to_float64(const void *val, gta::type type, bool normalize)
         }
         break;
     case gta::float64:
+    case gta::cfloat64:
         {
             double v;
             std::memcpy(&v, val, sizeof(double));
             x = v;
-        }
-        break;
-    case gta::cfloat32:
-        {
-            float v[2];
-            std::memcpy(v, val, 2 * sizeof(float));
-            x = std::sqrt(v[0] * v[0] + v[1] * v[1]);
-        }
-        break;
-    case gta::cfloat64:
-        {
-            double v[2];
-            std::memcpy(v, val, 2 * sizeof(double));
-            x = std::sqrt(v[0] * v[0] + v[1] * v[1]);
         }
         break;
     default:
