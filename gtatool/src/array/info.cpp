@@ -96,90 +96,147 @@ extern "C" int gtatool_info(int argc, char *argv[])
                     const void *element = element_loop.read();
                     for (uintmax_t c = 0; c < hdr.components(); c++)
                     {
+                        union
+                        {
+                            int8_t int8_v;
+                            uint8_t uint8_v;
+                            int16_t int16_v;
+                            uint16_t uint16_v;
+                            int32_t int32_v;
+                            uint32_t uint32_v;
+                            int64_t int64_v;
+                            uint64_t uint64_v;
+                            float float_v;
+                            double double_v;
+                        } nodata_value;
+                        bool have_nodata_value = false;
+                        const char* tagval = hdr.component_taglist(c).get("NO_DATA_VALUE");
+                        if (tagval)
+                        {
+                            switch (hdr.component_type(c))
+                            {
+                            case gta::int8:
+                                have_nodata_value = (str::to(tagval, &nodata_value.int8_v) == 0);
+                                break;
+                            case gta::uint8:
+                                have_nodata_value = (str::to(tagval, &nodata_value.uint8_v) == 0);
+                                break;
+                            case gta::int16:
+                                have_nodata_value = (str::to(tagval, &nodata_value.int16_v) == 0);
+                                break;
+                            case gta::uint16:
+                                have_nodata_value = (str::to(tagval, &nodata_value.uint16_v) == 0);
+                                break;
+                            case gta::int32:
+                                have_nodata_value = (str::to(tagval, &nodata_value.int32_v) == 0);
+                                break;
+                            case gta::uint32:
+                                have_nodata_value = (str::to(tagval, &nodata_value.uint32_v) == 0);
+                                break;
+                            case gta::int64:
+                                have_nodata_value = (str::to(tagval, &nodata_value.int64_v) == 0);
+                                break;
+                            case gta::uint64:
+                                have_nodata_value = (str::to(tagval, &nodata_value.uint64_v) == 0);
+                                break;
+                            case gta::float32:
+                            case gta::cfloat32:
+                                have_nodata_value = (str::to(tagval, &nodata_value.float_v) == 0);
+                                break;
+                            case gta::float64:
+                            case gta::cfloat64:
+                                have_nodata_value = (str::to(tagval, &nodata_value.double_v) == 0);
+                                break;
+                            default:
+                                throw exc(std::string("cannot handle NO_DATA_VALUE for component type ")
+                                        + type_to_string(hdr.component_type(c), hdr.component_size(c)));
+                                break;
+                            }
+                        }
                         const void *component = hdr.component(element, c);
-                        double val;
+                        double val = std::numeric_limits<double>::quiet_NaN();
                         switch (hdr.component_type(c))
                         {
                         case gta::int8:
                             {
                                 int8_t v;
                                 memcpy(&v, component, sizeof(int8_t));
-                                val = v;
+                                if (!have_nodata_value || v != nodata_value.int8_v)
+                                    val = v;
                             }
                             break;
                         case gta::uint8:
                             {
                                 uint8_t v;
                                 memcpy(&v, component, sizeof(uint8_t));
-                                val = v;
+                                if (!have_nodata_value || v != nodata_value.uint8_v)
+                                    val = v;
                             }
                             break;
                         case gta::int16:
                             {
                                 int16_t v;
                                 memcpy(&v, component, sizeof(int16_t));
-                                val = v;
+                                if (!have_nodata_value || v != nodata_value.int16_v)
+                                    val = v;
                             }
                             break;
                         case gta::uint16:
                             {
                                 uint16_t v;
                                 memcpy(&v, component, sizeof(uint16_t));
-                                val = v;
+                                if (!have_nodata_value || v != nodata_value.uint16_v)
+                                    val = v;
                             }
                             break;
                         case gta::int32:
                             {
                                 int32_t v;
                                 memcpy(&v, component, sizeof(int32_t));
-                                val = v;
+                                if (!have_nodata_value || v != nodata_value.int32_v)
+                                    val = v;
                             }
                             break;
                         case gta::uint32:
                             {
                                 uint32_t v;
                                 memcpy(&v, component, sizeof(uint32_t));
-                                val = v;
+                                if (!have_nodata_value || v != nodata_value.uint32_v)
+                                    val = v;
                             }
                             break;
                         case gta::int64:
                             {
                                 int64_t v;
                                 memcpy(&v, component, sizeof(int64_t));
-                                val = v;
+                                if (!have_nodata_value || v != nodata_value.int64_v)
+                                    val = v;
                             }
                             break;
                         case gta::uint64:
                             {
                                 uint64_t v;
                                 memcpy(&v, component, sizeof(uint64_t));
-                                val = v;
+                                if (!have_nodata_value || v != nodata_value.uint64_v)
+                                    val = v;
                             }
                             break;
                         case gta::float32:
+                        case gta::cfloat32:
                             {
                                 float v;
                                 memcpy(&v, component, sizeof(float));
-                                val = v;
+                                if (!have_nodata_value || std::memcmp(&v, &nodata_value.float_v, sizeof(float)) != 0)
+                                    val = v;
                             }
                             break;
                         case gta::float64:
-                            {
-                                memcpy(&val, component, sizeof(double));
-                            }
-                            break;
-                        case gta::cfloat32:
-                            {
-                                float v[2];
-                                memcpy(v, component, 2 * sizeof(float));
-                                val = std::sqrt(v[0] * v[0] + v[1] * v[1]);
-                            }
-                            break;
                         case gta::cfloat64:
                             {
-                                double v[2];
-                                memcpy(v, component, 2 * sizeof(double));
-                                val = std::sqrt(v[0] * v[0] + v[1] * v[1]);
+                                double v;
+                                memcpy(&v, component, sizeof(double));
+                                if (!have_nodata_value || std::memcmp(&v, &nodata_value.double_v, sizeof(double)) != 0)
+                                    val = v;
                             }
                             break;
                         default:
