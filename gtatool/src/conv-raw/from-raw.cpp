@@ -38,9 +38,13 @@
 extern "C" void gtatool_from_raw_help(void)
 {
     msg::req_txt("from-raw -d|--dimensions=<d0,d1,...> -c|--components=<c0,c1,...>\n"
-            "    [-e|--endianness=little|big] <input-file> [<output-file>]\n"
+            "    [-n|--n=<n>] [-e|--endianness=little|big] <input-file> [<output-file>]\n"
             "\n"
-            "Converts raw binary files to GTAs. The default endianness is little.\n"
+            "Converts raw binary files to GTAs.\n"
+            "You need to specify the dimensions (-d) and components (-c) of the data.\n"
+            "You can set the number n of GTAs to create; by default, GTAs are created as long "
+            "as the input provides more data.\n"
+            "The default endianness is little.\n"
             "Available component types: int8, uint8, int16, uint16, int32, uint32, "
             "int64, uint64, int128, uint128, float32, float64, float128, cfloat32, "
             "cfloat64, cfloat128.\n"
@@ -56,6 +60,8 @@ extern "C" int gtatool_from_raw(int argc, char *argv[])
     options.push_back(&dimensions);
     opt::string components("components", 'c', opt::required);
     options.push_back(&components);
+    opt::val<uintmax_t> n("n", 'n', opt::optional, 0);
+    options.push_back(&n);
     std::vector<std::string> endiannesses;
     endiannesses.push_back("little");
     endiannesses.push_back("big");
@@ -116,7 +122,8 @@ extern "C" int gtatool_from_raw(int argc, char *argv[])
                 }
             }
         }
-        while (fio::has_more(array_loop.file_in()));
+        while ((n.value() == 0 && fio::has_more(array_loop.file_in()))
+                || array_loop.index_out() < n.value());
         array_loop.finish();
     }
     catch (std::exception &e)

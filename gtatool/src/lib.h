@@ -154,6 +154,16 @@ public:
         return _file_out;
     }
 
+    uintmax_t index_in() const throw ()
+    {
+        return _index_in;
+    }
+
+    uintmax_t index_out() const throw ()
+    {
+        return _index_out;
+    }
+
     const std::string &filename_in() throw ();
     const std::string &filename_out() throw ();
 
