@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2012
+ * Copyright (C) 2012, 2014
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -30,5 +30,6 @@ std::vector<std::string> gta_csv_create_delimiters()
     {
         delimiters.push_back(std::string(1, c));
     }
+    delimiters.push_back(std::string(1, '\t'));
     return delimiters;
 }
