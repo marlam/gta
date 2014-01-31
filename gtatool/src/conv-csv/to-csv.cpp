@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2012, 2013
+ * Copyright (C) 2012, 2013, 2014
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -46,7 +46,9 @@ extern "C" void gtatool_to_csv_help(void)
     msg::req_txt("to-csv [-D|--delimiter=D] [<input-file>] <output-file>\n"
             "\n"
             "Converts GTAs to csv format, using the field delimiter D. "
-            "D is a single ASCII character; the default is the comma (',').");
+            "D is a single ASCII character; the default is the comma (',').\n"
+            "If more than one array is available in the input, the arrays will "
+            "be separated by blank lines in the output.");
 }
 
 static void write_component(const void* c, gta::type t, char s[32])
@@ -109,7 +111,7 @@ static void write_component(const void* c, gta::type t, char s[32])
     {
         double v;
         std::memcpy(&v, c, sizeof(double));
-        snprintf(s, 32, "%.17f", v);
+        snprintf(s, 32, "%.17g", v);
     }
 }
 
@@ -135,6 +137,8 @@ extern "C" int gtatool_to_csv(int argc, char *argv[])
     try
     {
         std::string nameo = arguments.size() == 1 ? arguments[0] : arguments[1];
+        FILE *fo = fio::open(nameo, "w");
+
         array_loop_t array_loop;
         gta::header hdr;
         std::string name;
@@ -166,9 +170,15 @@ extern "C" int gtatool_to_csv(int argc, char *argv[])
                     throw exc(name + ": unsupported element component type(s).");
                 }
             }
+            if (array_loop.index_in() > 1)
+            {
+                if (std::fputs("\r\n", fo) == EOF)
+                {
+                    throw exc(nameo + ": output error.");
+                }
+            }
 
             char sbuf[32];
-            FILE *fo = fio::open(nameo, "w");
             element_loop_t element_loop;
             array_loop.start_element_loop(element_loop, hdr, gta::header());
             for (uintmax_t e = 0; e < hdr.elements(); e++)
@@ -202,13 +212,13 @@ extern "C" int gtatool_to_csv(int argc, char *argv[])
                     }
                 }
             }
-            fio::flush(fo, nameo);
-            if (std::ferror(fo))
-            {
-                throw exc(nameo + ": output error.");
-            }
-            fio::close(fo, nameo);
         }
+        fio::flush(fo, nameo);
+        if (std::ferror(fo))
+        {
+            throw exc(nameo + ": output error.");
+        }
+        fio::close(fo, nameo);
         array_loop.finish();
     }
     catch (std::exception &e)

@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2012, 2013
+ * Copyright (C) 2012, 2013, 2014
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -45,8 +45,9 @@ extern "C" void gtatool_from_csv_help(void)
             "    [-N|--no-data-value=<n0,n1,...>] <input-file> [<output-file>]\n"
             "\n"
             "Converts CSV files to GTAs. By default, each array element has one component of type float64. "
-            "This can be changed with the -c option. Supported component types are all integer types and "
-            "float32 and float64. The delimiter D must be a single ASCII character; the default is the comma (',').\n"
+            "This can be changed with the -c option. Supported component types are all integer types, "
+            "float32, and float64. The delimiter D must be a single ASCII character; the default is the comma (',').\n"
+            "Blank lines in the input file are interpreted as separators between different arrays.\n"
             "Example: from-csv -c uint8,uint8,uint8 rgb.csv rgb.gta");
 }
 
@@ -209,7 +210,6 @@ extern "C" int gtatool_from_csv(int argc, char *argv[])
         {
             valuelist_from_string(no_data_value.value(), comp_types, comp_sizes, no_data_element.ptr());
         }
-        uintmax_t w = 0, h = 0;
 
         std::string namei = arguments[0];
         FILE *fi = fio::open(namei, "r");
@@ -217,81 +217,97 @@ extern "C" int gtatool_from_csv(int argc, char *argv[])
         FILE *ft;
         std::string namet = fio::mktempfile(&ft);
 
-        for (;;)
+        array_loop_t array_loop;
+        array_loop.start(std::vector<std::string>(1, namet), arguments.size() == 2 ? arguments[1] : "");
+        for (;;) // loop over all arrays in the CSV file
         {
-            std::string line = fio::readline(fi, namei);
-            if (std::ferror(fi))
+            uintmax_t w = 0, h = 0;
+            for (;;) // loop over all lines in the current CSV array
             {
-                throw exc(namei + ": input error.");
+                std::string line = fio::readline(fi, namei);
+                if (std::ferror(fi))
+                {
+                    throw exc(namei + ": input error.");
+                }
+                if (std::feof(fi))
+                {
+                    break;
+                }
+                if (line.length() > 0 && line[line.length() - 1] == '\r')
+                {
+                    line.erase(line.length() - 1);
+                }
+                if (str::trim(line).empty())
+                {
+                    if (w > 0)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+
+                std::vector<std::string> value_strings = str::tokens(line, delimiter.value());
+                if (w == 0)
+                {
+                    if (value_strings.size() == 0)
+                    {
+                        throw exc(namei + " array " + str::from(array_loop.index_out()) + " first row: no fields found.");
+                    }
+                    w = value_strings.size() / hdr.components();
+                    if (value_strings.size() % hdr.components() != 0)
+                    w++;
+                    msg::inf(namei + " array " + str::from(array_loop.index_out()) + " first row: found " + str::from(w) + " field(s).");
+                }
+
+                blob element(checked_cast<size_t>(hdr.element_size()));
+                size_t value_index = 0;
+                for (uintmax_t e = 0; e < w; e++)
+                {
+                    // get next element
+                    for (uintmax_t c = 0; c < hdr.components(); c++)
+                    {
+                        void *component = hdr.component(element.ptr(), c);
+                        bool have_value = false;
+                        if (value_index < value_strings.size())
+                        {
+                            have_value = parse_component(value_strings[value_index], hdr.component_type(c), component);
+                            value_index++;
+                        }
+                        if (!have_value)
+                        {
+                            std::memcpy(component, hdr.component(no_data_element.ptr(), c), hdr.component_size(c));
+                            msg::wrn(namei + " array " + str::from(array_loop.index_out()) + " row " + str::from(h) + " element " + str::from(e)
+                                    + " component " + str::from(c) + ": no data available");
+                        }
+                    }
+                    // write it to temporary file
+                    fio::write(element.ptr(), hdr.element_size(), 1, ft, namet);
+                }
+                h++;
             }
+            if (w == 0 || h == 0)
+            {
+                throw exc(namei + " array " + str::from(array_loop.index_out()) + " contains no data");
+            }
+            hdr.set_dimensions(w, h);
+            // write gta: first write header, then copy data from temporary file
+            array_loop.write(hdr, nameo);
+            fio::flush(ft, namet); // make sure all data reached the temporary file
+            array_loop.copy_data(hdr, hdr);
+            // reuse the same space of the temporary file for the next array
+            fio::rewind(ft, namet);
+            fio::rewind(array_loop.file_in(), namet);
             if (std::feof(fi))
             {
                 break;
             }
-            if (line.length() > 0 && line[line.length() - 1] == '\r')
-            {
-                line.erase(line.length() - 1);
-            }
-            if (str::trim(line).empty())
-            {
-                continue;
-            }
-
-            std::vector<std::string> value_strings = str::tokens(line, delimiter.value());
-            if (w == 0)
-            {
-                if (value_strings.size() == 0)
-                {
-                    throw exc(namei + " first row: no fields found.");
-                }
-                w = value_strings.size() / hdr.components();
-                if (value_strings.size() % hdr.components() != 0)
-                    w++;
-                msg::inf(namei + " first row: found " + str::from(w) + " field(s).");
-            }
-
-            blob element(checked_cast<size_t>(hdr.element_size()));
-            size_t value_index = 0;
-            for (uintmax_t e = 0; e < w; e++)
-            {
-                // get next element
-                for (uintmax_t c = 0; c < hdr.components(); c++)
-                {
-                    void *component = hdr.component(element.ptr(), c);
-                    bool have_value = false;
-                    if (value_index < value_strings.size())
-                    {
-                        have_value = parse_component(value_strings[value_index], hdr.component_type(c), component);
-                        value_index++;
-                    }
-                    if (!have_value)
-                    {
-                        std::memcpy(component, hdr.component(no_data_element.ptr(), c), hdr.component_size(c));
-                        msg::wrn(namei + " row " + str::from(h) + " element " + str::from(e)
-                                + " component " + str::from(c) + ": no data available");
-                    }
-                }
-                // write it to temporary file
-                fio::write(element.ptr(), hdr.element_size(), 1, ft, namet);
-            }
-            h++;
         }
+        array_loop.finish();
         fio::close(fi, namei);
         fio::close(ft);
-
-        if (w == 0 || h == 0)
-        {
-            throw exc(namei + ": file contains no data");
-        }
-
-        hdr.set_dimensions(w, h);
-
-        // write gta: first write header, then copy data from temporary file
-        array_loop_t array_loop;
-        array_loop.start(std::vector<std::string>(1, namet), arguments.size() == 2 ? arguments[1] : "");
-        array_loop.write(hdr, nameo);
-        array_loop.copy_data(hdr, hdr);
-        array_loop.finish();
         fio::remove(namet);
     }
     catch (std::exception &e)
