@@ -46,7 +46,8 @@ extern "C" void gtatool_from_csv_help(void)
             "\n"
             "Converts CSV files to GTAs. By default, each array element has one component of type float64. "
             "This can be changed with the -c option. Supported component types are all integer types, "
-            "float32, and float64. The delimiter D must be a single ASCII character; the default is the comma (',').\n"
+            "float32, and float64.\n"
+            "The delimiter D must be a single ASCII character; the default is to autodetect it.\n"
             "Blank lines in the input file are interpreted as separators between different arrays.\n"
             "Example: from-csv -c uint8,uint8,uint8 rgb.csv rgb.gta");
 }
@@ -154,7 +155,7 @@ extern "C" int gtatool_from_csv(int argc, char *argv[])
     opt::string components("components", 'c', opt::optional);
     options.push_back(&components);
     std::vector<std::string> delimiters = gta_csv_create_delimiters();
-    opt::string delimiter("delimiter", 'D', opt::optional, delimiters, std::string(","));
+    opt::string delimiter("delimiter", 'D', opt::optional, delimiters, std::string());
     options.push_back(&delimiter);
     opt::string no_data_value("no-data-value", 'N', opt::optional);
     options.push_back(&no_data_value);
@@ -168,6 +169,7 @@ extern "C" int gtatool_from_csv(int argc, char *argv[])
         gtatool_from_csv_help();
         return 0;
     }
+    std::string delim = delimiter.value();
 
     try
     {
@@ -249,7 +251,25 @@ extern "C" int gtatool_from_csv(int argc, char *argv[])
                     }
                 }
 
-                std::vector<std::string> value_strings = str::tokens(line, delimiter.value());
+                if (delim.empty())
+                {
+                    // Try to autodetect
+                    const char* cline = line.c_str();
+                    char* endptr;
+                    (void)strtod(cline, &endptr);
+                    if (endptr == cline || ((*endptr < 32 || *endptr >= 127) && *endptr != '\t'))
+                    {
+                        throw exc(namei + ": autodetection of delimiter failed; please specify with -D");
+                    }
+                    else
+                    {
+                        delim = std::string(1, *endptr);
+                        std::string delimstr = (*endptr == '\t' ? "TAB"
+                                : std::string(1, '\'') + delimiter.value() + std::string(1, '\''));
+                        msg::inf(namei + ": autodetected delimiter is " + delimstr);
+                    }
+                }
+                std::vector<std::string> value_strings = str::tokens(line, delim);
                 if (w == 0)
                 {
                     if (value_strings.size() == 0)
