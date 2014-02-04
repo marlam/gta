@@ -178,6 +178,27 @@ extern "C" int gtatool_to_csv(int argc, char *argv[])
                 }
             }
 
+            std::vector<blob> no_data_values(checked_cast<size_t>(hdr.components()));
+            for (uintmax_t c = 0; c < hdr.components(); c++)
+            {
+                const char* tagval = hdr.component_taglist(c).get("NO_DATA_VALUE");
+                if (tagval)
+                {
+                    no_data_values[c].resize(hdr.component_size(c));
+                    try
+                    {
+                        value_from_string(std::string(tagval),
+                                hdr.component_type(c), hdr.component_size(c),
+                                no_data_values[c].ptr());
+                    }
+                    catch (std::exception& e)
+                    {
+                        msg::wrn(name + ": component " + str::from(c) + ": invalid NO_DATA_VALUE");
+                        no_data_values[c].free();
+                    }
+                }
+            }
+
             char sbuf[32];
             element_loop_t element_loop;
             array_loop.start_element_loop(element_loop, hdr, gta::header());
@@ -186,7 +207,15 @@ extern "C" int gtatool_to_csv(int argc, char *argv[])
                 const void *p = element_loop.read();
                 for (uintmax_t c = 0; c < hdr.components(); c++)
                 {
-                    write_component(hdr.component(p, c), hdr.component_type(c), sbuf);
+                    if (no_data_values[c].size() != 0
+                            && std::memcmp(no_data_values[c].ptr(), hdr.component(p, c), no_data_values[c].size()) == 0)
+                    {
+                        sbuf[0] = '\0';
+                    }
+                    else
+                    {
+                        write_component(hdr.component(p, c), hdr.component_type(c), sbuf);
+                    }
                     if (std::fputs(sbuf, fo) == EOF)
                     {
                         throw exc(nameo + ": output error.");

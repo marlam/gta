@@ -211,6 +211,15 @@ extern "C" int gtatool_from_csv(int argc, char *argv[])
         else
         {
             valuelist_from_string(no_data_value.value(), comp_types, comp_sizes, no_data_element.ptr());
+            std::vector<std::string> no_data_value_strings = str::tokens(no_data_value.value(), std::string(","));
+            if (no_data_value_strings.size() != hdr.components())
+            {
+                throw exc(std::string("cannot set NO_DATA_VALUE tags -- this is a bug!"));
+            }
+            for (uintmax_t c = 0; c < hdr.components(); c++)
+            {
+                hdr.component_taglist(c).set("NO_DATA_VALUE", str::trim(no_data_value_strings[c]).c_str());
+            }
         }
 
         std::string namei = arguments[0];
@@ -299,8 +308,11 @@ extern "C" int gtatool_from_csv(int argc, char *argv[])
                         if (!have_value)
                         {
                             std::memcpy(component, hdr.component(no_data_element.ptr(), c), hdr.component_size(c));
-                            msg::wrn(namei + " array " + str::from(array_loop.index_out()) + " row " + str::from(h) + " element " + str::from(e)
-                                    + " component " + str::from(c) + ": no data available");
+                            if (no_data_value.value().empty())
+                            {
+                                msg::wrn(namei + " array " + str::from(array_loop.index_out()) + " row " + str::from(h) + " element " + str::from(e)
+                                        + " component " + str::from(c) + ": no data available");
+                            }
                         }
                     }
                     // write it to temporary file
