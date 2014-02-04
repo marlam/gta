@@ -310,7 +310,8 @@ extern "C" int gtatool_from_csv(int argc, char *argv[])
             }
             if (w == 0 || h == 0)
             {
-                throw exc(namei + " array " + str::from(array_loop.index_out()) + " contains no data");
+                msg::wrn(namei + " array " + str::from(array_loop.index_out()) + " contains no data");
+                break;
             }
             hdr.set_dimensions(w, h);
             // write gta: first write header, then copy data from temporary file
