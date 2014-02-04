@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011, 2012, 2013
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -203,11 +203,7 @@ extern "C" int gtatool_from_mat(int argc, char *argv[])
             blob output_data(checked_cast<size_t>(ihdr.data_size()));
             if (matvar->isComplex)
             {
-#if MATIO_VERSION >= 150
                 const mat_complex_split_t *split_data = static_cast<const mat_complex_split_t *>(matvar->data);
-#else
-                const struct ComplexSplit *split_data = static_cast<const struct ComplexSplit *>(matvar->data);
-#endif
                 blob fixed_data(checked_cast<size_t>(ihdr.data_size()));
                 for (uintmax_t i = 0; i < ihdr.elements(); i++)
                 {

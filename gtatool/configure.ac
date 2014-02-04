@@ -5,7 +5,7 @@ dnl
 dnl This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
 dnl (GTAs).
 dnl
-dnl Copyright (C) 2010, 2011, 2012, 2013
+dnl Copyright (C) 2010, 2011, 2012, 2013, 2014
 dnl Martin Lambers <marlam@marlam.de>
 dnl
 dnl This program is free software; you can redistribute it and/or modify
@@ -351,7 +351,7 @@ AC_ARG_WITH([matio],
     [AS_HELP_STRING([--with-matio], [Enable MATLAB import/export. Enabled by default if libmatio is available.])],
     [if test "$withval" = "yes"; then mat="yes"; else mat="no "; fi], [mat="yes"])
 if test "$mat" = "yes"; then
-    PKG_CHECK_MODULES([libmatio], [matio >= 0.0], [],
+    PKG_CHECK_MODULES([libmatio], [matio >= 1.5.0], [],
         [mat="no "
         AC_MSG_WARN([MATIO library not found:])
         AC_MSG_WARN([$libmatio_PKG_ERRORS])

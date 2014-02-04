@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011, 2012, 2013
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -104,9 +104,10 @@ extern "C" int gtatool_to_mat(int argc, char *argv[])
 
     try
     {
-        // Remove the output file if it exists so that matio does not append to it
-        try { fio::remove(ofilename); } catch (...) {}
-        mat_t *mat = Mat_Open(ofilename.c_str(), MAT_ACC_RDWR);
+        // Use a custom MAT header string that does not contain the platform or time,
+        // so that converting the same GTA to MAT will always result in a byte-identical MAT file.
+        mat_t *mat = Mat_Create(ofilename.c_str(),
+                "MATLAB 5.0 MAT-file, Platform: generic, Created By: " PACKAGE_TARNAME " using libmatio");
         if (!mat)
         {
             throw exc("cannot open " + ofilename);
@@ -127,13 +128,8 @@ extern "C" int gtatool_to_mat(int argc, char *argv[])
                 msg::wrn(array_name + ": ignoring empty array");
                 continue;
             }
-#if MATIO_VERSION >= 150
             enum matio_classes class_type;
             enum matio_types data_type;
-#else
-            int class_type;
-            int data_type;
-#endif
             bool is_complex = false;
             switch (ihdr.component_type(0))
             {
@@ -205,39 +201,23 @@ extern "C" int gtatool_to_mat(int argc, char *argv[])
             {
                 rank = 2;
             }
-#if MATIO_VERSION >= 150
             std::vector<size_t> dims(rank);
             for (uintmax_t i = 0; i < ohdr.dimensions(); i++)
             {
                 dims[i] = checked_cast<size_t>(ohdr.dimension_size(i));
             }
-#else
-            std::vector<int> dims(rank);
-            for (uintmax_t i = 0; i < ohdr.dimensions(); i++)
-            {
-                dims[i] = checked_cast<int>(ohdr.dimension_size(i));
-            }
-#endif
             if (ohdr.dimensions() < 2)
             {
                 dims[1] = 1;
             }
-#if MATIO_VERSION >= 150
             int opt = MAT_F_DONT_COPY_DATA;
-#else
-            int opt = MEM_CONSERVE;
-#endif
             if (is_complex)
             {
                 opt |= MAT_F_COMPLEX;
             }
             void *data = odata.ptr();
             blob tmp_data;
-#if MATIO_VERSION >= 150
             mat_complex_split_t split_data;
-#else
-            struct ComplexSplit split_data;
-#endif
             if (is_complex)
             {
                 tmp_data.resize(checked_cast<size_t>(ohdr.data_size()));
@@ -276,13 +256,7 @@ extern "C" int gtatool_to_mat(int argc, char *argv[])
             {
                 throw exc("cannot create MATLAB variable");
             }
-            if (Mat_VarWrite(mat, matvar,
-#if MATIO_VERSION >= 150
-                        MAT_COMPRESSION_NONE
-#else
-                        COMPRESSION_NONE
-#endif
-                        ) != 0)
+            if (Mat_VarWrite(mat, matvar, MAT_COMPRESSION_NONE) != 0)
             {
                 throw exc("cannot write MATLAB variable");
             }
