@@ -479,7 +479,14 @@ AC_ARG_WITH([teem],
 if test "$teem" = "yes"; then
     AC_LANG([C])
     AC_LIB_FROMPACKAGE([teem], [teem])
-    AC_LIB_HAVE_LINKFLAGS([teem], [], [#include <teem/nrrd.h>], [nrrdNuke(0);])
+    case "${target}" in
+    *-*-mingw32*)
+        AC_LIB_HAVE_LINKFLAGS([teem], [png bz2 z], [#include <teem/nrrd.h>], [nrrdNuke(0);])
+        ;;
+    *)
+        AC_LIB_HAVE_LINKFLAGS([teem], [], [#include <teem/nrrd.h>], [nrrdNuke(0);])
+        ;;
+    esac
     AC_LANG([C++])
     if test "$HAVE_LIBTEEM" != "yes"; then
         teem="no "
