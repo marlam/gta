@@ -147,10 +147,10 @@ dnl - str
 AM_ICONV([])
 AC_CHECK_FUNCS([nl_langinfo vasprintf wcswidth])
 dnl - sys
-dnl AC_CHECK_FUNCS([nanosleep sysconf sched_yield])
+AC_CHECK_FUNCS([nanosleep sysconf sched_yield])
 dnl - tmr
-dnl AC_SEARCH_LIBS([clock_gettime], [rt])
-dnl AC_CHECK_FUNCS([clock_gettime])
+AC_SEARCH_LIBS([clock_gettime], [rt])
+AC_CHECK_FUNCS([clock_gettime])
 AC_LANG_POP([C])
 
 dnl pkg-config
@@ -161,6 +161,16 @@ fi
 
 dnl The GTA library
 PKG_CHECK_MODULES([libgta], [gta >= 0.9.4])
+
+dnl Choose Qt version for the gui and view command. Qt4 remains the default until Qt5 is rock solid.
+qt_version=""
+AC_ARG_WITH([qt-version],
+    [AS_HELP_STRING([--with-qt-version], [Choose Qt version. Currently 4 or 5; 4 is the default.])],
+    [qt_version="$withval"], [qt_version="4"])
+if test "$qt_version" != "4" -a "$qt_version" != "5"; then
+    AC_MSG_WARN([unknown Qt version requested, falling back to Qt 4.])
+    qt_version="4"
+fi
 
 dnl stream-foreach: some checks required
 AC_CHECK_FUNCS([sigaction])
@@ -180,31 +190,53 @@ fi
 AC_DEFINE_UNQUOTED([WITH_MUPARSER], [`if test "$muparser" = "yes"; then echo "1"; else echo "0"; fi`], [Use muparser?])
 AM_CONDITIONAL([WITH_MUPARSER], [test "$muparser" = "yes"])
 
-dnl gui: Qt
+dnl gui: Qt.
 AC_ARG_WITH([qt],
     [AS_HELP_STRING([--with-qt], [Enable Qt GUI. Enabled by default if Qt is available.])],
     [if test "$withval" = "yes"; then qt="yes"; else qt="no "; fi], [qt="yes"])
 if test "$qt" = "yes"; then
-    PKG_CHECK_MODULES([libqtgui], [Qt5Widgets >= 5.0], [],
-        [qt="no "
-        AC_MSG_WARN([Qt5Widgets library not found:])
-        AC_MSG_WARN([$libqtgui_PKG_ERRORS])
-        AC_MSG_WARN([Disabled the gui command.])])
     AC_ARG_VAR([RCC], [rcc command])
-    if test -z "$RCC"; then
-        AC_CHECK_TOOLS([RCC], [rcc-qt5 rcc])
-    fi
     AC_ARG_VAR([MOC], [moc command])
-    if test -z "$MOC"; then
-        AC_CHECK_TOOLS([MOC], [moc-qt5 moc])
+    if test "$qt_version" = "4"; then
+        PKG_CHECK_MODULES([libqtgui], [QtGui >= 4.8], [],
+            [qt="no "
+            AC_MSG_WARN([QtGui library (Qt4) not found:])
+            AC_MSG_WARN([$libqtgui_PKG_ERRORS])
+            AC_MSG_WARN([Disabled the gui and view commands.])
+	    AC_MSG_WARN([(Note: you can select Qt5 with --with-qt-version=5)])])
+        if test "$qt" = "yes"; then
+            if test -z "$RCC"; then
+                AC_CHECK_TOOLS([RCC], [rcc-qt4 rcc])
+            fi
+            if test -z "$MOC"; then
+                AC_CHECK_TOOLS([MOC], [moc-qt4 moc])
+            fi
+        fi
+    else
+        PKG_CHECK_MODULES([libqtgui], [Qt5Widgets >= 5.0], [],
+            [qt="no "
+            AC_MSG_WARN([Qt5Widgets library (Qt5) not found:])
+            AC_MSG_WARN([$libqtgui_PKG_ERRORS])
+            AC_MSG_WARN([Disabled the gui and view commands.])
+	    AC_MSG_WARN([(Note: you can select Qt4 with --with-qt-version=4)])])
+        if test "$qt" = "yes"; then
+            if test -z "$RCC"; then
+                AC_CHECK_TOOLS([RCC], [rcc-qt5 rcc])
+            fi
+            if test -z "$MOC"; then
+                AC_CHECK_TOOLS([MOC], [moc-qt5 moc])
+            fi
+            dnl For a static Windows build with MXE, we need to statically link the
+            dnl QWindowsIntegrationPlugin and AccessibleFactory plugins.
+            if test "$w32" = "yes"; then
+                libqtgui_plugin_L="`$PKG_CONFIG --libs-only-L Qt5Core | $SED -e 's/ //g'`/../plugins"
+                libqtgui_LIBS="$libqtgui_plugin_L/platforms -lqwindows $libqtgui_plugin_L/accessible -lqtaccessiblewidgets $libqtgui_LIBS"
+                libqtgui_CFLAGS="$libqtgui_CFLAGS -DQT_STATICPLUGIN"
+            fi
+        fi
     fi
-    dnl For a static Windows build with MXE, we need to statically link the
-    dnl QWindowsIntegrationPlugin and AccessibleFactory plugins.
-    if test "$w32" = "yes"; then
-        libqtgui_plugin_L="`$PKG_CONFIG --libs-only-L Qt5Core | $SED -e 's/ //g'`/../plugins"
-        libqtgui_LIBS="$libqtgui_plugin_L/platforms -lqwindows $libqtgui_plugin_L/accessible -lqtaccessiblewidgets $libqtgui_LIBS"
-        libqtgui_CFLAGS="$libqtgui_CFLAGS -DQT_STATICPLUGIN"
-    fi
+fi
+if test "$qt" = "yes"; then
     dnl Icon and Menu tools. It is ok if these are missing.
     GTK_UPDATE_ICON_CACHE=""
     AC_ARG_VAR([GTK_UPDATE_ICON_CACHE], [gtk-update-icon-cache command])
@@ -497,6 +529,85 @@ fi
 AC_DEFINE_UNQUOTED([WITH_TEEM], [`if test "$teem" = "yes"; then echo "1"; else echo "0"; fi`], [Use teem?])
 AM_CONDITIONAL([WITH_TEEM], [test "$teem" = "yes"])
 
+dnl view: QtOpenGL and glewmx, and optionally Equalizer and libgls
+AC_ARG_WITH([qt-opengl],
+    [AS_HELP_STRING([--with-qt-opengl], [Enable visualization via OpenGL. Enabled by default if QtOpenGL is available.])],
+    [if test "$withval" = "yes"; then qtopengl="yes"; else qtopengl="no "; fi], [qtopengl="yes"])
+if test "$qtopengl" = "yes"; then
+    if test "$qt" = "yes"; then
+        if test "$qt_version" = "4"; then
+            PKG_CHECK_MODULES([libqtopengl], [QtOpenGL >= 4.8], [],
+                [qtopengl="no "
+                AC_MSG_WARN([QtOpenGL library (Qt4) not found:])
+                AC_MSG_WARN([$libqtopengl_PKG_ERRORS])
+                AC_MSG_WARN([Disabled the view command.])])
+        else
+            PKG_CHECK_MODULES([libqtopengl], [Qt5OpenGL >= 5.0], [],
+                [qtopengl="no "
+                AC_MSG_WARN([Qt5OpenGL library not found:])
+                AC_MSG_WARN([$libqtopengl_PKG_ERRORS])
+                AC_MSG_WARN([Disabled the view command.])])
+        fi
+    else
+        qtopengl="no "
+    fi
+fi
+AC_DEFINE_UNQUOTED([WITH_QTOPENGL], [`if test "$qtopengl" = "yes"; then echo "1"; else echo "0"; fi`], [Use QtOpenGL?])
+AM_CONDITIONAL([WITH_QTOPENGL], [test "$qtopengl" = "yes"])
+AC_ARG_WITH([glewmx],
+    [AS_HELP_STRING([--with-glewmx], [Enable visualization via OpenGL. Enabled by default if QtOpenGL and glewmx are available.])],
+    [if test "$withval" = "yes"; then glewmx="yes"; else glewmx="no "; fi], [glewmx="yes"])
+if test "$glewmx" = "yes"; then
+    if test "$qtopengl" = "yes"; then
+        PKG_CHECK_MODULES([libglewmx], [glewmx >= 1.6.0], [],
+            [glewmx="no "
+            AC_MSG_WARN([glewmx library not found:])
+            AC_MSG_WARN([$libglewmx_PKG_ERRORS])
+            AC_MSG_WARN([Disabled the view command.])])
+    else
+        glewmx="no "
+    fi
+fi
+AC_DEFINE_UNQUOTED([WITH_GLEWMX], [`if test "$glewmx" = "yes"; then echo "1"; else echo "0"; fi`], [Use glewmx?])
+AM_CONDITIONAL([WITH_GLEWMX], [test "$glewmx" = "yes"])
+AC_ARG_WITH([equalizer],
+    [AS_HELP_STRING([--with-equalizer], [Enable multi-display OpenGL support. Enabled by default if Equalizer is available.])],
+    [if test "$withval" = "yes"; then equalizer="yes"; else equalizer="no "; fi], [equalizer="yes"])
+if test "$equalizer" = "yes"; then
+    if test "$qtopengl" = "yes" -a "$glewmx" = "yes"; then
+        PKG_CHECK_MODULES([libequalizer], [Equalizer >= 1.0.0], [],
+            [equalizer="no "
+            AC_MSG_WARN([Equalizer library not found:])
+            AC_MSG_WARN([$libequalizer_PKG_ERRORS])
+            AC_MSG_WARN([Disabled multi-display support in the view command.])])
+    else
+        equalizer="no "
+    fi
+fi
+AC_DEFINE_UNQUOTED([WITH_EQUALIZER], [`if test "$equalizer" = "yes"; then echo "1"; else echo "0"; fi`], [Use Equalizer?])
+AM_CONDITIONAL([WITH_EQUALIZER], [test "$equalizer" = "yes"])
+AC_ARG_WITH([gls],
+    [AS_HELP_STRING([--with-gls], [Enable stereoscopic-3D OpenGL support. Enabled by default if libgls is available.])],
+    [if test "$withval" = "yes"; then gls="yes"; else gls="no "; fi], [gls="yes"])
+if test "$gls" = "yes"; then
+    if test "$qtopengl" = "yes" -a "$glewmx" = "yes"; then
+        PKG_CHECK_MODULES([libgls], [gls >= 1.0.0], [],
+            [gls="no "
+            AC_MSG_WARN([gls library not found:])
+            AC_MSG_WARN([$libgls_PKG_ERRORS])
+            AC_MSG_WARN([Disabled stereoscopic-3D support in the view command.])])
+    else
+        gls="no "
+    fi
+fi
+AC_DEFINE_UNQUOTED([WITH_GLS], [`if test "$gls" = "yes"; then echo "1"; else echo "0"; fi`], [Use libgls?])
+AM_CONDITIONAL([WITH_GLS], [test "$gls" = "yes"])
+dnl We need to explicitly link with OpenGL since we use its functions directly.
+dnl However, this is most probably not necessary on Windows and Mac OS X (for
+dnl now), so we just use a pkg-config check (which usually only works on Linux)
+dnl and ignore a failure.
+PKG_CHECK_MODULES([libgl], [gl >= 0.0], [HAVE_LIBGL=1], [HAVE_LIBGL=0])
+
 dnl bash-completion
 AC_ARG_WITH([bashcompletion],
     [AS_HELP_STRING([--with-bash-completion], [Enable bash-completion support. Enabled by default if bash-completion is available.])],
@@ -551,4 +662,7 @@ echo "from-raw, to-raw:        " "$raw" ""
 echo "from-sndfile, to-sndfile:" "$sndfile" "(Requires libsndfile)"
 echo "from-teem, to-teem:      " "$teem" "(Requires libteem)"
 echo "gui:                     " "$qt" "(Requires Qt)"
+echo "view:                    " "$glewmx" "(Requires QtOpenGL and glewmx)"
+echo "view with multi-display: " "$equalizer" "(Additionally requires Equalizer)"
+echo "view with stereo-3D:     " "$gls" "(Additionally requires libgls)"
 echo ""

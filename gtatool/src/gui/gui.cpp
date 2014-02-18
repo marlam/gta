@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011, 2012, 2013
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -34,6 +34,7 @@
 #include <QtPlugin>
 #include <QApplication>
 #include <QMainWindow>
+#include <QSettings>
 #include <QPushButton>
 #include <QTableWidget>
 #include <QHeaderView>
@@ -62,7 +63,9 @@
 
 #include "lib.h"
 #include "cmds.h"
-#include "gui.h"
+#include "gui.hpp"
+
+#include "viewwidget.hpp"
 
 
 extern "C" void gtatool_gui_help(void)
@@ -72,6 +75,14 @@ extern "C" void gtatool_gui_help(void)
             "\n"
             "Starts a graphical user interface (GUI) and opens the given GTA files, if any.");
 }
+
+// View initialization
+static QSettings* global_settings = NULL;
+#if DYNAMIC_MODULES || !WITH_GLEWMX
+static ViewWidget* (*gtatool_view_create)(void) = NULL;
+#else
+extern "C" ViewWidget* gtatool_view_create(void);
+#endif
 
 // Helper functions: convert path names between our representation and Qt's representation
 static QString to_qt(const std::string& path)
@@ -94,7 +105,11 @@ TaglistWidget::TaglistWidget(gta::header *header, enum type type, uintmax_t inde
     header_labels.append("Value");
     _tablewidget->setHorizontalHeaderLabels(header_labels);
     _tablewidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+#if QT_VERSION < 0x050000
+    _tablewidget->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
+#else
     _tablewidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+#endif
     _tablewidget->horizontalHeader()->hide();
     _tablewidget->verticalHeader()->hide();
     connect(_tablewidget, SIGNAL(itemSelectionChanged()), this, SLOT(selection_changed()));
@@ -458,11 +473,12 @@ void ArrayWidget::update()
 }
 
 FileWidget::FileWidget(const std::string &file_name, const std::string &save_name,
-        const std::vector<gta::header *> &headers,
+        const std::vector<gta::header*>& headers, const std::vector<off_t>& offsets,
         QWidget *parent)
     : QWidget(parent),
     _file_name(file_name), _save_name(save_name), _is_changed(false),
-    _headers(headers), _array_changed(_headers.size(), false)
+    _headers(headers), _offsets(offsets), _array_changed(_headers.size(), false),
+    _view_widget(NULL)
 {
     _array_label = new QLabel("Array index:");
     _array_spinbox = new QSpinBox;
@@ -473,6 +489,10 @@ FileWidget::FileWidget(const std::string &file_name, const std::string &save_nam
     l0->addWidget(_array_label, 0, 0);
     l0->addWidget(_array_spinbox, 0, 1);
     l0->addWidget(new QLabel(QString("(Total: ") + QString::number(_headers.size()) + QString(")")), 0, 2);
+    _view_button = new QPushButton("View");
+    _view_button->setEnabled(cmd_is_available(cmd_find("view")));
+    connect(_view_button, SIGNAL(clicked()), this, SLOT(open_view()));
+    l0->addWidget(_view_button, 0, 4);
     l0->addItem(new QSpacerItem(0, _array_label->minimumSizeHint().height() / 3 * 2,
                 QSizePolicy::Minimum, QSizePolicy::Fixed), 1, 0, 1, 4);
     l0->setColumnStretch(3, 1);
@@ -488,8 +508,11 @@ FileWidget::FileWidget(const std::string &file_name, const std::string &save_nam
 
 FileWidget::~FileWidget()
 {
-    if (_save_name.length() > 0 && _save_name.compare(_file_name) != 0)
-    {
+    if (_view_widget) {
+        _view_widget->close();
+        //delete _view_widget;
+    }
+    if (_save_name.length() > 0 && _save_name.compare(_file_name) != 0) {
         try { fio::remove(_save_name); } catch (...) {}
     }
     for (size_t i = 0; i < _headers.size(); i++)
@@ -517,6 +540,8 @@ void FileWidget::update_array()
     _array_widget->layout()->setContentsMargins(0, 0, 0, 0);
     _array_widget_layout->addWidget(_array_widget, 0, 0);
     update_label();
+    if (_view_widget && !_view_widget->isHidden())
+        _view_widget->set_current(index);
 }
 
 void FileWidget::array_changed(size_t index)
@@ -549,6 +574,43 @@ void FileWidget::saved_to(const std::string &save_name)
     }
 }
 
+void FileWidget::open_view()
+{
+#if DYNAMIC_MODULES
+    if (!gtatool_view_create) {
+        int i = cmd_find("view");
+        cmd_open(i);
+        gtatool_view_create = reinterpret_cast<ViewWidget* (*)(void)>(
+                cmd_symbol(i, "gtatool_view_create"));
+    }
+#endif
+    if (_view_widget && !_view_widget->isHidden()) {
+        _view_widget->raise();
+    } else {
+        delete _view_widget;
+        _view_widget = NULL;
+    }
+    if (!_view_widget) {
+        _view_widget = gtatool_view_create();
+        connect(_view_widget, SIGNAL(closed()), this, SLOT(view_closed()));
+        connect(_view_widget, SIGNAL(quit()), this, SLOT(request_quit()));
+        _view_widget->init(gtatool_argc, gtatool_argv, global_settings,
+                _file_name, _save_name, _headers, _offsets);
+    }
+    _view_widget->set_current(_array_spinbox->value());
+    _view_button->setText("Update view");
+}
+
+void FileWidget::view_closed()
+{
+    _view_button->setText("View");
+}
+
+void FileWidget::request_quit()
+{
+    emit quit();
+}
+
 GUI::GUI()
 {
     setWindowTitle(PACKAGE_NAME);
@@ -567,11 +629,11 @@ GUI::GUI()
 
     QMenu *file_menu = menuBar()->addMenu(tr("&File"));
     QAction *file_open_action = new QAction(tr("&Open..."), this);
-    file_open_action->setShortcut(tr("Ctrl+O"));
+    file_open_action->setShortcut(QKeySequence::Open);
     connect(file_open_action, SIGNAL(triggered()), this, SLOT(file_open()));
     file_menu->addAction(file_open_action);
     QAction *file_save_action = new QAction(tr("&Save"), this);
-    file_save_action->setShortcut(tr("Ctrl+S"));
+    file_save_action->setShortcut(QKeySequence::Save);
     connect(file_save_action, SIGNAL(triggered()), this, SLOT(file_save()));
     file_menu->addAction(file_save_action);
     QAction *file_save_as_action = new QAction(tr("Save &as..."), this);
@@ -581,7 +643,7 @@ GUI::GUI()
     connect(file_save_all_action, SIGNAL(triggered()), this, SLOT(file_save_all()));
     file_menu->addAction(file_save_all_action);
     QAction *file_close_action = new QAction(tr("&Close"), this);
-    file_close_action->setShortcut(tr("Ctrl+W"));
+    file_close_action->setShortcut(QKeySequence::Close);
     connect(file_close_action, SIGNAL(triggered()), this, SLOT(file_close()));
     file_menu->addAction(file_close_action);
     QAction *file_close_all_action = new QAction(tr("Close all"), this);
@@ -736,7 +798,7 @@ GUI::GUI()
     file_export_menu->addAction(file_export_teem_action);
     file_menu->addSeparator();
     QAction *quit_action = new QAction(tr("&Quit"), this);
-    quit_action->setShortcut(tr("Ctrl+Q"));
+    quit_action->setShortcut(QKeySequence::Quit);
     connect(quit_action, SIGNAL(triggered()), this, SLOT(close()));
     file_menu->addAction(quit_action);
 
@@ -849,6 +911,9 @@ GUI::GUI()
 
     resize(menuBar()->sizeHint().width(), 200);
 
+    restoreGeometry(global_settings->value("gui/windowgeometry").toByteArray());
+    restoreState(global_settings->value("gui/windowstate").toByteArray());
+
     _files_watcher = new QFileSystemWatcher(this);
     connect(_files_watcher, SIGNAL(fileChanged(const QString&)), this, SLOT(file_changed_on_disk(const QString&)));
 }
@@ -862,6 +927,8 @@ void GUI::closeEvent(QCloseEvent *event)
     file_close_all();
     if (_files_widget->count() == 0)
     {
+        global_settings->setValue("gui/windowgeometry", saveGeometry());
+        global_settings->setValue("gui/windowstate", saveState());
         event->accept();
     }
     else
@@ -992,65 +1059,52 @@ QStringList GUI::file_open_dialog(const QStringList &filters)
     file_dialog->setWindowTitle(tr("Open"));
     file_dialog->setAcceptMode(QFileDialog::AcceptOpen);
     file_dialog->setFileMode(QFileDialog::ExistingFiles);
-    if (_last_dir.exists())
-    {
-        file_dialog->setDirectory(_last_dir);
-    }
+    QDir last_dir = QDir(global_settings->value("general/last-dir").toString());
+    if (last_dir.exists())
+        file_dialog->setDirectory(last_dir);
     QStringList complete_filters;
     complete_filters << filters << tr("All files (*)");
     file_dialog->setNameFilters(complete_filters);
     QStringList file_names;
-    if (file_dialog->exec())
-    {
+    if (file_dialog->exec()) {
         file_names = file_dialog->selectedFiles();
         file_names.sort();
-        _last_dir = file_dialog->directory();
+        global_settings->setValue("general/last-dir", file_dialog->directory().path());
     }
     return file_names;
 }
 
 QString GUI::file_save_dialog(const QString &default_suffix, const QStringList &filters, const QString &existing_name)
 {
+    QDir last_dir = QDir(global_settings->value("general/last-dir").toString());
     QDir file_dialog_dir;
     if (!existing_name.isEmpty())
-    {
         file_dialog_dir = QDir(QFileInfo(existing_name).absolutePath());
-    }
     else
-    {
-        file_dialog_dir = _last_dir;
-    }
+        file_dialog_dir = last_dir;
     QFileDialog *file_dialog = new QFileDialog(this);
     file_dialog->setWindowTitle(tr("Save"));
     file_dialog->setAcceptMode(QFileDialog::AcceptSave);
     file_dialog->setFileMode(QFileDialog::AnyFile);
     if (!default_suffix.isEmpty())
-    {
         file_dialog->setDefaultSuffix(default_suffix);
-    }
     if (file_dialog_dir.exists())
-    {
         file_dialog->setDirectory(file_dialog_dir);
-    }
     QStringList complete_filters;
     complete_filters << filters;
     complete_filters << tr("All files (*)");
     file_dialog->setNameFilters(complete_filters);
     QString file_name;
-    if (file_dialog->exec())
-    {
+    if (file_dialog->exec()) {
         file_name = file_dialog->selectedFiles().at(0);
         QFileInfo file_info(file_name);
-        _last_dir = file_dialog->directory();
-        for (int i = 0; i < _files_widget->count(); i++)
-        {
+        global_settings->setValue("general/last-dir", file_dialog->directory().path());
+        for (int i = 0; i < _files_widget->count(); i++) {
             FileWidget *existing_fw = reinterpret_cast<FileWidget *>(_files_widget->widget(i));
-            if (existing_fw->file_name().length() > 0)
-            {
+            if (existing_fw->file_name().length() > 0) {
                 QFileInfo existing_file_info(to_qt(existing_fw->file_name()));
                 if (existing_file_info.canonicalFilePath().length() > 0
-                        && file_info.canonicalFilePath() == existing_file_info.canonicalFilePath())
-                {
+                        && file_info.canonicalFilePath() == existing_file_info.canonicalFilePath()) {
                     QMessageBox::critical(this, "Error", "This file is currently opened. Close it first.");
                     file_name = QString();
                     break;
@@ -1316,7 +1370,7 @@ void GUI::export_to(const std::string &cmd, const std::vector<std::string> &opti
     }
 }
 
-void GUI::open(const std::string &file_name, const std::string &save_name, int tab_index)
+void GUI::open(const std::string &file_name, const std::string &save_name, int tab_index, bool view)
 {
     if (file_name.length() > 0)
     {
@@ -1336,7 +1390,8 @@ void GUI::open(const std::string &file_name, const std::string &save_name, int t
             }
         }
     }
-    std::vector<gta::header *> headers;
+    std::vector<gta::header*> headers;
+    std::vector<off_t> offsets;
     try
     {
         const std::string &name = (save_name.length() == 0 ? file_name : save_name);
@@ -1345,8 +1400,9 @@ void GUI::open(const std::string &file_name, const std::string &save_name, int t
             while (fio::has_more(f, name)) {
                 gta::header *hdr = new gta::header;
                 hdr->read_from(f);
-                hdr->skip_data(f);
                 headers.push_back(hdr);
+                offsets.push_back(fio::tell(f, name));
+                hdr->skip_data(f);
             }
         }
         catch (...) {
@@ -1363,8 +1419,9 @@ void GUI::open(const std::string &file_name, const std::string &save_name, int t
         }
         else
         {
-            FileWidget *fw = new FileWidget(file_name, save_name, headers);
+            FileWidget *fw = new FileWidget(file_name, save_name, headers, offsets);
             connect(fw, SIGNAL(changed(const std::string &, const std::string &)), this, SLOT(file_changed(const std::string &, const std::string &)));
+            connect(fw, SIGNAL(quit()), this, SLOT(close()));
             QString fn = to_qt(fio::basename(file_name));
             QString tn = (file_name.length() == 0 ? QString("(unnamed)") : fn);
             int ti = (tab_index >= 0 ? _files_widget->insertTab(tab_index, fw, tn) : _files_widget->addTab(fw, tn));
@@ -1372,6 +1429,8 @@ void GUI::open(const std::string &file_name, const std::string &save_name, int t
             _files_widget->setCurrentIndex(ti);
             if (file_name.compare(name) == 0)
                 _files_watcher->addPath(to_qt(file_name));
+            if (view)
+                static_cast<FileWidget*>(_files_widget->widget(ti))->open_view();
         }
     }
     catch (std::exception &e)
@@ -1415,6 +1474,7 @@ void GUI::file_save()
             gta::header dummy_header;
             dummy_header.read_from(fi);
             fw->headers()[i]->write_to(fo);
+            fw->offsets()[i] = fio::tell(fo, fio::to_sys(fw->file_name()) + ".tmp");
             dummy_header.copy_data(fi, *(fw->headers()[i]), fo);
         }
         /* This is a stupid and unsafe way to switch to the new file, but it works
@@ -1871,16 +1931,13 @@ void GUI::stream_split()
     file_dialog->setWindowTitle(tr("Split"));
     file_dialog->setAcceptMode(QFileDialog::AcceptSave);
     file_dialog->setFileMode(QFileDialog::DirectoryOnly);
-    if (_last_dir.exists())
-    {
-        file_dialog->setDirectory(_last_dir);
-    }
-    if (file_dialog->exec())
-    {
-        try
-        {
+    QDir last_dir = QDir(global_settings->value("general/last-dir").toString());
+    if (last_dir.exists())
+        file_dialog->setDirectory(last_dir);
+    if (file_dialog->exec()) {
+        try {
             QString dir_name = file_dialog->selectedFiles().at(0);
-            _last_dir = file_dialog->directory();
+            global_settings->setValue("general/last-dir", file_dialog->directory().path());
             FileWidget *fw = reinterpret_cast<FileWidget *>(_files_widget->currentWidget());
             std::vector<std::string> args;
             args.push_back(fio::to_sys(std::string(qPrintable(QDir(dir_name).canonicalPath())) + "/%9N.gta"));
@@ -1888,12 +1945,9 @@ void GUI::stream_split()
             std::string std_err;
             int retval = run("stream-split", args, std_err, NULL, NULL);
             if (retval != 0)
-            {
                 throw exc(std::string("<p>Command failed.</p><pre>") + std_err + "</pre>");
-            }
         }
-        catch (std::exception &e)
-        {
+        catch (std::exception &e) {
             QMessageBox::critical(this, "Error", QTextCodec::codecForLocale()->toUnicode(e.what()));
         }
     }
@@ -2769,7 +2823,7 @@ void GUI::help_about()
 {
     QMessageBox::about(this, tr("About " PACKAGE_NAME), tr(
                 "<p>This is %1 version %2, using libgta version %3.</p>"
-                "<p>Copyright (C) 2013 Martin Lambers.</p>"
+                "<p>Copyright (C) 2014 Martin Lambers.</p>"
                 "<p>See <a href=\"%4\">%4</a> for more information on this software.</p>"
                 "This is <a href=\"http://www.gnu.org/philosophy/free-sw.html\">free software</a>. "
                 "You may redistribute copies of it under the terms of the "
@@ -2778,38 +2832,104 @@ void GUI::help_about()
             .arg(PACKAGE_NAME).arg(VERSION).arg(gta::version()).arg(PACKAGE_URL));
 }
 
-extern int qInitResources();
-#if W32
+extern int qInitResources_gui();
+#if QT_VERSION >= 0x050000
+# if W32
 Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)
 Q_IMPORT_PLUGIN(AccessibleFactory)
+# endif
 #endif
+
+#if QT_VERSION < 0x050000
+static void qt_msg_handler(QtMsgType type, const char *msg)
+#else
+static void qt_msg_handler(QtMsgType type, const QMessageLogContext&, const QString& msg)
+#endif
+{
+#if QT_VERSION < 0x050000
+    std::string s = msg;
+#else
+    std::string s = qPrintable(msg);
+#endif
+    switch (type)
+    {
+    case QtDebugMsg:
+        msg::dbg(str::sanitize(s));
+        break;
+    case QtWarningMsg:
+        msg::wrn(str::sanitize(s));
+        break;
+    case QtCriticalMsg:
+        msg::err(str::sanitize(s));
+        break;
+    case QtFatalMsg:
+    default:
+        msg::err(str::sanitize(s));
+        std::exit(1);
+    }
+}
 
 extern "C" int gtatool_gui(int argc, char *argv[])
 {
 #ifdef Q_WS_X11
+    // This only works with Qt4; Qt5 ignores the 'have_display' flag.
     const char *display = getenv("DISPLAY");
     bool have_display = (display && display[0] != '\0');
 #else
     bool have_display = true;
 #endif
+#ifdef Q_OS_UNIX
+    setenv("__GL_SYNC_TO_VBLANK", "0", 1);                      // for the 'view' command; works on Linux
+#endif
+    QCoreApplication::setAttribute(Qt::AA_X11InitThreads);      // for the 'view' command on X11
     /* Let Qt handle the command line first, so that Qt options work */
+#if QT_VERSION < 0x050000
+    qInstallMsgHandler(qt_msg_handler);
+#else
+    qInstallMessageHandler(qt_msg_handler);
+#endif
     QApplication *app = new QApplication(argc, argv, have_display);
+#if QT_VERSION < 0x050000
+    // Make Qt4 behave like Qt5: always interpret all C strings as UTF-8.
+    QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+#endif
+    // Set the correct encoding for the locale. Required e.g. for qPrintable() to work.
+    QTextCodec::setCodecForLocale(QTextCodec::codecForName(str::localcharset().c_str()));
+    QCoreApplication::setOrganizationName(PACKAGE_TARNAME);
+    QCoreApplication::setApplicationName(PACKAGE_TARNAME);
+    global_settings = new QSettings;
     /* Force linking of the Qt resources. Necessary if dynamic modules are disabled. */
-    qInitResources();
-    /* Now handle our own command line options / arguments */
+    qInitResources_gui();
+    /* Now handle our own command line options / arguments.
+     * Accept and ignore some options that may be passed to Equalizer from the view command. */
     std::vector<opt::option *> options;
     opt::info help("help", '\0', opt::optional);
     options.push_back(&help);
+    opt::val<std::string> eq_server("eq-server", '\0', opt::optional);
+    options.push_back(&eq_server);
+    opt::val<std::string> eq_config("eq-config", '\0', opt::optional);
+    options.push_back(&eq_config);
+    opt::val<std::string> eq_listen("eq-listen", '\0', opt::optional);
+    options.push_back(&eq_listen);
+    opt::val<std::string> eq_logfile("eq-logfile", '\0', opt::optional);
+    options.push_back(&eq_logfile);
+    opt::val<std::string> eq_render_client("eq-render-client", '\0', opt::optional);
+    options.push_back(&eq_render_client);
     std::vector<std::string> arguments;
     if (!opt::parse(argc, argv, options, -1, -1, arguments))
     {
         delete app;
+        delete global_settings;
         return 1;
     }
     if (help.value())
     {
-        gtatool_gui_help();
+        if (::strcmp(argv[0], "view") == 0)
+            cmd_run_help(cmd_find("view"));
+        else
+            gtatool_gui_help();
         delete app;
+        delete global_settings;
         return 0;
     }
     /* Run the GUI */
@@ -2817,6 +2937,7 @@ extern "C" int gtatool_gui(int argc, char *argv[])
     {
         msg::err_txt("GUI failure: cannot connect to X server");
         delete app;
+        delete global_settings;
         return 1;
     }
 #if W32
@@ -2837,13 +2958,11 @@ extern "C" int gtatool_gui(int argc, char *argv[])
     int retval = 0;
     try
     {
-        // Set the correct encoding for the locale. Required e.g. for qPrintable() to work.
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName(str::localcharset().c_str()));
         GUI *gui = new GUI();
         gui->show();
-        for (size_t i = 0; i < arguments.size(); i++)
-        {
-            gui->open(fio::from_sys(arguments[i]), fio::from_sys(arguments[i]));
+        bool view = (::strcmp(argv[0], "view") == 0);
+        for (size_t i = 0; i < arguments.size(); i++) {
+            gui->open(fio::from_sys(arguments[i]), fio::from_sys(arguments[i]), -1, view);
         }
         retval = app->exec();
         delete gui;
@@ -2858,6 +2977,11 @@ extern "C" int gtatool_gui(int argc, char *argv[])
         msg::err_txt("GUI failure");
         retval = 1;
     }
+#if DYNAMIC_MODULES
+    if (gtatool_view_create && ::strcmp(argv[0], "view") != 0)
+        cmd_close(cmd_find("view"));
+#endif
     delete app;
+    delete global_settings;
     return retval;
 }

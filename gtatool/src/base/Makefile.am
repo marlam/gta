@@ -5,6 +5,7 @@
 # permitted in any medium without royalty provided the copyright notice and this
 # notice are preserved. This file is offered as-is, without any warranty.
 
+AM_CPPFLAGS = -I$(top_srcdir)/src
 noinst_LTLIBRARIES = libbase.la
 libbase_la_SOURCES = \
 	blb.h \

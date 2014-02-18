@@ -55,10 +55,10 @@
 # include <sys/locking.h>
 #endif
 
-#include "exc.h"
-#include "dbg.h"
-#include "msg.h"
-#include "fio.h"
+#include "base/exc.h"
+#include "base/dbg.h"
+#include "base/msg.h"
+#include "base/fio.h"
 
 
 /* Define some POSIX functionality that is missing on W32 */

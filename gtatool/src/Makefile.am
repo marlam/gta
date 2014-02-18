@@ -23,7 +23,12 @@ AM_CPPFLAGS = -I$(top_srcdir)/src -DPKGLIBDIR=\"$(pkglibdir)\" \
 	$(libpcl_io_CFLAGS) \
 	$(libpfs_CFLAGS) \
 	$(libsndfile_CFLAGS) \
-	$(libteem_CFLAGS)
+	$(libteem_CFLAGS) \
+	$(libqtopengl_CFLAGS) \
+	$(libglewmx_CFLAGS) \
+	$(libequalizer_CFLAGS) \
+	$(libgls_CFLAGS) \
+	$(libgl_CFLAGS)
 
 #
 # The gta program
@@ -113,27 +118,27 @@ endif
 if WITH_QT
 moc_verbose = $(moc_verbose_$(V))
 moc_verbose_ = $(moc_verbose_$(AM_DEFAULT_VERBOSITY))
-moc_verbose_0 = @echo "  MOC   " $@;
-%.moc.cpp: %.h
-	@$(MKDIR_P) gui
+moc_verbose_0 = @echo "  MOC     " $@;
+%.moc.cpp: %.hpp
+	@$(MKDIR_P) gui view
 	$(moc_verbose)$(MOC) -o $@ $<
 rcc_verbose = $(rcc_verbose_$(V))
 rcc_verbose_ = $(rcc_verbose_$(AM_DEFAULT_VERBOSITY))
-rcc_verbose_0 = @echo "  RCC   " $@;
+rcc_verbose_0 = @echo "  RCC     " $@;
 %.resources.cpp: %.qrc
-	@$(MKDIR_P) gui
-	$(rcc_verbose)$(RCC) -o $@ $<
+	@$(MKDIR_P) gui view
+	$(rcc_verbose)$(RCC) -o $@ -name $(basename $(notdir $<)) $<
 GUI_BUILT_SOURCES = gui/gui.moc.cpp gui/gui.resources.cpp
 BUILT_SOURCES += $(GUI_BUILT_SOURCES)
 CLEANFILES += $(GUI_BUILT_SOURCES)
 EXTRA_DIST += gui/gui.qrc
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += gui.la
-gui_la_SOURCES = gui/gui.h gui/gui.cpp
+gui_la_SOURCES = gui/gui.hpp gui/gui.cpp gui/viewwidget.hpp
 nodist_gui_la_SOURCES = $(GUI_BUILT_SOURCES)
 gui_la_LIBADD = $(libqtgui_LIBS)
 else
-libbuiltin_la_SOURCES += gui/gui.h gui/gui.cpp
+libbuiltin_la_SOURCES += gui/gui.hpp gui/gui.cpp gui/viewwidget.hpp
 nodist_libbuiltin_la_SOURCES += $(GUI_BUILT_SOURCES)
 libbuiltin_la_LIBADD += $(libqtgui_LIBS)
 endif
@@ -156,6 +161,62 @@ update-desktop-database:
 	test -n "$(DESTDIR)" -o -z "$(UPDATE_DESKTOP_DATABASE)" || (umask 022 && $(UPDATE_DESKTOP_DATABASE) "$(appdatadir)")
 install-data-hook: update-icon-cache update-desktop-database
 uninstall-hook: update-icon-cache update-desktop-database
+endif
+
+if WITH_QTOPENGL
+if WITH_GLEWMX
+%.glsl.h: %.glsl
+	$(AM_V_GEN)MACRONAME="`echo $< | sed -e s/^.*\\\/// -e s/\\\.glsl$$// -e s/[\\\.-]/_/g | tr [a-z] [A-Z]`_GLSL_STR"; \
+	(echo "/* GENERATED AUTOMATICALLY FROM $< */"; \
+	 echo "#ifndef $$MACRONAME"; \
+	 echo "#define $$MACRONAME \\"; \
+	 sed -e s/\\\\/\\\\\\\\/g \
+	     -e s/\"/\\\\\"/g \
+	     -e s/^/\"/ \
+	     -e s/$$/\\\\n\"\\\\/ < $<; \
+	 echo \"\"; \
+	 echo "#endif") > $@
+AM_CPPFLAGS += -I$(top_srcdir)/src/view -I$(top_builddir)/src/view
+VIEW_SOURCES = \
+	view/view.cpp view/widget.hpp view/widget.cpp \
+	view/minmaxhist.hpp view/minmaxhist.cpp \
+	view/mode_2d_widget.hpp view/mode_2d_widget.cpp \
+	view/viewparams.hpp view/viewparams.cpp \
+	view/renderer.hpp view/renderer.cpp \
+	view/glwidget.hpp view/glwidget.cpp \
+	view/xqglwidget.hpp view/xqglwidget.cpp \
+	view/xgl/glmanager.hpp view/xgl/glmanager.cpp \
+	view/xgl/glcontext.hpp view/xgl/glrenderer.hpp view/xgl/glwindow.hpp view/xgl/glnavigator.hpp \
+	view/xgl/glvm.hpp view/xgl/glvm-ser.hpp \
+	view/xgl/navigator.hpp view/xgl/navigator.cpp \
+	view/base/ser.h view/base/ser.cpp \
+	view/base/tmr.h view/base/tmr.cpp \
+	view/base/sys.h view/base/sys.cpp
+if WITH_EQUALIZER
+VIEW_SOURCES += \
+	view/eq/eqwindow.hpp view/eq/eqwindow.cpp \
+	view/eq/tracking-eqevent.hpp view/eq/tracking-eqevent.cpp \
+	view/eq/tracking.hpp view/eq/tracking.cpp
+endif
+VIEW_BUILT_SOURCES = gui/viewwidget.moc.cpp view/widget.moc.cpp \
+	view/mode_2d_widget.moc.cpp view/glwidget.moc.cpp view/xqglwidget.moc.cpp \
+	view/view.resources.cpp \
+	view/mode_2d_fs.glsl.h
+EXTRA_DIST += view/view.qrc \
+	view/mode_2d_fs.glsl
+BUILT_SOURCES += $(VIEW_BUILT_SOURCES)
+CLEANFILES += $(VIEW_BUILT_SOURCES)
+if DYNAMIC_MODULES
+pkglib_LTLIBRARIES += view.la
+view_la_SOURCES = $(VIEW_SOURCES)
+nodist_view_la_SOURCES = $(VIEW_BUILT_SOURCES)
+view_la_LIBADD = $(libqtopengl_LIBS) $(libqtgui_LIBS) $(libequalizer_LIBS) $(libgls_LIBS) $(libglewmx_LIBS) $(libgl_LIBS)
+else
+libbuiltin_la_SOURCES += $(VIEW_SOURCES)
+nodist_libbuiltin_la_SOURCES += $(VIEW_BUILT_SOURCES)
+libbuiltin_la_LIBADD += $(libqtopengl_LIBS) $(libqtgui_LIBS) $(libequalizer_LIBS) $(libgls_LIBS) $(libglewmx_LIBS) $(libgl_LIBS)
+endif
+endif
 endif
 
 if WITH_CSV

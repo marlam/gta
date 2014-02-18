@@ -21,11 +21,11 @@
 #include <cstring>
 #include <cerrno>
 
-#include "gettext.h"
+#include "base/gettext.h"
 #define _(string) gettext(string)
 
-#include "msg.h"
-#include "exc.h"
+#include "base/msg.h"
+#include "base/exc.h"
 
 
 const char *exc::_fallback_str = strerror(ENOMEM);

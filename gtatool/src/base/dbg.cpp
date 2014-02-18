@@ -34,11 +34,11 @@
 # include <signal.h>
 #endif
 
-#include "gettext.h"
+#include "base/gettext.h"
 #define _(string) gettext(string)
 
-#include "msg.h"
-#include "dbg.h"
+#include "base/msg.h"
+#include "base/dbg.h"
 
 
 namespace dbg

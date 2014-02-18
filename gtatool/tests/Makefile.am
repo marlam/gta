@@ -45,6 +45,9 @@ TESTS += gta-component-compute.sh
 endif
 if WITH_QT
 TESTS += gta-gui.sh
+if WITH_GLEWMX
+TESTS += gta-view.sh
+endif
 endif
 
 if WITH_CSV

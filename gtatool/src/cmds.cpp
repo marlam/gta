@@ -152,6 +152,7 @@ CMD_DECL(to_sndfile)
 CMD_DECL(to_teem)
 CMD_DECL(uncompress)
 CMD_DECL(version)
+CMD_DECL(view)
 
 static cmd_t cmds[] =
 {
@@ -303,6 +304,8 @@ static cmd_t cmds[] =
             "Uncompress arrays"),
     CMD("version",           cmd_misc,       version,           true,          BUILTIN,
             "Show program version"),
+    CMD("view",              cmd_misc,       view,              WITH_QTOPENGL && WITH_GLEWMX,   "view",
+            "Visualize GTAs"),
 };
 
 
@@ -417,6 +420,13 @@ int cmd_run(int cmd_index, int argc, char *argv[])
 {
     return cmds[cmd_index].cmd(argc, argv);
 }
+
+#if DYNAMIC_MODULES
+void* cmd_symbol(int cmd_index, const char* symbol)
+{
+    return dlsym(cmds[cmd_index].module_handle, symbol);
+}
+#endif
 
 void cmd_close(int cmd_index)
 {

@@ -68,6 +68,11 @@ void cmd_run_help(int cmd_index);
 /* Execute the previously opened command with the given index. */
 int cmd_run(int cmd_index, int argc, char *argv[]);
 
+/* Get a symbol from a command module. */
+#if DYNAMIC_MODULES
+void* cmd_symbol(int cmd_index, const char* symbol);
+#endif
+
 /* Close a previously opened command. */
 void cmd_close(int cmd_index);
 

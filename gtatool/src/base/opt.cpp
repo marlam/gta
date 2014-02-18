@@ -33,9 +33,9 @@
 #undef required_argument
 #undef optional_argument
 
-#include "dbg.h"
-#include "msg.h"
-#include "opt.h"
+#include "base/dbg.h"
+#include "base/msg.h"
+#include "base/opt.h"
 
 
 namespace opt

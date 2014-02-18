@@ -43,6 +43,10 @@
 
 #include <gta/gta.hpp>
 
+#include "base/fio.h" // for a fixed off_t on W32
+
+class ViewWidget;
+
 
 class MyTabWidget : public QTabWidget
 {
@@ -127,21 +131,26 @@ private:
     std::string _save_name;
     bool _is_changed;
     std::vector<gta::header *> _headers;
+    std::vector<off_t> _offsets;
     std::vector<bool> _array_changed;
     QLabel *_array_label;
     QSpinBox *_array_spinbox;
     QGridLayout *_array_widget_layout;
     ArrayWidget* _array_widget;
+    QPushButton *_view_button;
+    ViewWidget* _view_widget;
 
 private slots:
     void update_label();
     void update_array();
     void array_changed(size_t index);
+    void view_closed();
+    void request_quit();
 
 public:
 
     FileWidget(const std::string &file_name, const std::string &save_name,
-            const std::vector<gta::header *> &headers,
+            const std::vector<gta::header*>& headers, const std::vector<off_t>& offsets,
             QWidget *parent = NULL);
     ~FileWidget();
 
@@ -170,6 +179,11 @@ public:
         return _headers;
     }
 
+    std::vector<off_t> &offsets()
+    {
+        return _offsets;
+    }
+
     int array_index() const
     {
         return _array_spinbox->value();
@@ -179,8 +193,12 @@ public:
 
     void saved_to(const std::string &save_name);
 
+public slots:
+    void open_view();
+
 signals:
     void changed(const std::string &file_name, const std::string &save_name);
+    void quit();
 };
 
 class GUI : public QMainWindow
@@ -190,7 +208,6 @@ Q_OBJECT
 private:
     MyTabWidget *_files_widget;
     QFileSystemWatcher* _files_watcher;
-    QDir _last_dir;
 
     bool check_have_file();
     bool check_file_unchanged();
@@ -210,13 +227,13 @@ private slots:
     void tab_close(int index);
 
 protected:
-    void closeEvent(QCloseEvent *event);	
-	
+    void closeEvent(QCloseEvent *event);
+
 public:
     GUI();
     ~GUI();
 
-    void open(const std::string &file_name, const std::string &save_name, int tab_index = -1);
+    void open(const std::string &file_name, const std::string &save_name, int tab_index = -1, bool view = false);
 
 private slots:
     void file_open();

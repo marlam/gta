@@ -42,14 +42,14 @@
 # include <iconv.h>
 #endif
 
-#include "gettext.h"
+#include "base/gettext.h"
 #define _(string) gettext(string)
 
-#include "dbg.h"
-#include "exc.h"
-#include "msg.h"
+#include "base/dbg.h"
+#include "base/exc.h"
+#include "base/msg.h"
 
-#include "str.h"
+#include "base/str.h"
 
 
 #if HAVE_VASPRINTF

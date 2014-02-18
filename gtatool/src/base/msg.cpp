@@ -22,9 +22,9 @@
 #include <cstdlib>
 #include <cstdio>
 
-#include "dbg.h"
-#include "str.h"
-#include "msg.h"
+#include "base/dbg.h"
+#include "base/str.h"
+#include "base/msg.h"
 
 
 namespace msg

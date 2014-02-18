@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -34,6 +34,10 @@
 
 // The name of the binary of this program.
 extern char *program_name;
+
+/* For Equalizer, we need to preserve the original contents of argc and argv. */
+extern int* gtatool_argc;
+extern char** gtatool_argv;
 
 /* We need to redirect stdin/stdout when calling commands from the GUI.
  * However, assigning override values to stdin/stdout is not portable because

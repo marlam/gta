@@ -22,8 +22,8 @@
 #include <cassert>
 
 #ifndef NDEBUG
-# include "msg.h"
-# include "str.h"
+# include "base/msg.h"
+# include "base/str.h"
 #endif
 
 #undef assert
