@@ -1,4 +1,4 @@
-# Copyright (C) 2010, 2011, 2012, 2013
+# Copyright (C) 2010, 2011, 2012, 2013, 2014
 # Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -241,10 +241,10 @@ if WITH_DCMTK
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-dcmtk.la
 conv_dcmtk_la_SOURCES = conv-dcmtk/from-dcmtk.cpp
-conv_dcmtk_la_LIBADD = $(LTLIBDCMIMGLE)
+conv_dcmtk_la_LIBADD = $(LTLIBDCMIMAGE)
 else
 libbuiltin_la_SOURCES += conv-dcmtk/from-dcmtk.cpp
-libbuiltin_la_LIBADD += $(LTLIBDCMIMGLE)
+libbuiltin_la_LIBADD += $(LTLIBDCMIMAGE)
 endif
 endif
 
