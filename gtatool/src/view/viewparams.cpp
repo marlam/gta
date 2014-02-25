@@ -43,9 +43,9 @@ void ViewParameters::set_mode(mode_t m, const gta::header& hdr, const MinMaxHist
         // Determine sample aspect ratio
         mode_2d_global.sample_aspect = 1.0f;
         if ((tagval = hdr.dimension_taglist(0).get("SAMPLE-DISTANCE")))
-            mode_2d_global.sample_aspect *= std::atof(tagval);
+            mode_2d_global.sample_aspect *= static_cast<float>(std::atof(tagval));
         if ((tagval = hdr.dimension_taglist(1).get("SAMPLE-DISTANCE")))
-            mode_2d_global.sample_aspect /= std::atof(tagval);
+            mode_2d_global.sample_aspect /= static_cast<float>(std::atof(tagval));
         if (!std::isfinite(mode_2d_global.sample_aspect))
             mode_2d_global.sample_aspect = 1.0f;
         // Find color components

@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011, 2012, 2013
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -117,7 +117,7 @@ static uint64_t to_uint64(const void *val, gta::type type, uint64_t normalizatio
             std::memcpy(&v, val, sizeof(double));
             if (normalization_max)
                 v *= normalization_max;
-            x = ((!std::isfinite(v) || v < 0.0f) ? 0 : v);
+            x = ((!std::isfinite(v) || v < 0.0) ? 0 : v);
         }
         break;
     default:
@@ -206,9 +206,9 @@ static int64_t to_int64(const void *val, gta::type type, int64_t normalization_m
         {
             double v;
             std::memcpy(&v, val, sizeof(double));
-            if (normalization_min && v < 0.0f)
-                v *= -1.0f * normalization_min;
-            if (normalization_max && v > 0.0f)
+            if (normalization_min && v < 0.0)
+                v *= -1.0 * normalization_min;
+            if (normalization_max && v > 0.0)
                 v *= normalization_max;
             x = (!std::isfinite(v) ? 0 : v);
         }
