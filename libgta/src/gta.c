@@ -4,7 +4,7 @@
  * This file is part of libgta, a library that implements the Generic Tagged
  * Array (GTA) file format.
  *
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2014
  * Martin Lambers <marlam@marlam.de>
  *
  * Libgta is free software: you can redistribute it and/or modify it under the
@@ -29,8 +29,10 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
-#include <unistd.h>
 #include <errno.h>
+#ifndef _MSC_VER
+#   include <unistd.h>
+#endif
 
 #include <zlib.h>
 
@@ -48,16 +50,21 @@
 #include "gta/gta.h"
 
 /* Work around Windows deficiencies.  */
+#ifdef _MSC_VER
+#   pragma warning(disable : 4244 4996)
+#   define ssize_t intmax_t
+#   define inline
+#endif
 #if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__
 #   ifndef EOVERFLOW
 #       define EOVERFLOW EFBIG
 #   endif
 #   undef off_t
-#   define off_t off64_t
+#   define off_t intmax_t
 #   undef fseeko
-#   define fseeko(stream, offset, whence) fseeko64(stream, offset, whence)
+#   define fseeko(stream, offset, whence) _fseeki64(stream, offset, whence)
 #   undef ftello
-#   define ftello(stream) ftello64(stream)
+#   define ftello(stream) _ftelli64(stream)
 #   undef lseek
 #   define lseek(fd, offset, whence) _lseeki64(fd, offset, whence)
 #   ifndef SSIZE_MAX
