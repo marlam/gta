@@ -1,4 +1,4 @@
-# Copyright (C) 2010, 2011
+# Copyright (C) 2010, 2011, 2014
 # Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -6,6 +6,8 @@
 # notice are preserved. This file is offered as-is, without any warranty.
 
 SUBDIRS = doc src tests
+
+EXTRA_DIST = CMakeLists.txt
 
 fuzztest:
 	$(MAKE) -C tests fuzztest
