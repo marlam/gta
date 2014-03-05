@@ -843,25 +843,16 @@ gta_swap_component_endianness(const gta_header_t *header, uintmax_t i, void *GTA
         gta_swap_endianness_128(component);
         break;
     case GTA_CFLOAT32:
-        {
-            uint32_t *u32 = component;
-            gta_swap_endianness_32(u32 + 0);
-            gta_swap_endianness_32(u32 + 1);
-        }
+        gta_swap_endianness_32(component);
+        gta_swap_endianness_32((char *)component + 4);
         break;
     case GTA_CFLOAT64:
-        {
-            uint64_t *u64 = component;
-            gta_swap_endianness_64(u64 + 0);
-            gta_swap_endianness_64(u64 + 1);
-        }
+        gta_swap_endianness_64(component);
+        gta_swap_endianness_64((char *)component + 8);
         break;
     case GTA_CFLOAT128:
-        {
-            uint64_t *u64 = component;
-            gta_swap_endianness_128(u64 + 0);
-            gta_swap_endianness_128(u64 + 2);
-        }
+        gta_swap_endianness_128(component);
+        gta_swap_endianness_128((char *)component + 16);
         break;
     }
 }
