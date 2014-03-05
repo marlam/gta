@@ -23,11 +23,6 @@
 
 #include "config.h"
 
-/* Get _fseeki64 and ftelli64 on MinGW */
-#if defined(__MINGW32__) && !defined(__MSVCRT_VERSION__)
-#    define __MSVCRT_VERSION__ 0x0800
-#endif
-
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -67,9 +62,14 @@
 #   undef off_t
 #   define off_t intmax_t
 #   undef fseeko
-#   define fseeko(stream, offset, whence) _fseeki64(stream, offset, whence)
 #   undef ftello
-#   define ftello(stream) _ftelli64(stream)
+#   if defined(_MSC_VER) || defined(__MINGW64_VERSION_MAJOR)
+#       define fseeko(stream, offset, whence) _fseeki64(stream, offset, whence)
+#       define ftello(stream) _ftelli64(stream)
+#   else
+#       define fseeko(stream, offset, whence) fseeko64(stream, offset, whence)
+#       define ftello(stream) ftello64(stream)
+#   endif
 #   undef lseek
 #   define lseek(fd, offset, whence) _lseeki64(fd, offset, whence)
 #   ifndef SSIZE_MAX
