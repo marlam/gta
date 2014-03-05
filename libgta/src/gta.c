@@ -52,7 +52,7 @@
 /* Work around Windows deficiencies.  */
 #ifdef _MSC_VER
 #   pragma warning(disable : 4244 4996)
-#   define ssize_t intmax_t
+#   define ssize_t intptr_t
 #   define inline
 #endif
 #if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__
