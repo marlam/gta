@@ -23,6 +23,11 @@
 
 #include "config.h"
 
+/* Get _fseeki64 and ftelli64 on MinGW */
+#if defined(__MINGW32__) && !defined(__MSVCRT_VERSION__)
+#    define __MSVCRT_VERSION__ 0x0800
+#endif
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
