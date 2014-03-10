@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013
+ * Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -114,7 +114,6 @@ CMD_DECL(from_netpbm)
 CMD_DECL(from_pcd)
 CMD_DECL(from_pfs)
 CMD_DECL(from_ply)
-CMD_DECL(from_pmd)
 CMD_DECL(from_pvm)
 CMD_DECL(from_rat)
 CMD_DECL(from_raw)
@@ -228,8 +227,6 @@ static cmd_t cmds[] =
             "Import arrays from PFS images"),
     CMD("from-ply",          cmd_conversion, from_ply,          WITH_PLY,      "conv-ply",
             "Import arrays from PLY point data"),
-    CMD("from-pmd",          cmd_conversion, from_pmd,          WITH_PMD,      "conv-pmd",
-            "Import arrays from PMD ToF sensor data files"),
     CMD("from-pvm",          cmd_conversion, from_pvm,          WITH_PVM,      "conv-pvm",
             "Import arrays from PVM volume data"),
     CMD("from-rat",          cmd_conversion, from_rat,          WITH_RAT,      "conv-rat",

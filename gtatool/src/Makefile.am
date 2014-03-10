@@ -375,15 +375,6 @@ libbuiltin_la_SOURCES += conv-ply/from-ply.cpp conv-ply/to-ply.cpp conv-ply/ply.
 endif
 endif
 
-if WITH_PMD
-if DYNAMIC_MODULES
-pkglib_LTLIBRARIES += conv-pmd.la
-conv_pmd_la_SOURCES = conv-pmd/from-pmd.cpp
-else
-libbuiltin_la_SOURCES += conv-pmd/from-pmd.cpp
-endif
-endif
-
 if WITH_PVM
 EXTRA_DIST += conv-pvm/README
 if DYNAMIC_MODULES
