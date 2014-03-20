@@ -112,6 +112,10 @@ namespace str
     std::string human_readable_geodetic(double lat, double lon, double elev);
     std::string human_readable_time(long long microseconds);
 
+    /* Create an RFC2822-style time string, like "Fri,  4 Dec 2009 22:29:43 +0100 (CET)".
+     * This string is locale independent. */
+    std::string rfc2822_time(time_t t);
+
     /* Get the name of the user's character set */
     std::string localcharset();
 
