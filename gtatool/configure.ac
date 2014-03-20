@@ -462,6 +462,22 @@ AC_ARG_WITH([ply],
 AC_DEFINE_UNQUOTED([WITH_PLY], [`if test "$ply" = "yes"; then echo "1"; else echo "0"; fi`], [Use ply?])
 AM_CONDITIONAL([WITH_PLY], [test "$ply" = "yes"])
 
+dnl conv-pmd
+AC_ARG_WITH([pmd],
+    [AS_HELP_STRING([--with-pmd], [Enable PMD import. Disabled by default. Requires the proprietary libpmdaccess2.])],
+    [if test "$withval" = "yes"; then pmd="yes"; else pmd="no "; fi], [pmd="no "])
+if test "$pmd" = "yes"; then
+    AC_LIB_FROMPACKAGE([pmdaccess2], [pmdaccess2])
+    AC_LIB_HAVE_LINKFLAGS([pmdaccess2], [], [#include <pmdsdk2.h>], [pmdOpen(0, 0, 0, 0, 0);])
+    if test "$HAVE_LIBPMDACCESS2" != "yes"; then
+        pmd="no "
+        AC_MSG_WARN([pmdaccess2 library not found.])
+        AC_MSG_WARN([Disabled the from-pmd command.])
+    fi
+fi
+AC_DEFINE_UNQUOTED([WITH_PMD], [`if test "$pmd" = "yes"; then echo "1"; else echo "0"; fi`], [Use pmd?])
+AM_CONDITIONAL([WITH_PMD], [test "$pmd" = "yes"])
+
 dnl conv-pvm
 AC_ARG_WITH([pvm],
     [AS_HELP_STRING([--with-pvm], [Enable PVM import/export. Enabled by default.])],
@@ -648,6 +664,7 @@ echo "from-netpbm, to-netpbm:  " "$netpbm" "(Requires NetPBM)"
 echo "from-pcd, to-pcd:        " "$pcd" "(Requires the Point Cloud Library IO module libpcl_io)"
 echo "from-pfs, to-pfs:        " "$pfs" "(Requires pfstools)"
 echo "from-ply, to-ply:        " "$ply" ""
+echo "from-pmd:                " "$pmd" "(Requires the proprietary PMD SDK)"
 echo "from-pvm, to-pvm:        " "$pvm" ""
 echo "from-rat, to-rat:        " "$rat" ""
 echo "from-raw, to-raw:        " "$raw" ""

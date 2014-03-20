@@ -114,6 +114,7 @@ CMD_DECL(from_netpbm)
 CMD_DECL(from_pcd)
 CMD_DECL(from_pfs)
 CMD_DECL(from_ply)
+CMD_DECL(from_pmd)
 CMD_DECL(from_pvm)
 CMD_DECL(from_rat)
 CMD_DECL(from_raw)
@@ -227,6 +228,8 @@ static cmd_t cmds[] =
             "Import arrays from PFS images"),
     CMD("from-ply",          cmd_conversion, from_ply,          WITH_PLY,      "conv-ply",
             "Import arrays from PLY point data"),
+    CMD("from-pmd",          cmd_conversion, from_pmd,          WITH_PMD,      "conv-pmd",
+            "Import arrays from PMD ToF sensor data files"),
     CMD("from-pvm",          cmd_conversion, from_pvm,          WITH_PVM,      "conv-pvm",
             "Import arrays from PVM volume data"),
     CMD("from-rat",          cmd_conversion, from_rat,          WITH_RAT,      "conv-rat",

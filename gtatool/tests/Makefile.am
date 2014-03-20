@@ -92,6 +92,9 @@ endif
 if WITH_PLY
 TESTS += conv-ply.sh
 endif
+if WITH_PMD
+TESTS += conv-pmd.sh
+endif
 if WITH_PVM
 TESTS += conv-pvm.sh
 endif
