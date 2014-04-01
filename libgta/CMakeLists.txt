@@ -56,8 +56,8 @@ if(GTA_BUILD_SHARED_LIB)
   set_target_properties(libgta_shared PROPERTIES SOVERSION ${GTA_LIB_SOVERSION})  
   install(TARGETS libgta_shared
     RUNTIME DESTINATION bin
-    LIBRARY DESTINATION "lib"
-    ARCHIVE DESTINATION "lib"
+    LIBRARY DESTINATION "lib${LIB_SUFFIX}"
+    ARCHIVE DESTINATION "lib${LIB_SUFFIX}"
   )
 endif()
 if(GTA_BUILD_STATIC_LIB)
@@ -65,15 +65,15 @@ if(GTA_BUILD_STATIC_LIB)
   set_target_properties(libgta_static PROPERTIES OUTPUT_NAME gta)
   install(TARGETS libgta_static
     RUNTIME DESTINATION bin
-    LIBRARY DESTINATION "lib"
-    ARCHIVE DESTINATION "lib"
+    LIBRARY DESTINATION "lib${LIB_SUFFIX}"
+    ARCHIVE DESTINATION "lib${LIB_SUFFIX}"
   )
 endif()
 install(FILES src/gta/gta.h "${CMAKE_BINARY_DIR}/src/gta/gta_version.h" DESTINATION include/gta)
 # pkg-config file: gta.pc
 set(prefix "${CMAKE_INSTALL_PREFIX}")
 set(exec_prefix "\${prefix}")
-set(libdir "\${exec_prefix}/lib")
+set(libdir "\${exec_prefix}/lib${LIB_SUFFIX}")
 set(includedir "\${prefix}/include")
 set(GTA_PKGCONFIG_LIBRARIES_PRIVATE "")
 foreach(GTA_PKGCONFIG_LIBRARY_PRIV ${LIBLZMA_LIBRARIES} ${BZIP2_LIBRARIES} ${ZLIB_LIBRARIES})
@@ -81,7 +81,7 @@ foreach(GTA_PKGCONFIG_LIBRARY_PRIV ${LIBLZMA_LIBRARIES} ${BZIP2_LIBRARIES} ${ZLI
 endforeach()
 set(LTLIBLZMA ${GTA_PKGCONFIG_LIBRARIES_PRIVATE}) # for compatibility for libtool; see gta.pc.in
 configure_file("${CMAKE_SOURCE_DIR}/src/gta.pc.in" "${CMAKE_BINARY_DIR}/src/gta.pc" @ONLY)
-install(FILES "${CMAKE_BINARY_DIR}/src/gta.pc" DESTINATION lib/pkgconfig)
+install(FILES "${CMAKE_BINARY_DIR}/src/gta.pc" DESTINATION lib${LIB_SUFFIX}/pkgconfig)
 
 # Optional target: reference documentation
 if(GTA_BUILD_DOCUMENTATION)
