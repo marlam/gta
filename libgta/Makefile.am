@@ -9,6 +9,9 @@ SUBDIRS = doc src tests
 
 EXTRA_DIST = CMakeLists.txt
 
+cmakedir = $(datadir)/$(PACKAGE)/cmake
+cmake_DATA = cmake/FindGTA.cmake
+
 fuzztest:
 	$(MAKE) -C tests fuzztest
 

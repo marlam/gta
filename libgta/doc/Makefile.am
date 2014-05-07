@@ -1,4 +1,4 @@
-# Copyright (C) 2010, 2011
+# Copyright (C) 2010, 2011, 2014
 # Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -7,7 +7,7 @@
 
 EXTRA_DIST = doxyfile.in
 
-dist_doc_DATA = FindGTA.cmake \
+dist_doc_DATA = \
 	example-basic.c example-basic.cpp \
 	example-tags.c example-tags.cpp \
 	example-stream-io.c example-stream-io.cpp \
