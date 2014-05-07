@@ -96,7 +96,7 @@ if(GTA_BUILD_DOCUMENTATION)
   )
   add_custom_target(doc ALL DEPENDS "${CMAKE_BINARY_DIR}/doc/reference/index.html")
   install(DIRECTORY "${CMAKE_BINARY_DIR}/doc/reference" DESTINATION share/doc/libgta)
-  install(FILES "${CMAKE_SOURCE_DIR}/doc/FindGTA.cmake" DESTINATION share/doc/libgta)
+  install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindGTA.cmake" DESTINATION share/libgta/cmake)
 endif()
 
 # Extra target: 'make dist' for making
