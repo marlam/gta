@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2011, 2012, 2013
+ * Copyright (C) 2011, 2012, 2013, 2014
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -120,6 +120,12 @@ extern "C" int gtatool_to_ply(int argc, char *argv[])
                     tagval = "alpha";
                 else if (!tagval.empty() && tagval.substr(0, 2) == "X-")
                     tagval = tagval.substr(2);
+                else if (tagval.empty() && hdr.components() == 3 && i == 0)
+                    tagval = "x";
+                else if (tagval.empty() && hdr.components() == 3 && i == 1)
+                    tagval = "y";
+                else if (tagval.empty() && hdr.components() == 3 && i == 2)
+                    tagval = "z";
                 else if (tagval.empty())
                     tagval = std::string("component-") + str::from(i);
                 prop.name = tagval.c_str();
