@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2013
+ * Copyright (C) 2013, 2014
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -42,8 +42,8 @@ extern "C" void gtatool_combine_help(void)
             "The GTAs must be compatible in dimensions and component types. This command produces "
             "output GTAs of the same kind. Each component will contain the result of combining "
             "the corresponding components in the input GTAs.\n"
-            "Beware of limitations of the integer type range! If a difference cannot be represented "
-            "in the given component type (e.g. 10 - 20 in uint8), this command will abort by default. "
+            "Beware of limitations of the integer type range! If a combination result cannot be represented "
+            "in the given component type (e.g. 200+100 or 10-20 in uint8), this command will abort by default. "
             "Use -f to force clamping of values to the representable range instead, or use the "
             "component-convert command to work with different component types.\n"
             "Example: combine -m min a.gta b.gta > min.gta");
