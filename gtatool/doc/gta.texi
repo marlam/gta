@@ -1,26 +1,63 @@
 \input texinfo   @c -*-texinfo-*-
 @setfilename gta.info
-@settitle Gtatool Manual
+@documentlanguage en
+@documentencoding UTF-8
+@include version.texi
+@settitle GTA Tool @value{VERSION}
 
 @copying
+This manual was last updated @value{UPDATED} for version
+@value{VERSION} of GTA Tool.
+
 Copyright (C) 2010, 2011, 2012, 2013, 2014
 Martin Lambers @email{marlam@@marlam.de}
 
+@quotation
 Copying and distribution of this file, with or without modification, are
 permitted in any medium without royalty provided the copyright notice and this
 notice are preserved. This file is offered as-is, without any warranty.
+@end quotation
 @end copying
 
-@dircategory
+@dircategory Individual utilities
 @direntry
 * Gtatool: (gta).                           Manipulate Generic Tagged Array (GTA) files.
 @end direntry
 
-@node Top
-@top GTA Manual
+@finalout
+@titlepage
+@title Bino
+@subtitle A 3D video player with multi-display support.
+@subtitle Version @value{VERSION}, @value{UPDATED}
+@author The Bino developers
+@page
+@vskip 0pt plus 1filll
 @insertcopying
+@end titlepage
 
-@unnumbered About
+@ifnothtml
+@contents
+@end ifnothtml
+
+@ifnottex
+@node Top
+@top GTA Tool
+@insertcopying
+@end ifnottex
+
+@ifhtml
+Short Contents:
+@end ifhtml
+@menu
+* Overview::
+* Examples::
+@end menu
+@ifhtml
+@contents
+@end ifhtml
+
+@node Overview
+@chapter Overview
 
 Gtatool (@code{gta}) manipulates Generic Tagged Arrays (GTAs).
 
@@ -56,5 +93,32 @@ cmd} to get help for command @code{cmd}.
 
 (Alternatively, you can use @code{gta --help} and @code{gta cmd --help}.)
 
+
+@node Examples
+@chapter Examples
+
+@section Average of Arrays
+
+Say you recorded 100 camera frames in a file called @code{frames.gta}, and you
+want to compute the average of these 100 frames.
+
+First, produce separate files @code{000.gta}, @dots{}, @code{099.gta}:
+@example
+$ gta stream-split %3N.gta frames.gta
+@end example
+
+Then add them all up and store the result in @code{sum.gta}:
+@example
+$ gta combine -m add ???.gta > sum.gta
+@end example
+
+Then divide by the number of frames to get the average:
+@example
+$ gta component-compute -e 'c0 = c0 / 100' sum.gta > avg.gta
+@end example
+
+This works fine with floating point values. If your array uses integer
+component types, e.g. uint8 for RGB, you may need to convert to floating point
+first (using @code{component-convert}) so that the sum does not overflow.
 
 @bye
