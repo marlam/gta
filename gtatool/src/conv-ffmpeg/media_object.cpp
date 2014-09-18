@@ -1,11 +1,12 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
  * D. Matz <bandregent@yahoo.de>
+ * Vittorio Giovara <vittorio.giovara@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,6 +57,9 @@ extern "C"
 
 #include "media_object.h"
 
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(54, 25, 0)
+#define AV_CODEC_ID_TEXT CODEC_ID_TEXT
+#endif
 
 // The read thread.
 // This thread reads packets from the AVFormatContext and stores them in the
@@ -150,7 +154,7 @@ public:
 // Hide the FFmpeg stuff so that their messy header files cannot cause problems
 // in other source files.
 
-static const size_t max_audio_frame_size = 19200; // 1 second of 48khz 32bit audio
+static const size_t max_audio_frame_size = 192000; // 1 second of 48khz 32bit audio
 static const size_t audio_tmpbuf_size = (max_audio_frame_size * 3) / 2;
 
 struct ffmpeg_stuff
@@ -880,7 +884,7 @@ void media_object::open(const std::string &url, const device_request &dev_reques
     {
         _ffmpeg->format_ctx->streams[i]->discard = AVDISCARD_ALL;        // ignore by default; user must activate streams
         AVCodecContext *codec_ctx = _ffmpeg->format_ctx->streams[i]->codec;
-        AVCodec *codec = (codec_ctx->codec_id == CODEC_ID_TEXT
+        AVCodec *codec = (codec_ctx->codec_id == AV_CODEC_ID_TEXT
                 ? NULL : avcodec_find_decoder(codec_ctx->codec_id));
         // XXX: Sometimes the reported width and height for a video stream change after avcodec_open(),
         // but the original values seem to be correct. This seems to happen mostly with 1920x1080 video
@@ -897,11 +901,15 @@ void media_object::open(const std::string &url, const device_request &dev_reques
             // Set CODEC_FLAG_EMU_EDGE in the same situations in which ffplay sets it.
             // I don't know what exactly this does, but it is necessary to fix the problem
             // described in this thread: http://lists.nongnu.org/archive/html/bino-list/2012-02/msg00039.html
-            if (codec_ctx->lowres || (codec && (codec->capabilities & CODEC_CAP_DR1)))
+            int lowres = 0;
+#ifdef FF_API_LOWRES
+            lowres = codec_ctx->lowres;
+#endif
+            if (lowres || (codec && (codec->capabilities & CODEC_CAP_DR1)))
                 codec_ctx->flags |= CODEC_FLAG_EMU_EDGE;
         }
-        // Find and open the codec. CODEC_ID_TEXT is a special case: it has no decoder since it is unencoded raw data.
-        if (codec_ctx->codec_id != CODEC_ID_TEXT && (!codec || (e = avcodec_open2(codec_ctx, codec, NULL)) < 0))
+        // Find and open the codec. AV_CODEC_ID_TEXT is a special case: it has no decoder since it is unencoded raw data.
+        if (codec_ctx->codec_id != AV_CODEC_ID_TEXT && (!codec || (e = avcodec_open2(codec_ctx, codec, NULL)) < 0))
         {
             msg::wrn(_("%s stream %d: Cannot open %s: %s"), _url.c_str(), i,
                     codec_ctx->codec_type == AVMEDIA_TYPE_VIDEO ? _("video codec")
@@ -929,8 +937,13 @@ void media_object::open(const std::string &url, const device_request &dev_reques
             _ffmpeg->video_packets.push_back(AVPacket());
             av_init_packet(&(_ffmpeg->video_packets[j]));
             _ffmpeg->video_decode_threads.push_back(video_decode_thread(_url, _ffmpeg, j));
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55, 28, 1)
             _ffmpeg->video_frames.push_back(avcodec_alloc_frame());
             _ffmpeg->video_buffered_frames.push_back(avcodec_alloc_frame());
+#else
+            _ffmpeg->video_frames.push_back(av_frame_alloc());
+            _ffmpeg->video_buffered_frames.push_back(av_frame_alloc());
+#endif
             enum PixelFormat frame_fmt = (_ffmpeg->video_frame_templates[j].layout == video_frame::bgra32
                     ? PIX_FMT_BGRA : _ffmpeg->video_codec_ctxs[j]->pix_fmt);
             int frame_bufsize = (avpicture_get_size(frame_fmt,
@@ -947,7 +960,11 @@ void media_object::open(const std::string &url, const device_request &dev_reques
                 // Initialize things needed for software pixel format conversion
                 int sws_bufsize = avpicture_get_size(PIX_FMT_BGRA,
                         _ffmpeg->video_codec_ctxs[j]->width, _ffmpeg->video_codec_ctxs[j]->height);
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55, 28, 1)
                 _ffmpeg->video_sws_frames.push_back(avcodec_alloc_frame());
+#else
+                _ffmpeg->video_sws_frames.push_back(av_frame_alloc());
+#endif
                 _ffmpeg->video_sws_buffers.push_back(static_cast<uint8_t *>(av_malloc(sws_bufsize)));
                 if (!_ffmpeg->video_sws_frames[j] || !_ffmpeg->video_sws_buffers[j])
                 {
@@ -1001,9 +1018,9 @@ void media_object::open(const std::string &url, const device_request &dev_reques
             int j = _ffmpeg->subtitle_streams.size() - 1;
             msg::dbg(_url + " stream " + str::from(i) + " is subtitle stream " + str::from(j) + ".");
             _ffmpeg->subtitle_codec_ctxs.push_back(codec_ctx);
-            // CODEC_ID_TEXT does not have any decoder; it is just UTF-8 text in the packet data.
+            // AV_CODEC_ID_TEXT does not have any decoder; it is just UTF-8 text in the packet data.
             _ffmpeg->subtitle_codecs.push_back(
-                    _ffmpeg->subtitle_codec_ctxs[j]->codec_id == CODEC_ID_TEXT ? NULL : codec);
+                    _ffmpeg->subtitle_codec_ctxs[j]->codec_id == AV_CODEC_ID_TEXT ? NULL : codec);
             _ffmpeg->subtitle_box_templates.push_back(subtitle_box());
             set_subtitle_box_template(j);
             _ffmpeg->subtitle_decode_threads.push_back(subtitle_decode_thread(_url, _ffmpeg, j));
@@ -1200,7 +1217,7 @@ int media_object::video_frame_rate_numerator(int index) const
 {
     assert(index >= 0);
     assert(index < video_streams());
-    int n = _ffmpeg->format_ctx->streams[_ffmpeg->video_streams.at(index)]->r_frame_rate.num;
+    int n = _ffmpeg->format_ctx->streams[_ffmpeg->video_streams.at(index)]->avg_frame_rate.num;
     if (n <= 0)
         n = 1;
     return n;
@@ -1210,7 +1227,7 @@ int media_object::video_frame_rate_denominator(int index) const
 {
     assert(index >= 0);
     assert(index < video_streams());
-    int d = _ffmpeg->format_ctx->streams[_ffmpeg->video_streams.at(index)]->r_frame_rate.den;
+    int d = _ffmpeg->format_ctx->streams[_ffmpeg->video_streams.at(index)]->avg_frame_rate.den;
     if (d <= 0)
         d = 1;
     return d;
@@ -1783,8 +1800,8 @@ void subtitle_decode_thread::run()
         int got_subtitle;
         tmppacket = packet;
 
-        // CODEC_ID_TEXT does not have any decoder; it is just UTF-8 text in the packet data.
-        if (_ffmpeg->subtitle_codec_ctxs[_subtitle_stream]->codec_id == CODEC_ID_TEXT)
+        // AV_CODEC_ID_TEXT does not have any decoder; it is just UTF-8 text in the packet data.
+        if (_ffmpeg->subtitle_codec_ctxs[_subtitle_stream]->codec_id == AV_CODEC_ID_TEXT)
         {
             int64_t duration = packet.convergence_duration * 1000000
                 * _ffmpeg->format_ctx->streams[_ffmpeg->subtitle_streams[_subtitle_stream]]->time_base.num
@@ -1944,9 +1961,9 @@ void media_object::seek(int64_t dest_pos)
     }
     for (size_t i = 0; i < _ffmpeg->subtitle_streams.size(); i++)
     {
-        if (_ffmpeg->format_ctx->streams[_ffmpeg->subtitle_streams[i]]->codec->codec_id != CODEC_ID_TEXT)
+        if (_ffmpeg->format_ctx->streams[_ffmpeg->subtitle_streams[i]]->codec->codec_id != AV_CODEC_ID_TEXT)
         {
-            // CODEC_ID_TEXT has no decoder, so we cannot flush its buffers
+            // AV_CODEC_ID_TEXT has no decoder, so we cannot flush its buffers
             avcodec_flush_buffers(_ffmpeg->format_ctx->streams[_ffmpeg->subtitle_streams[i]]->codec);
         }
         _ffmpeg->subtitle_box_buffers[i].clear();
