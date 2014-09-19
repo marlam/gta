@@ -97,10 +97,12 @@ View::View() :
     conf_stereo3d_act->setEnabled(WITH_GLS);
     view_menu->addAction(conf_stereo3d_act);
     view_menu->addSeparator();
+    /*
     QAction* conf_equalizer_act = new QAction("Configure Equalizer...", this);
     connect(conf_equalizer_act, SIGNAL(triggered()), this, SLOT(conf_equalizer()));
     conf_equalizer_act->setEnabled(WITH_EQUALIZER);
     view_menu->addAction(conf_equalizer_act);
+    */
     QAction* toggle_equalizer_act = new QAction("Toggle Equalizer", this);
     connect(toggle_equalizer_act, SIGNAL(triggered()), this, SLOT(toggle_equalizer()));
     toggle_equalizer_act->setEnabled(WITH_EQUALIZER);
