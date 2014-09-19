@@ -270,8 +270,9 @@ public:
         glvm::mat4 head_tracking_matrix = glvm::toMat4(_eq_frame_data.tracker_rot);
         translation(head_tracking_matrix) = _eq_frame_data.tracker_pos;
         eq::Matrix4f eq_head_matrix;
-        for (int i = 0; i < 16; i++)
-            eq_head_matrix.array[i] = head_tracking_matrix.vl[i];
+        for (int i = 0; i < 4; i++)
+            for (int j = 0; j < 4; j++)
+                eq_head_matrix.array[i * 4 + j] = head_tracking_matrix[i][j];
         getObservers().at(0)->setHeadMatrix(eq_head_matrix);
 
         // Commit new version of updated frame data
@@ -468,9 +469,9 @@ protected:
 
     virtual void frameDrawFinish(const eq::uint128_t& frame_id, const uint32_t frame_number)
     {
-        class eq_pipe* eq_pipe = static_cast<class eq_pipe*>(getPipe());
 #if 0
-        dyncalib.apply(eq_pipe->eq_frame_data.tracker_pos.vl);
+        class eq_pipe* eq_pipe = static_cast<class eq_pipe*>(getPipe());
+        dyncalib.apply(eq_pipe->eq_frame_data.tracker_pos);
 #endif
         eq::Window::frameDrawFinish(frame_id, frame_number);
     }
@@ -524,13 +525,13 @@ protected:
                 const eq::Viewport& relf = getViewport();
                 const glvm::frust& oldf = eq_frame_data.frustum;
                 glvm::frust newf;
-                newf.l() = oldf.l() + relf.x * (oldf.r() - oldf.l());
-                newf.r() = newf.l() + relf.w * (oldf.r() - oldf.l());
-                newf.b() = oldf.b() + relf.y * (oldf.t() - oldf.b());
-                newf.t() = newf.b() + relf.h * (oldf.t() - oldf.b());
+                newf.l = oldf.l + relf.x * (oldf.r - oldf.l);
+                newf.r = newf.l + relf.w * (oldf.r - oldf.l);
+                newf.b = oldf.b + relf.y * (oldf.t - oldf.b);
+                newf.t = newf.b + relf.h * (oldf.t - oldf.b);
                 glMatrixMode(GL_PROJECTION);
                 glLoadIdentity();
-                glOrtho(newf.l(), newf.r(), newf.b(), newf.t(), oldf.n(), oldf.f());
+                glOrtho(newf.l, newf.r, newf.b, newf.t, oldf.n, oldf.f);
                 glMatrixMode(GL_MODELVIEW);
                 glLoadIdentity();
                 glTranslatef(eq_frame_data.translation_2d.x, eq_frame_data.translation_2d.y, 0.0f);
@@ -538,10 +539,10 @@ protected:
             } else {
                 /* Ignore the frustum, we use the one provided by Equalizer
                 glMatrixMode(GL_PROJECTION);
-                glLoadMatrixf(glvm::toMat4(eq_frame_data.frustum).vl);
+                glLoadMatrixf(glvm::toMat4(eq_frame_data.frustum));
                 */
                 glMatrixMode(GL_MODELVIEW);
-                glLoadMatrixf(glvm::translate(glvm::toMat4(-eq_frame_data.viewer_rot), -eq_frame_data.viewer_pos).vl);
+                glLoadMatrixf(glvm::translate(glvm::toMat4(-eq_frame_data.viewer_rot), -eq_frame_data.viewer_pos));
             }
             GLRenderer* glrenderer = eq_frame_data.glcontext.get_renderer();
             glrenderer->render();

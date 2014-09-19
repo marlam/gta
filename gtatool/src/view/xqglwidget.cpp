@@ -331,7 +331,7 @@ void XQGLWidget::render()
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
-            glOrtho(frustum.l(), frustum.r(), frustum.b(), frustum.t(), frustum.n(), frustum.f());
+            glOrtho(frustum.l, frustum.r, frustum.b, frustum.t, frustum.n, frustum.f);
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
             glTranslatef(translation_2d.x, translation_2d.y, 0.0f);
@@ -346,11 +346,11 @@ void XQGLWidget::render()
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glMatrixMode(GL_PROJECTION);
                 glLoadIdentity();
-                glsFrustum(frustum.l(), frustum.r(), frustum.b(), frustum.t(), frustum.n(), frustum.f(),
+                glsFrustum(frustum.l, frustum.r, frustum.b, frustum.t, frustum.n, frustum.f,
                         focal_length, eye_separation, GLS_VIEW_LEFT);
                 glMatrixMode(GL_MODELVIEW);
                 glLoadMatrixf(glvm::translate(glvm::toMat4(-viewer_rot),
-                            -(viewer_pos - eye_separation / 2.0f * rightside)).vl);
+                            -(viewer_pos - eye_separation / 2.0f * rightside)));
                 get_shared_context()->get_renderer()->render();
                 glsSubmitView(_gls_ctx, GLS_VIEW_LEFT);
             }
@@ -358,11 +358,11 @@ void XQGLWidget::render()
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glMatrixMode(GL_PROJECTION);
                 glLoadIdentity();
-                glsFrustum(frustum.l(), frustum.r(), frustum.b(), frustum.t(), frustum.n(), frustum.f(),
+                glsFrustum(frustum.l, frustum.r, frustum.b, frustum.t, frustum.n, frustum.f,
                         focal_length, eye_separation, GLS_VIEW_RIGHT);
                 glMatrixMode(GL_MODELVIEW);
                 glLoadMatrixf(glvm::translate(glvm::toMat4(-viewer_rot),
-                            -(viewer_pos + eye_separation / 2.0f * rightside)).vl);
+                            -(viewer_pos + eye_separation / 2.0f * rightside)));
                 get_shared_context()->get_renderer()->render();
                 glsSubmitView(_gls_ctx, GLS_VIEW_RIGHT);
             }
@@ -390,16 +390,16 @@ void XQGLWidget::render()
         if (get_navigator()->scene_is_2d()) {
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
-            glOrtho(frustum.l(), frustum.r(), frustum.b(), frustum.t(), frustum.n(), frustum.f());
+            glOrtho(frustum.l, frustum.r, frustum.b, frustum.t, frustum.n, frustum.f);
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
             glTranslatef(translation_2d.x, translation_2d.y, 0.0f);
             glScalef(scale_2d.x, scale_2d.y, scale_2d.z);
         } else {
             glMatrixMode(GL_PROJECTION);
-            glLoadMatrixf(glvm::toMat4(frustum).vl);
+            glLoadMatrixf(glvm::toMat4(frustum));
             glMatrixMode(GL_MODELVIEW);
-            glLoadMatrixf(glvm::translate(glvm::toMat4(-viewer_rot), -viewer_pos).vl);
+            glLoadMatrixf(glvm::translate(glvm::toMat4(-viewer_rot), -viewer_pos));
         }
         get_shared_context()->get_renderer()->render();
 #if WITH_GLS

@@ -1,7 +1,7 @@
 /*
  * C++ vector and matrix classes that resemble GLSL style.
  *
- * Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013
+ * Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014
  * Martin Lambers <marlam@marlam.de>
  * All rights reserved.
  *
@@ -36,16 +36,11 @@
  * (frust and dfrust).
  *
  * Vector elements are called (x,y,z,w) and (r,g,b,a) and (s,t,p,q). Swizzling
- * is fully supported, including assignments! Just remember that the swizzlers
- * are member functions (use parentheses).
- * Example: "v4.wz() = v3.rg() + v2;"
+ * is fully supported, including assignments!
  *
- * All data elements are accessible via a two-dimensional array v or a linear
- * array vl. Both v and vl are column-major, like OpenGL.
+ * All data elements are also accessible via a member array called 'data'. This
+ * array is column-major, like OpenGL.
  * Use transpose() to exchange data with row-major libraries.
- *
- * Everything that is specified by GLSL 1.30 should work, unless it is
- * impossible to implement in C++.
  */
 
 
@@ -53,117 +48,64 @@
 #define GLVM_H
 
 #include <cmath>
-#include <climits>
-#include <cstdlib>
-#if __cplusplus >= 201103L
-# include <cstdint>
-#else
-# include <stdint.h>
-#endif
-
+#include <cstdint>
 #include <limits>
-#include <string>
-#include <iostream>
-#include <sstream>
-
-/* Values copied from /usr/include/math.h on a recent GNU/Linux system. */
-#ifndef M_El
-# define M_El           2.7182818284590452353602874713526625L  /* e */
-#endif
-#ifndef M_LOG2El
-# define M_LOG2El       1.4426950408889634073599246810018921L  /* log_2 e */
-#endif
-#ifndef M_LOG10El
-# define M_LOG10El      0.4342944819032518276511289189166051L  /* log_10 e */
-#endif
-#ifndef M_LN2l
-# define M_LN2l         0.6931471805599453094172321214581766L  /* log_e 2 */
-#endif
-#ifndef M_LN10l
-# define M_LN10l        2.3025850929940456840179914546843642L  /* log_e 10 */
-#endif
-#ifndef M_PIl
-# define M_PIl          3.1415926535897932384626433832795029L  /* pi */
-#endif
-#ifndef M_PI_2l
-# define M_PI_2l        1.5707963267948966192313216916397514L  /* pi/2 */
-#endif
-#ifndef M_PI_4l
-# define M_PI_4l        0.7853981633974483096156608458198757L  /* pi/4 */
-#endif
-#ifndef M_1_PIl
-# define M_1_PIl        0.3183098861837906715377675267450287L  /* 1/pi */
-#endif
-#ifndef M_2_PIl
-# define M_2_PIl        0.6366197723675813430755350534900574L  /* 2/pi */
-#endif
-#ifndef M_2_SQRTPIl
-# define M_2_SQRTPIl    1.1283791670955125738961589031215452L  /* 2/sqrt(pi) */
-#endif
-#ifndef M_SQRT2l
-# define M_SQRT2l       1.4142135623730950488016887242096981L  /* sqrt(2) */
-#endif
-#ifndef M_SQRT1_2l
-# define M_SQRT1_2l     0.7071067811865475244008443621048490L  /* 1/sqrt(2) */
-#endif
-
 
 namespace glvm
 {
-    /* First: basic numeric constants.
-     * Why are these still not properly available in C++???? */
-    template<typename T> inline T const_e();
-    template<> inline float const_e<float>() { return M_El; }
-    template<> inline double const_e<double>() { return M_El; }
-    template<> inline long double const_e<long double>() { return M_El; }
-    template<typename T> inline T const_log2e();
-    template<> inline float const_log2e<float>() { return M_LOG2El; }
-    template<> inline double const_log2e<double>() { return M_LOG2El; }
-    template<> inline long double const_log2e<long double>() { return M_LOG2El; }
-    template<typename T> inline T const_log10e();
-    template<> inline float const_log10e<float>() { return M_LOG10El; }
-    template<> inline double const_log10e<double>() { return M_LOG10El; }
-    template<> inline long double const_log10e<long double>() { return M_LOG10El; }
-    template<typename T> inline T const_ln2();
-    template<> inline float const_ln2<float>() { return M_LN2l; }
-    template<> inline double const_ln2<double>() { return M_LN2l; }
-    template<> inline long double const_ln2<long double>() { return M_LN2l; }
-    template<typename T> inline T const_ln10();
-    template<> inline float const_ln10<float>() { return M_LN10l; }
-    template<> inline double const_ln10<double>() { return M_LN10l; }
-    template<> inline long double const_ln10<long double>() { return M_LN10l; }
-    template<typename T> inline T const_pi();
-    template<> inline float const_pi<float>() { return M_PIl; }
-    template<> inline double const_pi<double>() { return M_PIl; }
-    template<> inline long double const_pi<long double>() { return M_PIl; }
-    template<typename T> inline T const_pi_2();
-    template<> inline float const_pi_2<float>() { return M_PI_2l; }
-    template<> inline double const_pi_2<double>() { return M_PI_2l; }
-    template<> inline long double const_pi_2<long double>() { return M_PI_2l; }
-    template<typename T> inline T const_pi_4();
-    template<> inline float const_pi_4<float>() { return M_PI_4l; }
-    template<> inline double const_pi_4<double>() { return M_PI_4l; }
-    template<> inline long double const_pi_4<long double>() { return M_PI_4l; }
-    template<typename T> inline T const_1_pi();
-    template<> inline float const_1_pi<float>() { return M_1_PIl; }
-    template<> inline double const_1_pi<double>() { return M_1_PIl; }
-    template<> inline long double const_1_pi<long double>() { return M_1_PIl; }
-    template<typename T> inline T const_2_pi();
-    template<> inline float const_2_pi<float>() { return M_2_PIl; }
-    template<> inline double const_2_pi<double>() { return M_2_PIl; }
-    template<> inline long double const_2_pi<long double>() { return M_2_PIl; }
-    template<typename T> inline T const_2_sqrtpi();
-    template<> inline float const_2_sqrtpi<float>() { return M_2_SQRTPIl; }
-    template<> inline double const_2_sqrtpi<double>() { return M_2_SQRTPIl; }
-    template<> inline long double const_2_sqrtpi<long double>() { return M_2_SQRTPIl; }
-    template<typename T> inline T const_sqrt2();
-    template<> inline float const_sqrt2<float>() { return M_SQRT2l; }
-    template<> inline double const_sqrt2<double>() { return M_SQRT2l; }
-    template<> inline long double const_sqrt2<long double>() { return M_SQRT2l; }
-    template<typename T> inline T const_sqrt1_2();
-    template<> inline float const_sqrt1_2<float>() { return M_SQRT1_2l; }
-    template<> inline double const_sqrt1_2<double>() { return M_SQRT1_2l; }
-    template<> inline long double const_sqrt1_2<long double>() { return M_SQRT1_2l; }
+    /* Basic numeric constants. Values copied from /usr/include/math.h on a recent GNU/Linux system. */
+    template<typename T> inline T const_e();       /* e */
+    template<> inline long double const_e<long double>() { return 2.7182818284590452353602874713526625L; }
+    template<> inline double const_e<double>() { return static_cast<double>(const_e<long double>()); }
+    template<> inline float const_e<float>() { return static_cast<float>(const_e<long double>()); }
+    template<typename T> inline T const_log2e();   /* log_2 e */
+    template<> inline long double const_log2e<long double>() { return 1.4426950408889634073599246810018921L; }
+    template<> inline double const_log2e<double>() { return const_log2e<long double>(); }
+    template<> inline float const_log2e<float>() { return const_log2e<long double>(); }
+    template<typename T> inline T const_log10e();  /* log_10 e */
+    template<> inline long double const_log10e<long double>() { return 0.4342944819032518276511289189166051L; }
+    template<> inline double const_log10e<double>() { return const_log10e<long double>(); }
+    template<> inline float const_log10e<float>() { return const_log10e<long double>(); }
+    template<typename T> inline T const_ln2();     /* log_e 2 */
+    template<> inline long double const_ln2<long double>() { return 0.6931471805599453094172321214581766L; }
+    template<> inline double const_ln2<double>() { return const_ln2<long double>(); }
+    template<> inline float const_ln2<float>() { return const_ln2<long double>(); }
+    template<typename T> inline T const_ln10();    /* log_e 10 */
+    template<> inline long double const_ln10<long double>() { return 2.3025850929940456840179914546843642L; }
+    template<> inline double const_ln10<double>() { return const_ln10<long double>(); }
+    template<> inline float const_ln10<float>() { return const_ln10<long double>(); }
+    template<typename T> inline T const_pi();      /* pi */
+    template<> inline long double const_pi<long double>() { return 3.1415926535897932384626433832795029L; }
+    template<> inline double const_pi<double>() { return const_pi<long double>(); }
+    template<> inline float const_pi<float>() { return const_pi<long double>(); }
+    template<typename T> inline T const_pi_2();    /* pi / 2 */
+    template<> inline long double const_pi_2<long double>() { return 1.5707963267948966192313216916397514L; }
+    template<> inline double const_pi_2<double>() { return const_pi_2<long double>(); }
+    template<> inline float const_pi_2<float>() { return const_pi_2<long double>(); }
+    template<typename T> inline T const_pi_4();    /* pi / 4 */
+    template<> inline long double const_pi_4<long double>() { return 0.7853981633974483096156608458198757L; }
+    template<> inline double const_pi_4<double>() { return const_pi_4<long double>(); }
+    template<> inline float const_pi_4<float>() { return const_pi_4<long double>(); }
+    template<typename T> inline T const_1_pi();    /* 1 / pi */
+    template<> inline long double const_1_pi<long double>() { return 0.3183098861837906715377675267450287L; }
+    template<> inline double const_1_pi<double>() { return const_1_pi<long double>(); }
+    template<> inline float const_1_pi<float>() { return const_1_pi<long double>(); }
+    template<typename T> inline T const_2_pi();    /* 2 / pi */
+    template<> inline long double const_2_pi<long double>() { return 0.6366197723675813430755350534900574L; }
+    template<> inline double const_2_pi<double>() { return const_2_pi<long double>(); }
+    template<> inline float const_2_pi<float>() { return const_2_pi<long double>(); }
+    template<typename T> inline T const_2_sqrtpi(); /* 2 / sqrt(pi) */
+    template<> inline long double const_2_sqrtpi<long double>() { return 1.1283791670955125738961589031215452L; }
+    template<> inline double const_2_sqrtpi<double>() { return const_2_sqrtpi<long double>(); }
+    template<> inline float const_2_sqrtpi<float>() { return const_2_sqrtpi<long double>(); }
+    template<typename T> inline T const_sqrt2();    /* sqrt(2) */
+    template<> inline long double const_sqrt2<long double>() { return 1.4142135623730950488016887242096981L; }
+    template<> inline double const_sqrt2<double>() { return const_sqrt2<long double>(); }
+    template<> inline float const_sqrt2<float>() { return const_sqrt2<long double>(); }
+    template<typename T> inline T const_sqrt1_2();  /* 1 / sqrt(2) */
+    template<> inline long double const_sqrt1_2<long double>() { return 0.7071067811865475244008443621048490L; }
+    template<> inline double const_sqrt1_2<double>() { return const_sqrt1_2<long double>(); }
+    template<> inline float const_sqrt1_2<float>() { return const_sqrt1_2<long double>(); }
 
     /* Define the GLSL functions for the subset of the base data types
      * for which the function makes sense. The base data types are:
@@ -175,10 +117,6 @@ namespace glvm
      * long, unsigned long
      * long long, unsigned long long
      * float, double, long double
-     *
-     * We cannot use templates here because then the compiler would try to apply
-     * these functions to vec and mat. We use templates to define a different
-     * behaviour for vec and mat below.
      */
 
     inline signed char min(signed char x, signed char y)
@@ -321,67 +259,67 @@ namespace glvm
 
     inline signed char clamp(signed char x, signed char minval, signed char maxval)
     {
-        return glvm::min(maxval, glvm::max(minval, x));
+        return min(maxval, max(minval, x));
     }
 
     inline unsigned char clamp(unsigned char x, unsigned char minval, unsigned char maxval)
     {
-        return glvm::min(maxval, glvm::max(minval, x));
+        return min(maxval, max(minval, x));
     }
 
     inline short clamp(short x, short minval, short maxval)
     {
-        return glvm::min(maxval, glvm::max(minval, x));
+        return min(maxval, max(minval, x));
     }
 
     inline unsigned short clamp(unsigned short x, unsigned short minval, unsigned short maxval)
     {
-        return glvm::min(maxval, glvm::max(minval, x));
+        return min(maxval, max(minval, x));
     }
 
     inline int clamp(int x, int minval, int maxval)
     {
-        return glvm::min(maxval, glvm::max(minval, x));
+        return min(maxval, max(minval, x));
     }
 
     inline unsigned int clamp(unsigned int x, unsigned int minval, unsigned int maxval)
     {
-        return glvm::min(maxval, glvm::max(minval, x));
+        return min(maxval, max(minval, x));
     }
 
     inline long clamp(long x, long minval, long maxval)
     {
-        return glvm::min(maxval, glvm::max(minval, x));
+        return min(maxval, max(minval, x));
     }
 
     inline unsigned long clamp(unsigned long x, unsigned long minval, unsigned long maxval)
     {
-        return glvm::min(maxval, glvm::max(minval, x));
+        return min(maxval, max(minval, x));
     }
 
     inline long long clamp(long long x, long long minval, long long maxval)
     {
-        return glvm::min(maxval, glvm::max(minval, x));
+        return min(maxval, max(minval, x));
     }
 
     inline unsigned long long clamp(unsigned long long x, unsigned long long minval, unsigned long long maxval)
     {
-        return glvm::min(maxval, glvm::max(minval, x));
+        return min(maxval, max(minval, x));
     }
 
     inline float clamp(float x, float minval, float maxval)
     {
-        return glvm::min(maxval, glvm::max(minval, x));
+        return min(maxval, max(minval, x));
     }
 
     inline double clamp(double x, double minval, double maxval)
     {
-        return glvm::min(maxval, glvm::max(minval, x));
+        return min(maxval, max(minval, x));
     }
 
     inline long double clamp(long double x, long double minval, long double maxval)
     {
-        return glvm::min(maxval, glvm::max(minval, x));
+        return min(maxval, max(minval, x));
     }
 
     inline signed char step(signed char x, signed char edge)
@@ -682,43 +620,11 @@ namespace glvm
 
     using std::exp;
 
-#if __cplusplus >= 201103L
     using std::exp2;
-#elif (defined _MSC_VER && _MSC_VER <= 1600)
-    inline float exp2(float x) { return std::pow(2.0f, x); }
-    inline double exp2(double x) { return std::pow(2.0, x); }
-    inline long double exp2(long double x) { return std::pow(2.0L, x); }
-#else
-    using ::exp2;
-    inline float exp2(const float x)
-    {
-        return ::exp2f(x);
-    }
-    inline long double exp2(const long double x)
-    {
-        return ::exp2l(x);
-    }
-#endif
 
     using std::log;
 
-#if __cplusplus >= 201103L
     using std::log2;
-#elif (defined _MSC_VER && _MSC_VER <= 1600)
-    inline float log2(float x) { return std::log(x) / std::log(2.0f); }
-    inline double log2(double x) { return std::log(x) / std::log(2.0); }
-    inline long double log2(long double x) { return std::log(x) / std::log(2.0L); }
-#else
-    using ::log2;
-    inline float log2(const float x)
-    {
-        return ::log2f(x);
-    }
-    inline long double log2(const long double x)
-    {
-        return ::log2l(x);
-    }
-#endif
 
     using std::log10;
 
@@ -739,41 +645,9 @@ namespace glvm
         return 1.0L / std::sqrt(x);
     }
 
-#if __cplusplus >= 201103L
     using std::cbrt;
-#elif (defined _MSC_VER && _MSC_VER <= 1600)
-    inline float cbrt(float x) { return x < 0.0f ? -std::pow(-x, 1.0f / 3.0f) : std::pow(x, 1.0f / 3.0f); }
-    inline double cbrt(double x) { return x < 0.0 ? -std::pow(-x, 1.0 / 3.0) : std::pow(x, 1.0 / 3.0); }
-    inline long double cbrt(long double x) { return x < 0.0L ? -std::pow(-x, 1.0L / 3.0L) : std::pow(x, 1.0L / 3.0L); }
-#else
-    using ::cbrt;
-    inline float cbrt(const float x)
-    {
-        return ::cbrtf(x);
-    }
-    inline long double cbrt(const long double x)
-    {
-        return ::cbrtl(x);
-    }
-#endif
 
-#if __cplusplus >= 201103L
     using std::round;
-#elif (defined _MSC_VER && _MSC_VER <= 1600)
-    inline float round(float x) { return x < 0.0f ? std::ceil(x - 0.5f) : std::floor(x + 0.5f); }
-    inline double round(double x) { return x < 0.0 ? std::ceil(x - 0.5) : std::floor(x + 0.5); }
-    inline long double round(long double x) { return x < 0.0L ? std::ceil(x - 0.5L) : std::floor(x + 0.5L); }
-#else
-    using ::round;
-    inline float round(const float x)
-    {
-        return ::roundf(x);
-    }
-    inline long double round(const long double x)
-    {
-        return ::roundl(x);
-    }
-#endif
 
     using std::floor;
 
@@ -794,40 +668,13 @@ namespace glvm
         return x - std::floor(x);
     }
 
-#if (defined _MSC_VER && _MSC_VER <= 1600)
-    // XXX: MSVC only has the 'double' version; it is unclear if conversion works as expected
-    inline bool isfinite(float x) { return ::_finite(x); }
-    inline bool isfinite(double x) { return ::_finite(x); }
-    inline bool isfinite(long double x) { return ::_finite(x); }
-#else
     using std::isfinite;
-#endif
 
-#if (defined _MSC_VER && _MSC_VER <= 1600)
-    // XXX: MSVC only has the 'double' version; it is unclear if conversion works as expected
-    inline bool isnan(float x) { return ::_isnan(x); }
-    inline bool isnan(double x) { return ::_isnan(x); }
-    inline bool isnan(long double x) { return ::_isnan(x); }
-#else
     using std::isnan;
-#endif
 
-#if (defined _MSC_VER && _MSC_VER <= 1600)
-    inline bool isinf(float x) { return !isnan(x) && !isfinite(x); }
-    inline bool isinf(double x) { return !isnan(x) && !isfinite(x); }
-    inline bool isinf(long double x) { return !isnan(x) && !isfinite(x); }
-#else
     using std::isinf;
-#endif
 
-#if (defined _MSC_VER && _MSC_VER <= 1600)
-    // XXX: MSVC only has the 'double' version; it is unclear if conversion works as expected
-    inline bool isnormal(float x) { return ::_fpclass(x) == _FPCLASS_NN || ::_fpclass(x) == _FPCLASS_PN; }
-    inline bool isnormal(double x) { return ::_fpclass(x) == _FPCLASS_NN || ::_fpclass(x) == _FPCLASS_PN; }
-    inline bool isnormal(long double x) { return ::_fpclass(x) == _FPCLASS_NN || ::_fpclass(x) == _FPCLASS_PN; }
-#else
     using std::isnormal;
-#endif
 
     inline float mix(float x, float y, float alpha)
     {
@@ -846,19 +693,19 @@ namespace glvm
 
     inline float smoothstep(float x, float edge0, float edge1)
     {
-        float t = glvm::clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
+        float t = clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
         return t * t * (3.0f - t * 2.0f);
     }
 
     inline double smoothstep(double x, double edge0, double edge1)
     {
-        double t = glvm::clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+        double t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
         return t * t * (3.0 - t * 2.0);
     }
 
     inline long double smoothstep(long double x, long double edge0, long double edge1)
     {
-        long double t = glvm::clamp((x - edge0) / (edge1 - edge0), 0.0L, 1.0L);
+        long double t = clamp((x - edge0) / (edge1 - edge0), 0.0L, 1.0L);
         return t * t * (3.0L - t * 2.0L);
     }
 
@@ -919,17 +766,17 @@ namespace glvm
 
     inline bool greaterThan(float a, float b)
     {
-        return a > b;
+        return std::isgreater(a, b);
     }
 
     inline bool greaterThan(double a, double b)
     {
-        return a > b;
+        return std::isgreater(a, b);
     }
 
     inline bool greaterThan(long double a, long double b)
     {
-        return a > b;
+        return std::isgreater(a, b);
     }
 
     inline bool greaterThanEqual(bool a, bool b)
@@ -989,17 +836,17 @@ namespace glvm
 
     inline bool greaterThanEqual(float a, float b)
     {
-        return a >= b;
+        return std::isgreaterequal(a, b);
     }
 
     inline bool greaterThanEqual(double a, double b)
     {
-        return a >= b;
+        return std::isgreaterequal(a, b);
     }
 
     inline bool greaterThanEqual(long double a, long double b)
     {
-        return a >= b;
+        return std::isgreaterequal(a, b);
     }
 
     inline bool lessThan(bool a, bool b)
@@ -1059,17 +906,17 @@ namespace glvm
 
     inline bool lessThan(float a, float b)
     {
-        return a < b;
+        return std::isless(a, b);
     }
 
     inline bool lessThan(double a, double b)
     {
-        return a < b;
+        return std::isless(a, b);
     }
 
     inline bool lessThan(long double a, long double b)
     {
-        return a < b;
+        return std::isless(a, b);
     }
 
     inline bool lessThanEqual(bool a, bool b)
@@ -1129,17 +976,17 @@ namespace glvm
 
     inline bool lessThanEqual(float a, float b)
     {
-        return a <= b;
+        return std::islessequal(a, b);
     }
 
     inline bool lessThanEqual(double a, double b)
     {
-        return a <= b;
+        return std::islessequal(a, b);
     }
 
     inline bool lessThanEqual(long double a, long double b)
     {
-        return a <= b;
+        return std::islessequal(a, b);
     }
 
     inline bool equal(bool a, bool b)
@@ -1197,123 +1044,19 @@ namespace glvm
         return a == b;
     }
 
-    /* The 'equal' function for floating point numbers is adapted from
-     * http://www.cygnus-software.com/papers/comparingfloats/comparingfloats.htm
-     *
-     * The max_ulps parameter measures the maximum number of floating point
-     * numbers that lie inbetween a and b.
-     *
-     * These functions relies on IEEE 754 floating point numbers and
-     * two-complement integers of the same size. The second requirement is the
-     * reason why there is no version for long doubles.
-     */
-
-    inline bool equal(float a, float b, int max_ulps = 0)
+    inline bool equal(float a, float b)
     {
-        bool result;
-
-        if (glvm::isinf(a) || glvm::isinf(b))
-        {
-            result = (glvm::isinf(a) && glvm::isinf(b)
-                    && static_cast<int>(glvm::sign(a)) == static_cast<int>(glvm::sign(b)));
-        }
-        else if (glvm::isnan(a) || glvm::isnan(b))
-        {
-            result = false;
-        }
-        else
-        {
-            //assert(sizeof(float) == sizeof(int32_t));
-            //assert(max_ulps > 0);
-            union { float f; int32_t i; } x;
-            union { float f; int32_t i; } y;
-            x.f = a;
-            y.f = b;
-            if ((x.i < 0 && y.i > 0) || (x.i > 0 && y.i < 0))
-            {
-                result = false;
-            }
-            else
-            {
-                if (x.i < 0)
-                {
-                    x.i = 0x80000000 - x.i;
-                }
-                if (y.i < 0)
-                {
-                    y.i = 0x80000000 - y.i;
-                }
-                int32_t intdiff = glvm::abs(x.i - y.i);
-                result = (intdiff <= max_ulps);
-            }
-        }
-        return result;
+        return greaterThanEqual(a, b) && lessThanEqual(a, b);
     }
 
-    inline bool equal(double a, double b, int max_ulps = 0)
+    inline bool equal(double a, double b)
     {
-        bool result;
-
-        if (glvm::isinf(a) || glvm::isinf(b))
-        {
-            result = (glvm::isinf(a) && glvm::isinf(b)
-                    && static_cast<int>(glvm::sign(a)) == static_cast<int>(glvm::sign(b)));
-        }
-        else if (glvm::isnan(a) || glvm::isnan(b))
-        {
-            result = false;
-        }
-        else
-        {
-            //assert(sizeof(double) == sizeof(int64_t));
-            //assert(max_ulps > 0);
-            union { double d; int64_t i; } x;
-            union { double d; int64_t i; } y;
-            x.d = a;
-            y.d = b;
-            if ((x.i < 0 && y.i > 0) || (x.i > 0 && y.i < 0))
-            {
-                result = false;
-            }
-            else
-            {
-                if (x.i < 0)
-                {
-                    x.i = 0x8000000000000000LL - x.i;
-                }
-                if (y.i < 0)
-                {
-                    y.i = 0x8000000000000000LL - y.i;
-                }
-                int64_t intdiff = glvm::abs(x.i - y.i);
-                result = (intdiff <= max_ulps);
-            }
-        }
-        return result;
+        return greaterThanEqual(a, b) && lessThanEqual(a, b);
     }
 
-    inline bool equal(long double a, long double b, int max_ulps = 0)
+    inline bool equal(long double a, long double b)
     {
-        bool result;
-
-        if (glvm::isinf(a) || glvm::isinf(b))
-        {
-            result = (glvm::isinf(a) && glvm::isinf(b)
-                    && static_cast<int>(glvm::sign(a)) == static_cast<int>(glvm::sign(b)));
-        }
-        else if (glvm::isnan(a) || glvm::isnan(b))
-        {
-            result = false;
-        }
-        else
-        {
-            abort();
-            //assert(max_ulps > 0);
-            /* FIXME: Implement this for long double.
-             * Problem: There is no int128_t on most platforms. */
-            result = (max_ulps < 1);
-        }
-        return result;
+        return greaterThanEqual(a, b) && lessThanEqual(a, b);
     }
 
     inline bool notEqual(bool a, bool b)
@@ -1371,19 +1114,19 @@ namespace glvm
         return a != b;
     }
 
-    inline bool notEqual(float a, float b, int max_ulps = 0)
+    inline bool notEqual(float a, float b)
     {
-        return !glvm::equal(a, b, max_ulps);
+        return !equal(a, b);
     }
 
-    inline bool notEqual(double a, double b, int max_ulps = 0)
+    inline bool notEqual(double a, double b)
     {
-        return !glvm::equal(a, b, max_ulps);
+        return !equal(a, b);
     }
 
-    inline bool notEqual(long double a, long double b, int max_ulps = 0)
+    inline bool notEqual(long double a, long double b)
     {
-        return !glvm::equal(a, b, max_ulps);
+        return !equal(a, b);
     }
 
     inline bool any(bool a)
@@ -1407,7 +1150,7 @@ namespace glvm
         const T zero = static_cast<T>(0);
         const T one = static_cast<T>(1);
 #ifdef __GNUC__
-        return x < one ? zero : (sizeof(unsigned int) * CHAR_BIT - 1 - __builtin_clz(x));
+        return x < one ? zero : (std::numeric_limits<unsigned int>::digits - 1 - __builtin_clz(x));
 #else
         T r = zero;
         while (x > one) {
@@ -1422,7 +1165,7 @@ namespace glvm
 #ifdef __GNUC__
         const T zero = static_cast<T>(0);
         const T one = static_cast<T>(1);
-        return x < one ? zero : (sizeof(unsigned long) * CHAR_BIT - 1 - __builtin_clzl(x));
+        return x < one ? zero : (std::numeric_limits<unsigned long>::digits - 1 - __builtin_clzl(x));
 #else
         return _log2(x);
 #endif
@@ -1432,7 +1175,7 @@ namespace glvm
 #ifdef __GNUC__
         const T zero = static_cast<T>(0);
         const T one = static_cast<T>(1);
-        return x < one ? zero : (sizeof(unsigned long long) * CHAR_BIT - 1 - __builtin_clzll(x));
+        return x < one ? zero : (std::numeric_limits<unsigned long long>::digits - 1 - __builtin_clzll(x));
 #else
         return _log2(x);
 #endif
@@ -1503,25 +1246,710 @@ namespace glvm
     inline unsigned long long next_multiple(unsigned long long a, unsigned long long b) { return _next_multiple(a, b); }
 
 
-    /* The array class is the base for both the vec and the mat class. */
 
-    template<typename T, int cols, int rows>
-    class array_data
+    /* Base class for vector and matrix data. Provides component-wise operations. */
+
+    template<typename T, int S> class Data
     {
     public:
-        union {
-            T v[cols][rows];
-            T vl[cols * rows];
-        };
+        T data[S];
+
+        /* Operators */
+
+        T& operator[](unsigned int i)
+        {
+            return data[i];
+        }
+
+        T operator[](unsigned int i) const
+        {
+            return data[i];
+        }
+
+        const Data& _op_assign(const Data& a)
+        {
+            for (int i = 0; i < S; i++)
+                data[i] = a.data[i];
+            return *this;
+        }
+
+        Data _op_plus(const Data& a) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = data[i] + a.data[i];
+            return r;
+        }
+
+        const Data& _op_plus_assign(const Data& a)
+        {
+            for (int i = 0; i < S; i++)
+                data[i] += a.data[i];
+            return *this;
+        }
+
+        Data _op_unary_plus() const
+        {
+            return *this;
+        }
+
+        Data _op_minus(const Data& a) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = data[i] - a.data[i];
+            return r;
+        }
+
+        const Data& _op_minus_assign(const Data& a)
+        {
+            for (int i = 0; i < S; i++)
+                data[i] -= a.data[i];
+            return *this;
+        }
+
+        Data _op_unary_minus() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = -data[i];
+            return r;
+        }
+
+        Data _op_scal_mult(const T s) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = data[i] * s;
+            return r;
+        }
+
+        const Data& _op_scal_mult_assign(const T s)
+        {
+            for (int i = 0; i < S; i++)
+                data[i] *= s;
+            return *this;
+        }
+
+        Data _op_comp_mult(const Data& a) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = data[i] * a.data[i];
+            return r;
+        }
+
+        const Data& _op_comp_mult_assign(const Data& a)
+        {
+            for (int i = 0; i < S; i++)
+                data[i] *= a.data[i];
+            return *this;
+        }
+
+        Data _op_scal_div(const T s) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = data[i] / s;
+            return r;
+        }
+
+        const Data& _op_scal_div_assign(const T s)
+        {
+            for (int i = 0; i < S; i++)
+                data[i] /= s;
+            return *this;
+        }
+
+        Data _op_comp_div(const Data& a) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = data[i] / a.data[i];
+            return r;
+        }
+
+        const Data& _op_comp_div_assign(const Data& a)
+        {
+            for (int i = 0; i < S; i++)
+                data[i] /= a.data[i];
+            return *this;
+        }
+
+        Data _op_scal_mod(const T s) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = data[i] % s;
+            return r;
+        }
+
+        const Data& _op_scal_mod_assign(const T s)
+        {
+            for (int i = 0; i < S; i++)
+                data[i] %= s;
+            return *this;
+        }
+
+        Data _op_comp_mod(const Data& a) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = data[i] % a.data[i];
+            return r;
+        }
+
+        const Data& _op_comp_mod_assign(const Data& a)
+        {
+            for (int i = 0; i < S; i++)
+                data[i] %= a.data[i];
+            return *this;
+        }
+
+        bool _op_equal(const Data& a) const
+        {
+            bool ret = true;
+            for (int i = 0; i < S; i++) {
+                if (!equal(data[i], a.data[i])) {
+                    ret = false;
+                    break;
+                }
+            }
+            return ret;
+        }
+
+        bool _op_notequal(const Data& a) const
+        {
+            return !this->data._op_equal(a);
+        }
+
+        /* Trigonometric functions */
+
+        Data _sin() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = sin(data[i]);
+            return r;
+        }
+
+        Data _cos() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = cos(data[i]);
+            return r;
+        }
+
+        Data _tan() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = tan(data[i]);
+            return r;
+        }
+
+        Data _asin() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = asin(data[i]);
+            return r;
+        }
+
+        Data _acos() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = acos(data[i]);
+            return r;
+        }
+
+        Data _atan() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = atan(data[i]);
+            return r;
+        }
+
+        Data _atan(const Data& a) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = atan(data[i], a.data[i]);
+            return r;
+        }
+
+        Data _radians() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = radians(data[i]);
+            return r;
+        }
+
+        Data _degrees() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = degrees(data[i]);
+            return r;
+        }
+
+        /* Exponential functions */
+
+        Data _pow(const T p) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = pow(data[i], p);
+            return r;
+        }
+
+        Data _exp() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = exp(data[i]);
+            return r;
+        }
+
+        Data _exp2() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = exp2(data[i]);
+            return r;
+        }
+
+        Data _log() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = log(data[i]);
+            return r;
+        }
+
+        Data _log2() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = log2(data[i]);
+            return r;
+        }
+
+        Data _log10() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = log10(data[i]);
+            return r;
+        }
+
+        Data _sqrt() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = sqrt(data[i]);
+            return r;
+        }
+
+        Data _inversesqrt() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = inversesqrt(data[i]);
+            return r;
+        }
+
+        Data _cbrt() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = cbrt(data[i]);
+            return r;
+        }
+
+        /* Common functions */
+
+        Data<bool, S> _isfinite() const
+        {
+            Data<bool, S> r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = isfinite(data[i]);
+            return r;
+        }
+
+        Data<bool, S> _isinf() const
+        {
+            Data<bool, S> r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = isinf(data[i]);
+            return r;
+        }
+
+        Data<bool, S> _isnan() const
+        {
+            Data<bool, S> r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = isnan(data[i]);
+            return r;
+        }
+
+        Data<bool, S> _isnormal() const
+        {
+            Data<bool, S> r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = isnormal(data[i]);
+            return r;
+        }
+
+        Data _sign() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = sign(data[i]);
+            return r;
+        }
+
+        Data _abs() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = abs(data[i]);
+            return r;
+        }
+
+        Data _floor() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = floor(data[i]);
+            return r;
+        }
+
+        Data _ceil() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = ceil(data[i]);
+            return r;
+        }
+
+        Data _round() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = round(data[i]);
+            return r;
+        }
+
+        Data _fract() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = fract(data[i]);
+            return r;
+        }
+
+        Data _min(const T x) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = min(x, data[i]);
+            return r;
+        }
+
+        Data _min(const Data& a) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = min(a.data[i], data[i]);
+            return r;
+        }
+
+        Data _max(const T x) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = max(x, data[i]);
+            return r;
+        }
+
+        Data _max(const Data& a) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = max(a.data[i], data[i]);
+            return r;
+        }
+
+        Data _clamp(const T minval, const T maxval) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = clamp(data[i], minval, maxval);
+            return r;
+        }
+
+        Data _clamp(const Data& minval, const Data& maxval) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = clamp(data[i], minval.data[i], maxval.data[i]);
+            return r;
+        }
+
+        Data _mix(const Data& a, const T alpha) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = mix(data[i], a.data[i], alpha);
+            return r;
+        }
+
+        Data _mix(const Data& a, const Data& alpha) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = mix(data[i], a.data[i], alpha.data[i]);
+            return r;
+        }
+
+        Data _step(const T edge) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = step(data[i], edge);
+            return r;
+        }
+
+        Data _step(const Data& edge) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = step(data[i], edge.data[i]);
+            return r;
+        }
+
+        Data _smoothstep(const T edge0, const T edge1) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = smoothstep(data[i], edge0, edge1);
+            return r;
+        }
+
+        Data _smoothstep(const Data& edge0, const Data& edge1) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = smoothstep(data[i], edge0.data[i], edge1.data[i]);
+            return r;
+        }
+
+        Data _mod(const T y) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = mod(data[i], y);
+            return r;
+        }
+
+        Data _mod(const Data& y) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = mod(data[i], y.data[i]);
+            return r;
+        }
+
+        /* Comparison functions */
+
+        Data<bool, S> _greaterThan(const Data& a) const
+        {
+            Data<bool, S> r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = greaterThan(data[i], a.data[i]);
+            return r;
+        }
+
+        Data<bool, S> _greaterThanEqual(const Data& a) const
+        {
+            Data<bool, S> r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = greaterThanEqual(data[i], a.data[i]);
+            return r;
+        }
+
+        Data<bool, S> _lessThan(const Data& a) const
+        {
+            Data<bool, S> r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = lessThan(data[i], a.data[i]);
+            return r;
+        }
+
+        Data<bool, S> _lessThanEqual(const Data& a) const
+        {
+            Data<bool, S> r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = lessThanEqual(data[i], a.data[i]);
+            return r;
+        }
+
+        Data<bool, S> _equal(const Data& a) const
+        {
+            Data<bool, S> r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = equal(data[i], a.data[i]);
+            return r;
+        }
+
+        Data<bool, S> _notEqual(const Data& a) const
+        {
+            Data<bool, S> r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = notEqual(data[i], a.data[i]);
+            return r;
+        }
+
+        bool _any() const
+        {
+            bool ret = false;
+            for (int i = 0; i < S; i++) {
+                if (data[i]) {
+                    ret = true;
+                    break;
+                }
+            }
+            return ret;
+        }
+
+        bool _all() const
+        {
+            bool ret = true;
+            for (int i = 0; i < S; i++) {
+                if (!data[i]) {
+                    ret = false;
+                    break;
+                }
+            }
+            return ret;
+        }
+
+        Data<bool, S> _negate() const
+        {
+            Data<bool, S> r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = !data[i];
+            return r;
+        }
+
+        /* Geometric functions */
+
+        T _length() const
+        {
+            T l = static_cast<T>(0);
+            for (int i = 0; i < S; i++)
+                l += data[i] * data[i];
+            return sqrt(l);
+        }
+
+        T _distance(const Data& a) const
+        {
+            return (*this - a).data._length();
+        }
+
+        T _dot(const Data& a) const
+        {
+            T d = static_cast<T>(0);
+            for (int i = 0; i < S; i++)
+                d += data[i] * a.data[i];
+            return d;
+        }
+
+        Data _normalize() const
+        {
+            return this->_op_scal_div(this->_length());
+        }
+
+        // Bonus functions. Note that log2 is already covered.
+
+        Data<bool, S> _is_pow2() const
+        {
+            Data<bool, S> r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = is_pow2(data[i]);
+            return r;
+        }
+
+        Data _next_pow2() const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = next_pow2(data[i]);
+            return r;
+        }
+
+        Data _next_multiple(T y) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = next_multiple(data[i], y);
+            return r;
+        }
+
+        Data _next_multiple(const Data& y) const
+        {
+            Data r;
+            for (int i = 0; i < S; i++)
+                r.data[i] = next_multiple(data[i], y.data[i]);
+            return r;
+        }
     };
 
-    template<typename T>
-    class array_data<T, 1, 2>
+
+    /* Vectors */
+
+    template<typename T, int S> class vector
+    {
+    public:
+        Data<T, S> data;
+    };
+
+    template<typename T,
+        int C,  // number of components of this swizzler
+        int S,  // number of components of underlying data
+        int I, int J, int K, int L // indices of data components to read when creating a swizzler
+            > class swizzler
+    {
+    public:
+        T data[S];
+
+        swizzler(const vector<T, C>& d)
+        {
+            static_assert(C >= 2 && C <= 4, "swizzlers must have 2, 3, or 4 components");
+            static_assert(I != J && I != K && I != L
+                    && J != K && J != L
+                    && (K == 9 || K != L)
+                    , "cannot assign to ambiguous swizzler");
+            data[0] = d.data[I];
+            data[1] = d.data[J];
+            if (C > 2) data[2] = d.data[K];
+            if (C > 3) data[3] = d.data[L];
+        }
+
+        template<int SS, int SI, int SJ, int SK, int SL>
+        swizzler(const swizzler<T, C, SS, SI, SJ, SK, SL>& s) : swizzler(vector<T, C>(s)) {}
+    };
+
+    template<typename T> class vector<T, 2>
     {
     public:
         union {
-            T v[1][2];
-            T vl[2];
+            Data<T, 2> data;
             struct {
                 union {
                     T x, s, r;
@@ -1530,16 +1958,64 @@ namespace glvm
                     T y, t, g;
                 };
             };
+            swizzler<T, 2, 2, 0, 0, 9, 9> xx, rr, ss;
+            swizzler<T, 2, 2, 0, 1, 9, 9> xy, rg, st;
+            swizzler<T, 2, 2, 1, 0, 9, 9> yx, gr, ts;
+            swizzler<T, 2, 2, 1, 1, 9, 9> yy, gg, tt;
+            swizzler<T, 3, 2, 0, 0, 0, 9> xxx, rrr, sss;
+            swizzler<T, 3, 2, 0, 0, 1, 9> xxy, rrg, sst;
+            swizzler<T, 3, 2, 0, 1, 0, 9> xyx, rgr, sts;
+            swizzler<T, 3, 2, 0, 1, 1, 9> xyy, rgg, stt;
+            swizzler<T, 3, 2, 1, 0, 0, 9> yxx, grr, tss;
+            swizzler<T, 3, 2, 1, 0, 1, 9> yxy, grg, tst;
+            swizzler<T, 3, 2, 1, 1, 0, 9> yyx, ggr, tts;
+            swizzler<T, 3, 2, 1, 1, 1, 9> yyy, ggg, ttt;
+            swizzler<T, 4, 2, 0, 0, 0, 0> xxxx, rrrr, ssss;
+            swizzler<T, 4, 2, 0, 0, 0, 1> xxxy, rrrg, ssst;
+            swizzler<T, 4, 2, 0, 0, 1, 0> xxyx, rrgr, ssts;
+            swizzler<T, 4, 2, 0, 0, 1, 1> xxyy, rrgg, sstt;
+            swizzler<T, 4, 2, 0, 1, 0, 0> xyxx, rgrr, stss;
+            swizzler<T, 4, 2, 0, 1, 0, 1> xyxy, rgrg, stst;
+            swizzler<T, 4, 2, 0, 1, 1, 0> xyyx, rggr, stts;
+            swizzler<T, 4, 2, 0, 1, 1, 1> xyyy, rggg, sttt;
+            swizzler<T, 4, 2, 1, 0, 0, 0> yxxx, grrr, tsss;
+            swizzler<T, 4, 2, 1, 0, 0, 1> yxxy, grrg, tsst;
+            swizzler<T, 4, 2, 1, 0, 1, 0> yxyx, grgr, tsts;
+            swizzler<T, 4, 2, 1, 0, 1, 1> yxyy, grgg, tstt;
+            swizzler<T, 4, 2, 1, 1, 0, 0> yyxx, ggrr, ttss;
+            swizzler<T, 4, 2, 1, 1, 0, 1> yyxy, ggrg, ttst;
+            swizzler<T, 4, 2, 1, 1, 1, 0> yyyx, gggr, ttts;
+            swizzler<T, 4, 2, 1, 1, 1, 1> yyyy, gggg, tttt;
         };
+
+        vector() {}
+
+        vector(T x, T y)
+        {
+            data[0] = x;
+            data[1] = y;
+        }
+
+        vector(T x) : vector(x, x) {}
+        vector(const vector<T, 2>& xy) : vector(xy.data[0], xy.data[1]) {}
+        vector(const Data<T, 2>& xy) : vector(xy.data[0], xy.data[1]) {}
+        vector(const T* xy) : vector(xy[0], xy[1]) {}
+        template<typename U> vector(const vector<U, 2>& xy) : vector(xy.data[0], xy.data[1]) {}
+
+        template<int S, int I, int J, int K, int L>
+        vector(const swizzler<T, 2, S, I, J, K, L>& s)
+        : vector(s.data[I], s.data[J]) {}
+
+        operator const T*() const { return data; }
+        T& operator[](unsigned int i) { return data[i]; }
+        T operator[](unsigned int i) const { return data[i]; }
     };
 
-    template<typename T>
-    class array_data<T, 1, 3>
+    template<typename T> class vector<T, 3>
     {
     public:
         union {
-            T v[1][3];
-            T vl[3];
+            Data<T, 3> data;
             struct {
                 union {
                     T x, s, r;
@@ -1551,16 +2027,156 @@ namespace glvm
                     T z, p, b;
                 };
             };
+            swizzler<T, 2, 3, 0, 0, 9, 9> xx, rr, ss;
+            swizzler<T, 2, 3, 0, 1, 9, 9> xy, rg, st;
+            swizzler<T, 2, 3, 0, 2, 9, 9> xz, rb, sp;
+            swizzler<T, 2, 3, 1, 0, 9, 9> yx, gr, ts;
+            swizzler<T, 2, 3, 1, 1, 9, 9> yy, gg, tt;
+            swizzler<T, 2, 3, 1, 2, 9, 9> yz, gb, tp;
+            swizzler<T, 2, 3, 2, 0, 9, 9> zx, br, ps;
+            swizzler<T, 2, 3, 2, 1, 9, 9> zy, bg, pt;
+            swizzler<T, 2, 3, 2, 2, 9, 9> zz, bb, pp;
+            swizzler<T, 3, 3, 0, 0, 0, 9> xxx, rrr, sss;
+            swizzler<T, 3, 3, 0, 0, 1, 9> xxy, rrg, sst;
+            swizzler<T, 3, 3, 0, 0, 2, 9> xxz, rrb, ssp;
+            swizzler<T, 3, 3, 0, 1, 0, 9> xyx, rgr, sts;
+            swizzler<T, 3, 3, 0, 1, 1, 9> xyy, rgg, stt;
+            swizzler<T, 3, 3, 0, 1, 2, 9> xyz, rgb, stp;
+            swizzler<T, 3, 3, 0, 2, 0, 9> xzx, rbr, sps;
+            swizzler<T, 3, 3, 0, 2, 1, 9> xzy, rbg, spt;
+            swizzler<T, 3, 3, 0, 2, 2, 9> xzz, rbb, spp;
+            swizzler<T, 3, 3, 1, 0, 0, 9> yxx, grr, tss;
+            swizzler<T, 3, 3, 1, 0, 1, 9> yxy, grg, tst;
+            swizzler<T, 3, 3, 1, 0, 2, 9> yxz, grb, tsp;
+            swizzler<T, 3, 3, 1, 1, 0, 9> yyx, ggr, tts;
+            swizzler<T, 3, 3, 1, 1, 1, 9> yyy, ggg, ttt;
+            swizzler<T, 3, 3, 1, 1, 2, 9> yyz, ggb, ttp;
+            swizzler<T, 3, 3, 1, 2, 0, 9> yzx, gbr, tps;
+            swizzler<T, 3, 3, 1, 2, 1, 9> yzy, gbg, tpt;
+            swizzler<T, 3, 3, 1, 2, 2, 9> yzz, gbb, tpp;
+            swizzler<T, 3, 3, 2, 0, 0, 9> zxx, brr, pss;
+            swizzler<T, 3, 3, 2, 0, 1, 9> zxy, brg, pst;
+            swizzler<T, 3, 3, 2, 0, 2, 9> zxz, brb, psp;
+            swizzler<T, 3, 3, 2, 1, 0, 9> zyx, bgr, pts;
+            swizzler<T, 3, 3, 2, 1, 1, 9> zyy, bgg, ptt;
+            swizzler<T, 3, 3, 2, 1, 2, 9> zyz, bgb, ptp;
+            swizzler<T, 3, 3, 2, 2, 0, 9> zzx, bbr, pps;
+            swizzler<T, 3, 3, 2, 2, 1, 9> zzy, bbg, ppt;
+            swizzler<T, 3, 3, 2, 2, 2, 9> zzz, bbb, ppp;
+            swizzler<T, 4, 3, 0, 0, 0, 0> xxxx, rrrr, ssss;
+            swizzler<T, 4, 3, 0, 0, 0, 1> xxxy, rrrg, ssst;
+            swizzler<T, 4, 3, 0, 0, 0, 2> xxxz, rrrb, sssp;
+            swizzler<T, 4, 3, 0, 0, 1, 0> xxyx, rrgr, ssts;
+            swizzler<T, 4, 3, 0, 0, 1, 1> xxyy, rrgg, sstt;
+            swizzler<T, 4, 3, 0, 0, 1, 2> xxyz, rrgb, sstp;
+            swizzler<T, 4, 3, 0, 0, 2, 0> xxzx, rrbr, ssps;
+            swizzler<T, 4, 3, 0, 0, 2, 1> xxzy, rrbg, sspt;
+            swizzler<T, 4, 3, 0, 0, 2, 2> xxzz, rrbb, sspp;
+            swizzler<T, 4, 3, 0, 1, 0, 0> xyxx, rgrr, stss;
+            swizzler<T, 4, 3, 0, 1, 0, 1> xyxy, rgrg, stst;
+            swizzler<T, 4, 3, 0, 1, 0, 2> xyxz, rgrb, stsp;
+            swizzler<T, 4, 3, 0, 1, 1, 0> xyyx, rggr, stts;
+            swizzler<T, 4, 3, 0, 1, 1, 1> xyyy, rggg, sttt;
+            swizzler<T, 4, 3, 0, 1, 1, 2> xyyz, rggb, sttp;
+            swizzler<T, 4, 3, 0, 1, 2, 0> xyzx, rgbr, stps;
+            swizzler<T, 4, 3, 0, 1, 2, 1> xyzy, rgbg, stpt;
+            swizzler<T, 4, 3, 0, 1, 2, 2> xyzz, rgbb, stpp;
+            swizzler<T, 4, 3, 0, 2, 0, 0> xzxx, rbrr, spss;
+            swizzler<T, 4, 3, 0, 2, 0, 1> xzxy, rbrg, spst;
+            swizzler<T, 4, 3, 0, 2, 0, 2> xzxz, rbrb, spsp;
+            swizzler<T, 4, 3, 0, 2, 1, 0> xzyx, rbgr, spts;
+            swizzler<T, 4, 3, 0, 2, 1, 1> xzyy, rbgg, sptt;
+            swizzler<T, 4, 3, 0, 2, 1, 2> xzyz, rbgb, sptp;
+            swizzler<T, 4, 3, 0, 2, 2, 0> xzzx, rbbr, spps;
+            swizzler<T, 4, 3, 0, 2, 2, 1> xzzy, rbbg, sppt;
+            swizzler<T, 4, 3, 0, 2, 2, 2> xzzz, rbbb, sppp;
+            swizzler<T, 4, 3, 1, 0, 0, 0> yxxx, grrr, tsss;
+            swizzler<T, 4, 3, 1, 0, 0, 1> yxxy, grrg, tsst;
+            swizzler<T, 4, 3, 1, 0, 0, 2> yxxz, grrb, tssp;
+            swizzler<T, 4, 3, 1, 0, 1, 0> yxyx, grgr, tsts;
+            swizzler<T, 4, 3, 1, 0, 1, 1> yxyy, grgg, tstt;
+            swizzler<T, 4, 3, 1, 0, 1, 2> yxyz, grgb, tstp;
+            swizzler<T, 4, 3, 1, 0, 2, 0> yxzx, grbr, tsps;
+            swizzler<T, 4, 3, 1, 0, 2, 1> yxzy, grbg, tspt;
+            swizzler<T, 4, 3, 1, 0, 2, 2> yxzz, grbb, tspp;
+            swizzler<T, 4, 3, 1, 1, 0, 0> yyxx, ggrr, ttss;
+            swizzler<T, 4, 3, 1, 1, 0, 1> yyxy, ggrg, ttst;
+            swizzler<T, 4, 3, 1, 1, 0, 2> yyxz, ggrb, ttsp;
+            swizzler<T, 4, 3, 1, 1, 1, 0> yyyx, gggr, ttts;
+            swizzler<T, 4, 3, 1, 1, 1, 1> yyyy, gggg, tttt;
+            swizzler<T, 4, 3, 1, 1, 1, 2> yyyz, gggb, tttp;
+            swizzler<T, 4, 3, 1, 1, 2, 0> yyzx, ggbr, ttps;
+            swizzler<T, 4, 3, 1, 1, 2, 1> yyzy, ggbg, ttpt;
+            swizzler<T, 4, 3, 1, 1, 2, 2> yyzz, ggbb, ttpp;
+            swizzler<T, 4, 3, 1, 2, 0, 0> yzxx, gbrr, tpss;
+            swizzler<T, 4, 3, 1, 2, 0, 1> yzxy, gbrg, tpst;
+            swizzler<T, 4, 3, 1, 2, 0, 2> yzxz, gbrb, tpsp;
+            swizzler<T, 4, 3, 1, 2, 1, 0> yzyx, gbgr, tpts;
+            swizzler<T, 4, 3, 1, 2, 1, 1> yzyy, gbgg, tptt;
+            swizzler<T, 4, 3, 1, 2, 1, 2> yzyz, gbgb, tptp;
+            swizzler<T, 4, 3, 1, 2, 2, 0> yzzx, gbbr, tpps;
+            swizzler<T, 4, 3, 1, 2, 2, 1> yzzy, gbbg, tppt;
+            swizzler<T, 4, 3, 1, 2, 2, 2> yzzz, gbbb, tppp;
+            swizzler<T, 4, 3, 2, 0, 0, 0> zxxx, brrr, psss;
+            swizzler<T, 4, 3, 2, 0, 0, 1> zxxy, brrg, psst;
+            swizzler<T, 4, 3, 2, 0, 0, 2> zxxz, brrb, pssp;
+            swizzler<T, 4, 3, 2, 0, 1, 0> zxyx, brgr, psts;
+            swizzler<T, 4, 3, 2, 0, 1, 1> zxyy, brgg, pstt;
+            swizzler<T, 4, 3, 2, 0, 1, 2> zxyz, brgb, pstp;
+            swizzler<T, 4, 3, 2, 0, 2, 0> zxzx, brbr, psps;
+            swizzler<T, 4, 3, 2, 0, 2, 1> zxzy, brbg, pspt;
+            swizzler<T, 4, 3, 2, 0, 2, 2> zxzz, brbb, pspp;
+            swizzler<T, 4, 3, 2, 1, 0, 0> zyxx, bgrr, ptss;
+            swizzler<T, 4, 3, 2, 1, 0, 1> zyxy, bgrg, ptst;
+            swizzler<T, 4, 3, 2, 1, 0, 2> zyxz, bgrb, ptsp;
+            swizzler<T, 4, 3, 2, 1, 1, 0> zyyx, bggr, ptts;
+            swizzler<T, 4, 3, 2, 1, 1, 1> zyyy, bggg, pttt;
+            swizzler<T, 4, 3, 2, 1, 1, 2> zyyz, bggb, pttp;
+            swizzler<T, 4, 3, 2, 1, 2, 0> zyzx, bgbr, ptps;
+            swizzler<T, 4, 3, 2, 1, 2, 1> zyzy, bgbg, ptpt;
+            swizzler<T, 4, 3, 2, 1, 2, 2> zyzz, bgbb, ptpp;
+            swizzler<T, 4, 3, 2, 2, 0, 0> zzxx, bbrr, ppss;
+            swizzler<T, 4, 3, 2, 2, 0, 1> zzxy, bbrg, ppst;
+            swizzler<T, 4, 3, 2, 2, 0, 2> zzxz, bbrb, ppsp;
+            swizzler<T, 4, 3, 2, 2, 1, 0> zzyx, bbgr, ppts;
+            swizzler<T, 4, 3, 2, 2, 1, 1> zzyy, bbgg, pptt;
+            swizzler<T, 4, 3, 2, 2, 1, 2> zzyz, bbgb, pptp;
+            swizzler<T, 4, 3, 2, 2, 2, 0> zzzx, bbbr, ppps;
+            swizzler<T, 4, 3, 2, 2, 2, 1> zzzy, bbbg, pppt;
+            swizzler<T, 4, 3, 2, 2, 2, 2> zzzz, bbbb, pppp;
         };
+
+        vector() {}
+
+        vector(T x, T y, T z)
+        {
+            data[0] = x;
+            data[1] = y;
+            data[2] = z;
+        }
+
+        vector(T x) : vector(x, x, x) {}
+        vector(const vector<T, 2>& xy, T z) : vector(xy.data[0], xy.data[1], z) {}
+        vector(T x, const vector<T, 2>& yz) : vector(x, yz.data[0], yz.data[1]) {}
+        vector(const vector<T, 3>& xyz) : vector(xyz.data[0], xyz.data[1], xyz.data[2]) {}
+        vector(const Data<T, 3>& xyz) : vector(xyz.data[0], xyz.data[1], xyz.data[2]) {}
+        vector(const T* xyz) : vector(xyz[0], xyz[1], xyz[2]) {}
+        template<typename U> vector(const vector<U, 2>& xyz) : vector(xyz.data[0], xyz.data[1], xyz.data[2]) {}
+
+        template<int S, int I, int J, int K, int L>
+        vector(const swizzler<T, 3, S, I, J, K, L>& s)
+        : vector(s.data[I], s.data[J], s.data[K]) {}
+
+        operator const T*() const { return data; }
+        T& operator[](unsigned int i) { return data[i]; }
+        T operator[](unsigned int i) const { return data[i]; }
     };
 
-    template<typename T>
-    class array_data<T, 1, 4>
+    template<typename T> class vector<T, 4>
     {
     public:
         union {
-            T v[1][4];
-            T vl[4];
+            Data<T, 4> data;
             struct {
                 union {
                     T x, s, r;
@@ -1575,2623 +2191,490 @@ namespace glvm
                     T w, q, a;
                 };
             };
+            swizzler<T, 2, 4, 0, 0, 9, 9> xx, rr, ss;
+            swizzler<T, 2, 4, 0, 1, 9, 9> xy, rg, st;
+            swizzler<T, 2, 4, 0, 2, 9, 9> xz, rb, sp;
+            swizzler<T, 2, 4, 0, 3, 9, 9> xw, ra, sq;
+            swizzler<T, 2, 4, 1, 0, 9, 9> yx, gr, ts;
+            swizzler<T, 2, 4, 1, 1, 9, 9> yy, gg, tt;
+            swizzler<T, 2, 4, 1, 2, 9, 9> yz, gb, tp;
+            swizzler<T, 2, 4, 1, 3, 9, 9> yw, ga, tq;
+            swizzler<T, 2, 4, 2, 0, 9, 9> zx, br, ps;
+            swizzler<T, 2, 4, 2, 1, 9, 9> zy, bg, pt;
+            swizzler<T, 2, 4, 2, 2, 9, 9> zz, bb, pp;
+            swizzler<T, 2, 4, 2, 3, 9, 9> zw, ba, pq;
+            swizzler<T, 2, 4, 3, 0, 9, 9> wx, ar, qs;
+            swizzler<T, 2, 4, 3, 1, 9, 9> wy, ag, qt;
+            swizzler<T, 2, 4, 3, 2, 9, 9> wz, ab, qp;
+            swizzler<T, 2, 4, 3, 3, 9, 9> ww, aa, qq;
+            swizzler<T, 3, 4, 0, 0, 0, 9> xxx, rrr, sss;
+            swizzler<T, 3, 4, 0, 0, 1, 9> xxy, rrg, sst;
+            swizzler<T, 3, 4, 0, 0, 2, 9> xxz, rrb, ssp;
+            swizzler<T, 3, 4, 0, 0, 3, 9> xxw, rra, ssq;
+            swizzler<T, 3, 4, 0, 1, 0, 9> xyx, rgr, sts;
+            swizzler<T, 3, 4, 0, 1, 1, 9> xyy, rgg, stt;
+            swizzler<T, 3, 4, 0, 1, 2, 9> xyz, rgb, stp;
+            swizzler<T, 3, 4, 0, 1, 3, 9> xyw, rga, stq;
+            swizzler<T, 3, 4, 0, 2, 0, 9> xzx, rbr, sps;
+            swizzler<T, 3, 4, 0, 2, 1, 9> xzy, rbg, spt;
+            swizzler<T, 3, 4, 0, 2, 2, 9> xzz, rbb, spp;
+            swizzler<T, 3, 4, 0, 2, 3, 9> xzw, rba, spq;
+            swizzler<T, 3, 4, 0, 3, 0, 9> xwx, rar, sqs;
+            swizzler<T, 3, 4, 0, 3, 1, 9> xwy, rag, sqt;
+            swizzler<T, 3, 4, 0, 3, 2, 9> xwz, rab, sqp;
+            swizzler<T, 3, 4, 0, 3, 3, 9> xww, raa, sqq;
+            swizzler<T, 3, 4, 1, 0, 0, 9> yxx, grr, tss;
+            swizzler<T, 3, 4, 1, 0, 1, 9> yxy, grg, tst;
+            swizzler<T, 3, 4, 1, 0, 2, 9> yxz, grb, tsp;
+            swizzler<T, 3, 4, 1, 0, 3, 9> yxw, gra, tsq;
+            swizzler<T, 3, 4, 1, 1, 0, 9> yyx, ggr, tts;
+            swizzler<T, 3, 4, 1, 1, 1, 9> yyy, ggg, ttt;
+            swizzler<T, 3, 4, 1, 1, 2, 9> yyz, ggb, ttp;
+            swizzler<T, 3, 4, 1, 1, 3, 9> yyw, gga, ttq;
+            swizzler<T, 3, 4, 1, 2, 0, 9> yzx, gbr, tps;
+            swizzler<T, 3, 4, 1, 2, 1, 9> yzy, gbg, tpt;
+            swizzler<T, 3, 4, 1, 2, 2, 9> yzz, gbb, tpp;
+            swizzler<T, 3, 4, 1, 2, 3, 9> yzw, gba, tpq;
+            swizzler<T, 3, 4, 1, 3, 0, 9> ywx, gar, tqs;
+            swizzler<T, 3, 4, 1, 3, 1, 9> ywy, gag, tqt;
+            swizzler<T, 3, 4, 1, 3, 2, 9> ywz, gab, tqp;
+            swizzler<T, 3, 4, 1, 3, 3, 9> yww, gaa, tqq;
+            swizzler<T, 3, 4, 2, 0, 0, 9> zxx, brr, pss;
+            swizzler<T, 3, 4, 2, 0, 1, 9> zxy, brg, pst;
+            swizzler<T, 3, 4, 2, 0, 2, 9> zxz, brb, psp;
+            swizzler<T, 3, 4, 2, 0, 3, 9> zxw, bra, psq;
+            swizzler<T, 3, 4, 2, 1, 0, 9> zyx, bgr, pts;
+            swizzler<T, 3, 4, 2, 1, 1, 9> zyy, bgg, ptt;
+            swizzler<T, 3, 4, 2, 1, 2, 9> zyz, bgb, ptp;
+            swizzler<T, 3, 4, 2, 1, 3, 9> zyw, bga, ptq;
+            swizzler<T, 3, 4, 2, 2, 0, 9> zzx, bbr, pps;
+            swizzler<T, 3, 4, 2, 2, 1, 9> zzy, bbg, ppt;
+            swizzler<T, 3, 4, 2, 2, 2, 9> zzz, bbb, ppp;
+            swizzler<T, 3, 4, 2, 2, 3, 9> zzw, bba, ppq;
+            swizzler<T, 3, 4, 2, 3, 0, 9> zwx, bar, pqs;
+            swizzler<T, 3, 4, 2, 3, 1, 9> zwy, bag, pqt;
+            swizzler<T, 3, 4, 2, 3, 2, 9> zwz, bab, pqp;
+            swizzler<T, 3, 4, 2, 3, 3, 9> zww, baa, pqq;
+            swizzler<T, 3, 4, 3, 0, 0, 9> wxx, arr, qss;
+            swizzler<T, 3, 4, 3, 0, 1, 9> wxy, arg, qst;
+            swizzler<T, 3, 4, 3, 0, 2, 9> wxz, arb, qsp;
+            swizzler<T, 3, 4, 3, 0, 3, 9> wxw, ara, qsq;
+            swizzler<T, 3, 4, 3, 1, 0, 9> wyx, agr, qts;
+            swizzler<T, 3, 4, 3, 1, 1, 9> wyy, agg, qtt;
+            swizzler<T, 3, 4, 3, 1, 2, 9> wyz, agb, qtp;
+            swizzler<T, 3, 4, 3, 1, 3, 9> wyw, aga, qtq;
+            swizzler<T, 3, 4, 3, 2, 0, 9> wzx, abr, qps;
+            swizzler<T, 3, 4, 3, 2, 1, 9> wzy, abg, qpt;
+            swizzler<T, 3, 4, 3, 2, 2, 9> wzz, abb, qpp;
+            swizzler<T, 3, 4, 3, 2, 3, 9> wzw, aba, qpq;
+            swizzler<T, 3, 4, 3, 3, 0, 9> wwx, aar, qqs;
+            swizzler<T, 3, 4, 3, 3, 1, 9> wwy, aag, qqt;
+            swizzler<T, 3, 4, 3, 3, 2, 9> wwz, aab, qqp;
+            swizzler<T, 3, 4, 3, 3, 3, 9> www, aaa, qqq;
+            swizzler<T, 4, 4, 0, 0, 0, 0> xxxx, rrrr, ssss;
+            swizzler<T, 4, 4, 0, 0, 0, 1> xxxy, rrrg, ssst;
+            swizzler<T, 4, 4, 0, 0, 0, 2> xxxz, rrrb, sssp;
+            swizzler<T, 4, 4, 0, 0, 0, 3> xxxw, rrra, sssq;
+            swizzler<T, 4, 4, 0, 0, 1, 0> xxyx, rrgr, ssts;
+            swizzler<T, 4, 4, 0, 0, 1, 1> xxyy, rrgg, sstt;
+            swizzler<T, 4, 4, 0, 0, 1, 2> xxyz, rrgb, sstp;
+            swizzler<T, 4, 4, 0, 0, 1, 3> xxyw, rrga, sstq;
+            swizzler<T, 4, 4, 0, 0, 2, 0> xxzx, rrbr, ssps;
+            swizzler<T, 4, 4, 0, 0, 2, 1> xxzy, rrbg, sspt;
+            swizzler<T, 4, 4, 0, 0, 2, 2> xxzz, rrbb, sspp;
+            swizzler<T, 4, 4, 0, 0, 2, 3> xxzw, rrba, sspq;
+            swizzler<T, 4, 4, 0, 0, 3, 0> xxwx, rrar, ssqs;
+            swizzler<T, 4, 4, 0, 0, 3, 1> xxwy, rrag, ssqt;
+            swizzler<T, 4, 4, 0, 0, 3, 2> xxwz, rrab, ssqp;
+            swizzler<T, 4, 4, 0, 0, 3, 3> xxww, rraa, ssqq;
+            swizzler<T, 4, 4, 0, 1, 0, 0> xyxx, rgrr, stss;
+            swizzler<T, 4, 4, 0, 1, 0, 1> xyxy, rgrg, stst;
+            swizzler<T, 4, 4, 0, 1, 0, 2> xyxz, rgrb, stsp;
+            swizzler<T, 4, 4, 0, 1, 0, 3> xyxw, rgra, stsq;
+            swizzler<T, 4, 4, 0, 1, 1, 0> xyyx, rggr, stts;
+            swizzler<T, 4, 4, 0, 1, 1, 1> xyyy, rggg, sttt;
+            swizzler<T, 4, 4, 0, 1, 1, 2> xyyz, rggb, sttp;
+            swizzler<T, 4, 4, 0, 1, 1, 3> xyyw, rgga, sttq;
+            swizzler<T, 4, 4, 0, 1, 2, 0> xyzx, rgbr, stps;
+            swizzler<T, 4, 4, 0, 1, 2, 1> xyzy, rgbg, stpt;
+            swizzler<T, 4, 4, 0, 1, 2, 2> xyzz, rgbb, stpp;
+            swizzler<T, 4, 4, 0, 1, 2, 3> xyzw, rgba, stpq;
+            swizzler<T, 4, 4, 0, 1, 3, 0> xywx, rgar, stqs;
+            swizzler<T, 4, 4, 0, 1, 3, 1> xywy, rgag, stqt;
+            swizzler<T, 4, 4, 0, 1, 3, 2> xywz, rgab, stqp;
+            swizzler<T, 4, 4, 0, 1, 3, 3> xyww, rgaa, stqq;
+            swizzler<T, 4, 4, 0, 2, 0, 0> xzxx, rbrr, spss;
+            swizzler<T, 4, 4, 0, 2, 0, 1> xzxy, rbrg, spst;
+            swizzler<T, 4, 4, 0, 2, 0, 2> xzxz, rbrb, spsp;
+            swizzler<T, 4, 4, 0, 2, 0, 3> xzxw, rbra, spsq;
+            swizzler<T, 4, 4, 0, 2, 1, 0> xzyx, rbgr, spts;
+            swizzler<T, 4, 4, 0, 2, 1, 1> xzyy, rbgg, sptt;
+            swizzler<T, 4, 4, 0, 2, 1, 2> xzyz, rbgb, sptp;
+            swizzler<T, 4, 4, 0, 2, 1, 3> xzyw, rbga, sptq;
+            swizzler<T, 4, 4, 0, 2, 2, 0> xzzx, rbbr, spps;
+            swizzler<T, 4, 4, 0, 2, 2, 1> xzzy, rbbg, sppt;
+            swizzler<T, 4, 4, 0, 2, 2, 2> xzzz, rbbb, sppp;
+            swizzler<T, 4, 4, 0, 2, 2, 3> xzzw, rbba, sppq;
+            swizzler<T, 4, 4, 0, 2, 3, 0> xzwx, rbar, spqs;
+            swizzler<T, 4, 4, 0, 2, 3, 1> xzwy, rbag, spqt;
+            swizzler<T, 4, 4, 0, 2, 3, 2> xzwz, rbab, spqp;
+            swizzler<T, 4, 4, 0, 2, 3, 3> xzww, rbaa, spqq;
+            swizzler<T, 4, 4, 0, 3, 0, 0> xwxx, rarr, sqss;
+            swizzler<T, 4, 4, 0, 3, 0, 1> xwxy, rarg, sqst;
+            swizzler<T, 4, 4, 0, 3, 0, 2> xwxz, rarb, sqsp;
+            swizzler<T, 4, 4, 0, 3, 0, 3> xwxw, rara, sqsq;
+            swizzler<T, 4, 4, 0, 3, 1, 0> xwyx, ragr, sqts;
+            swizzler<T, 4, 4, 0, 3, 1, 1> xwyy, ragg, sqtt;
+            swizzler<T, 4, 4, 0, 3, 1, 2> xwyz, ragb, sqtp;
+            swizzler<T, 4, 4, 0, 3, 1, 3> xwyw, raga, sqtq;
+            swizzler<T, 4, 4, 0, 3, 2, 0> xwzx, rabr, sqps;
+            swizzler<T, 4, 4, 0, 3, 2, 1> xwzy, rabg, sqpt;
+            swizzler<T, 4, 4, 0, 3, 2, 2> xwzz, rabb, sqpp;
+            swizzler<T, 4, 4, 0, 3, 2, 3> xwzw, raba, sqpq;
+            swizzler<T, 4, 4, 0, 3, 3, 0> xwwx, raar, sqqs;
+            swizzler<T, 4, 4, 0, 3, 3, 1> xwwy, raag, sqqt;
+            swizzler<T, 4, 4, 0, 3, 3, 2> xwwz, raab, sqqp;
+            swizzler<T, 4, 4, 0, 3, 3, 3> xwww, raaa, sqqq;
+            swizzler<T, 4, 4, 1, 0, 0, 0> yxxx, grrr, tsss;
+            swizzler<T, 4, 4, 1, 0, 0, 1> yxxy, grrg, tsst;
+            swizzler<T, 4, 4, 1, 0, 0, 2> yxxz, grrb, tssp;
+            swizzler<T, 4, 4, 1, 0, 0, 3> yxxw, grra, tssq;
+            swizzler<T, 4, 4, 1, 0, 1, 0> yxyx, grgr, tsts;
+            swizzler<T, 4, 4, 1, 0, 1, 1> yxyy, grgg, tstt;
+            swizzler<T, 4, 4, 1, 0, 1, 2> yxyz, grgb, tstp;
+            swizzler<T, 4, 4, 1, 0, 1, 3> yxyw, grga, tstq;
+            swizzler<T, 4, 4, 1, 0, 2, 0> yxzx, grbr, tsps;
+            swizzler<T, 4, 4, 1, 0, 2, 1> yxzy, grbg, tspt;
+            swizzler<T, 4, 4, 1, 0, 2, 2> yxzz, grbb, tspp;
+            swizzler<T, 4, 4, 1, 0, 2, 3> yxzw, grba, tspq;
+            swizzler<T, 4, 4, 1, 0, 3, 0> yxwx, grar, tsqs;
+            swizzler<T, 4, 4, 1, 0, 3, 1> yxwy, grag, tsqt;
+            swizzler<T, 4, 4, 1, 0, 3, 2> yxwz, grab, tsqp;
+            swizzler<T, 4, 4, 1, 0, 3, 3> yxww, graa, tsqq;
+            swizzler<T, 4, 4, 1, 1, 0, 0> yyxx, ggrr, ttss;
+            swizzler<T, 4, 4, 1, 1, 0, 1> yyxy, ggrg, ttst;
+            swizzler<T, 4, 4, 1, 1, 0, 2> yyxz, ggrb, ttsp;
+            swizzler<T, 4, 4, 1, 1, 0, 3> yyxw, ggra, ttsq;
+            swizzler<T, 4, 4, 1, 1, 1, 0> yyyx, gggr, ttts;
+            swizzler<T, 4, 4, 1, 1, 1, 1> yyyy, gggg, tttt;
+            swizzler<T, 4, 4, 1, 1, 1, 2> yyyz, gggb, tttp;
+            swizzler<T, 4, 4, 1, 1, 1, 3> yyyw, ggga, tttq;
+            swizzler<T, 4, 4, 1, 1, 2, 0> yyzx, ggbr, ttps;
+            swizzler<T, 4, 4, 1, 1, 2, 1> yyzy, ggbg, ttpt;
+            swizzler<T, 4, 4, 1, 1, 2, 2> yyzz, ggbb, ttpp;
+            swizzler<T, 4, 4, 1, 1, 2, 3> yyzw, ggba, ttpq;
+            swizzler<T, 4, 4, 1, 1, 3, 0> yywx, ggar, ttqs;
+            swizzler<T, 4, 4, 1, 1, 3, 1> yywy, ggag, ttqt;
+            swizzler<T, 4, 4, 1, 1, 3, 2> yywz, ggab, ttqp;
+            swizzler<T, 4, 4, 1, 1, 3, 3> yyww, ggaa, ttqq;
+            swizzler<T, 4, 4, 1, 2, 0, 0> yzxx, gbrr, tpss;
+            swizzler<T, 4, 4, 1, 2, 0, 1> yzxy, gbrg, tpst;
+            swizzler<T, 4, 4, 1, 2, 0, 2> yzxz, gbrb, tpsp;
+            swizzler<T, 4, 4, 1, 2, 0, 3> yzxw, gbra, tpsq;
+            swizzler<T, 4, 4, 1, 2, 1, 0> yzyx, gbgr, tpts;
+            swizzler<T, 4, 4, 1, 2, 1, 1> yzyy, gbgg, tptt;
+            swizzler<T, 4, 4, 1, 2, 1, 2> yzyz, gbgb, tptp;
+            swizzler<T, 4, 4, 1, 2, 1, 3> yzyw, gbga, tptq;
+            swizzler<T, 4, 4, 1, 2, 2, 0> yzzx, gbbr, tpps;
+            swizzler<T, 4, 4, 1, 2, 2, 1> yzzy, gbbg, tppt;
+            swizzler<T, 4, 4, 1, 2, 2, 2> yzzz, gbbb, tppp;
+            swizzler<T, 4, 4, 1, 2, 2, 3> yzzw, gbba, tppq;
+            swizzler<T, 4, 4, 1, 2, 3, 0> yzwx, gbar, tpqs;
+            swizzler<T, 4, 4, 1, 2, 3, 1> yzwy, gbag, tpqt;
+            swizzler<T, 4, 4, 1, 2, 3, 2> yzwz, gbab, tpqp;
+            swizzler<T, 4, 4, 1, 2, 3, 3> yzww, gbaa, tpqq;
+            swizzler<T, 4, 4, 1, 3, 0, 0> ywxx, garr, tqss;
+            swizzler<T, 4, 4, 1, 3, 0, 1> ywxy, garg, tqst;
+            swizzler<T, 4, 4, 1, 3, 0, 2> ywxz, garb, tqsp;
+            swizzler<T, 4, 4, 1, 3, 0, 3> ywxw, gara, tqsq;
+            swizzler<T, 4, 4, 1, 3, 1, 0> ywyx, gagr, tqts;
+            swizzler<T, 4, 4, 1, 3, 1, 1> ywyy, gagg, tqtt;
+            swizzler<T, 4, 4, 1, 3, 1, 2> ywyz, gagb, tqtp;
+            swizzler<T, 4, 4, 1, 3, 1, 3> ywyw, gaga, tqtq;
+            swizzler<T, 4, 4, 1, 3, 2, 0> ywzx, gabr, tqps;
+            swizzler<T, 4, 4, 1, 3, 2, 1> ywzy, gabg, tqpt;
+            swizzler<T, 4, 4, 1, 3, 2, 2> ywzz, gabb, tqpp;
+            swizzler<T, 4, 4, 1, 3, 2, 3> ywzw, gaba, tqpq;
+            swizzler<T, 4, 4, 1, 3, 3, 0> ywwx, gaar, tqqs;
+            swizzler<T, 4, 4, 1, 3, 3, 1> ywwy, gaag, tqqt;
+            swizzler<T, 4, 4, 1, 3, 3, 2> ywwz, gaab, tqqp;
+            swizzler<T, 4, 4, 1, 3, 3, 3> ywww, gaaa, tqqq;
+            swizzler<T, 4, 4, 2, 0, 0, 0> zxxx, brrr, psss;
+            swizzler<T, 4, 4, 2, 0, 0, 1> zxxy, brrg, psst;
+            swizzler<T, 4, 4, 2, 0, 0, 2> zxxz, brrb, pssp;
+            swizzler<T, 4, 4, 2, 0, 0, 3> zxxw, brra, pssq;
+            swizzler<T, 4, 4, 2, 0, 1, 0> zxyx, brgr, psts;
+            swizzler<T, 4, 4, 2, 0, 1, 1> zxyy, brgg, pstt;
+            swizzler<T, 4, 4, 2, 0, 1, 2> zxyz, brgb, pstp;
+            swizzler<T, 4, 4, 2, 0, 1, 3> zxyw, brga, pstq;
+            swizzler<T, 4, 4, 2, 0, 2, 0> zxzx, brbr, psps;
+            swizzler<T, 4, 4, 2, 0, 2, 1> zxzy, brbg, pspt;
+            swizzler<T, 4, 4, 2, 0, 2, 2> zxzz, brbb, pspp;
+            swizzler<T, 4, 4, 2, 0, 2, 3> zxzw, brba, pspq;
+            swizzler<T, 4, 4, 2, 0, 3, 0> zxwx, brar, psqs;
+            swizzler<T, 4, 4, 2, 0, 3, 1> zxwy, brag, psqt;
+            swizzler<T, 4, 4, 2, 0, 3, 2> zxwz, brab, psqp;
+            swizzler<T, 4, 4, 2, 0, 3, 3> zxww, braa, psqq;
+            swizzler<T, 4, 4, 2, 1, 0, 0> zyxx, bgrr, ptss;
+            swizzler<T, 4, 4, 2, 1, 0, 1> zyxy, bgrg, ptst;
+            swizzler<T, 4, 4, 2, 1, 0, 2> zyxz, bgrb, ptsp;
+            swizzler<T, 4, 4, 2, 1, 0, 3> zyxw, bgra, ptsq;
+            swizzler<T, 4, 4, 2, 1, 1, 0> zyyx, bggr, ptts;
+            swizzler<T, 4, 4, 2, 1, 1, 1> zyyy, bggg, pttt;
+            swizzler<T, 4, 4, 2, 1, 1, 2> zyyz, bggb, pttp;
+            swizzler<T, 4, 4, 2, 1, 1, 3> zyyw, bgga, pttq;
+            swizzler<T, 4, 4, 2, 1, 2, 0> zyzx, bgbr, ptps;
+            swizzler<T, 4, 4, 2, 1, 2, 1> zyzy, bgbg, ptpt;
+            swizzler<T, 4, 4, 2, 1, 2, 2> zyzz, bgbb, ptpp;
+            swizzler<T, 4, 4, 2, 1, 2, 3> zyzw, bgba, ptpq;
+            swizzler<T, 4, 4, 2, 1, 3, 0> zywx, bgar, ptqs;
+            swizzler<T, 4, 4, 2, 1, 3, 1> zywy, bgag, ptqt;
+            swizzler<T, 4, 4, 2, 1, 3, 2> zywz, bgab, ptqp;
+            swizzler<T, 4, 4, 2, 1, 3, 3> zyww, bgaa, ptqq;
+            swizzler<T, 4, 4, 2, 2, 0, 0> zzxx, bbrr, ppss;
+            swizzler<T, 4, 4, 2, 2, 0, 1> zzxy, bbrg, ppst;
+            swizzler<T, 4, 4, 2, 2, 0, 2> zzxz, bbrb, ppsp;
+            swizzler<T, 4, 4, 2, 2, 0, 3> zzxw, bbra, ppsq;
+            swizzler<T, 4, 4, 2, 2, 1, 0> zzyx, bbgr, ppts;
+            swizzler<T, 4, 4, 2, 2, 1, 1> zzyy, bbgg, pptt;
+            swizzler<T, 4, 4, 2, 2, 1, 2> zzyz, bbgb, pptp;
+            swizzler<T, 4, 4, 2, 2, 1, 3> zzyw, bbga, pptq;
+            swizzler<T, 4, 4, 2, 2, 2, 0> zzzx, bbbr, ppps;
+            swizzler<T, 4, 4, 2, 2, 2, 1> zzzy, bbbg, pppt;
+            swizzler<T, 4, 4, 2, 2, 2, 2> zzzz, bbbb, pppp;
+            swizzler<T, 4, 4, 2, 2, 2, 3> zzzw, bbba, pppq;
+            swizzler<T, 4, 4, 2, 2, 3, 0> zzwx, bbar, ppqs;
+            swizzler<T, 4, 4, 2, 2, 3, 1> zzwy, bbag, ppqt;
+            swizzler<T, 4, 4, 2, 2, 3, 2> zzwz, bbab, ppqp;
+            swizzler<T, 4, 4, 2, 2, 3, 3> zzww, bbaa, ppqq;
+            swizzler<T, 4, 4, 2, 3, 0, 0> zwxx, barr, pqss;
+            swizzler<T, 4, 4, 2, 3, 0, 1> zwxy, barg, pqst;
+            swizzler<T, 4, 4, 2, 3, 0, 2> zwxz, barb, pqsp;
+            swizzler<T, 4, 4, 2, 3, 0, 3> zwxw, bara, pqsq;
+            swizzler<T, 4, 4, 2, 3, 1, 0> zwyx, bagr, pqts;
+            swizzler<T, 4, 4, 2, 3, 1, 1> zwyy, bagg, pqtt;
+            swizzler<T, 4, 4, 2, 3, 1, 2> zwyz, bagb, pqtp;
+            swizzler<T, 4, 4, 2, 3, 1, 3> zwyw, baga, pqtq;
+            swizzler<T, 4, 4, 2, 3, 2, 0> zwzx, babr, pqps;
+            swizzler<T, 4, 4, 2, 3, 2, 1> zwzy, babg, pqpt;
+            swizzler<T, 4, 4, 2, 3, 2, 2> zwzz, babb, pqpp;
+            swizzler<T, 4, 4, 2, 3, 2, 3> zwzw, baba, pqpq;
+            swizzler<T, 4, 4, 2, 3, 3, 0> zwwx, baar, pqqs;
+            swizzler<T, 4, 4, 2, 3, 3, 1> zwwy, baag, pqqt;
+            swizzler<T, 4, 4, 2, 3, 3, 2> zwwz, baab, pqqp;
+            swizzler<T, 4, 4, 2, 3, 3, 3> zwww, baaa, pqqq;
+            swizzler<T, 4, 4, 3, 0, 0, 0> wxxx, arrr, qsss;
+            swizzler<T, 4, 4, 3, 0, 0, 1> wxxy, arrg, qsst;
+            swizzler<T, 4, 4, 3, 0, 0, 2> wxxz, arrb, qssp;
+            swizzler<T, 4, 4, 3, 0, 0, 3> wxxw, arra, qssq;
+            swizzler<T, 4, 4, 3, 0, 1, 0> wxyx, argr, qsts;
+            swizzler<T, 4, 4, 3, 0, 1, 1> wxyy, argg, qstt;
+            swizzler<T, 4, 4, 3, 0, 1, 2> wxyz, argb, qstp;
+            swizzler<T, 4, 4, 3, 0, 1, 3> wxyw, arga, qstq;
+            swizzler<T, 4, 4, 3, 0, 2, 0> wxzx, arbr, qsps;
+            swizzler<T, 4, 4, 3, 0, 2, 1> wxzy, arbg, qspt;
+            swizzler<T, 4, 4, 3, 0, 2, 2> wxzz, arbb, qspp;
+            swizzler<T, 4, 4, 3, 0, 2, 3> wxzw, arba, qspq;
+            swizzler<T, 4, 4, 3, 0, 3, 0> wxwx, arar, qsqs;
+            swizzler<T, 4, 4, 3, 0, 3, 1> wxwy, arag, qsqt;
+            swizzler<T, 4, 4, 3, 0, 3, 2> wxwz, arab, qsqp;
+            swizzler<T, 4, 4, 3, 0, 3, 3> wxww, araa, qsqq;
+            swizzler<T, 4, 4, 3, 1, 0, 0> wyxx, agrr, qtss;
+            swizzler<T, 4, 4, 3, 1, 0, 1> wyxy, agrg, qtst;
+            swizzler<T, 4, 4, 3, 1, 0, 2> wyxz, agrb, qtsp;
+            swizzler<T, 4, 4, 3, 1, 0, 3> wyxw, agra, qtsq;
+            swizzler<T, 4, 4, 3, 1, 1, 0> wyyx, aggr, qtts;
+            swizzler<T, 4, 4, 3, 1, 1, 1> wyyy, aggg, qttt;
+            swizzler<T, 4, 4, 3, 1, 1, 2> wyyz, aggb, qttp;
+            swizzler<T, 4, 4, 3, 1, 1, 3> wyyw, agga, qttq;
+            swizzler<T, 4, 4, 3, 1, 2, 0> wyzx, agbr, qtps;
+            swizzler<T, 4, 4, 3, 1, 2, 1> wyzy, agbg, qtpt;
+            swizzler<T, 4, 4, 3, 1, 2, 2> wyzz, agbb, qtpp;
+            swizzler<T, 4, 4, 3, 1, 2, 3> wyzw, agba, qtpq;
+            swizzler<T, 4, 4, 3, 1, 3, 0> wywx, agar, qtqs;
+            swizzler<T, 4, 4, 3, 1, 3, 1> wywy, agag, qtqt;
+            swizzler<T, 4, 4, 3, 1, 3, 2> wywz, agab, qtqp;
+            swizzler<T, 4, 4, 3, 1, 3, 3> wyww, agaa, qtqq;
+            swizzler<T, 4, 4, 3, 2, 0, 0> wzxx, abrr, qpss;
+            swizzler<T, 4, 4, 3, 2, 0, 1> wzxy, abrg, qpst;
+            swizzler<T, 4, 4, 3, 2, 0, 2> wzxz, abrb, qpsp;
+            swizzler<T, 4, 4, 3, 2, 0, 3> wzxw, abra, qpsq;
+            swizzler<T, 4, 4, 3, 2, 1, 0> wzyx, abgr, qpts;
+            swizzler<T, 4, 4, 3, 2, 1, 1> wzyy, abgg, qptt;
+            swizzler<T, 4, 4, 3, 2, 1, 2> wzyz, abgb, qptp;
+            swizzler<T, 4, 4, 3, 2, 1, 3> wzyw, abga, qptq;
+            swizzler<T, 4, 4, 3, 2, 2, 0> wzzx, abbr, qpps;
+            swizzler<T, 4, 4, 3, 2, 2, 1> wzzy, abbg, qppt;
+            swizzler<T, 4, 4, 3, 2, 2, 2> wzzz, abbb, qppp;
+            swizzler<T, 4, 4, 3, 2, 2, 3> wzzw, abba, qppq;
+            swizzler<T, 4, 4, 3, 2, 3, 0> wzwx, abar, qpqs;
+            swizzler<T, 4, 4, 3, 2, 3, 1> wzwy, abag, qpqt;
+            swizzler<T, 4, 4, 3, 2, 3, 2> wzwz, abab, qpqp;
+            swizzler<T, 4, 4, 3, 2, 3, 3> wzww, abaa, qpqq;
+            swizzler<T, 4, 4, 3, 3, 0, 0> wwxx, aarr, qqss;
+            swizzler<T, 4, 4, 3, 3, 0, 1> wwxy, aarg, qqst;
+            swizzler<T, 4, 4, 3, 3, 0, 2> wwxz, aarb, qqsp;
+            swizzler<T, 4, 4, 3, 3, 0, 3> wwxw, aara, qqsq;
+            swizzler<T, 4, 4, 3, 3, 1, 0> wwyx, aagr, qqts;
+            swizzler<T, 4, 4, 3, 3, 1, 1> wwyy, aagg, qqtt;
+            swizzler<T, 4, 4, 3, 3, 1, 2> wwyz, aagb, qqtp;
+            swizzler<T, 4, 4, 3, 3, 1, 3> wwyw, aaga, qqtq;
+            swizzler<T, 4, 4, 3, 3, 2, 0> wwzx, aabr, qqps;
+            swizzler<T, 4, 4, 3, 3, 2, 1> wwzy, aabg, qqpt;
+            swizzler<T, 4, 4, 3, 3, 2, 2> wwzz, aabb, qqpp;
+            swizzler<T, 4, 4, 3, 3, 2, 3> wwzw, aaba, qqpq;
+            swizzler<T, 4, 4, 3, 3, 3, 0> wwwx, aaar, qqqs;
+            swizzler<T, 4, 4, 3, 3, 3, 1> wwwy, aaag, qqqt;
+            swizzler<T, 4, 4, 3, 3, 3, 2> wwwz, aaab, qqqp;
+            swizzler<T, 4, 4, 3, 3, 3, 3> wwww, aaaa, qqqq;
         };
-    };
-
-    template<typename T, int cols, int rows>
-    class array : public array_data<T, cols, rows>
-    {
-    public:
-        using array_data<T, cols, rows>::v;
-        using array_data<T, cols, rows>::vl;
-
-        /* Constructors, Destructor */
-
-        array() {}
-
-        // The following constructor are needed to construct vec and mat
-        // objects from a series of values. We need constructors for 1, 2, 3,
-        // 4, 6, 8, 9, 12, and 16 elements.
-
-        explicit array(T x)
-        {
-            for (int i = 0; i < cols * rows; i++)
-                vl[i] = x;
-        }
-
-        explicit array(T x, T y)
-        {
-            vl[0] = x;
-            vl[1] = y;
-        }
-
-        explicit array(T x, T y, T z)
-        {
-            vl[0] = x;
-            vl[1] = y;
-            vl[2] = z;
-        }
-
-        explicit array(T x, T y, T z, T w)
-        {
-            vl[0] = x;
-            vl[1] = y;
-            vl[2] = z;
-            vl[3] = w;
-        }
-
-        explicit array(T v0, T v1, T v2, T v3, T v4, T v5)
-        {
-            vl[0] = v0;
-            vl[1] = v1;
-            vl[2] = v2;
-            vl[3] = v3;
-            vl[4] = v4;
-            vl[5] = v5;
-        }
-
-        explicit array(T v0, T v1, T v2, T v3, T v4, T v5, T v6, T v7)
-        {
-            vl[0] = v0;
-            vl[1] = v1;
-            vl[2] = v2;
-            vl[3] = v3;
-            vl[4] = v4;
-            vl[5] = v5;
-            vl[6] = v6;
-            vl[7] = v7;
-        }
-
-        explicit array(T v0, T v1, T v2, T v3, T v4, T v5, T v6, T v7, T v8)
-        {
-            vl[0] = v0;
-            vl[1] = v1;
-            vl[2] = v2;
-            vl[3] = v3;
-            vl[4] = v4;
-            vl[5] = v5;
-            vl[6] = v6;
-            vl[7] = v7;
-            vl[8] = v8;
-        }
-
-        explicit array(T v0, T v1, T v2, T v3, T v4, T v5, T v6, T v7, T v8, T v9, T v10, T v11)
-        {
-            vl[0] = v0;
-            vl[1] = v1;
-            vl[2] = v2;
-            vl[3] = v3;
-            vl[4] = v4;
-            vl[5] = v5;
-            vl[6] = v6;
-            vl[7] = v7;
-            vl[8] = v8;
-            vl[9] = v9;
-            vl[10] = v10;
-            vl[11] = v11;
-        }
-
-        explicit array(T v0, T v1, T v2, T v3, T v4, T v5, T v6, T v7, T v8, T v9, T v10, T v11, T v12, T v13, T v14, T v15)
-        {
-            vl[0] = v0;
-            vl[1] = v1;
-            vl[2] = v2;
-            vl[3] = v3;
-            vl[4] = v4;
-            vl[5] = v5;
-            vl[6] = v6;
-            vl[7] = v7;
-            vl[8] = v8;
-            vl[9] = v9;
-            vl[10] = v10;
-            vl[11] = v11;
-            vl[12] = v12;
-            vl[13] = v13;
-            vl[14] = v14;
-            vl[15] = v15;
-        }
-
-        explicit array(const T* a)
-        {
-            for (int i = 0; i < cols * rows; i++)
-                vl[i] = a[i];
-        }
-
-        template<typename U> explicit
-        array(const array<U, cols, rows>& a)
-        {
-            for (int i = 0; i < cols * rows; i++)
-                vl[i] = a.vl[i];
-        }
-
-        ~array()
-        {
-        }
-
-        array<T, cols - 1, rows - 1> _strike(int col, int row) const
-        {
-            array<T, cols - 1, rows - 1> r;
-            int ii = 0;
-            for (int i = 0; i < cols; i++) {
-                if (i == col)
-                    continue;
-                int jj = 0;
-                for (int j = 0; j < rows; j++) {
-                    if (j == row)
-                        continue;
-                    r.v[ii][jj] = v[i][j];
-                    jj++;
-                }
-                ii++;
-            }
-            return r;
-        }
-
-        template<int subcols, int subrows>
-        void _set_sub_array(const array<T, subcols, subrows>& m, int col = 0, int row = 0)
-        {
-            for (int i = 0; i < subcols; i++)
-                for (int j = 0; j < subrows; j++)
-                    v[col + i][row + j] = m.v[i][j];
-        }
-
-        /* Operators */
-
-        const array& _op_assign(const array& a)
-        {
-            for (int i = 0; i < cols * rows; i++)
-                vl[i] = a.vl[i];
-            return *this;
-        }
-
-        array _op_plus(const array& a) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = vl[i] + a.vl[i];
-            return r;
-        }
-
-        const array& _op_plus_assign(const array& a)
-        {
-            for (int i = 0; i < cols * rows; i++)
-                vl[i] += a.vl[i];
-            return *this;
-        }
-
-        array _op_unary_plus() const
-        {
-            return *this;
-        }
-
-        array _op_minus(const array& a) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = vl[i] - a.vl[i];
-            return r;
-        }
-
-        const array& _op_minus_assign(const array& a)
-        {
-            for (int i = 0; i < cols * rows; i++)
-                vl[i] -= a.vl[i];
-            return *this;
-        }
-
-        array _op_unary_minus() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = -vl[i];
-            return r;
-        }
-
-        array _op_scal_mult(const T s) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = vl[i] * s;
-            return r;
-        }
-
-        const array& _op_scal_mult_assign(const T s)
-        {
-            for (int i = 0; i < cols * rows; i++)
-                vl[i] *= s;
-            return *this;
-        }
-
-        array _op_comp_mult(const array& a) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = vl[i] * a.vl[i];
-            return r;
-        }
-
-        const array& _op_comp_mult_assign(const array& a)
-        {
-            for (int i = 0; i < cols * rows; i++)
-                vl[i] *= a.vl[i];
-            return *this;
-        }
-
-        array _op_scal_div(const T s) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = vl[i] / s;
-            return r;
-        }
-
-        const array& _op_scal_div_assign(const T s)
-        {
-            for (int i = 0; i < cols * rows; i++)
-                vl[i] /= s;
-            return *this;
-        }
-
-        array _op_comp_div(const array& a) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = vl[i] / a.vl[i];
-            return r;
-        }
-
-        const array& _op_comp_div_assign(const array& a)
-        {
-            for (int i = 0; i < cols * rows; i++)
-                vl[i] /= a.vl[i];
-            return *this;
-        }
-
-        array _op_scal_mod(const T s) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = vl[i] % s;
-            return r;
-        }
-
-        const array& _op_scal_mod_assign(const T s)
-        {
-            for (int i = 0; i < cols * rows; i++)
-                vl[i] %= s;
-            return *this;
-        }
-
-        array _op_comp_mod(const array& a) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = vl[i] % a.vl[i];
-            return r;
-        }
-
-        const array& _op_comp_mod_assign(const array& a)
-        {
-            for (int i = 0; i < cols * rows; i++)
-                vl[i] %= a.vl[i];
-            return *this;
-        }
-
-        bool _op_equal(const array& a) const
-        {
-            bool ret = true;
-            for (int i = 0; i < cols * rows; i++) {
-                if (!equal(vl[i], a.vl[i])) {
-                    ret = false;
-                    break;
-                }
-            }
-            return ret;
-        }
-
-        bool _op_notequal(const array& a) const
-        {
-            return !this->_op_equal(a);
-        }
-
-        /* Trigonometric functions */
-
-        array _sin() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::sin(vl[i]);
-            return r;
-        }
-
-        array _cos() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::cos(vl[i]);
-            return r;
-        }
-
-        array _tan() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::tan(vl[i]);
-            return r;
-        }
-
-        array _asin() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::asin(vl[i]);
-            return r;
-        }
-
-        array _acos() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::acos(vl[i]);
-            return r;
-        }
-
-        array _atan() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::atan(vl[i]);
-            return r;
-        }
-
-        array _atan(const array& a) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::atan(vl[i], a.vl[i]);
-            return r;
-        }
-
-        array _radians() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::radians(vl[i]);
-            return r;
-        }
-
-        array _degrees() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::degrees(vl[i]);
-            return r;
-        }
-
-        /* Exponential functions */
-
-        array _pow(const T p) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::pow(vl[i], p);
-            return r;
-        }
-
-        array _exp() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::exp(vl[i]);
-            return r;
-        }
-
-        array _exp2() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::exp2(vl[i]);
-            return r;
-        }
-
-        array _log() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::log(vl[i]);
-            return r;
-        }
-
-        array _log2() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::log2(vl[i]);
-            return r;
-        }
-
-        array _log10() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::log10(vl[i]);
-            return r;
-        }
-
-        array _sqrt() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::sqrt(vl[i]);
-            return r;
-        }
-
-        array _inversesqrt() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::inversesqrt(vl[i]);
-            return r;
-        }
-
-        array _cbrt() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::cbrt(vl[i]);
-            return r;
-        }
-
-        /* Common functions */
-
-        array<bool, cols, rows> _isfinite() const
-        {
-            array<bool, cols, rows> r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::isfinite(vl[i]);
-            return r;
-        }
-
-        array<bool, cols, rows> _isinf() const
-        {
-            array<bool, cols, rows> r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::isinf(vl[i]);
-            return r;
-        }
-
-        array<bool, cols, rows> _isnan() const
-        {
-            array<bool, cols, rows> r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::isnan(vl[i]);
-            return r;
-        }
-
-        array<bool, cols, rows> _isnormal() const
-        {
-            array<bool, cols, rows> r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::isnormal(vl[i]);
-            return r;
-        }
-
-        array _sign() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::sign(vl[i]);
-            return r;
-        }
-
-        array _abs() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::abs(vl[i]);
-            return r;
-        }
-
-        array _floor() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::floor(vl[i]);
-            return r;
-        }
-
-        array _ceil() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::ceil(vl[i]);
-            return r;
-        }
-
-        array _round() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::round(vl[i]);
-            return r;
-        }
-
-        array _fract() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::fract(vl[i]);
-            return r;
-        }
-
-        array _min(const T x) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::min(x, vl[i]);
-            return r;
-        }
-
-        array _min(const array& a) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::min(a.vl[i], vl[i]);
-            return r;
-        }
-
-        array _max(const T x) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::max(x, vl[i]);
-            return r;
-        }
-
-        array _max(const array& a) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::max(a.vl[i], vl[i]);
-            return r;
-        }
-
-        array _clamp(const T minval, const T maxval) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::clamp(vl[i], minval, maxval);
-            return r;
-        }
-
-        array _clamp(const array& minval, const array& maxval) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::clamp(vl[i], minval.vl[i], maxval.vl[i]);
-            return r;
-        }
-
-        array _mix(const array& a, const T alpha) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::mix(vl[i], a.vl[i], alpha);
-            return r;
-        }
-
-        array _mix(const array& a, const array& alpha) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::mix(vl[i], a.vl[i], alpha.vl[i]);
-            return r;
-        }
-
-        array _step(const T edge) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::step(vl[i], edge);
-            return r;
-        }
-
-        array _step(const array& edge) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::step(vl[i], edge.vl[i]);
-            return r;
-        }
-
-        array _smoothstep(const T edge0, const T edge1) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::smoothstep(vl[i], edge0, edge1);
-            return r;
-        }
-
-        array _smoothstep(const array& edge0, const array& edge1) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::smoothstep(vl[i], edge0.vl[i], edge1.vl[i]);
-            return r;
-        }
-
-        array _mod(const T y) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::mod(vl[i], y);
-            return r;
-        }
-
-        array _mod(const array& y) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::mod(vl[i], y.vl[i]);
-            return r;
-        }
-
-        /* Comparison functions */
-
-        array<bool, cols, rows> _greaterThan(const array& a) const
-        {
-            array<bool, cols, rows> r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::greaterThan(vl[i], a.vl[i]);
-            return r;
-        }
-
-        array<bool, cols, rows> _greaterThanEqual(const array& a) const
-        {
-            array<bool, cols, rows> r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::greaterThanEqual(vl[i], a.vl[i]);
-            return r;
-        }
-
-        array<bool, cols, rows> _lessThan(const array& a) const
-        {
-            array<bool, cols, rows> r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::lessThan(vl[i], a.vl[i]);
-            return r;
-        }
-
-        array<bool, cols, rows> _lessThanEqual(const array& a) const
-        {
-            array<bool, cols, rows> r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::lessThanEqual(vl[i], a.vl[i]);
-            return r;
-        }
-
-        array<bool, cols, rows> _equal(const array& a) const
-        {
-            array<bool, cols, rows> r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::equal(vl[i], a.vl[i]);
-            return r;
-        }
-
-        array<bool, cols, rows> _equal(const array& a, int max_ulps) const
-        {
-            array<bool, cols, rows> r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::equal(vl[i], a.vl[i], max_ulps);
-            return r;
-        }
-
-        array<bool, cols, rows> _notEqual(const array& a) const
-        {
-            array<bool, cols, rows> r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::notEqual(vl[i], a.vl[i]);
-            return r;
-        }
-
-        array<bool, cols, rows> _notEqual(const array& a, int max_ulps) const
-        {
-            array<bool, cols, rows> r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::notEqual(vl[i], a.vl[i], max_ulps);
-            return r;
-        }
-
-        bool _any() const
-        {
-            bool ret = false;
-            for (int i = 0; i < cols * rows; i++) {
-                if (vl[i]) {
-                    ret = true;
-                    break;
-                }
-            }
-            return ret;
-        }
-
-        bool _all() const
-        {
-            bool ret = true;
-            for (int i = 0; i < cols * rows; i++) {
-                if (!vl[i]) {
-                    ret = false;
-                    break;
-                }
-            }
-            return ret;
-        }
-
-        array<bool, cols, rows> _negate() const
-        {
-            array<bool, cols, rows> r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = !vl[i];
-            return r;
-        }
-
-        /* Geometric functions */
-
-        T _length() const
-        {
-            T l = static_cast<T>(0);
-            for (int i = 0; i < cols * rows; i++)
-                l += vl[i] * vl[i];
-            return glvm::sqrt(l);
-        }
-
-        T _distance(const array& a) const
-        {
-            return (*this - a)._length();
-        }
-
-        T _dot(const array& a) const
-        {
-            T d = static_cast<T>(0);
-            for (int i = 0; i < cols * rows; i++)
-                d += vl[i] * a.vl[i];
-            return d;
-        }
-
-        array _normalize() const
-        {
-            return this->_op_scal_div(this->_length());
-        }
-
-        array _faceforward(const array& I, const array& Nref) const
-        {
-            return Nref._dot(I) < static_cast<T>(0) ? *this : - *this;
-        }
-
-        array _reflect(const array& N) const
-        {
-            return *this - static_cast<T>(2) * N._dot(*this) * N;
-        }
-
-        array _refract(const array& N, T eta) const
-        {
-            const T d = N._dot(*this);
-            const T k = static_cast<T>(1) - eta * eta * (static_cast<T>(1) - d * d);
-            return k < static_cast<T>(0) ? array<T, cols, 1>(static_cast<T>(0)) : *this * eta - N * (eta * d + glvm::sqrt(k));
-        }
-
-        array<T, rows, cols> _transpose() const
-        {
-            array<T, rows, cols> r;
-            for (int i = 0; i < rows; i++)
-                for (int j = 0; j < cols; j++)
-                    r.v[i][j] = array<T, cols, rows>::v[j][i];
-            return r;
-        }
-
-        // Bonus functions. Note that log2 is already covered.
-
-        array<bool, cols, rows> _is_pow2() const
-        {
-            array<bool, cols, rows> r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::is_pow2(vl[i]);
-            return r;
-        }
-
-        array _next_pow2() const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::next_pow2(vl[i]);
-            return r;
-        }
-
-        array _next_multiple(T y) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::next_multiple(vl[i], y);
-            return r;
-        }
-
-        array _next_multiple(const array& y) const
-        {
-            array r;
-            for (int i = 0; i < cols * rows; i++)
-                r.vl[i] = glvm::next_multiple(vl[i], y.vl[i]);
-            return r;
-        }
-    };
-
-
-    /* Swizzlers */
-
-    template<typename T, int rows>
-    class swizzler : public array<T, 1, rows>
-    {
-    };
-
-    template<typename T>
-    class swizzler<T, 2> : public array<T, 1, 2>
-    {
-    public:
-        T& x;
-        T& y;
-
-        swizzler(T& s0, T& s1) : array<T, 1, 2>(s0, s1), x(s0), y(s1)
-        {
-        }
-
-        swizzler(T s[2]) : array<T, 1, 2>(s[0], s[1]), x(s[0]), y(s[1])
-        {
-        }
-
-        const swizzler& operator=(const swizzler& s)
-        {
-            T a = s.x;
-            T b = s.y;
-            x = a;
-            y = b;
-            array<T, 1, 2>::vl[0] = a;
-            array<T, 1, 2>::vl[1] = b;
-            return *this;
-        }
-
-        const swizzler& operator=(const array<T, 1, 2>& v)
-        {
-            x = v.vl[0];
-            y = v.vl[1];
-            array<T, 1, 2>::vl[0] = v.vl[0];
-            array<T, 1, 2>::vl[1] = v.vl[1];
-            return *this;
-        }
-
-        const swizzler& operator+=(const array<T, 1, 2>& a)
-        {
-            x = array<T, 1, 2>::vl[0] + a.vl[0];
-            y = array<T, 1, 2>::vl[1] + a.vl[1];
-            array<T, 1, 2>::vl[0] = x;
-            array<T, 1, 2>::vl[1] = y;
-            return *this;
-        }
-
-        const swizzler& operator-=(const array<T, 1, 2>& a)
-        {
-            x = array<T, 1, 2>::vl[0] - a.vl[0];
-            y = array<T, 1, 2>::vl[1] - a.vl[1];
-            array<T, 1, 2>::vl[0] = x;
-            array<T, 1, 2>::vl[1] = y;
-            return *this;
-        }
-
-        const swizzler& operator*=(const array<T, 1, 2>& a)
-        {
-            x = array<T, 1, 2>::vl[0] * a.vl[0];
-            y = array<T, 1, 2>::vl[1] * a.vl[1];
-            array<T, 1, 2>::vl[0] = x;
-            array<T, 1, 2>::vl[1] = y;
-            return *this;
-        }
-
-        const swizzler& operator*=(T s)
-        {
-            x = array<T, 1, 2>::vl[0] * s;
-            y = array<T, 1, 2>::vl[1] * s;
-            array<T, 1, 2>::vl[0] = x;
-            array<T, 1, 2>::vl[1] = y;
-            return *this;
-        }
-
-        const swizzler& operator/=(const array<T, 1, 2>& a)
-        {
-            x = array<T, 1, 2>::vl[0] / a.vl[0];
-            y = array<T, 1, 2>::vl[1] / a.vl[1];
-            array<T, 1, 2>::vl[0] = x;
-            array<T, 1, 2>::vl[1] = y;
-            return *this;
-        }
-
-        const swizzler& operator/=(T s)
-        {
-            x = array<T, 1, 2>::vl[0] / s;
-            y = array<T, 1, 2>::vl[1] / s;
-            array<T, 1, 2>::vl[0] = x;
-            array<T, 1, 2>::vl[1] = y;
-            return *this;
-        }
-
-        const swizzler& operator%=(const array<T, 1, 2>& a)
-        {
-            x = array<T, 1, 2>::vl[0] % a.vl[0];
-            y = array<T, 1, 2>::vl[1] % a.vl[1];
-            array<T, 1, 2>::vl[0] = x;
-            array<T, 1, 2>::vl[1] = y;
-            return *this;
-        }
-
-        const swizzler& operator%=(T s)
-        {
-            x = array<T, 1, 2>::vl[0] % s;
-            y = array<T, 1, 2>::vl[1] % s;
-            array<T, 1, 2>::vl[0] = x;
-            array<T, 1, 2>::vl[1] = y;
-            return *this;
-        }
-
-        T& operator[](unsigned int i)
-        {
-            return (i == 0 ? x : y);
-        }
-
-        const T& operator[](unsigned int i) const
-        {
-            return (i == 0 ? x : y);
-        }
-    };
-
-    template<typename T>
-    class swizzler<T, 3> : public array<T, 1, 3>
-    {
-    public:
-        T& x;
-        T& y;
-        T& z;
-
-        swizzler(T& s0, T& s1, T& s2) : array<T, 1, 3>(s0, s1, s2), x(s0), y(s1), z(s2)
-        {
-        }
-
-        swizzler(T s[3]) : array<T, 1, 3>(s[0], s[1], s[2]), x(s[0]), y(s[1]), z(s[2])
-        {
-        }
-
-        const swizzler& operator=(const swizzler& s)
-        {
-            T a = s.x;
-            T b = s.y;
-            T c = s.z;
-            x = a;
-            y = b;
-            z = c;
-            array<T, 1, 3>::vl[0] = a;
-            array<T, 1, 3>::vl[1] = b;
-            array<T, 1, 3>::vl[2] = c;
-            return *this;
-        }
-
-        const swizzler& operator=(const array<T, 1, 3>& v)
-        {
-            x = v.vl[0];
-            y = v.vl[1];
-            z = v.vl[2];
-            array<T, 1, 3>::vl[0] = v.vl[0];
-            array<T, 1, 3>::vl[1] = v.vl[1];
-            array<T, 1, 3>::vl[2] = v.vl[2];
-            return *this;
-        }
-
-        const swizzler& operator+=(const array<T, 1, 3>& a)
-        {
-            x = array<T, 1, 3>::vl[0] + a.vl[0];
-            y = array<T, 1, 3>::vl[1] + a.vl[1];
-            z = array<T, 1, 3>::vl[2] + a.vl[2];
-            array<T, 1, 3>::vl[0] = x;
-            array<T, 1, 3>::vl[1] = y;
-            array<T, 1, 3>::vl[2] = z;
-            return *this;
-        }
-
-        const swizzler& operator-=(const array<T, 1, 3>& a)
-        {
-            x = array<T, 1, 3>::vl[0] - a.vl[0];
-            y = array<T, 1, 3>::vl[1] - a.vl[1];
-            z = array<T, 1, 3>::vl[2] - a.vl[2];
-            array<T, 1, 3>::vl[0] = x;
-            array<T, 1, 3>::vl[1] = y;
-            array<T, 1, 3>::vl[2] = z;
-            return *this;
-        }
-
-        const swizzler& operator*=(const array<T, 1, 3>& a)
-        {
-            x = array<T, 1, 3>::vl[0] * a.vl[0];
-            y = array<T, 1, 3>::vl[1] * a.vl[1];
-            z = array<T, 1, 3>::vl[2] * a.vl[2];
-            array<T, 1, 3>::vl[0] = x;
-            array<T, 1, 3>::vl[1] = y;
-            array<T, 1, 3>::vl[2] = z;
-            return *this;
-        }
-
-        const swizzler& operator*=(T s)
-        {
-            x = array<T, 1, 3>::vl[0] * s;
-            y = array<T, 1, 3>::vl[1] * s;
-            z = array<T, 1, 3>::vl[2] * s;
-            array<T, 1, 3>::vl[0] = x;
-            array<T, 1, 3>::vl[1] = y;
-            array<T, 1, 3>::vl[2] = z;
-            return *this;
-        }
-
-        const swizzler& operator/=(const array<T, 1, 3>& a)
-        {
-            x = array<T, 1, 3>::vl[0] / a.vl[0];
-            y = array<T, 1, 3>::vl[1] / a.vl[1];
-            z = array<T, 1, 3>::vl[2] / a.vl[2];
-            array<T, 1, 3>::vl[0] = x;
-            array<T, 1, 3>::vl[1] = y;
-            array<T, 1, 3>::vl[2] = z;
-            return *this;
-        }
-
-        const swizzler& operator/=(T s)
-        {
-            x = array<T, 1, 3>::vl[0] / s;
-            y = array<T, 1, 3>::vl[1] / s;
-            z = array<T, 1, 3>::vl[2] / s;
-            array<T, 1, 3>::vl[0] = x;
-            array<T, 1, 3>::vl[1] = y;
-            array<T, 1, 3>::vl[2] = z;
-            return *this;
-        }
-
-        const swizzler& operator%=(const array<T, 1, 3>& a)
-        {
-            x = array<T, 1, 3>::vl[0] % a.vl[0];
-            y = array<T, 1, 3>::vl[1] % a.vl[1];
-            z = array<T, 1, 3>::vl[2] % a.vl[2];
-            array<T, 1, 3>::vl[0] = x;
-            array<T, 1, 3>::vl[1] = y;
-            array<T, 1, 3>::vl[2] = z;
-            return *this;
-        }
-
-        const swizzler& operator%=(T s)
-        {
-            x = array<T, 1, 3>::vl[0] % s;
-            y = array<T, 1, 3>::vl[1] % s;
-            z = array<T, 1, 3>::vl[2] % s;
-            array<T, 1, 3>::vl[0] = x;
-            array<T, 1, 3>::vl[1] = y;
-            array<T, 1, 3>::vl[2] = z;
-            return *this;
-        }
-
-        T& operator[](unsigned int i)
-        {
-            return (i == 0 ? x : i == 1 ? y : z);
-        }
-
-        const T& operator[](unsigned int i) const
-        {
-            return (i == 0 ? x : i == 1 ? y : z);
-        }
-    };
-
-    template<typename T>
-    class swizzler<T, 4> : public array<T, 1, 4>
-    {
-    public:
-        T& x;
-        T& y;
-        T& z;
-        T& w;
-
-        swizzler(T& s0, T& s1, T& s2, T& s3) : array<T, 1, 4>(s0, s1, s2, s3), x(s0), y(s1), z(s2), w(s3)
-        {
-        }
-
-        swizzler(T s[4]) : array<T, 1, 4>(s[0], s[1], s[2], s[3]), x(s[0]), y(s[1]), z(s[2]), w(s[3])
-        {
-        }
-
-        const swizzler& operator=(const swizzler& s)
-        {
-            T a = s.x;
-            T b = s.y;
-            T c = s.z;
-            T d = s.w;
-            x = a;
-            y = b;
-            z = c;
-            w = d;
-            array<T, 1, 4>::vl[0] = a;
-            array<T, 1, 4>::vl[1] = b;
-            array<T, 1, 4>::vl[2] = c;
-            array<T, 1, 4>::vl[3] = d;
-            return *this;
-        }
-
-        const swizzler& operator=(const array<T, 1, 4>& v)
-        {
-            x = v.vl[0];
-            y = v.vl[1];
-            z = v.vl[2];
-            w = v.vl[3];
-            array<T, 1, 4>::vl[0] = v.vl[0];
-            array<T, 1, 4>::vl[1] = v.vl[1];
-            array<T, 1, 4>::vl[2] = v.vl[2];
-            array<T, 1, 4>::vl[3] = v.vl[3];
-            return *this;
-        }
-
-        const swizzler& operator+=(const array<T, 1, 4>& a)
-        {
-            x = array<T, 1, 4>::vl[0] + a.vl[0];
-            y = array<T, 1, 4>::vl[1] + a.vl[1];
-            z = array<T, 1, 4>::vl[2] + a.vl[2];
-            w = array<T, 1, 4>::vl[3] + a.vl[3];
-            array<T, 1, 4>::vl[0] = x;
-            array<T, 1, 4>::vl[1] = y;
-            array<T, 1, 4>::vl[2] = z;
-            array<T, 1, 4>::vl[3] = w;
-            return *this;
-        }
-
-        const swizzler& operator-=(const array<T, 1, 4>& a)
-        {
-            x = array<T, 1, 4>::vl[0] - a.vl[0];
-            y = array<T, 1, 4>::vl[1] - a.vl[1];
-            z = array<T, 1, 4>::vl[2] - a.vl[2];
-            w = array<T, 1, 4>::vl[3] - a.vl[3];
-            array<T, 1, 4>::vl[0] = x;
-            array<T, 1, 4>::vl[1] = y;
-            array<T, 1, 4>::vl[2] = z;
-            array<T, 1, 4>::vl[3] = w;
-            return *this;
-        }
-
-        const swizzler& operator*=(const array<T, 1, 4>& a)
-        {
-            x = array<T, 1, 4>::vl[0] * a.vl[0];
-            y = array<T, 1, 4>::vl[1] * a.vl[1];
-            z = array<T, 1, 4>::vl[2] * a.vl[2];
-            w = array<T, 1, 4>::vl[3] * a.vl[3];
-            array<T, 1, 4>::vl[0] = x;
-            array<T, 1, 4>::vl[1] = y;
-            array<T, 1, 4>::vl[2] = z;
-            array<T, 1, 4>::vl[3] = w;
-            return *this;
-        }
-
-        const swizzler& operator*=(T s)
-        {
-            x = array<T, 1, 4>::vl[0] * s;
-            y = array<T, 1, 4>::vl[1] * s;
-            z = array<T, 1, 4>::vl[2] * s;
-            w = array<T, 1, 4>::vl[3] * s;
-            array<T, 1, 4>::vl[0] = x;
-            array<T, 1, 4>::vl[1] = y;
-            array<T, 1, 4>::vl[2] = z;
-            array<T, 1, 4>::vl[3] = w;
-            return *this;
-        }
-
-        const swizzler& operator/=(const array<T, 1, 4>& a)
-        {
-            x = array<T, 1, 4>::vl[0] / a.vl[0];
-            y = array<T, 1, 4>::vl[1] / a.vl[1];
-            z = array<T, 1, 4>::vl[2] / a.vl[2];
-            w = array<T, 1, 4>::vl[3] / a.vl[3];
-            array<T, 1, 4>::vl[0] = x;
-            array<T, 1, 4>::vl[1] = y;
-            array<T, 1, 4>::vl[2] = z;
-            array<T, 1, 4>::vl[3] = w;
-            return *this;
-        }
-
-        const swizzler& operator/=(T s)
-        {
-            x = array<T, 1, 4>::vl[0] / s;
-            y = array<T, 1, 4>::vl[1] / s;
-            z = array<T, 1, 4>::vl[2] / s;
-            w = array<T, 1, 4>::vl[3] / s;
-            array<T, 1, 4>::vl[0] = x;
-            array<T, 1, 4>::vl[1] = y;
-            array<T, 1, 4>::vl[2] = z;
-            array<T, 1, 4>::vl[3] = w;
-            return *this;
-        }
-
-        const swizzler& operator%=(const array<T, 1, 4>& a)
-        {
-            x = array<T, 1, 4>::vl[0] % a.vl[0];
-            y = array<T, 1, 4>::vl[1] % a.vl[1];
-            z = array<T, 1, 4>::vl[2] % a.vl[2];
-            w = array<T, 1, 4>::vl[3] % a.vl[3];
-            array<T, 1, 4>::vl[0] = x;
-            array<T, 1, 4>::vl[1] = y;
-            array<T, 1, 4>::vl[2] = z;
-            array<T, 1, 4>::vl[3] = w;
-            return *this;
-        }
-
-        const swizzler& operator%=(T s)
-        {
-            x = array<T, 1, 4>::vl[0] % s;
-            y = array<T, 1, 4>::vl[1] % s;
-            z = array<T, 1, 4>::vl[2] % s;
-            w = array<T, 1, 4>::vl[3] % s;
-            array<T, 1, 4>::vl[0] = x;
-            array<T, 1, 4>::vl[1] = y;
-            array<T, 1, 4>::vl[2] = z;
-            array<T, 1, 4>::vl[3] = w;
-            return *this;
-        }
-
-        T& operator[](unsigned int i)
-        {
-            return (i == 0 ? x : i == 1 ? y : i == 2 ? z : w);
-        }
-
-        const T& operator[](unsigned int i) const
-        {
-            return (i == 0 ? x : i == 1 ? y : i == 2 ? z : w);
-        }
-    };
-
-
-    /* Vectors */
-
-    template<typename T, int rows>
-    class vector : public array<T, 1, rows>
-    {
-    public:
-        using array<T, 1, rows>::vl;
-
-        /* Constructors, Destructor */
 
         vector() {}
-        vector(const array<T, 1, rows>& v) : array<T, 1, rows>(v) {}
-        vector(const swizzler<T, rows>& v) : array<T, 1, rows>(v) {}
-        explicit vector(T x) : array<T, 1, rows>(x) {}
-        explicit vector(T x, T y) : array<T, 1, rows>(x, y) {}
-        explicit vector(const vector<T, 2>& xy) : array<T, 1, rows>(xy.vl[0], xy.vl[1]) {}
-        explicit vector(T x, T y, T z) : array<T, 1, rows>(x, y, z) {}
-        explicit vector(const vector<T, 3>& xyz) : array<T, 1, rows>(xyz.vl[0], xyz.vl[1], xyz.vl[2]) {}
-        explicit vector(const vector<T, 2>& xy, T z) : array<T, 1, rows>(xy.vl[0], xy.vl[1], z) {}
-        explicit vector(T x, const vector<T, 2>& yz) : array<T, 1, rows>(x, yz.vl[0], yz.vl[1]) {}
-        explicit vector(T x, T y, T z, T w) : array<T, 1, rows>(x, y, z, w) {}
-        explicit vector(const vector<T, 4>& xyzw) : array<T, 1, rows>(xyzw.vl[0], xyzw.vl[1], xyzw.vl[2], xyzw.vl[3]) {}
-        explicit vector(const vector<T, 2> xy, T z, T w) : array<T, 1, rows>(xy.vl[0], xy.vl[1], z, w) {}
-        explicit vector(const vector<T, 2> xy, const vector<T, 2> zw) : array<T, 1, rows>(xy.vl[0], xy.vl[1], zw.vl[0], zw.vl[1]) {}
-        explicit vector(T x, const vector<T, 2> yz, T w) : array<T, 1, rows>(x, yz.vl[0], yz.vl[1], w) {}
-        explicit vector(T x, T y, const vector<T, 2> zw) : array<T, 1, rows>(x, y, zw.vl[0], zw.vl[1]) {}
-        explicit vector(const vector<T, 3> xyz, T w) : array<T, 1, rows>(xyz.vl[0], xyz.vl[1], xyz.vl[2], w) {}
-        explicit vector(T x, const vector<T, 3> yzw) : array<T, 1, rows>(x, yzw.vl[0], yzw.vl[1], yzw.vl[2]) {}
-        explicit vector(const T* v) : array<T, 1, rows>(v) {}
-        template<typename U> explicit vector(const vector<U, rows>& v) : array<T, 1, rows>(v) {}
 
-        /* Operators */
-
-        T& operator[](unsigned int i)
+        vector(T x, T y, T z, T w)
         {
-            return vl[i];
+            data[0] = x;
+            data[1] = y;
+            data[2] = z;
+            data[3] = w;
         }
 
-        const T& operator[](unsigned int i) const
-        {
-            return vl[i];
-        }
+        vector(T x) : vector(x, x, x, x) {}
+        vector(const vector<T, 2>& xy, T z, T w) : vector(xy.data[0], xy.data[1], z, w) {}
+        vector(const vector<T, 2>& xy, const vector<T, 2>& zw) : vector(xy.data[0], xy.data[1], zw.data[0], zw.data[1]) {}
+        vector(T x, const vector<T, 2>& yz, T w) : vector(x, yz.data[0], yz.data[1], w) {}
+        vector(T x, T y, const vector<T, 2>& zw) : vector(x, y, zw.data[0], zw.data[1]) {}
+        vector(const vector<T, 3>& xyz, T w) : vector(xyz.data[0], xyz.data[1], xyz.data[2], w) {}
+        vector(T x, const vector<T, 3>& yzw) : vector(x, yzw.data[0], yzw.data[1], yzw.data[2]) {}
+        vector(const vector<T, 4>& xyzw) : vector(xyzw.data[0], xyzw.data[1], xyzw.data[2], xyzw.data[3]) {}
+        vector(const Data<T, 4>& xyzw) : vector(xyzw.data[0], xyzw.data[1], xyzw.data[2], xyzw.data[3]) {}
+        vector(const T* xyzw) : vector(xyzw[0], xyzw[1], xyzw[2], xyzw[3]) {}
+        template<typename U> vector(const vector<U, 2>& xyzw) : vector(xyzw.data[0], xyzw.data[1], xyzw.data[2], xyzw.data[3]) {}
 
-        const vector& operator=(const array<T, 1, rows>& a) { this->_op_assign(a); return *this; }
-        const vector& operator+=(const array<T, 1, rows>& a) { this->_op_plus_assign(a); return *this; }
-        const vector& operator-=(const array<T, 1, rows>& a) { this->_op_minus_assign(a); return *this; }
-        const vector& operator*=(const array<T, 1, rows>& a) { this->_op_comp_mult_assign(a); return *this; }
-        const vector& operator*=(T s) { this->_op_scal_mult_assign(s); return *this; }
-        const vector& operator/=(const array<T, 1, rows>& a) { this->_op_comp_div_assign(a); return *this; }
-        const vector& operator/=(T s) { this->_op_scal_div_assign(s); return *this; }
-        const vector& operator%=(const array<T, 1, rows>& a) { this->_op_comp_mod_assign(a); return *this; }
-        const vector& operator%=(T s) { this->_op_scal_mod_assign(s); return *this; }
+        template<int S, int I, int J, int K, int L>
+        vector(const swizzler<T, 4, S, I, J, K, L>& s)
+        : vector(s.data[I], s.data[J], s.data[K], s.data[L]) {}
 
-        /* Swizzling */
-
-        vector<T, 2> xx() const { return vector<T, 2>(vl[0], vl[0]); }
-        vector<T, 2> rr() const { return vector<T, 2>(vl[0], vl[0]); }
-        vector<T, 2> ss() const { return vector<T, 2>(vl[0], vl[0]); }
-        vector<T, 2> xy() const { return vector<T, 2>(vl[0], vl[1]); }
-        vector<T, 2> rg() const { return vector<T, 2>(vl[0], vl[1]); }
-        vector<T, 2> st() const { return vector<T, 2>(vl[0], vl[1]); }
-        vector<T, 2> xz() const { return vector<T, 2>(vl[0], vl[2]); }
-        vector<T, 2> rb() const { return vector<T, 2>(vl[0], vl[2]); }
-        vector<T, 2> sp() const { return vector<T, 2>(vl[0], vl[2]); }
-        vector<T, 2> xw() const { return vector<T, 2>(vl[0], vl[3]); }
-        vector<T, 2> ra() const { return vector<T, 2>(vl[0], vl[3]); }
-        vector<T, 2> sq() const { return vector<T, 2>(vl[0], vl[3]); }
-        vector<T, 2> yx() const { return vector<T, 2>(vl[1], vl[0]); }
-        vector<T, 2> gr() const { return vector<T, 2>(vl[1], vl[0]); }
-        vector<T, 2> ts() const { return vector<T, 2>(vl[1], vl[0]); }
-        vector<T, 2> yy() const { return vector<T, 2>(vl[1], vl[1]); }
-        vector<T, 2> gg() const { return vector<T, 2>(vl[1], vl[1]); }
-        vector<T, 2> tt() const { return vector<T, 2>(vl[1], vl[1]); }
-        vector<T, 2> yz() const { return vector<T, 2>(vl[1], vl[2]); }
-        vector<T, 2> gb() const { return vector<T, 2>(vl[1], vl[2]); }
-        vector<T, 2> tp() const { return vector<T, 2>(vl[1], vl[2]); }
-        vector<T, 2> yw() const { return vector<T, 2>(vl[1], vl[3]); }
-        vector<T, 2> ga() const { return vector<T, 2>(vl[1], vl[3]); }
-        vector<T, 2> tq() const { return vector<T, 2>(vl[1], vl[3]); }
-        vector<T, 2> zx() const { return vector<T, 2>(vl[2], vl[0]); }
-        vector<T, 2> br() const { return vector<T, 2>(vl[2], vl[0]); }
-        vector<T, 2> ps() const { return vector<T, 2>(vl[2], vl[0]); }
-        vector<T, 2> zy() const { return vector<T, 2>(vl[2], vl[1]); }
-        vector<T, 2> bg() const { return vector<T, 2>(vl[2], vl[1]); }
-        vector<T, 2> pt() const { return vector<T, 2>(vl[2], vl[1]); }
-        vector<T, 2> zz() const { return vector<T, 2>(vl[2], vl[2]); }
-        vector<T, 2> bb() const { return vector<T, 2>(vl[2], vl[2]); }
-        vector<T, 2> pp() const { return vector<T, 2>(vl[2], vl[2]); }
-        vector<T, 2> zw() const { return vector<T, 2>(vl[2], vl[3]); }
-        vector<T, 2> ba() const { return vector<T, 2>(vl[2], vl[3]); }
-        vector<T, 2> pq() const { return vector<T, 2>(vl[2], vl[3]); }
-        vector<T, 2> wx() const { return vector<T, 2>(vl[3], vl[0]); }
-        vector<T, 2> ar() const { return vector<T, 2>(vl[3], vl[0]); }
-        vector<T, 2> qs() const { return vector<T, 2>(vl[3], vl[0]); }
-        vector<T, 2> wy() const { return vector<T, 2>(vl[3], vl[1]); }
-        vector<T, 2> ag() const { return vector<T, 2>(vl[3], vl[1]); }
-        vector<T, 2> qt() const { return vector<T, 2>(vl[3], vl[1]); }
-        vector<T, 2> wz() const { return vector<T, 2>(vl[3], vl[2]); }
-        vector<T, 2> ab() const { return vector<T, 2>(vl[3], vl[2]); }
-        vector<T, 2> qp() const { return vector<T, 2>(vl[3], vl[2]); }
-        vector<T, 2> ww() const { return vector<T, 2>(vl[3], vl[3]); }
-        vector<T, 2> aa() const { return vector<T, 2>(vl[3], vl[3]); }
-        vector<T, 2> qq() const { return vector<T, 2>(vl[3], vl[3]); }
-        vector<T, 3> xxx() const { return vector<T, 3>(vl[0], vl[0], vl[0]); }
-        vector<T, 3> rrr() const { return vector<T, 3>(vl[0], vl[0], vl[0]); }
-        vector<T, 3> sss() const { return vector<T, 3>(vl[0], vl[0], vl[0]); }
-        vector<T, 3> xxy() const { return vector<T, 3>(vl[0], vl[0], vl[1]); }
-        vector<T, 3> rrg() const { return vector<T, 3>(vl[0], vl[0], vl[1]); }
-        vector<T, 3> sst() const { return vector<T, 3>(vl[0], vl[0], vl[1]); }
-        vector<T, 3> xxz() const { return vector<T, 3>(vl[0], vl[0], vl[2]); }
-        vector<T, 3> rrb() const { return vector<T, 3>(vl[0], vl[0], vl[2]); }
-        vector<T, 3> ssp() const { return vector<T, 3>(vl[0], vl[0], vl[2]); }
-        vector<T, 3> xxw() const { return vector<T, 3>(vl[0], vl[0], vl[3]); }
-        vector<T, 3> rra() const { return vector<T, 3>(vl[0], vl[0], vl[3]); }
-        vector<T, 3> ssq() const { return vector<T, 3>(vl[0], vl[0], vl[3]); }
-        vector<T, 3> xyx() const { return vector<T, 3>(vl[0], vl[1], vl[0]); }
-        vector<T, 3> rgr() const { return vector<T, 3>(vl[0], vl[1], vl[0]); }
-        vector<T, 3> sts() const { return vector<T, 3>(vl[0], vl[1], vl[0]); }
-        vector<T, 3> xyy() const { return vector<T, 3>(vl[0], vl[1], vl[1]); }
-        vector<T, 3> rgg() const { return vector<T, 3>(vl[0], vl[1], vl[1]); }
-        vector<T, 3> stt() const { return vector<T, 3>(vl[0], vl[1], vl[1]); }
-        vector<T, 3> xyz() const { return vector<T, 3>(vl[0], vl[1], vl[2]); }
-        vector<T, 3> rgb() const { return vector<T, 3>(vl[0], vl[1], vl[2]); }
-        vector<T, 3> stp() const { return vector<T, 3>(vl[0], vl[1], vl[2]); }
-        vector<T, 3> xyw() const { return vector<T, 3>(vl[0], vl[1], vl[3]); }
-        vector<T, 3> rga() const { return vector<T, 3>(vl[0], vl[1], vl[3]); }
-        vector<T, 3> stq() const { return vector<T, 3>(vl[0], vl[1], vl[3]); }
-        vector<T, 3> xzx() const { return vector<T, 3>(vl[0], vl[2], vl[0]); }
-        vector<T, 3> rbr() const { return vector<T, 3>(vl[0], vl[2], vl[0]); }
-        vector<T, 3> sps() const { return vector<T, 3>(vl[0], vl[2], vl[0]); }
-        vector<T, 3> xzy() const { return vector<T, 3>(vl[0], vl[2], vl[1]); }
-        vector<T, 3> rbg() const { return vector<T, 3>(vl[0], vl[2], vl[1]); }
-        vector<T, 3> spt() const { return vector<T, 3>(vl[0], vl[2], vl[1]); }
-        vector<T, 3> xzz() const { return vector<T, 3>(vl[0], vl[2], vl[2]); }
-        vector<T, 3> rbb() const { return vector<T, 3>(vl[0], vl[2], vl[2]); }
-        vector<T, 3> spp() const { return vector<T, 3>(vl[0], vl[2], vl[2]); }
-        vector<T, 3> xzw() const { return vector<T, 3>(vl[0], vl[2], vl[3]); }
-        vector<T, 3> rba() const { return vector<T, 3>(vl[0], vl[2], vl[3]); }
-        vector<T, 3> spq() const { return vector<T, 3>(vl[0], vl[2], vl[3]); }
-        vector<T, 3> xwx() const { return vector<T, 3>(vl[0], vl[3], vl[0]); }
-        vector<T, 3> rar() const { return vector<T, 3>(vl[0], vl[3], vl[0]); }
-        vector<T, 3> sqs() const { return vector<T, 3>(vl[0], vl[3], vl[0]); }
-        vector<T, 3> xwy() const { return vector<T, 3>(vl[0], vl[3], vl[1]); }
-        vector<T, 3> rag() const { return vector<T, 3>(vl[0], vl[3], vl[1]); }
-        vector<T, 3> sqt() const { return vector<T, 3>(vl[0], vl[3], vl[1]); }
-        vector<T, 3> xwz() const { return vector<T, 3>(vl[0], vl[3], vl[2]); }
-        vector<T, 3> rab() const { return vector<T, 3>(vl[0], vl[3], vl[2]); }
-        vector<T, 3> sqp() const { return vector<T, 3>(vl[0], vl[3], vl[2]); }
-        vector<T, 3> xww() const { return vector<T, 3>(vl[0], vl[3], vl[3]); }
-        vector<T, 3> raa() const { return vector<T, 3>(vl[0], vl[3], vl[3]); }
-        vector<T, 3> sqq() const { return vector<T, 3>(vl[0], vl[3], vl[3]); }
-        vector<T, 3> yxx() const { return vector<T, 3>(vl[1], vl[0], vl[0]); }
-        vector<T, 3> grr() const { return vector<T, 3>(vl[1], vl[0], vl[0]); }
-        vector<T, 3> tss() const { return vector<T, 3>(vl[1], vl[0], vl[0]); }
-        vector<T, 3> yxy() const { return vector<T, 3>(vl[1], vl[0], vl[1]); }
-        vector<T, 3> grg() const { return vector<T, 3>(vl[1], vl[0], vl[1]); }
-        vector<T, 3> tst() const { return vector<T, 3>(vl[1], vl[0], vl[1]); }
-        vector<T, 3> yxz() const { return vector<T, 3>(vl[1], vl[0], vl[2]); }
-        vector<T, 3> grb() const { return vector<T, 3>(vl[1], vl[0], vl[2]); }
-        vector<T, 3> tsp() const { return vector<T, 3>(vl[1], vl[0], vl[2]); }
-        vector<T, 3> yxw() const { return vector<T, 3>(vl[1], vl[0], vl[3]); }
-        vector<T, 3> gra() const { return vector<T, 3>(vl[1], vl[0], vl[3]); }
-        vector<T, 3> tsq() const { return vector<T, 3>(vl[1], vl[0], vl[3]); }
-        vector<T, 3> yyx() const { return vector<T, 3>(vl[1], vl[1], vl[0]); }
-        vector<T, 3> ggr() const { return vector<T, 3>(vl[1], vl[1], vl[0]); }
-        vector<T, 3> tts() const { return vector<T, 3>(vl[1], vl[1], vl[0]); }
-        vector<T, 3> yyy() const { return vector<T, 3>(vl[1], vl[1], vl[1]); }
-        vector<T, 3> ggg() const { return vector<T, 3>(vl[1], vl[1], vl[1]); }
-        vector<T, 3> ttt() const { return vector<T, 3>(vl[1], vl[1], vl[1]); }
-        vector<T, 3> yyz() const { return vector<T, 3>(vl[1], vl[1], vl[2]); }
-        vector<T, 3> ggb() const { return vector<T, 3>(vl[1], vl[1], vl[2]); }
-        vector<T, 3> ttp() const { return vector<T, 3>(vl[1], vl[1], vl[2]); }
-        vector<T, 3> yyw() const { return vector<T, 3>(vl[1], vl[1], vl[3]); }
-        vector<T, 3> gga() const { return vector<T, 3>(vl[1], vl[1], vl[3]); }
-        vector<T, 3> ttq() const { return vector<T, 3>(vl[1], vl[1], vl[3]); }
-        vector<T, 3> yzx() const { return vector<T, 3>(vl[1], vl[2], vl[0]); }
-        vector<T, 3> gbr() const { return vector<T, 3>(vl[1], vl[2], vl[0]); }
-        vector<T, 3> tps() const { return vector<T, 3>(vl[1], vl[2], vl[0]); }
-        vector<T, 3> yzy() const { return vector<T, 3>(vl[1], vl[2], vl[1]); }
-        vector<T, 3> gbg() const { return vector<T, 3>(vl[1], vl[2], vl[1]); }
-        vector<T, 3> tpt() const { return vector<T, 3>(vl[1], vl[2], vl[1]); }
-        vector<T, 3> yzz() const { return vector<T, 3>(vl[1], vl[2], vl[2]); }
-        vector<T, 3> gbb() const { return vector<T, 3>(vl[1], vl[2], vl[2]); }
-        vector<T, 3> tpp() const { return vector<T, 3>(vl[1], vl[2], vl[2]); }
-        vector<T, 3> yzw() const { return vector<T, 3>(vl[1], vl[2], vl[3]); }
-        vector<T, 3> gba() const { return vector<T, 3>(vl[1], vl[2], vl[3]); }
-        vector<T, 3> tpq() const { return vector<T, 3>(vl[1], vl[2], vl[3]); }
-        vector<T, 3> ywx() const { return vector<T, 3>(vl[1], vl[3], vl[0]); }
-        vector<T, 3> gar() const { return vector<T, 3>(vl[1], vl[3], vl[0]); }
-        vector<T, 3> tqs() const { return vector<T, 3>(vl[1], vl[3], vl[0]); }
-        vector<T, 3> ywy() const { return vector<T, 3>(vl[1], vl[3], vl[1]); }
-        vector<T, 3> gag() const { return vector<T, 3>(vl[1], vl[3], vl[1]); }
-        vector<T, 3> tqt() const { return vector<T, 3>(vl[1], vl[3], vl[1]); }
-        vector<T, 3> ywz() const { return vector<T, 3>(vl[1], vl[3], vl[2]); }
-        vector<T, 3> gab() const { return vector<T, 3>(vl[1], vl[3], vl[2]); }
-        vector<T, 3> tqp() const { return vector<T, 3>(vl[1], vl[3], vl[2]); }
-        vector<T, 3> yww() const { return vector<T, 3>(vl[1], vl[3], vl[3]); }
-        vector<T, 3> gaa() const { return vector<T, 3>(vl[1], vl[3], vl[3]); }
-        vector<T, 3> tqq() const { return vector<T, 3>(vl[1], vl[3], vl[3]); }
-        vector<T, 3> zxx() const { return vector<T, 3>(vl[2], vl[0], vl[0]); }
-        vector<T, 3> brr() const { return vector<T, 3>(vl[2], vl[0], vl[0]); }
-        vector<T, 3> pss() const { return vector<T, 3>(vl[2], vl[0], vl[0]); }
-        vector<T, 3> zxy() const { return vector<T, 3>(vl[2], vl[0], vl[1]); }
-        vector<T, 3> brg() const { return vector<T, 3>(vl[2], vl[0], vl[1]); }
-        vector<T, 3> pst() const { return vector<T, 3>(vl[2], vl[0], vl[1]); }
-        vector<T, 3> zxz() const { return vector<T, 3>(vl[2], vl[0], vl[2]); }
-        vector<T, 3> brb() const { return vector<T, 3>(vl[2], vl[0], vl[2]); }
-        vector<T, 3> psp() const { return vector<T, 3>(vl[2], vl[0], vl[2]); }
-        vector<T, 3> zxw() const { return vector<T, 3>(vl[2], vl[0], vl[3]); }
-        vector<T, 3> bra() const { return vector<T, 3>(vl[2], vl[0], vl[3]); }
-        vector<T, 3> psq() const { return vector<T, 3>(vl[2], vl[0], vl[3]); }
-        vector<T, 3> zyx() const { return vector<T, 3>(vl[2], vl[1], vl[0]); }
-        vector<T, 3> bgr() const { return vector<T, 3>(vl[2], vl[1], vl[0]); }
-        vector<T, 3> pts() const { return vector<T, 3>(vl[2], vl[1], vl[0]); }
-        vector<T, 3> zyy() const { return vector<T, 3>(vl[2], vl[1], vl[1]); }
-        vector<T, 3> bgg() const { return vector<T, 3>(vl[2], vl[1], vl[1]); }
-        vector<T, 3> ptt() const { return vector<T, 3>(vl[2], vl[1], vl[1]); }
-        vector<T, 3> zyz() const { return vector<T, 3>(vl[2], vl[1], vl[2]); }
-        vector<T, 3> bgb() const { return vector<T, 3>(vl[2], vl[1], vl[2]); }
-        vector<T, 3> ptp() const { return vector<T, 3>(vl[2], vl[1], vl[2]); }
-        vector<T, 3> zyw() const { return vector<T, 3>(vl[2], vl[1], vl[3]); }
-        vector<T, 3> bga() const { return vector<T, 3>(vl[2], vl[1], vl[3]); }
-        vector<T, 3> ptq() const { return vector<T, 3>(vl[2], vl[1], vl[3]); }
-        vector<T, 3> zzx() const { return vector<T, 3>(vl[2], vl[2], vl[0]); }
-        vector<T, 3> bbr() const { return vector<T, 3>(vl[2], vl[2], vl[0]); }
-        vector<T, 3> pps() const { return vector<T, 3>(vl[2], vl[2], vl[0]); }
-        vector<T, 3> zzy() const { return vector<T, 3>(vl[2], vl[2], vl[1]); }
-        vector<T, 3> bbg() const { return vector<T, 3>(vl[2], vl[2], vl[1]); }
-        vector<T, 3> ppt() const { return vector<T, 3>(vl[2], vl[2], vl[1]); }
-        vector<T, 3> zzz() const { return vector<T, 3>(vl[2], vl[2], vl[2]); }
-        vector<T, 3> bbb() const { return vector<T, 3>(vl[2], vl[2], vl[2]); }
-        vector<T, 3> ppp() const { return vector<T, 3>(vl[2], vl[2], vl[2]); }
-        vector<T, 3> zzw() const { return vector<T, 3>(vl[2], vl[2], vl[3]); }
-        vector<T, 3> bba() const { return vector<T, 3>(vl[2], vl[2], vl[3]); }
-        vector<T, 3> ppq() const { return vector<T, 3>(vl[2], vl[2], vl[3]); }
-        vector<T, 3> zwx() const { return vector<T, 3>(vl[2], vl[3], vl[0]); }
-        vector<T, 3> bar() const { return vector<T, 3>(vl[2], vl[3], vl[0]); }
-        vector<T, 3> pqs() const { return vector<T, 3>(vl[2], vl[3], vl[0]); }
-        vector<T, 3> zwy() const { return vector<T, 3>(vl[2], vl[3], vl[1]); }
-        vector<T, 3> bag() const { return vector<T, 3>(vl[2], vl[3], vl[1]); }
-        vector<T, 3> pqt() const { return vector<T, 3>(vl[2], vl[3], vl[1]); }
-        vector<T, 3> zwz() const { return vector<T, 3>(vl[2], vl[3], vl[2]); }
-        vector<T, 3> bab() const { return vector<T, 3>(vl[2], vl[3], vl[2]); }
-        vector<T, 3> pqp() const { return vector<T, 3>(vl[2], vl[3], vl[2]); }
-        vector<T, 3> zww() const { return vector<T, 3>(vl[2], vl[3], vl[3]); }
-        vector<T, 3> baa() const { return vector<T, 3>(vl[2], vl[3], vl[3]); }
-        vector<T, 3> pqq() const { return vector<T, 3>(vl[2], vl[3], vl[3]); }
-        vector<T, 3> wxx() const { return vector<T, 3>(vl[3], vl[0], vl[0]); }
-        vector<T, 3> arr() const { return vector<T, 3>(vl[3], vl[0], vl[0]); }
-        vector<T, 3> qss() const { return vector<T, 3>(vl[3], vl[0], vl[0]); }
-        vector<T, 3> wxy() const { return vector<T, 3>(vl[3], vl[0], vl[1]); }
-        vector<T, 3> arg() const { return vector<T, 3>(vl[3], vl[0], vl[1]); }
-        vector<T, 3> qst() const { return vector<T, 3>(vl[3], vl[0], vl[1]); }
-        vector<T, 3> wxz() const { return vector<T, 3>(vl[3], vl[0], vl[2]); }
-        vector<T, 3> arb() const { return vector<T, 3>(vl[3], vl[0], vl[2]); }
-        vector<T, 3> qsp() const { return vector<T, 3>(vl[3], vl[0], vl[2]); }
-        vector<T, 3> wxw() const { return vector<T, 3>(vl[3], vl[0], vl[3]); }
-        vector<T, 3> ara() const { return vector<T, 3>(vl[3], vl[0], vl[3]); }
-        vector<T, 3> qsq() const { return vector<T, 3>(vl[3], vl[0], vl[3]); }
-        vector<T, 3> wyx() const { return vector<T, 3>(vl[3], vl[1], vl[0]); }
-        vector<T, 3> agr() const { return vector<T, 3>(vl[3], vl[1], vl[0]); }
-        vector<T, 3> qts() const { return vector<T, 3>(vl[3], vl[1], vl[0]); }
-        vector<T, 3> wyy() const { return vector<T, 3>(vl[3], vl[1], vl[1]); }
-        vector<T, 3> agg() const { return vector<T, 3>(vl[3], vl[1], vl[1]); }
-        vector<T, 3> qtt() const { return vector<T, 3>(vl[3], vl[1], vl[1]); }
-        vector<T, 3> wyz() const { return vector<T, 3>(vl[3], vl[1], vl[2]); }
-        vector<T, 3> agb() const { return vector<T, 3>(vl[3], vl[1], vl[2]); }
-        vector<T, 3> qtp() const { return vector<T, 3>(vl[3], vl[1], vl[2]); }
-        vector<T, 3> wyw() const { return vector<T, 3>(vl[3], vl[1], vl[3]); }
-        vector<T, 3> aga() const { return vector<T, 3>(vl[3], vl[1], vl[3]); }
-        vector<T, 3> qtq() const { return vector<T, 3>(vl[3], vl[1], vl[3]); }
-        vector<T, 3> wzx() const { return vector<T, 3>(vl[3], vl[2], vl[0]); }
-        vector<T, 3> abr() const { return vector<T, 3>(vl[3], vl[2], vl[0]); }
-        vector<T, 3> qps() const { return vector<T, 3>(vl[3], vl[2], vl[0]); }
-        vector<T, 3> wzy() const { return vector<T, 3>(vl[3], vl[2], vl[1]); }
-        vector<T, 3> abg() const { return vector<T, 3>(vl[3], vl[2], vl[1]); }
-        vector<T, 3> qpt() const { return vector<T, 3>(vl[3], vl[2], vl[1]); }
-        vector<T, 3> wzz() const { return vector<T, 3>(vl[3], vl[2], vl[2]); }
-        vector<T, 3> abb() const { return vector<T, 3>(vl[3], vl[2], vl[2]); }
-        vector<T, 3> qpp() const { return vector<T, 3>(vl[3], vl[2], vl[2]); }
-        vector<T, 3> wzw() const { return vector<T, 3>(vl[3], vl[2], vl[3]); }
-        vector<T, 3> aba() const { return vector<T, 3>(vl[3], vl[2], vl[3]); }
-        vector<T, 3> qpq() const { return vector<T, 3>(vl[3], vl[2], vl[3]); }
-        vector<T, 3> wwx() const { return vector<T, 3>(vl[3], vl[3], vl[0]); }
-        vector<T, 3> aar() const { return vector<T, 3>(vl[3], vl[3], vl[0]); }
-        vector<T, 3> qqs() const { return vector<T, 3>(vl[3], vl[3], vl[0]); }
-        vector<T, 3> wwy() const { return vector<T, 3>(vl[3], vl[3], vl[1]); }
-        vector<T, 3> aag() const { return vector<T, 3>(vl[3], vl[3], vl[1]); }
-        vector<T, 3> qqt() const { return vector<T, 3>(vl[3], vl[3], vl[1]); }
-        vector<T, 3> wwz() const { return vector<T, 3>(vl[3], vl[3], vl[2]); }
-        vector<T, 3> aab() const { return vector<T, 3>(vl[3], vl[3], vl[2]); }
-        vector<T, 3> qqp() const { return vector<T, 3>(vl[3], vl[3], vl[2]); }
-        vector<T, 3> www() const { return vector<T, 3>(vl[3], vl[3], vl[3]); }
-        vector<T, 3> aaa() const { return vector<T, 3>(vl[3], vl[3], vl[3]); }
-        vector<T, 3> qqq() const { return vector<T, 3>(vl[3], vl[3], vl[3]); }
-        vector<T, 4> xxxx() const { return vector<T, 4>(vl[0], vl[0], vl[0], vl[0]); }
-        vector<T, 4> rrrr() const { return vector<T, 4>(vl[0], vl[0], vl[0], vl[0]); }
-        vector<T, 4> ssss() const { return vector<T, 4>(vl[0], vl[0], vl[0], vl[0]); }
-        vector<T, 4> xxxy() const { return vector<T, 4>(vl[0], vl[0], vl[0], vl[1]); }
-        vector<T, 4> rrrg() const { return vector<T, 4>(vl[0], vl[0], vl[0], vl[1]); }
-        vector<T, 4> ssst() const { return vector<T, 4>(vl[0], vl[0], vl[0], vl[1]); }
-        vector<T, 4> xxxz() const { return vector<T, 4>(vl[0], vl[0], vl[0], vl[2]); }
-        vector<T, 4> rrrb() const { return vector<T, 4>(vl[0], vl[0], vl[0], vl[2]); }
-        vector<T, 4> sssp() const { return vector<T, 4>(vl[0], vl[0], vl[0], vl[2]); }
-        vector<T, 4> xxxw() const { return vector<T, 4>(vl[0], vl[0], vl[0], vl[3]); }
-        vector<T, 4> rrra() const { return vector<T, 4>(vl[0], vl[0], vl[0], vl[3]); }
-        vector<T, 4> sssq() const { return vector<T, 4>(vl[0], vl[0], vl[0], vl[3]); }
-        vector<T, 4> xxyx() const { return vector<T, 4>(vl[0], vl[0], vl[1], vl[0]); }
-        vector<T, 4> rrgr() const { return vector<T, 4>(vl[0], vl[0], vl[1], vl[0]); }
-        vector<T, 4> ssts() const { return vector<T, 4>(vl[0], vl[0], vl[1], vl[0]); }
-        vector<T, 4> xxyy() const { return vector<T, 4>(vl[0], vl[0], vl[1], vl[1]); }
-        vector<T, 4> rrgg() const { return vector<T, 4>(vl[0], vl[0], vl[1], vl[1]); }
-        vector<T, 4> sstt() const { return vector<T, 4>(vl[0], vl[0], vl[1], vl[1]); }
-        vector<T, 4> xxyz() const { return vector<T, 4>(vl[0], vl[0], vl[1], vl[2]); }
-        vector<T, 4> rrgb() const { return vector<T, 4>(vl[0], vl[0], vl[1], vl[2]); }
-        vector<T, 4> sstp() const { return vector<T, 4>(vl[0], vl[0], vl[1], vl[2]); }
-        vector<T, 4> xxyw() const { return vector<T, 4>(vl[0], vl[0], vl[1], vl[3]); }
-        vector<T, 4> rrga() const { return vector<T, 4>(vl[0], vl[0], vl[1], vl[3]); }
-        vector<T, 4> sstq() const { return vector<T, 4>(vl[0], vl[0], vl[1], vl[3]); }
-        vector<T, 4> xxzx() const { return vector<T, 4>(vl[0], vl[0], vl[2], vl[0]); }
-        vector<T, 4> rrbr() const { return vector<T, 4>(vl[0], vl[0], vl[2], vl[0]); }
-        vector<T, 4> ssps() const { return vector<T, 4>(vl[0], vl[0], vl[2], vl[0]); }
-        vector<T, 4> xxzy() const { return vector<T, 4>(vl[0], vl[0], vl[2], vl[1]); }
-        vector<T, 4> rrbg() const { return vector<T, 4>(vl[0], vl[0], vl[2], vl[1]); }
-        vector<T, 4> sspt() const { return vector<T, 4>(vl[0], vl[0], vl[2], vl[1]); }
-        vector<T, 4> xxzz() const { return vector<T, 4>(vl[0], vl[0], vl[2], vl[2]); }
-        vector<T, 4> rrbb() const { return vector<T, 4>(vl[0], vl[0], vl[2], vl[2]); }
-        vector<T, 4> sspp() const { return vector<T, 4>(vl[0], vl[0], vl[2], vl[2]); }
-        vector<T, 4> xxzw() const { return vector<T, 4>(vl[0], vl[0], vl[2], vl[3]); }
-        vector<T, 4> rrba() const { return vector<T, 4>(vl[0], vl[0], vl[2], vl[3]); }
-        vector<T, 4> sspq() const { return vector<T, 4>(vl[0], vl[0], vl[2], vl[3]); }
-        vector<T, 4> xxwx() const { return vector<T, 4>(vl[0], vl[0], vl[3], vl[0]); }
-        vector<T, 4> rrar() const { return vector<T, 4>(vl[0], vl[0], vl[3], vl[0]); }
-        vector<T, 4> ssqs() const { return vector<T, 4>(vl[0], vl[0], vl[3], vl[0]); }
-        vector<T, 4> xxwy() const { return vector<T, 4>(vl[0], vl[0], vl[3], vl[1]); }
-        vector<T, 4> rrag() const { return vector<T, 4>(vl[0], vl[0], vl[3], vl[1]); }
-        vector<T, 4> ssqt() const { return vector<T, 4>(vl[0], vl[0], vl[3], vl[1]); }
-        vector<T, 4> xxwz() const { return vector<T, 4>(vl[0], vl[0], vl[3], vl[2]); }
-        vector<T, 4> rrab() const { return vector<T, 4>(vl[0], vl[0], vl[3], vl[2]); }
-        vector<T, 4> ssqp() const { return vector<T, 4>(vl[0], vl[0], vl[3], vl[2]); }
-        vector<T, 4> xxww() const { return vector<T, 4>(vl[0], vl[0], vl[3], vl[3]); }
-        vector<T, 4> rraa() const { return vector<T, 4>(vl[0], vl[0], vl[3], vl[3]); }
-        vector<T, 4> ssqq() const { return vector<T, 4>(vl[0], vl[0], vl[3], vl[3]); }
-        vector<T, 4> xyxx() const { return vector<T, 4>(vl[0], vl[1], vl[0], vl[0]); }
-        vector<T, 4> rgrr() const { return vector<T, 4>(vl[0], vl[1], vl[0], vl[0]); }
-        vector<T, 4> stss() const { return vector<T, 4>(vl[0], vl[1], vl[0], vl[0]); }
-        vector<T, 4> xyxy() const { return vector<T, 4>(vl[0], vl[1], vl[0], vl[1]); }
-        vector<T, 4> rgrg() const { return vector<T, 4>(vl[0], vl[1], vl[0], vl[1]); }
-        vector<T, 4> stst() const { return vector<T, 4>(vl[0], vl[1], vl[0], vl[1]); }
-        vector<T, 4> xyxz() const { return vector<T, 4>(vl[0], vl[1], vl[0], vl[2]); }
-        vector<T, 4> rgrb() const { return vector<T, 4>(vl[0], vl[1], vl[0], vl[2]); }
-        vector<T, 4> stsp() const { return vector<T, 4>(vl[0], vl[1], vl[0], vl[2]); }
-        vector<T, 4> xyxw() const { return vector<T, 4>(vl[0], vl[1], vl[0], vl[3]); }
-        vector<T, 4> rgra() const { return vector<T, 4>(vl[0], vl[1], vl[0], vl[3]); }
-        vector<T, 4> stsq() const { return vector<T, 4>(vl[0], vl[1], vl[0], vl[3]); }
-        vector<T, 4> xyyx() const { return vector<T, 4>(vl[0], vl[1], vl[1], vl[0]); }
-        vector<T, 4> rggr() const { return vector<T, 4>(vl[0], vl[1], vl[1], vl[0]); }
-        vector<T, 4> stts() const { return vector<T, 4>(vl[0], vl[1], vl[1], vl[0]); }
-        vector<T, 4> xyyy() const { return vector<T, 4>(vl[0], vl[1], vl[1], vl[1]); }
-        vector<T, 4> rggg() const { return vector<T, 4>(vl[0], vl[1], vl[1], vl[1]); }
-        vector<T, 4> sttt() const { return vector<T, 4>(vl[0], vl[1], vl[1], vl[1]); }
-        vector<T, 4> xyyz() const { return vector<T, 4>(vl[0], vl[1], vl[1], vl[2]); }
-        vector<T, 4> rggb() const { return vector<T, 4>(vl[0], vl[1], vl[1], vl[2]); }
-        vector<T, 4> sttp() const { return vector<T, 4>(vl[0], vl[1], vl[1], vl[2]); }
-        vector<T, 4> xyyw() const { return vector<T, 4>(vl[0], vl[1], vl[1], vl[3]); }
-        vector<T, 4> rgga() const { return vector<T, 4>(vl[0], vl[1], vl[1], vl[3]); }
-        vector<T, 4> sttq() const { return vector<T, 4>(vl[0], vl[1], vl[1], vl[3]); }
-        vector<T, 4> xyzx() const { return vector<T, 4>(vl[0], vl[1], vl[2], vl[0]); }
-        vector<T, 4> rgbr() const { return vector<T, 4>(vl[0], vl[1], vl[2], vl[0]); }
-        vector<T, 4> stps() const { return vector<T, 4>(vl[0], vl[1], vl[2], vl[0]); }
-        vector<T, 4> xyzy() const { return vector<T, 4>(vl[0], vl[1], vl[2], vl[1]); }
-        vector<T, 4> rgbg() const { return vector<T, 4>(vl[0], vl[1], vl[2], vl[1]); }
-        vector<T, 4> stpt() const { return vector<T, 4>(vl[0], vl[1], vl[2], vl[1]); }
-        vector<T, 4> xyzz() const { return vector<T, 4>(vl[0], vl[1], vl[2], vl[2]); }
-        vector<T, 4> rgbb() const { return vector<T, 4>(vl[0], vl[1], vl[2], vl[2]); }
-        vector<T, 4> stpp() const { return vector<T, 4>(vl[0], vl[1], vl[2], vl[2]); }
-        vector<T, 4> xyzw() const { return vector<T, 4>(vl[0], vl[1], vl[2], vl[3]); }
-        vector<T, 4> rgba() const { return vector<T, 4>(vl[0], vl[1], vl[2], vl[3]); }
-        vector<T, 4> stpq() const { return vector<T, 4>(vl[0], vl[1], vl[2], vl[3]); }
-        vector<T, 4> xywx() const { return vector<T, 4>(vl[0], vl[1], vl[3], vl[0]); }
-        vector<T, 4> rgar() const { return vector<T, 4>(vl[0], vl[1], vl[3], vl[0]); }
-        vector<T, 4> stqs() const { return vector<T, 4>(vl[0], vl[1], vl[3], vl[0]); }
-        vector<T, 4> xywy() const { return vector<T, 4>(vl[0], vl[1], vl[3], vl[1]); }
-        vector<T, 4> rgag() const { return vector<T, 4>(vl[0], vl[1], vl[3], vl[1]); }
-        vector<T, 4> stqt() const { return vector<T, 4>(vl[0], vl[1], vl[3], vl[1]); }
-        vector<T, 4> xywz() const { return vector<T, 4>(vl[0], vl[1], vl[3], vl[2]); }
-        vector<T, 4> rgab() const { return vector<T, 4>(vl[0], vl[1], vl[3], vl[2]); }
-        vector<T, 4> stqp() const { return vector<T, 4>(vl[0], vl[1], vl[3], vl[2]); }
-        vector<T, 4> xyww() const { return vector<T, 4>(vl[0], vl[1], vl[3], vl[3]); }
-        vector<T, 4> rgaa() const { return vector<T, 4>(vl[0], vl[1], vl[3], vl[3]); }
-        vector<T, 4> stqq() const { return vector<T, 4>(vl[0], vl[1], vl[3], vl[3]); }
-        vector<T, 4> xzxx() const { return vector<T, 4>(vl[0], vl[2], vl[0], vl[0]); }
-        vector<T, 4> rbrr() const { return vector<T, 4>(vl[0], vl[2], vl[0], vl[0]); }
-        vector<T, 4> spss() const { return vector<T, 4>(vl[0], vl[2], vl[0], vl[0]); }
-        vector<T, 4> xzxy() const { return vector<T, 4>(vl[0], vl[2], vl[0], vl[1]); }
-        vector<T, 4> rbrg() const { return vector<T, 4>(vl[0], vl[2], vl[0], vl[1]); }
-        vector<T, 4> spst() const { return vector<T, 4>(vl[0], vl[2], vl[0], vl[1]); }
-        vector<T, 4> xzxz() const { return vector<T, 4>(vl[0], vl[2], vl[0], vl[2]); }
-        vector<T, 4> rbrb() const { return vector<T, 4>(vl[0], vl[2], vl[0], vl[2]); }
-        vector<T, 4> spsp() const { return vector<T, 4>(vl[0], vl[2], vl[0], vl[2]); }
-        vector<T, 4> xzxw() const { return vector<T, 4>(vl[0], vl[2], vl[0], vl[3]); }
-        vector<T, 4> rbra() const { return vector<T, 4>(vl[0], vl[2], vl[0], vl[3]); }
-        vector<T, 4> spsq() const { return vector<T, 4>(vl[0], vl[2], vl[0], vl[3]); }
-        vector<T, 4> xzyx() const { return vector<T, 4>(vl[0], vl[2], vl[1], vl[0]); }
-        vector<T, 4> rbgr() const { return vector<T, 4>(vl[0], vl[2], vl[1], vl[0]); }
-        vector<T, 4> spts() const { return vector<T, 4>(vl[0], vl[2], vl[1], vl[0]); }
-        vector<T, 4> xzyy() const { return vector<T, 4>(vl[0], vl[2], vl[1], vl[1]); }
-        vector<T, 4> rbgg() const { return vector<T, 4>(vl[0], vl[2], vl[1], vl[1]); }
-        vector<T, 4> sptt() const { return vector<T, 4>(vl[0], vl[2], vl[1], vl[1]); }
-        vector<T, 4> xzyz() const { return vector<T, 4>(vl[0], vl[2], vl[1], vl[2]); }
-        vector<T, 4> rbgb() const { return vector<T, 4>(vl[0], vl[2], vl[1], vl[2]); }
-        vector<T, 4> sptp() const { return vector<T, 4>(vl[0], vl[2], vl[1], vl[2]); }
-        vector<T, 4> xzyw() const { return vector<T, 4>(vl[0], vl[2], vl[1], vl[3]); }
-        vector<T, 4> rbga() const { return vector<T, 4>(vl[0], vl[2], vl[1], vl[3]); }
-        vector<T, 4> sptq() const { return vector<T, 4>(vl[0], vl[2], vl[1], vl[3]); }
-        vector<T, 4> xzzx() const { return vector<T, 4>(vl[0], vl[2], vl[2], vl[0]); }
-        vector<T, 4> rbbr() const { return vector<T, 4>(vl[0], vl[2], vl[2], vl[0]); }
-        vector<T, 4> spps() const { return vector<T, 4>(vl[0], vl[2], vl[2], vl[0]); }
-        vector<T, 4> xzzy() const { return vector<T, 4>(vl[0], vl[2], vl[2], vl[1]); }
-        vector<T, 4> rbbg() const { return vector<T, 4>(vl[0], vl[2], vl[2], vl[1]); }
-        vector<T, 4> sppt() const { return vector<T, 4>(vl[0], vl[2], vl[2], vl[1]); }
-        vector<T, 4> xzzz() const { return vector<T, 4>(vl[0], vl[2], vl[2], vl[2]); }
-        vector<T, 4> rbbb() const { return vector<T, 4>(vl[0], vl[2], vl[2], vl[2]); }
-        vector<T, 4> sppp() const { return vector<T, 4>(vl[0], vl[2], vl[2], vl[2]); }
-        vector<T, 4> xzzw() const { return vector<T, 4>(vl[0], vl[2], vl[2], vl[3]); }
-        vector<T, 4> rbba() const { return vector<T, 4>(vl[0], vl[2], vl[2], vl[3]); }
-        vector<T, 4> sppq() const { return vector<T, 4>(vl[0], vl[2], vl[2], vl[3]); }
-        vector<T, 4> xzwx() const { return vector<T, 4>(vl[0], vl[2], vl[3], vl[0]); }
-        vector<T, 4> rbar() const { return vector<T, 4>(vl[0], vl[2], vl[3], vl[0]); }
-        vector<T, 4> spqs() const { return vector<T, 4>(vl[0], vl[2], vl[3], vl[0]); }
-        vector<T, 4> xzwy() const { return vector<T, 4>(vl[0], vl[2], vl[3], vl[1]); }
-        vector<T, 4> rbag() const { return vector<T, 4>(vl[0], vl[2], vl[3], vl[1]); }
-        vector<T, 4> spqt() const { return vector<T, 4>(vl[0], vl[2], vl[3], vl[1]); }
-        vector<T, 4> xzwz() const { return vector<T, 4>(vl[0], vl[2], vl[3], vl[2]); }
-        vector<T, 4> rbab() const { return vector<T, 4>(vl[0], vl[2], vl[3], vl[2]); }
-        vector<T, 4> spqp() const { return vector<T, 4>(vl[0], vl[2], vl[3], vl[2]); }
-        vector<T, 4> xzww() const { return vector<T, 4>(vl[0], vl[2], vl[3], vl[3]); }
-        vector<T, 4> rbaa() const { return vector<T, 4>(vl[0], vl[2], vl[3], vl[3]); }
-        vector<T, 4> spqq() const { return vector<T, 4>(vl[0], vl[2], vl[3], vl[3]); }
-        vector<T, 4> xwxx() const { return vector<T, 4>(vl[0], vl[3], vl[0], vl[0]); }
-        vector<T, 4> rarr() const { return vector<T, 4>(vl[0], vl[3], vl[0], vl[0]); }
-        vector<T, 4> sqss() const { return vector<T, 4>(vl[0], vl[3], vl[0], vl[0]); }
-        vector<T, 4> xwxy() const { return vector<T, 4>(vl[0], vl[3], vl[0], vl[1]); }
-        vector<T, 4> rarg() const { return vector<T, 4>(vl[0], vl[3], vl[0], vl[1]); }
-        vector<T, 4> sqst() const { return vector<T, 4>(vl[0], vl[3], vl[0], vl[1]); }
-        vector<T, 4> xwxz() const { return vector<T, 4>(vl[0], vl[3], vl[0], vl[2]); }
-        vector<T, 4> rarb() const { return vector<T, 4>(vl[0], vl[3], vl[0], vl[2]); }
-        vector<T, 4> sqsp() const { return vector<T, 4>(vl[0], vl[3], vl[0], vl[2]); }
-        vector<T, 4> xwxw() const { return vector<T, 4>(vl[0], vl[3], vl[0], vl[3]); }
-        vector<T, 4> rara() const { return vector<T, 4>(vl[0], vl[3], vl[0], vl[3]); }
-        vector<T, 4> sqsq() const { return vector<T, 4>(vl[0], vl[3], vl[0], vl[3]); }
-        vector<T, 4> xwyx() const { return vector<T, 4>(vl[0], vl[3], vl[1], vl[0]); }
-        vector<T, 4> ragr() const { return vector<T, 4>(vl[0], vl[3], vl[1], vl[0]); }
-        vector<T, 4> sqts() const { return vector<T, 4>(vl[0], vl[3], vl[1], vl[0]); }
-        vector<T, 4> xwyy() const { return vector<T, 4>(vl[0], vl[3], vl[1], vl[1]); }
-        vector<T, 4> ragg() const { return vector<T, 4>(vl[0], vl[3], vl[1], vl[1]); }
-        vector<T, 4> sqtt() const { return vector<T, 4>(vl[0], vl[3], vl[1], vl[1]); }
-        vector<T, 4> xwyz() const { return vector<T, 4>(vl[0], vl[3], vl[1], vl[2]); }
-        vector<T, 4> ragb() const { return vector<T, 4>(vl[0], vl[3], vl[1], vl[2]); }
-        vector<T, 4> sqtp() const { return vector<T, 4>(vl[0], vl[3], vl[1], vl[2]); }
-        vector<T, 4> xwyw() const { return vector<T, 4>(vl[0], vl[3], vl[1], vl[3]); }
-        vector<T, 4> raga() const { return vector<T, 4>(vl[0], vl[3], vl[1], vl[3]); }
-        vector<T, 4> sqtq() const { return vector<T, 4>(vl[0], vl[3], vl[1], vl[3]); }
-        vector<T, 4> xwzx() const { return vector<T, 4>(vl[0], vl[3], vl[2], vl[0]); }
-        vector<T, 4> rabr() const { return vector<T, 4>(vl[0], vl[3], vl[2], vl[0]); }
-        vector<T, 4> sqps() const { return vector<T, 4>(vl[0], vl[3], vl[2], vl[0]); }
-        vector<T, 4> xwzy() const { return vector<T, 4>(vl[0], vl[3], vl[2], vl[1]); }
-        vector<T, 4> rabg() const { return vector<T, 4>(vl[0], vl[3], vl[2], vl[1]); }
-        vector<T, 4> sqpt() const { return vector<T, 4>(vl[0], vl[3], vl[2], vl[1]); }
-        vector<T, 4> xwzz() const { return vector<T, 4>(vl[0], vl[3], vl[2], vl[2]); }
-        vector<T, 4> rabb() const { return vector<T, 4>(vl[0], vl[3], vl[2], vl[2]); }
-        vector<T, 4> sqpp() const { return vector<T, 4>(vl[0], vl[3], vl[2], vl[2]); }
-        vector<T, 4> xwzw() const { return vector<T, 4>(vl[0], vl[3], vl[2], vl[3]); }
-        vector<T, 4> raba() const { return vector<T, 4>(vl[0], vl[3], vl[2], vl[3]); }
-        vector<T, 4> sqpq() const { return vector<T, 4>(vl[0], vl[3], vl[2], vl[3]); }
-        vector<T, 4> xwwx() const { return vector<T, 4>(vl[0], vl[3], vl[3], vl[0]); }
-        vector<T, 4> raar() const { return vector<T, 4>(vl[0], vl[3], vl[3], vl[0]); }
-        vector<T, 4> sqqs() const { return vector<T, 4>(vl[0], vl[3], vl[3], vl[0]); }
-        vector<T, 4> xwwy() const { return vector<T, 4>(vl[0], vl[3], vl[3], vl[1]); }
-        vector<T, 4> raag() const { return vector<T, 4>(vl[0], vl[3], vl[3], vl[1]); }
-        vector<T, 4> sqqt() const { return vector<T, 4>(vl[0], vl[3], vl[3], vl[1]); }
-        vector<T, 4> xwwz() const { return vector<T, 4>(vl[0], vl[3], vl[3], vl[2]); }
-        vector<T, 4> raab() const { return vector<T, 4>(vl[0], vl[3], vl[3], vl[2]); }
-        vector<T, 4> sqqp() const { return vector<T, 4>(vl[0], vl[3], vl[3], vl[2]); }
-        vector<T, 4> xwww() const { return vector<T, 4>(vl[0], vl[3], vl[3], vl[3]); }
-        vector<T, 4> raaa() const { return vector<T, 4>(vl[0], vl[3], vl[3], vl[3]); }
-        vector<T, 4> sqqq() const { return vector<T, 4>(vl[0], vl[3], vl[3], vl[3]); }
-        vector<T, 4> yxxx() const { return vector<T, 4>(vl[1], vl[0], vl[0], vl[0]); }
-        vector<T, 4> grrr() const { return vector<T, 4>(vl[1], vl[0], vl[0], vl[0]); }
-        vector<T, 4> tsss() const { return vector<T, 4>(vl[1], vl[0], vl[0], vl[0]); }
-        vector<T, 4> yxxy() const { return vector<T, 4>(vl[1], vl[0], vl[0], vl[1]); }
-        vector<T, 4> grrg() const { return vector<T, 4>(vl[1], vl[0], vl[0], vl[1]); }
-        vector<T, 4> tsst() const { return vector<T, 4>(vl[1], vl[0], vl[0], vl[1]); }
-        vector<T, 4> yxxz() const { return vector<T, 4>(vl[1], vl[0], vl[0], vl[2]); }
-        vector<T, 4> grrb() const { return vector<T, 4>(vl[1], vl[0], vl[0], vl[2]); }
-        vector<T, 4> tssp() const { return vector<T, 4>(vl[1], vl[0], vl[0], vl[2]); }
-        vector<T, 4> yxxw() const { return vector<T, 4>(vl[1], vl[0], vl[0], vl[3]); }
-        vector<T, 4> grra() const { return vector<T, 4>(vl[1], vl[0], vl[0], vl[3]); }
-        vector<T, 4> tssq() const { return vector<T, 4>(vl[1], vl[0], vl[0], vl[3]); }
-        vector<T, 4> yxyx() const { return vector<T, 4>(vl[1], vl[0], vl[1], vl[0]); }
-        vector<T, 4> grgr() const { return vector<T, 4>(vl[1], vl[0], vl[1], vl[0]); }
-        vector<T, 4> tsts() const { return vector<T, 4>(vl[1], vl[0], vl[1], vl[0]); }
-        vector<T, 4> yxyy() const { return vector<T, 4>(vl[1], vl[0], vl[1], vl[1]); }
-        vector<T, 4> grgg() const { return vector<T, 4>(vl[1], vl[0], vl[1], vl[1]); }
-        vector<T, 4> tstt() const { return vector<T, 4>(vl[1], vl[0], vl[1], vl[1]); }
-        vector<T, 4> yxyz() const { return vector<T, 4>(vl[1], vl[0], vl[1], vl[2]); }
-        vector<T, 4> grgb() const { return vector<T, 4>(vl[1], vl[0], vl[1], vl[2]); }
-        vector<T, 4> tstp() const { return vector<T, 4>(vl[1], vl[0], vl[1], vl[2]); }
-        vector<T, 4> yxyw() const { return vector<T, 4>(vl[1], vl[0], vl[1], vl[3]); }
-        vector<T, 4> grga() const { return vector<T, 4>(vl[1], vl[0], vl[1], vl[3]); }
-        vector<T, 4> tstq() const { return vector<T, 4>(vl[1], vl[0], vl[1], vl[3]); }
-        vector<T, 4> yxzx() const { return vector<T, 4>(vl[1], vl[0], vl[2], vl[0]); }
-        vector<T, 4> grbr() const { return vector<T, 4>(vl[1], vl[0], vl[2], vl[0]); }
-        vector<T, 4> tsps() const { return vector<T, 4>(vl[1], vl[0], vl[2], vl[0]); }
-        vector<T, 4> yxzy() const { return vector<T, 4>(vl[1], vl[0], vl[2], vl[1]); }
-        vector<T, 4> grbg() const { return vector<T, 4>(vl[1], vl[0], vl[2], vl[1]); }
-        vector<T, 4> tspt() const { return vector<T, 4>(vl[1], vl[0], vl[2], vl[1]); }
-        vector<T, 4> yxzz() const { return vector<T, 4>(vl[1], vl[0], vl[2], vl[2]); }
-        vector<T, 4> grbb() const { return vector<T, 4>(vl[1], vl[0], vl[2], vl[2]); }
-        vector<T, 4> tspp() const { return vector<T, 4>(vl[1], vl[0], vl[2], vl[2]); }
-        vector<T, 4> yxzw() const { return vector<T, 4>(vl[1], vl[0], vl[2], vl[3]); }
-        vector<T, 4> grba() const { return vector<T, 4>(vl[1], vl[0], vl[2], vl[3]); }
-        vector<T, 4> tspq() const { return vector<T, 4>(vl[1], vl[0], vl[2], vl[3]); }
-        vector<T, 4> yxwx() const { return vector<T, 4>(vl[1], vl[0], vl[3], vl[0]); }
-        vector<T, 4> grar() const { return vector<T, 4>(vl[1], vl[0], vl[3], vl[0]); }
-        vector<T, 4> tsqs() const { return vector<T, 4>(vl[1], vl[0], vl[3], vl[0]); }
-        vector<T, 4> yxwy() const { return vector<T, 4>(vl[1], vl[0], vl[3], vl[1]); }
-        vector<T, 4> grag() const { return vector<T, 4>(vl[1], vl[0], vl[3], vl[1]); }
-        vector<T, 4> tsqt() const { return vector<T, 4>(vl[1], vl[0], vl[3], vl[1]); }
-        vector<T, 4> yxwz() const { return vector<T, 4>(vl[1], vl[0], vl[3], vl[2]); }
-        vector<T, 4> grab() const { return vector<T, 4>(vl[1], vl[0], vl[3], vl[2]); }
-        vector<T, 4> tsqp() const { return vector<T, 4>(vl[1], vl[0], vl[3], vl[2]); }
-        vector<T, 4> yxww() const { return vector<T, 4>(vl[1], vl[0], vl[3], vl[3]); }
-        vector<T, 4> graa() const { return vector<T, 4>(vl[1], vl[0], vl[3], vl[3]); }
-        vector<T, 4> tsqq() const { return vector<T, 4>(vl[1], vl[0], vl[3], vl[3]); }
-        vector<T, 4> yyxx() const { return vector<T, 4>(vl[1], vl[1], vl[0], vl[0]); }
-        vector<T, 4> ggrr() const { return vector<T, 4>(vl[1], vl[1], vl[0], vl[0]); }
-        vector<T, 4> ttss() const { return vector<T, 4>(vl[1], vl[1], vl[0], vl[0]); }
-        vector<T, 4> yyxy() const { return vector<T, 4>(vl[1], vl[1], vl[0], vl[1]); }
-        vector<T, 4> ggrg() const { return vector<T, 4>(vl[1], vl[1], vl[0], vl[1]); }
-        vector<T, 4> ttst() const { return vector<T, 4>(vl[1], vl[1], vl[0], vl[1]); }
-        vector<T, 4> yyxz() const { return vector<T, 4>(vl[1], vl[1], vl[0], vl[2]); }
-        vector<T, 4> ggrb() const { return vector<T, 4>(vl[1], vl[1], vl[0], vl[2]); }
-        vector<T, 4> ttsp() const { return vector<T, 4>(vl[1], vl[1], vl[0], vl[2]); }
-        vector<T, 4> yyxw() const { return vector<T, 4>(vl[1], vl[1], vl[0], vl[3]); }
-        vector<T, 4> ggra() const { return vector<T, 4>(vl[1], vl[1], vl[0], vl[3]); }
-        vector<T, 4> ttsq() const { return vector<T, 4>(vl[1], vl[1], vl[0], vl[3]); }
-        vector<T, 4> yyyx() const { return vector<T, 4>(vl[1], vl[1], vl[1], vl[0]); }
-        vector<T, 4> gggr() const { return vector<T, 4>(vl[1], vl[1], vl[1], vl[0]); }
-        vector<T, 4> ttts() const { return vector<T, 4>(vl[1], vl[1], vl[1], vl[0]); }
-        vector<T, 4> yyyy() const { return vector<T, 4>(vl[1], vl[1], vl[1], vl[1]); }
-        vector<T, 4> gggg() const { return vector<T, 4>(vl[1], vl[1], vl[1], vl[1]); }
-        vector<T, 4> tttt() const { return vector<T, 4>(vl[1], vl[1], vl[1], vl[1]); }
-        vector<T, 4> yyyz() const { return vector<T, 4>(vl[1], vl[1], vl[1], vl[2]); }
-        vector<T, 4> gggb() const { return vector<T, 4>(vl[1], vl[1], vl[1], vl[2]); }
-        vector<T, 4> tttp() const { return vector<T, 4>(vl[1], vl[1], vl[1], vl[2]); }
-        vector<T, 4> yyyw() const { return vector<T, 4>(vl[1], vl[1], vl[1], vl[3]); }
-        vector<T, 4> ggga() const { return vector<T, 4>(vl[1], vl[1], vl[1], vl[3]); }
-        vector<T, 4> tttq() const { return vector<T, 4>(vl[1], vl[1], vl[1], vl[3]); }
-        vector<T, 4> yyzx() const { return vector<T, 4>(vl[1], vl[1], vl[2], vl[0]); }
-        vector<T, 4> ggbr() const { return vector<T, 4>(vl[1], vl[1], vl[2], vl[0]); }
-        vector<T, 4> ttps() const { return vector<T, 4>(vl[1], vl[1], vl[2], vl[0]); }
-        vector<T, 4> yyzy() const { return vector<T, 4>(vl[1], vl[1], vl[2], vl[1]); }
-        vector<T, 4> ggbg() const { return vector<T, 4>(vl[1], vl[1], vl[2], vl[1]); }
-        vector<T, 4> ttpt() const { return vector<T, 4>(vl[1], vl[1], vl[2], vl[1]); }
-        vector<T, 4> yyzz() const { return vector<T, 4>(vl[1], vl[1], vl[2], vl[2]); }
-        vector<T, 4> ggbb() const { return vector<T, 4>(vl[1], vl[1], vl[2], vl[2]); }
-        vector<T, 4> ttpp() const { return vector<T, 4>(vl[1], vl[1], vl[2], vl[2]); }
-        vector<T, 4> yyzw() const { return vector<T, 4>(vl[1], vl[1], vl[2], vl[3]); }
-        vector<T, 4> ggba() const { return vector<T, 4>(vl[1], vl[1], vl[2], vl[3]); }
-        vector<T, 4> ttpq() const { return vector<T, 4>(vl[1], vl[1], vl[2], vl[3]); }
-        vector<T, 4> yywx() const { return vector<T, 4>(vl[1], vl[1], vl[3], vl[0]); }
-        vector<T, 4> ggar() const { return vector<T, 4>(vl[1], vl[1], vl[3], vl[0]); }
-        vector<T, 4> ttqs() const { return vector<T, 4>(vl[1], vl[1], vl[3], vl[0]); }
-        vector<T, 4> yywy() const { return vector<T, 4>(vl[1], vl[1], vl[3], vl[1]); }
-        vector<T, 4> ggag() const { return vector<T, 4>(vl[1], vl[1], vl[3], vl[1]); }
-        vector<T, 4> ttqt() const { return vector<T, 4>(vl[1], vl[1], vl[3], vl[1]); }
-        vector<T, 4> yywz() const { return vector<T, 4>(vl[1], vl[1], vl[3], vl[2]); }
-        vector<T, 4> ggab() const { return vector<T, 4>(vl[1], vl[1], vl[3], vl[2]); }
-        vector<T, 4> ttqp() const { return vector<T, 4>(vl[1], vl[1], vl[3], vl[2]); }
-        vector<T, 4> yyww() const { return vector<T, 4>(vl[1], vl[1], vl[3], vl[3]); }
-        vector<T, 4> ggaa() const { return vector<T, 4>(vl[1], vl[1], vl[3], vl[3]); }
-        vector<T, 4> ttqq() const { return vector<T, 4>(vl[1], vl[1], vl[3], vl[3]); }
-        vector<T, 4> yzxx() const { return vector<T, 4>(vl[1], vl[2], vl[0], vl[0]); }
-        vector<T, 4> gbrr() const { return vector<T, 4>(vl[1], vl[2], vl[0], vl[0]); }
-        vector<T, 4> tpss() const { return vector<T, 4>(vl[1], vl[2], vl[0], vl[0]); }
-        vector<T, 4> yzxy() const { return vector<T, 4>(vl[1], vl[2], vl[0], vl[1]); }
-        vector<T, 4> gbrg() const { return vector<T, 4>(vl[1], vl[2], vl[0], vl[1]); }
-        vector<T, 4> tpst() const { return vector<T, 4>(vl[1], vl[2], vl[0], vl[1]); }
-        vector<T, 4> yzxz() const { return vector<T, 4>(vl[1], vl[2], vl[0], vl[2]); }
-        vector<T, 4> gbrb() const { return vector<T, 4>(vl[1], vl[2], vl[0], vl[2]); }
-        vector<T, 4> tpsp() const { return vector<T, 4>(vl[1], vl[2], vl[0], vl[2]); }
-        vector<T, 4> yzxw() const { return vector<T, 4>(vl[1], vl[2], vl[0], vl[3]); }
-        vector<T, 4> gbra() const { return vector<T, 4>(vl[1], vl[2], vl[0], vl[3]); }
-        vector<T, 4> tpsq() const { return vector<T, 4>(vl[1], vl[2], vl[0], vl[3]); }
-        vector<T, 4> yzyx() const { return vector<T, 4>(vl[1], vl[2], vl[1], vl[0]); }
-        vector<T, 4> gbgr() const { return vector<T, 4>(vl[1], vl[2], vl[1], vl[0]); }
-        vector<T, 4> tpts() const { return vector<T, 4>(vl[1], vl[2], vl[1], vl[0]); }
-        vector<T, 4> yzyy() const { return vector<T, 4>(vl[1], vl[2], vl[1], vl[1]); }
-        vector<T, 4> gbgg() const { return vector<T, 4>(vl[1], vl[2], vl[1], vl[1]); }
-        vector<T, 4> tptt() const { return vector<T, 4>(vl[1], vl[2], vl[1], vl[1]); }
-        vector<T, 4> yzyz() const { return vector<T, 4>(vl[1], vl[2], vl[1], vl[2]); }
-        vector<T, 4> gbgb() const { return vector<T, 4>(vl[1], vl[2], vl[1], vl[2]); }
-        vector<T, 4> tptp() const { return vector<T, 4>(vl[1], vl[2], vl[1], vl[2]); }
-        vector<T, 4> yzyw() const { return vector<T, 4>(vl[1], vl[2], vl[1], vl[3]); }
-        vector<T, 4> gbga() const { return vector<T, 4>(vl[1], vl[2], vl[1], vl[3]); }
-        vector<T, 4> tptq() const { return vector<T, 4>(vl[1], vl[2], vl[1], vl[3]); }
-        vector<T, 4> yzzx() const { return vector<T, 4>(vl[1], vl[2], vl[2], vl[0]); }
-        vector<T, 4> gbbr() const { return vector<T, 4>(vl[1], vl[2], vl[2], vl[0]); }
-        vector<T, 4> tpps() const { return vector<T, 4>(vl[1], vl[2], vl[2], vl[0]); }
-        vector<T, 4> yzzy() const { return vector<T, 4>(vl[1], vl[2], vl[2], vl[1]); }
-        vector<T, 4> gbbg() const { return vector<T, 4>(vl[1], vl[2], vl[2], vl[1]); }
-        vector<T, 4> tppt() const { return vector<T, 4>(vl[1], vl[2], vl[2], vl[1]); }
-        vector<T, 4> yzzz() const { return vector<T, 4>(vl[1], vl[2], vl[2], vl[2]); }
-        vector<T, 4> gbbb() const { return vector<T, 4>(vl[1], vl[2], vl[2], vl[2]); }
-        vector<T, 4> tppp() const { return vector<T, 4>(vl[1], vl[2], vl[2], vl[2]); }
-        vector<T, 4> yzzw() const { return vector<T, 4>(vl[1], vl[2], vl[2], vl[3]); }
-        vector<T, 4> gbba() const { return vector<T, 4>(vl[1], vl[2], vl[2], vl[3]); }
-        vector<T, 4> tppq() const { return vector<T, 4>(vl[1], vl[2], vl[2], vl[3]); }
-        vector<T, 4> yzwx() const { return vector<T, 4>(vl[1], vl[2], vl[3], vl[0]); }
-        vector<T, 4> gbar() const { return vector<T, 4>(vl[1], vl[2], vl[3], vl[0]); }
-        vector<T, 4> tpqs() const { return vector<T, 4>(vl[1], vl[2], vl[3], vl[0]); }
-        vector<T, 4> yzwy() const { return vector<T, 4>(vl[1], vl[2], vl[3], vl[1]); }
-        vector<T, 4> gbag() const { return vector<T, 4>(vl[1], vl[2], vl[3], vl[1]); }
-        vector<T, 4> tpqt() const { return vector<T, 4>(vl[1], vl[2], vl[3], vl[1]); }
-        vector<T, 4> yzwz() const { return vector<T, 4>(vl[1], vl[2], vl[3], vl[2]); }
-        vector<T, 4> gbab() const { return vector<T, 4>(vl[1], vl[2], vl[3], vl[2]); }
-        vector<T, 4> tpqp() const { return vector<T, 4>(vl[1], vl[2], vl[3], vl[2]); }
-        vector<T, 4> yzww() const { return vector<T, 4>(vl[1], vl[2], vl[3], vl[3]); }
-        vector<T, 4> gbaa() const { return vector<T, 4>(vl[1], vl[2], vl[3], vl[3]); }
-        vector<T, 4> tpqq() const { return vector<T, 4>(vl[1], vl[2], vl[3], vl[3]); }
-        vector<T, 4> ywxx() const { return vector<T, 4>(vl[1], vl[3], vl[0], vl[0]); }
-        vector<T, 4> garr() const { return vector<T, 4>(vl[1], vl[3], vl[0], vl[0]); }
-        vector<T, 4> tqss() const { return vector<T, 4>(vl[1], vl[3], vl[0], vl[0]); }
-        vector<T, 4> ywxy() const { return vector<T, 4>(vl[1], vl[3], vl[0], vl[1]); }
-        vector<T, 4> garg() const { return vector<T, 4>(vl[1], vl[3], vl[0], vl[1]); }
-        vector<T, 4> tqst() const { return vector<T, 4>(vl[1], vl[3], vl[0], vl[1]); }
-        vector<T, 4> ywxz() const { return vector<T, 4>(vl[1], vl[3], vl[0], vl[2]); }
-        vector<T, 4> garb() const { return vector<T, 4>(vl[1], vl[3], vl[0], vl[2]); }
-        vector<T, 4> tqsp() const { return vector<T, 4>(vl[1], vl[3], vl[0], vl[2]); }
-        vector<T, 4> ywxw() const { return vector<T, 4>(vl[1], vl[3], vl[0], vl[3]); }
-        vector<T, 4> gara() const { return vector<T, 4>(vl[1], vl[3], vl[0], vl[3]); }
-        vector<T, 4> tqsq() const { return vector<T, 4>(vl[1], vl[3], vl[0], vl[3]); }
-        vector<T, 4> ywyx() const { return vector<T, 4>(vl[1], vl[3], vl[1], vl[0]); }
-        vector<T, 4> gagr() const { return vector<T, 4>(vl[1], vl[3], vl[1], vl[0]); }
-        vector<T, 4> tqts() const { return vector<T, 4>(vl[1], vl[3], vl[1], vl[0]); }
-        vector<T, 4> ywyy() const { return vector<T, 4>(vl[1], vl[3], vl[1], vl[1]); }
-        vector<T, 4> gagg() const { return vector<T, 4>(vl[1], vl[3], vl[1], vl[1]); }
-        vector<T, 4> tqtt() const { return vector<T, 4>(vl[1], vl[3], vl[1], vl[1]); }
-        vector<T, 4> ywyz() const { return vector<T, 4>(vl[1], vl[3], vl[1], vl[2]); }
-        vector<T, 4> gagb() const { return vector<T, 4>(vl[1], vl[3], vl[1], vl[2]); }
-        vector<T, 4> tqtp() const { return vector<T, 4>(vl[1], vl[3], vl[1], vl[2]); }
-        vector<T, 4> ywyw() const { return vector<T, 4>(vl[1], vl[3], vl[1], vl[3]); }
-        vector<T, 4> gaga() const { return vector<T, 4>(vl[1], vl[3], vl[1], vl[3]); }
-        vector<T, 4> tqtq() const { return vector<T, 4>(vl[1], vl[3], vl[1], vl[3]); }
-        vector<T, 4> ywzx() const { return vector<T, 4>(vl[1], vl[3], vl[2], vl[0]); }
-        vector<T, 4> gabr() const { return vector<T, 4>(vl[1], vl[3], vl[2], vl[0]); }
-        vector<T, 4> tqps() const { return vector<T, 4>(vl[1], vl[3], vl[2], vl[0]); }
-        vector<T, 4> ywzy() const { return vector<T, 4>(vl[1], vl[3], vl[2], vl[1]); }
-        vector<T, 4> gabg() const { return vector<T, 4>(vl[1], vl[3], vl[2], vl[1]); }
-        vector<T, 4> tqpt() const { return vector<T, 4>(vl[1], vl[3], vl[2], vl[1]); }
-        vector<T, 4> ywzz() const { return vector<T, 4>(vl[1], vl[3], vl[2], vl[2]); }
-        vector<T, 4> gabb() const { return vector<T, 4>(vl[1], vl[3], vl[2], vl[2]); }
-        vector<T, 4> tqpp() const { return vector<T, 4>(vl[1], vl[3], vl[2], vl[2]); }
-        vector<T, 4> ywzw() const { return vector<T, 4>(vl[1], vl[3], vl[2], vl[3]); }
-        vector<T, 4> gaba() const { return vector<T, 4>(vl[1], vl[3], vl[2], vl[3]); }
-        vector<T, 4> tqpq() const { return vector<T, 4>(vl[1], vl[3], vl[2], vl[3]); }
-        vector<T, 4> ywwx() const { return vector<T, 4>(vl[1], vl[3], vl[3], vl[0]); }
-        vector<T, 4> gaar() const { return vector<T, 4>(vl[1], vl[3], vl[3], vl[0]); }
-        vector<T, 4> tqqs() const { return vector<T, 4>(vl[1], vl[3], vl[3], vl[0]); }
-        vector<T, 4> ywwy() const { return vector<T, 4>(vl[1], vl[3], vl[3], vl[1]); }
-        vector<T, 4> gaag() const { return vector<T, 4>(vl[1], vl[3], vl[3], vl[1]); }
-        vector<T, 4> tqqt() const { return vector<T, 4>(vl[1], vl[3], vl[3], vl[1]); }
-        vector<T, 4> ywwz() const { return vector<T, 4>(vl[1], vl[3], vl[3], vl[2]); }
-        vector<T, 4> gaab() const { return vector<T, 4>(vl[1], vl[3], vl[3], vl[2]); }
-        vector<T, 4> tqqp() const { return vector<T, 4>(vl[1], vl[3], vl[3], vl[2]); }
-        vector<T, 4> ywww() const { return vector<T, 4>(vl[1], vl[3], vl[3], vl[3]); }
-        vector<T, 4> gaaa() const { return vector<T, 4>(vl[1], vl[3], vl[3], vl[3]); }
-        vector<T, 4> tqqq() const { return vector<T, 4>(vl[1], vl[3], vl[3], vl[3]); }
-        vector<T, 4> zxxx() const { return vector<T, 4>(vl[2], vl[0], vl[0], vl[0]); }
-        vector<T, 4> brrr() const { return vector<T, 4>(vl[2], vl[0], vl[0], vl[0]); }
-        vector<T, 4> psss() const { return vector<T, 4>(vl[2], vl[0], vl[0], vl[0]); }
-        vector<T, 4> zxxy() const { return vector<T, 4>(vl[2], vl[0], vl[0], vl[1]); }
-        vector<T, 4> brrg() const { return vector<T, 4>(vl[2], vl[0], vl[0], vl[1]); }
-        vector<T, 4> psst() const { return vector<T, 4>(vl[2], vl[0], vl[0], vl[1]); }
-        vector<T, 4> zxxz() const { return vector<T, 4>(vl[2], vl[0], vl[0], vl[2]); }
-        vector<T, 4> brrb() const { return vector<T, 4>(vl[2], vl[0], vl[0], vl[2]); }
-        vector<T, 4> pssp() const { return vector<T, 4>(vl[2], vl[0], vl[0], vl[2]); }
-        vector<T, 4> zxxw() const { return vector<T, 4>(vl[2], vl[0], vl[0], vl[3]); }
-        vector<T, 4> brra() const { return vector<T, 4>(vl[2], vl[0], vl[0], vl[3]); }
-        vector<T, 4> pssq() const { return vector<T, 4>(vl[2], vl[0], vl[0], vl[3]); }
-        vector<T, 4> zxyx() const { return vector<T, 4>(vl[2], vl[0], vl[1], vl[0]); }
-        vector<T, 4> brgr() const { return vector<T, 4>(vl[2], vl[0], vl[1], vl[0]); }
-        vector<T, 4> psts() const { return vector<T, 4>(vl[2], vl[0], vl[1], vl[0]); }
-        vector<T, 4> zxyy() const { return vector<T, 4>(vl[2], vl[0], vl[1], vl[1]); }
-        vector<T, 4> brgg() const { return vector<T, 4>(vl[2], vl[0], vl[1], vl[1]); }
-        vector<T, 4> pstt() const { return vector<T, 4>(vl[2], vl[0], vl[1], vl[1]); }
-        vector<T, 4> zxyz() const { return vector<T, 4>(vl[2], vl[0], vl[1], vl[2]); }
-        vector<T, 4> brgb() const { return vector<T, 4>(vl[2], vl[0], vl[1], vl[2]); }
-        vector<T, 4> pstp() const { return vector<T, 4>(vl[2], vl[0], vl[1], vl[2]); }
-        vector<T, 4> zxyw() const { return vector<T, 4>(vl[2], vl[0], vl[1], vl[3]); }
-        vector<T, 4> brga() const { return vector<T, 4>(vl[2], vl[0], vl[1], vl[3]); }
-        vector<T, 4> pstq() const { return vector<T, 4>(vl[2], vl[0], vl[1], vl[3]); }
-        vector<T, 4> zxzx() const { return vector<T, 4>(vl[2], vl[0], vl[2], vl[0]); }
-        vector<T, 4> brbr() const { return vector<T, 4>(vl[2], vl[0], vl[2], vl[0]); }
-        vector<T, 4> psps() const { return vector<T, 4>(vl[2], vl[0], vl[2], vl[0]); }
-        vector<T, 4> zxzy() const { return vector<T, 4>(vl[2], vl[0], vl[2], vl[1]); }
-        vector<T, 4> brbg() const { return vector<T, 4>(vl[2], vl[0], vl[2], vl[1]); }
-        vector<T, 4> pspt() const { return vector<T, 4>(vl[2], vl[0], vl[2], vl[1]); }
-        vector<T, 4> zxzz() const { return vector<T, 4>(vl[2], vl[0], vl[2], vl[2]); }
-        vector<T, 4> brbb() const { return vector<T, 4>(vl[2], vl[0], vl[2], vl[2]); }
-        vector<T, 4> pspp() const { return vector<T, 4>(vl[2], vl[0], vl[2], vl[2]); }
-        vector<T, 4> zxzw() const { return vector<T, 4>(vl[2], vl[0], vl[2], vl[3]); }
-        vector<T, 4> brba() const { return vector<T, 4>(vl[2], vl[0], vl[2], vl[3]); }
-        vector<T, 4> pspq() const { return vector<T, 4>(vl[2], vl[0], vl[2], vl[3]); }
-        vector<T, 4> zxwx() const { return vector<T, 4>(vl[2], vl[0], vl[3], vl[0]); }
-        vector<T, 4> brar() const { return vector<T, 4>(vl[2], vl[0], vl[3], vl[0]); }
-        vector<T, 4> psqs() const { return vector<T, 4>(vl[2], vl[0], vl[3], vl[0]); }
-        vector<T, 4> zxwy() const { return vector<T, 4>(vl[2], vl[0], vl[3], vl[1]); }
-        vector<T, 4> brag() const { return vector<T, 4>(vl[2], vl[0], vl[3], vl[1]); }
-        vector<T, 4> psqt() const { return vector<T, 4>(vl[2], vl[0], vl[3], vl[1]); }
-        vector<T, 4> zxwz() const { return vector<T, 4>(vl[2], vl[0], vl[3], vl[2]); }
-        vector<T, 4> brab() const { return vector<T, 4>(vl[2], vl[0], vl[3], vl[2]); }
-        vector<T, 4> psqp() const { return vector<T, 4>(vl[2], vl[0], vl[3], vl[2]); }
-        vector<T, 4> zxww() const { return vector<T, 4>(vl[2], vl[0], vl[3], vl[3]); }
-        vector<T, 4> braa() const { return vector<T, 4>(vl[2], vl[0], vl[3], vl[3]); }
-        vector<T, 4> psqq() const { return vector<T, 4>(vl[2], vl[0], vl[3], vl[3]); }
-        vector<T, 4> zyxx() const { return vector<T, 4>(vl[2], vl[1], vl[0], vl[0]); }
-        vector<T, 4> bgrr() const { return vector<T, 4>(vl[2], vl[1], vl[0], vl[0]); }
-        vector<T, 4> ptss() const { return vector<T, 4>(vl[2], vl[1], vl[0], vl[0]); }
-        vector<T, 4> zyxy() const { return vector<T, 4>(vl[2], vl[1], vl[0], vl[1]); }
-        vector<T, 4> bgrg() const { return vector<T, 4>(vl[2], vl[1], vl[0], vl[1]); }
-        vector<T, 4> ptst() const { return vector<T, 4>(vl[2], vl[1], vl[0], vl[1]); }
-        vector<T, 4> zyxz() const { return vector<T, 4>(vl[2], vl[1], vl[0], vl[2]); }
-        vector<T, 4> bgrb() const { return vector<T, 4>(vl[2], vl[1], vl[0], vl[2]); }
-        vector<T, 4> ptsp() const { return vector<T, 4>(vl[2], vl[1], vl[0], vl[2]); }
-        vector<T, 4> zyxw() const { return vector<T, 4>(vl[2], vl[1], vl[0], vl[3]); }
-        vector<T, 4> bgra() const { return vector<T, 4>(vl[2], vl[1], vl[0], vl[3]); }
-        vector<T, 4> ptsq() const { return vector<T, 4>(vl[2], vl[1], vl[0], vl[3]); }
-        vector<T, 4> zyyx() const { return vector<T, 4>(vl[2], vl[1], vl[1], vl[0]); }
-        vector<T, 4> bggr() const { return vector<T, 4>(vl[2], vl[1], vl[1], vl[0]); }
-        vector<T, 4> ptts() const { return vector<T, 4>(vl[2], vl[1], vl[1], vl[0]); }
-        vector<T, 4> zyyy() const { return vector<T, 4>(vl[2], vl[1], vl[1], vl[1]); }
-        vector<T, 4> bggg() const { return vector<T, 4>(vl[2], vl[1], vl[1], vl[1]); }
-        vector<T, 4> pttt() const { return vector<T, 4>(vl[2], vl[1], vl[1], vl[1]); }
-        vector<T, 4> zyyz() const { return vector<T, 4>(vl[2], vl[1], vl[1], vl[2]); }
-        vector<T, 4> bggb() const { return vector<T, 4>(vl[2], vl[1], vl[1], vl[2]); }
-        vector<T, 4> pttp() const { return vector<T, 4>(vl[2], vl[1], vl[1], vl[2]); }
-        vector<T, 4> zyyw() const { return vector<T, 4>(vl[2], vl[1], vl[1], vl[3]); }
-        vector<T, 4> bgga() const { return vector<T, 4>(vl[2], vl[1], vl[1], vl[3]); }
-        vector<T, 4> pttq() const { return vector<T, 4>(vl[2], vl[1], vl[1], vl[3]); }
-        vector<T, 4> zyzx() const { return vector<T, 4>(vl[2], vl[1], vl[2], vl[0]); }
-        vector<T, 4> bgbr() const { return vector<T, 4>(vl[2], vl[1], vl[2], vl[0]); }
-        vector<T, 4> ptps() const { return vector<T, 4>(vl[2], vl[1], vl[2], vl[0]); }
-        vector<T, 4> zyzy() const { return vector<T, 4>(vl[2], vl[1], vl[2], vl[1]); }
-        vector<T, 4> bgbg() const { return vector<T, 4>(vl[2], vl[1], vl[2], vl[1]); }
-        vector<T, 4> ptpt() const { return vector<T, 4>(vl[2], vl[1], vl[2], vl[1]); }
-        vector<T, 4> zyzz() const { return vector<T, 4>(vl[2], vl[1], vl[2], vl[2]); }
-        vector<T, 4> bgbb() const { return vector<T, 4>(vl[2], vl[1], vl[2], vl[2]); }
-        vector<T, 4> ptpp() const { return vector<T, 4>(vl[2], vl[1], vl[2], vl[2]); }
-        vector<T, 4> zyzw() const { return vector<T, 4>(vl[2], vl[1], vl[2], vl[3]); }
-        vector<T, 4> bgba() const { return vector<T, 4>(vl[2], vl[1], vl[2], vl[3]); }
-        vector<T, 4> ptpq() const { return vector<T, 4>(vl[2], vl[1], vl[2], vl[3]); }
-        vector<T, 4> zywx() const { return vector<T, 4>(vl[2], vl[1], vl[3], vl[0]); }
-        vector<T, 4> bgar() const { return vector<T, 4>(vl[2], vl[1], vl[3], vl[0]); }
-        vector<T, 4> ptqs() const { return vector<T, 4>(vl[2], vl[1], vl[3], vl[0]); }
-        vector<T, 4> zywy() const { return vector<T, 4>(vl[2], vl[1], vl[3], vl[1]); }
-        vector<T, 4> bgag() const { return vector<T, 4>(vl[2], vl[1], vl[3], vl[1]); }
-        vector<T, 4> ptqt() const { return vector<T, 4>(vl[2], vl[1], vl[3], vl[1]); }
-        vector<T, 4> zywz() const { return vector<T, 4>(vl[2], vl[1], vl[3], vl[2]); }
-        vector<T, 4> bgab() const { return vector<T, 4>(vl[2], vl[1], vl[3], vl[2]); }
-        vector<T, 4> ptqp() const { return vector<T, 4>(vl[2], vl[1], vl[3], vl[2]); }
-        vector<T, 4> zyww() const { return vector<T, 4>(vl[2], vl[1], vl[3], vl[3]); }
-        vector<T, 4> bgaa() const { return vector<T, 4>(vl[2], vl[1], vl[3], vl[3]); }
-        vector<T, 4> ptqq() const { return vector<T, 4>(vl[2], vl[1], vl[3], vl[3]); }
-        vector<T, 4> zzxx() const { return vector<T, 4>(vl[2], vl[2], vl[0], vl[0]); }
-        vector<T, 4> bbrr() const { return vector<T, 4>(vl[2], vl[2], vl[0], vl[0]); }
-        vector<T, 4> ppss() const { return vector<T, 4>(vl[2], vl[2], vl[0], vl[0]); }
-        vector<T, 4> zzxy() const { return vector<T, 4>(vl[2], vl[2], vl[0], vl[1]); }
-        vector<T, 4> bbrg() const { return vector<T, 4>(vl[2], vl[2], vl[0], vl[1]); }
-        vector<T, 4> ppst() const { return vector<T, 4>(vl[2], vl[2], vl[0], vl[1]); }
-        vector<T, 4> zzxz() const { return vector<T, 4>(vl[2], vl[2], vl[0], vl[2]); }
-        vector<T, 4> bbrb() const { return vector<T, 4>(vl[2], vl[2], vl[0], vl[2]); }
-        vector<T, 4> ppsp() const { return vector<T, 4>(vl[2], vl[2], vl[0], vl[2]); }
-        vector<T, 4> zzxw() const { return vector<T, 4>(vl[2], vl[2], vl[0], vl[3]); }
-        vector<T, 4> bbra() const { return vector<T, 4>(vl[2], vl[2], vl[0], vl[3]); }
-        vector<T, 4> ppsq() const { return vector<T, 4>(vl[2], vl[2], vl[0], vl[3]); }
-        vector<T, 4> zzyx() const { return vector<T, 4>(vl[2], vl[2], vl[1], vl[0]); }
-        vector<T, 4> bbgr() const { return vector<T, 4>(vl[2], vl[2], vl[1], vl[0]); }
-        vector<T, 4> ppts() const { return vector<T, 4>(vl[2], vl[2], vl[1], vl[0]); }
-        vector<T, 4> zzyy() const { return vector<T, 4>(vl[2], vl[2], vl[1], vl[1]); }
-        vector<T, 4> bbgg() const { return vector<T, 4>(vl[2], vl[2], vl[1], vl[1]); }
-        vector<T, 4> pptt() const { return vector<T, 4>(vl[2], vl[2], vl[1], vl[1]); }
-        vector<T, 4> zzyz() const { return vector<T, 4>(vl[2], vl[2], vl[1], vl[2]); }
-        vector<T, 4> bbgb() const { return vector<T, 4>(vl[2], vl[2], vl[1], vl[2]); }
-        vector<T, 4> pptp() const { return vector<T, 4>(vl[2], vl[2], vl[1], vl[2]); }
-        vector<T, 4> zzyw() const { return vector<T, 4>(vl[2], vl[2], vl[1], vl[3]); }
-        vector<T, 4> bbga() const { return vector<T, 4>(vl[2], vl[2], vl[1], vl[3]); }
-        vector<T, 4> pptq() const { return vector<T, 4>(vl[2], vl[2], vl[1], vl[3]); }
-        vector<T, 4> zzzx() const { return vector<T, 4>(vl[2], vl[2], vl[2], vl[0]); }
-        vector<T, 4> bbbr() const { return vector<T, 4>(vl[2], vl[2], vl[2], vl[0]); }
-        vector<T, 4> ppps() const { return vector<T, 4>(vl[2], vl[2], vl[2], vl[0]); }
-        vector<T, 4> zzzy() const { return vector<T, 4>(vl[2], vl[2], vl[2], vl[1]); }
-        vector<T, 4> bbbg() const { return vector<T, 4>(vl[2], vl[2], vl[2], vl[1]); }
-        vector<T, 4> pppt() const { return vector<T, 4>(vl[2], vl[2], vl[2], vl[1]); }
-        vector<T, 4> zzzz() const { return vector<T, 4>(vl[2], vl[2], vl[2], vl[2]); }
-        vector<T, 4> bbbb() const { return vector<T, 4>(vl[2], vl[2], vl[2], vl[2]); }
-        vector<T, 4> pppp() const { return vector<T, 4>(vl[2], vl[2], vl[2], vl[2]); }
-        vector<T, 4> zzzw() const { return vector<T, 4>(vl[2], vl[2], vl[2], vl[3]); }
-        vector<T, 4> bbba() const { return vector<T, 4>(vl[2], vl[2], vl[2], vl[3]); }
-        vector<T, 4> pppq() const { return vector<T, 4>(vl[2], vl[2], vl[2], vl[3]); }
-        vector<T, 4> zzwx() const { return vector<T, 4>(vl[2], vl[2], vl[3], vl[0]); }
-        vector<T, 4> bbar() const { return vector<T, 4>(vl[2], vl[2], vl[3], vl[0]); }
-        vector<T, 4> ppqs() const { return vector<T, 4>(vl[2], vl[2], vl[3], vl[0]); }
-        vector<T, 4> zzwy() const { return vector<T, 4>(vl[2], vl[2], vl[3], vl[1]); }
-        vector<T, 4> bbag() const { return vector<T, 4>(vl[2], vl[2], vl[3], vl[1]); }
-        vector<T, 4> ppqt() const { return vector<T, 4>(vl[2], vl[2], vl[3], vl[1]); }
-        vector<T, 4> zzwz() const { return vector<T, 4>(vl[2], vl[2], vl[3], vl[2]); }
-        vector<T, 4> bbab() const { return vector<T, 4>(vl[2], vl[2], vl[3], vl[2]); }
-        vector<T, 4> ppqp() const { return vector<T, 4>(vl[2], vl[2], vl[3], vl[2]); }
-        vector<T, 4> zzww() const { return vector<T, 4>(vl[2], vl[2], vl[3], vl[3]); }
-        vector<T, 4> bbaa() const { return vector<T, 4>(vl[2], vl[2], vl[3], vl[3]); }
-        vector<T, 4> ppqq() const { return vector<T, 4>(vl[2], vl[2], vl[3], vl[3]); }
-        vector<T, 4> zwxx() const { return vector<T, 4>(vl[2], vl[3], vl[0], vl[0]); }
-        vector<T, 4> barr() const { return vector<T, 4>(vl[2], vl[3], vl[0], vl[0]); }
-        vector<T, 4> pqss() const { return vector<T, 4>(vl[2], vl[3], vl[0], vl[0]); }
-        vector<T, 4> zwxy() const { return vector<T, 4>(vl[2], vl[3], vl[0], vl[1]); }
-        vector<T, 4> barg() const { return vector<T, 4>(vl[2], vl[3], vl[0], vl[1]); }
-        vector<T, 4> pqst() const { return vector<T, 4>(vl[2], vl[3], vl[0], vl[1]); }
-        vector<T, 4> zwxz() const { return vector<T, 4>(vl[2], vl[3], vl[0], vl[2]); }
-        vector<T, 4> barb() const { return vector<T, 4>(vl[2], vl[3], vl[0], vl[2]); }
-        vector<T, 4> pqsp() const { return vector<T, 4>(vl[2], vl[3], vl[0], vl[2]); }
-        vector<T, 4> zwxw() const { return vector<T, 4>(vl[2], vl[3], vl[0], vl[3]); }
-        vector<T, 4> bara() const { return vector<T, 4>(vl[2], vl[3], vl[0], vl[3]); }
-        vector<T, 4> pqsq() const { return vector<T, 4>(vl[2], vl[3], vl[0], vl[3]); }
-        vector<T, 4> zwyx() const { return vector<T, 4>(vl[2], vl[3], vl[1], vl[0]); }
-        vector<T, 4> bagr() const { return vector<T, 4>(vl[2], vl[3], vl[1], vl[0]); }
-        vector<T, 4> pqts() const { return vector<T, 4>(vl[2], vl[3], vl[1], vl[0]); }
-        vector<T, 4> zwyy() const { return vector<T, 4>(vl[2], vl[3], vl[1], vl[1]); }
-        vector<T, 4> bagg() const { return vector<T, 4>(vl[2], vl[3], vl[1], vl[1]); }
-        vector<T, 4> pqtt() const { return vector<T, 4>(vl[2], vl[3], vl[1], vl[1]); }
-        vector<T, 4> zwyz() const { return vector<T, 4>(vl[2], vl[3], vl[1], vl[2]); }
-        vector<T, 4> bagb() const { return vector<T, 4>(vl[2], vl[3], vl[1], vl[2]); }
-        vector<T, 4> pqtp() const { return vector<T, 4>(vl[2], vl[3], vl[1], vl[2]); }
-        vector<T, 4> zwyw() const { return vector<T, 4>(vl[2], vl[3], vl[1], vl[3]); }
-        vector<T, 4> baga() const { return vector<T, 4>(vl[2], vl[3], vl[1], vl[3]); }
-        vector<T, 4> pqtq() const { return vector<T, 4>(vl[2], vl[3], vl[1], vl[3]); }
-        vector<T, 4> zwzx() const { return vector<T, 4>(vl[2], vl[3], vl[2], vl[0]); }
-        vector<T, 4> babr() const { return vector<T, 4>(vl[2], vl[3], vl[2], vl[0]); }
-        vector<T, 4> pqps() const { return vector<T, 4>(vl[2], vl[3], vl[2], vl[0]); }
-        vector<T, 4> zwzy() const { return vector<T, 4>(vl[2], vl[3], vl[2], vl[1]); }
-        vector<T, 4> babg() const { return vector<T, 4>(vl[2], vl[3], vl[2], vl[1]); }
-        vector<T, 4> pqpt() const { return vector<T, 4>(vl[2], vl[3], vl[2], vl[1]); }
-        vector<T, 4> zwzz() const { return vector<T, 4>(vl[2], vl[3], vl[2], vl[2]); }
-        vector<T, 4> babb() const { return vector<T, 4>(vl[2], vl[3], vl[2], vl[2]); }
-        vector<T, 4> pqpp() const { return vector<T, 4>(vl[2], vl[3], vl[2], vl[2]); }
-        vector<T, 4> zwzw() const { return vector<T, 4>(vl[2], vl[3], vl[2], vl[3]); }
-        vector<T, 4> baba() const { return vector<T, 4>(vl[2], vl[3], vl[2], vl[3]); }
-        vector<T, 4> pqpq() const { return vector<T, 4>(vl[2], vl[3], vl[2], vl[3]); }
-        vector<T, 4> zwwx() const { return vector<T, 4>(vl[2], vl[3], vl[3], vl[0]); }
-        vector<T, 4> baar() const { return vector<T, 4>(vl[2], vl[3], vl[3], vl[0]); }
-        vector<T, 4> pqqs() const { return vector<T, 4>(vl[2], vl[3], vl[3], vl[0]); }
-        vector<T, 4> zwwy() const { return vector<T, 4>(vl[2], vl[3], vl[3], vl[1]); }
-        vector<T, 4> baag() const { return vector<T, 4>(vl[2], vl[3], vl[3], vl[1]); }
-        vector<T, 4> pqqt() const { return vector<T, 4>(vl[2], vl[3], vl[3], vl[1]); }
-        vector<T, 4> zwwz() const { return vector<T, 4>(vl[2], vl[3], vl[3], vl[2]); }
-        vector<T, 4> baab() const { return vector<T, 4>(vl[2], vl[3], vl[3], vl[2]); }
-        vector<T, 4> pqqp() const { return vector<T, 4>(vl[2], vl[3], vl[3], vl[2]); }
-        vector<T, 4> zwww() const { return vector<T, 4>(vl[2], vl[3], vl[3], vl[3]); }
-        vector<T, 4> baaa() const { return vector<T, 4>(vl[2], vl[3], vl[3], vl[3]); }
-        vector<T, 4> pqqq() const { return vector<T, 4>(vl[2], vl[3], vl[3], vl[3]); }
-        vector<T, 4> wxxx() const { return vector<T, 4>(vl[3], vl[0], vl[0], vl[0]); }
-        vector<T, 4> arrr() const { return vector<T, 4>(vl[3], vl[0], vl[0], vl[0]); }
-        vector<T, 4> qsss() const { return vector<T, 4>(vl[3], vl[0], vl[0], vl[0]); }
-        vector<T, 4> wxxy() const { return vector<T, 4>(vl[3], vl[0], vl[0], vl[1]); }
-        vector<T, 4> arrg() const { return vector<T, 4>(vl[3], vl[0], vl[0], vl[1]); }
-        vector<T, 4> qsst() const { return vector<T, 4>(vl[3], vl[0], vl[0], vl[1]); }
-        vector<T, 4> wxxz() const { return vector<T, 4>(vl[3], vl[0], vl[0], vl[2]); }
-        vector<T, 4> arrb() const { return vector<T, 4>(vl[3], vl[0], vl[0], vl[2]); }
-        vector<T, 4> qssp() const { return vector<T, 4>(vl[3], vl[0], vl[0], vl[2]); }
-        vector<T, 4> wxxw() const { return vector<T, 4>(vl[3], vl[0], vl[0], vl[3]); }
-        vector<T, 4> arra() const { return vector<T, 4>(vl[3], vl[0], vl[0], vl[3]); }
-        vector<T, 4> qssq() const { return vector<T, 4>(vl[3], vl[0], vl[0], vl[3]); }
-        vector<T, 4> wxyx() const { return vector<T, 4>(vl[3], vl[0], vl[1], vl[0]); }
-        vector<T, 4> argr() const { return vector<T, 4>(vl[3], vl[0], vl[1], vl[0]); }
-        vector<T, 4> qsts() const { return vector<T, 4>(vl[3], vl[0], vl[1], vl[0]); }
-        vector<T, 4> wxyy() const { return vector<T, 4>(vl[3], vl[0], vl[1], vl[1]); }
-        vector<T, 4> argg() const { return vector<T, 4>(vl[3], vl[0], vl[1], vl[1]); }
-        vector<T, 4> qstt() const { return vector<T, 4>(vl[3], vl[0], vl[1], vl[1]); }
-        vector<T, 4> wxyz() const { return vector<T, 4>(vl[3], vl[0], vl[1], vl[2]); }
-        vector<T, 4> argb() const { return vector<T, 4>(vl[3], vl[0], vl[1], vl[2]); }
-        vector<T, 4> qstp() const { return vector<T, 4>(vl[3], vl[0], vl[1], vl[2]); }
-        vector<T, 4> wxyw() const { return vector<T, 4>(vl[3], vl[0], vl[1], vl[3]); }
-        vector<T, 4> arga() const { return vector<T, 4>(vl[3], vl[0], vl[1], vl[3]); }
-        vector<T, 4> qstq() const { return vector<T, 4>(vl[3], vl[0], vl[1], vl[3]); }
-        vector<T, 4> wxzx() const { return vector<T, 4>(vl[3], vl[0], vl[2], vl[0]); }
-        vector<T, 4> arbr() const { return vector<T, 4>(vl[3], vl[0], vl[2], vl[0]); }
-        vector<T, 4> qsps() const { return vector<T, 4>(vl[3], vl[0], vl[2], vl[0]); }
-        vector<T, 4> wxzy() const { return vector<T, 4>(vl[3], vl[0], vl[2], vl[1]); }
-        vector<T, 4> arbg() const { return vector<T, 4>(vl[3], vl[0], vl[2], vl[1]); }
-        vector<T, 4> qspt() const { return vector<T, 4>(vl[3], vl[0], vl[2], vl[1]); }
-        vector<T, 4> wxzz() const { return vector<T, 4>(vl[3], vl[0], vl[2], vl[2]); }
-        vector<T, 4> arbb() const { return vector<T, 4>(vl[3], vl[0], vl[2], vl[2]); }
-        vector<T, 4> qspp() const { return vector<T, 4>(vl[3], vl[0], vl[2], vl[2]); }
-        vector<T, 4> wxzw() const { return vector<T, 4>(vl[3], vl[0], vl[2], vl[3]); }
-        vector<T, 4> arba() const { return vector<T, 4>(vl[3], vl[0], vl[2], vl[3]); }
-        vector<T, 4> qspq() const { return vector<T, 4>(vl[3], vl[0], vl[2], vl[3]); }
-        vector<T, 4> wxwx() const { return vector<T, 4>(vl[3], vl[0], vl[3], vl[0]); }
-        vector<T, 4> arar() const { return vector<T, 4>(vl[3], vl[0], vl[3], vl[0]); }
-        vector<T, 4> qsqs() const { return vector<T, 4>(vl[3], vl[0], vl[3], vl[0]); }
-        vector<T, 4> wxwy() const { return vector<T, 4>(vl[3], vl[0], vl[3], vl[1]); }
-        vector<T, 4> arag() const { return vector<T, 4>(vl[3], vl[0], vl[3], vl[1]); }
-        vector<T, 4> qsqt() const { return vector<T, 4>(vl[3], vl[0], vl[3], vl[1]); }
-        vector<T, 4> wxwz() const { return vector<T, 4>(vl[3], vl[0], vl[3], vl[2]); }
-        vector<T, 4> arab() const { return vector<T, 4>(vl[3], vl[0], vl[3], vl[2]); }
-        vector<T, 4> qsqp() const { return vector<T, 4>(vl[3], vl[0], vl[3], vl[2]); }
-        vector<T, 4> wxww() const { return vector<T, 4>(vl[3], vl[0], vl[3], vl[3]); }
-        vector<T, 4> araa() const { return vector<T, 4>(vl[3], vl[0], vl[3], vl[3]); }
-        vector<T, 4> qsqq() const { return vector<T, 4>(vl[3], vl[0], vl[3], vl[3]); }
-        vector<T, 4> wyxx() const { return vector<T, 4>(vl[3], vl[1], vl[0], vl[0]); }
-        vector<T, 4> agrr() const { return vector<T, 4>(vl[3], vl[1], vl[0], vl[0]); }
-        vector<T, 4> qtss() const { return vector<T, 4>(vl[3], vl[1], vl[0], vl[0]); }
-        vector<T, 4> wyxy() const { return vector<T, 4>(vl[3], vl[1], vl[0], vl[1]); }
-        vector<T, 4> agrg() const { return vector<T, 4>(vl[3], vl[1], vl[0], vl[1]); }
-        vector<T, 4> qtst() const { return vector<T, 4>(vl[3], vl[1], vl[0], vl[1]); }
-        vector<T, 4> wyxz() const { return vector<T, 4>(vl[3], vl[1], vl[0], vl[2]); }
-        vector<T, 4> agrb() const { return vector<T, 4>(vl[3], vl[1], vl[0], vl[2]); }
-        vector<T, 4> qtsp() const { return vector<T, 4>(vl[3], vl[1], vl[0], vl[2]); }
-        vector<T, 4> wyxw() const { return vector<T, 4>(vl[3], vl[1], vl[0], vl[3]); }
-        vector<T, 4> agra() const { return vector<T, 4>(vl[3], vl[1], vl[0], vl[3]); }
-        vector<T, 4> qtsq() const { return vector<T, 4>(vl[3], vl[1], vl[0], vl[3]); }
-        vector<T, 4> wyyx() const { return vector<T, 4>(vl[3], vl[1], vl[1], vl[0]); }
-        vector<T, 4> aggr() const { return vector<T, 4>(vl[3], vl[1], vl[1], vl[0]); }
-        vector<T, 4> qtts() const { return vector<T, 4>(vl[3], vl[1], vl[1], vl[0]); }
-        vector<T, 4> wyyy() const { return vector<T, 4>(vl[3], vl[1], vl[1], vl[1]); }
-        vector<T, 4> aggg() const { return vector<T, 4>(vl[3], vl[1], vl[1], vl[1]); }
-        vector<T, 4> qttt() const { return vector<T, 4>(vl[3], vl[1], vl[1], vl[1]); }
-        vector<T, 4> wyyz() const { return vector<T, 4>(vl[3], vl[1], vl[1], vl[2]); }
-        vector<T, 4> aggb() const { return vector<T, 4>(vl[3], vl[1], vl[1], vl[2]); }
-        vector<T, 4> qttp() const { return vector<T, 4>(vl[3], vl[1], vl[1], vl[2]); }
-        vector<T, 4> wyyw() const { return vector<T, 4>(vl[3], vl[1], vl[1], vl[3]); }
-        vector<T, 4> agga() const { return vector<T, 4>(vl[3], vl[1], vl[1], vl[3]); }
-        vector<T, 4> qttq() const { return vector<T, 4>(vl[3], vl[1], vl[1], vl[3]); }
-        vector<T, 4> wyzx() const { return vector<T, 4>(vl[3], vl[1], vl[2], vl[0]); }
-        vector<T, 4> agbr() const { return vector<T, 4>(vl[3], vl[1], vl[2], vl[0]); }
-        vector<T, 4> qtps() const { return vector<T, 4>(vl[3], vl[1], vl[2], vl[0]); }
-        vector<T, 4> wyzy() const { return vector<T, 4>(vl[3], vl[1], vl[2], vl[1]); }
-        vector<T, 4> agbg() const { return vector<T, 4>(vl[3], vl[1], vl[2], vl[1]); }
-        vector<T, 4> qtpt() const { return vector<T, 4>(vl[3], vl[1], vl[2], vl[1]); }
-        vector<T, 4> wyzz() const { return vector<T, 4>(vl[3], vl[1], vl[2], vl[2]); }
-        vector<T, 4> agbb() const { return vector<T, 4>(vl[3], vl[1], vl[2], vl[2]); }
-        vector<T, 4> qtpp() const { return vector<T, 4>(vl[3], vl[1], vl[2], vl[2]); }
-        vector<T, 4> wyzw() const { return vector<T, 4>(vl[3], vl[1], vl[2], vl[3]); }
-        vector<T, 4> agba() const { return vector<T, 4>(vl[3], vl[1], vl[2], vl[3]); }
-        vector<T, 4> qtpq() const { return vector<T, 4>(vl[3], vl[1], vl[2], vl[3]); }
-        vector<T, 4> wywx() const { return vector<T, 4>(vl[3], vl[1], vl[3], vl[0]); }
-        vector<T, 4> agar() const { return vector<T, 4>(vl[3], vl[1], vl[3], vl[0]); }
-        vector<T, 4> qtqs() const { return vector<T, 4>(vl[3], vl[1], vl[3], vl[0]); }
-        vector<T, 4> wywy() const { return vector<T, 4>(vl[3], vl[1], vl[3], vl[1]); }
-        vector<T, 4> agag() const { return vector<T, 4>(vl[3], vl[1], vl[3], vl[1]); }
-        vector<T, 4> qtqt() const { return vector<T, 4>(vl[3], vl[1], vl[3], vl[1]); }
-        vector<T, 4> wywz() const { return vector<T, 4>(vl[3], vl[1], vl[3], vl[2]); }
-        vector<T, 4> agab() const { return vector<T, 4>(vl[3], vl[1], vl[3], vl[2]); }
-        vector<T, 4> qtqp() const { return vector<T, 4>(vl[3], vl[1], vl[3], vl[2]); }
-        vector<T, 4> wyww() const { return vector<T, 4>(vl[3], vl[1], vl[3], vl[3]); }
-        vector<T, 4> agaa() const { return vector<T, 4>(vl[3], vl[1], vl[3], vl[3]); }
-        vector<T, 4> qtqq() const { return vector<T, 4>(vl[3], vl[1], vl[3], vl[3]); }
-        vector<T, 4> wzxx() const { return vector<T, 4>(vl[3], vl[2], vl[0], vl[0]); }
-        vector<T, 4> abrr() const { return vector<T, 4>(vl[3], vl[2], vl[0], vl[0]); }
-        vector<T, 4> qpss() const { return vector<T, 4>(vl[3], vl[2], vl[0], vl[0]); }
-        vector<T, 4> wzxy() const { return vector<T, 4>(vl[3], vl[2], vl[0], vl[1]); }
-        vector<T, 4> abrg() const { return vector<T, 4>(vl[3], vl[2], vl[0], vl[1]); }
-        vector<T, 4> qpst() const { return vector<T, 4>(vl[3], vl[2], vl[0], vl[1]); }
-        vector<T, 4> wzxz() const { return vector<T, 4>(vl[3], vl[2], vl[0], vl[2]); }
-        vector<T, 4> abrb() const { return vector<T, 4>(vl[3], vl[2], vl[0], vl[2]); }
-        vector<T, 4> qpsp() const { return vector<T, 4>(vl[3], vl[2], vl[0], vl[2]); }
-        vector<T, 4> wzxw() const { return vector<T, 4>(vl[3], vl[2], vl[0], vl[3]); }
-        vector<T, 4> abra() const { return vector<T, 4>(vl[3], vl[2], vl[0], vl[3]); }
-        vector<T, 4> qpsq() const { return vector<T, 4>(vl[3], vl[2], vl[0], vl[3]); }
-        vector<T, 4> wzyx() const { return vector<T, 4>(vl[3], vl[2], vl[1], vl[0]); }
-        vector<T, 4> abgr() const { return vector<T, 4>(vl[3], vl[2], vl[1], vl[0]); }
-        vector<T, 4> qpts() const { return vector<T, 4>(vl[3], vl[2], vl[1], vl[0]); }
-        vector<T, 4> wzyy() const { return vector<T, 4>(vl[3], vl[2], vl[1], vl[1]); }
-        vector<T, 4> abgg() const { return vector<T, 4>(vl[3], vl[2], vl[1], vl[1]); }
-        vector<T, 4> qptt() const { return vector<T, 4>(vl[3], vl[2], vl[1], vl[1]); }
-        vector<T, 4> wzyz() const { return vector<T, 4>(vl[3], vl[2], vl[1], vl[2]); }
-        vector<T, 4> abgb() const { return vector<T, 4>(vl[3], vl[2], vl[1], vl[2]); }
-        vector<T, 4> qptp() const { return vector<T, 4>(vl[3], vl[2], vl[1], vl[2]); }
-        vector<T, 4> wzyw() const { return vector<T, 4>(vl[3], vl[2], vl[1], vl[3]); }
-        vector<T, 4> abga() const { return vector<T, 4>(vl[3], vl[2], vl[1], vl[3]); }
-        vector<T, 4> qptq() const { return vector<T, 4>(vl[3], vl[2], vl[1], vl[3]); }
-        vector<T, 4> wzzx() const { return vector<T, 4>(vl[3], vl[2], vl[2], vl[0]); }
-        vector<T, 4> abbr() const { return vector<T, 4>(vl[3], vl[2], vl[2], vl[0]); }
-        vector<T, 4> qpps() const { return vector<T, 4>(vl[3], vl[2], vl[2], vl[0]); }
-        vector<T, 4> wzzy() const { return vector<T, 4>(vl[3], vl[2], vl[2], vl[1]); }
-        vector<T, 4> abbg() const { return vector<T, 4>(vl[3], vl[2], vl[2], vl[1]); }
-        vector<T, 4> qppt() const { return vector<T, 4>(vl[3], vl[2], vl[2], vl[1]); }
-        vector<T, 4> wzzz() const { return vector<T, 4>(vl[3], vl[2], vl[2], vl[2]); }
-        vector<T, 4> abbb() const { return vector<T, 4>(vl[3], vl[2], vl[2], vl[2]); }
-        vector<T, 4> qppp() const { return vector<T, 4>(vl[3], vl[2], vl[2], vl[2]); }
-        vector<T, 4> wzzw() const { return vector<T, 4>(vl[3], vl[2], vl[2], vl[3]); }
-        vector<T, 4> abba() const { return vector<T, 4>(vl[3], vl[2], vl[2], vl[3]); }
-        vector<T, 4> qppq() const { return vector<T, 4>(vl[3], vl[2], vl[2], vl[3]); }
-        vector<T, 4> wzwx() const { return vector<T, 4>(vl[3], vl[2], vl[3], vl[0]); }
-        vector<T, 4> abar() const { return vector<T, 4>(vl[3], vl[2], vl[3], vl[0]); }
-        vector<T, 4> qpqs() const { return vector<T, 4>(vl[3], vl[2], vl[3], vl[0]); }
-        vector<T, 4> wzwy() const { return vector<T, 4>(vl[3], vl[2], vl[3], vl[1]); }
-        vector<T, 4> abag() const { return vector<T, 4>(vl[3], vl[2], vl[3], vl[1]); }
-        vector<T, 4> qpqt() const { return vector<T, 4>(vl[3], vl[2], vl[3], vl[1]); }
-        vector<T, 4> wzwz() const { return vector<T, 4>(vl[3], vl[2], vl[3], vl[2]); }
-        vector<T, 4> abab() const { return vector<T, 4>(vl[3], vl[2], vl[3], vl[2]); }
-        vector<T, 4> qpqp() const { return vector<T, 4>(vl[3], vl[2], vl[3], vl[2]); }
-        vector<T, 4> wzww() const { return vector<T, 4>(vl[3], vl[2], vl[3], vl[3]); }
-        vector<T, 4> abaa() const { return vector<T, 4>(vl[3], vl[2], vl[3], vl[3]); }
-        vector<T, 4> qpqq() const { return vector<T, 4>(vl[3], vl[2], vl[3], vl[3]); }
-        vector<T, 4> wwxx() const { return vector<T, 4>(vl[3], vl[3], vl[0], vl[0]); }
-        vector<T, 4> aarr() const { return vector<T, 4>(vl[3], vl[3], vl[0], vl[0]); }
-        vector<T, 4> qqss() const { return vector<T, 4>(vl[3], vl[3], vl[0], vl[0]); }
-        vector<T, 4> wwxy() const { return vector<T, 4>(vl[3], vl[3], vl[0], vl[1]); }
-        vector<T, 4> aarg() const { return vector<T, 4>(vl[3], vl[3], vl[0], vl[1]); }
-        vector<T, 4> qqst() const { return vector<T, 4>(vl[3], vl[3], vl[0], vl[1]); }
-        vector<T, 4> wwxz() const { return vector<T, 4>(vl[3], vl[3], vl[0], vl[2]); }
-        vector<T, 4> aarb() const { return vector<T, 4>(vl[3], vl[3], vl[0], vl[2]); }
-        vector<T, 4> qqsp() const { return vector<T, 4>(vl[3], vl[3], vl[0], vl[2]); }
-        vector<T, 4> wwxw() const { return vector<T, 4>(vl[3], vl[3], vl[0], vl[3]); }
-        vector<T, 4> aara() const { return vector<T, 4>(vl[3], vl[3], vl[0], vl[3]); }
-        vector<T, 4> qqsq() const { return vector<T, 4>(vl[3], vl[3], vl[0], vl[3]); }
-        vector<T, 4> wwyx() const { return vector<T, 4>(vl[3], vl[3], vl[1], vl[0]); }
-        vector<T, 4> aagr() const { return vector<T, 4>(vl[3], vl[3], vl[1], vl[0]); }
-        vector<T, 4> qqts() const { return vector<T, 4>(vl[3], vl[3], vl[1], vl[0]); }
-        vector<T, 4> wwyy() const { return vector<T, 4>(vl[3], vl[3], vl[1], vl[1]); }
-        vector<T, 4> aagg() const { return vector<T, 4>(vl[3], vl[3], vl[1], vl[1]); }
-        vector<T, 4> qqtt() const { return vector<T, 4>(vl[3], vl[3], vl[1], vl[1]); }
-        vector<T, 4> wwyz() const { return vector<T, 4>(vl[3], vl[3], vl[1], vl[2]); }
-        vector<T, 4> aagb() const { return vector<T, 4>(vl[3], vl[3], vl[1], vl[2]); }
-        vector<T, 4> qqtp() const { return vector<T, 4>(vl[3], vl[3], vl[1], vl[2]); }
-        vector<T, 4> wwyw() const { return vector<T, 4>(vl[3], vl[3], vl[1], vl[3]); }
-        vector<T, 4> aaga() const { return vector<T, 4>(vl[3], vl[3], vl[1], vl[3]); }
-        vector<T, 4> qqtq() const { return vector<T, 4>(vl[3], vl[3], vl[1], vl[3]); }
-        vector<T, 4> wwzx() const { return vector<T, 4>(vl[3], vl[3], vl[2], vl[0]); }
-        vector<T, 4> aabr() const { return vector<T, 4>(vl[3], vl[3], vl[2], vl[0]); }
-        vector<T, 4> qqps() const { return vector<T, 4>(vl[3], vl[3], vl[2], vl[0]); }
-        vector<T, 4> wwzy() const { return vector<T, 4>(vl[3], vl[3], vl[2], vl[1]); }
-        vector<T, 4> aabg() const { return vector<T, 4>(vl[3], vl[3], vl[2], vl[1]); }
-        vector<T, 4> qqpt() const { return vector<T, 4>(vl[3], vl[3], vl[2], vl[1]); }
-        vector<T, 4> wwzz() const { return vector<T, 4>(vl[3], vl[3], vl[2], vl[2]); }
-        vector<T, 4> aabb() const { return vector<T, 4>(vl[3], vl[3], vl[2], vl[2]); }
-        vector<T, 4> qqpp() const { return vector<T, 4>(vl[3], vl[3], vl[2], vl[2]); }
-        vector<T, 4> wwzw() const { return vector<T, 4>(vl[3], vl[3], vl[2], vl[3]); }
-        vector<T, 4> aaba() const { return vector<T, 4>(vl[3], vl[3], vl[2], vl[3]); }
-        vector<T, 4> qqpq() const { return vector<T, 4>(vl[3], vl[3], vl[2], vl[3]); }
-        vector<T, 4> wwwx() const { return vector<T, 4>(vl[3], vl[3], vl[3], vl[0]); }
-        vector<T, 4> aaar() const { return vector<T, 4>(vl[3], vl[3], vl[3], vl[0]); }
-        vector<T, 4> qqqs() const { return vector<T, 4>(vl[3], vl[3], vl[3], vl[0]); }
-        vector<T, 4> wwwy() const { return vector<T, 4>(vl[3], vl[3], vl[3], vl[1]); }
-        vector<T, 4> aaag() const { return vector<T, 4>(vl[3], vl[3], vl[3], vl[1]); }
-        vector<T, 4> qqqt() const { return vector<T, 4>(vl[3], vl[3], vl[3], vl[1]); }
-        vector<T, 4> wwwz() const { return vector<T, 4>(vl[3], vl[3], vl[3], vl[2]); }
-        vector<T, 4> aaab() const { return vector<T, 4>(vl[3], vl[3], vl[3], vl[2]); }
-        vector<T, 4> qqqp() const { return vector<T, 4>(vl[3], vl[3], vl[3], vl[2]); }
-        vector<T, 4> wwww() const { return vector<T, 4>(vl[3], vl[3], vl[3], vl[3]); }
-        vector<T, 4> aaaa() const { return vector<T, 4>(vl[3], vl[3], vl[3], vl[3]); }
-        vector<T, 4> qqqq() const { return vector<T, 4>(vl[3], vl[3], vl[3], vl[3]); }
-        swizzler<T, 2> xy() { return swizzler<T, 2>(vl[0], vl[1]); }
-        swizzler<T, 2> rg() { return swizzler<T, 2>(vl[0], vl[1]); }
-        swizzler<T, 2> st() { return swizzler<T, 2>(vl[0], vl[1]); }
-        swizzler<T, 2> xz() { return swizzler<T, 2>(vl[0], vl[2]); }
-        swizzler<T, 2> rb() { return swizzler<T, 2>(vl[0], vl[2]); }
-        swizzler<T, 2> sp() { return swizzler<T, 2>(vl[0], vl[2]); }
-        swizzler<T, 2> xw() { return swizzler<T, 2>(vl[0], vl[3]); }
-        swizzler<T, 2> ra() { return swizzler<T, 2>(vl[0], vl[3]); }
-        swizzler<T, 2> sq() { return swizzler<T, 2>(vl[0], vl[3]); }
-        swizzler<T, 2> yx() { return swizzler<T, 2>(vl[1], vl[0]); }
-        swizzler<T, 2> gr() { return swizzler<T, 2>(vl[1], vl[0]); }
-        swizzler<T, 2> ts() { return swizzler<T, 2>(vl[1], vl[0]); }
-        swizzler<T, 2> yz() { return swizzler<T, 2>(vl[1], vl[2]); }
-        swizzler<T, 2> gb() { return swizzler<T, 2>(vl[1], vl[2]); }
-        swizzler<T, 2> tp() { return swizzler<T, 2>(vl[1], vl[2]); }
-        swizzler<T, 2> yw() { return swizzler<T, 2>(vl[1], vl[3]); }
-        swizzler<T, 2> ga() { return swizzler<T, 2>(vl[1], vl[3]); }
-        swizzler<T, 2> tq() { return swizzler<T, 2>(vl[1], vl[3]); }
-        swizzler<T, 2> zx() { return swizzler<T, 2>(vl[2], vl[0]); }
-        swizzler<T, 2> br() { return swizzler<T, 2>(vl[2], vl[0]); }
-        swizzler<T, 2> ps() { return swizzler<T, 2>(vl[2], vl[0]); }
-        swizzler<T, 2> zy() { return swizzler<T, 2>(vl[2], vl[1]); }
-        swizzler<T, 2> bg() { return swizzler<T, 2>(vl[2], vl[1]); }
-        swizzler<T, 2> pt() { return swizzler<T, 2>(vl[2], vl[1]); }
-        swizzler<T, 2> zw() { return swizzler<T, 2>(vl[2], vl[3]); }
-        swizzler<T, 2> ba() { return swizzler<T, 2>(vl[2], vl[3]); }
-        swizzler<T, 2> pq() { return swizzler<T, 2>(vl[2], vl[3]); }
-        swizzler<T, 2> wx() { return swizzler<T, 2>(vl[3], vl[0]); }
-        swizzler<T, 2> ar() { return swizzler<T, 2>(vl[3], vl[0]); }
-        swizzler<T, 2> qs() { return swizzler<T, 2>(vl[3], vl[0]); }
-        swizzler<T, 2> wy() { return swizzler<T, 2>(vl[3], vl[1]); }
-        swizzler<T, 2> ag() { return swizzler<T, 2>(vl[3], vl[1]); }
-        swizzler<T, 2> qt() { return swizzler<T, 2>(vl[3], vl[1]); }
-        swizzler<T, 2> wz() { return swizzler<T, 2>(vl[3], vl[2]); }
-        swizzler<T, 2> ab() { return swizzler<T, 2>(vl[3], vl[2]); }
-        swizzler<T, 2> qp() { return swizzler<T, 2>(vl[3], vl[2]); }
-        swizzler<T, 3> xyz() { return swizzler<T, 3>(vl[0], vl[1], vl[2]); }
-        swizzler<T, 3> rgb() { return swizzler<T, 3>(vl[0], vl[1], vl[2]); }
-        swizzler<T, 3> stp() { return swizzler<T, 3>(vl[0], vl[1], vl[2]); }
-        swizzler<T, 3> xyw() { return swizzler<T, 3>(vl[0], vl[1], vl[3]); }
-        swizzler<T, 3> rga() { return swizzler<T, 3>(vl[0], vl[1], vl[3]); }
-        swizzler<T, 3> stq() { return swizzler<T, 3>(vl[0], vl[1], vl[3]); }
-        swizzler<T, 3> xzy() { return swizzler<T, 3>(vl[0], vl[2], vl[1]); }
-        swizzler<T, 3> rbg() { return swizzler<T, 3>(vl[0], vl[2], vl[1]); }
-        swizzler<T, 3> spt() { return swizzler<T, 3>(vl[0], vl[2], vl[1]); }
-        swizzler<T, 3> xzw() { return swizzler<T, 3>(vl[0], vl[2], vl[3]); }
-        swizzler<T, 3> rba() { return swizzler<T, 3>(vl[0], vl[2], vl[3]); }
-        swizzler<T, 3> spq() { return swizzler<T, 3>(vl[0], vl[2], vl[3]); }
-        swizzler<T, 3> xwy() { return swizzler<T, 3>(vl[0], vl[3], vl[1]); }
-        swizzler<T, 3> rag() { return swizzler<T, 3>(vl[0], vl[3], vl[1]); }
-        swizzler<T, 3> sqt() { return swizzler<T, 3>(vl[0], vl[3], vl[1]); }
-        swizzler<T, 3> xwz() { return swizzler<T, 3>(vl[0], vl[3], vl[2]); }
-        swizzler<T, 3> rab() { return swizzler<T, 3>(vl[0], vl[3], vl[2]); }
-        swizzler<T, 3> sqp() { return swizzler<T, 3>(vl[0], vl[3], vl[2]); }
-        swizzler<T, 3> yxz() { return swizzler<T, 3>(vl[1], vl[0], vl[2]); }
-        swizzler<T, 3> grb() { return swizzler<T, 3>(vl[1], vl[0], vl[2]); }
-        swizzler<T, 3> tsp() { return swizzler<T, 3>(vl[1], vl[0], vl[2]); }
-        swizzler<T, 3> yxw() { return swizzler<T, 3>(vl[1], vl[0], vl[3]); }
-        swizzler<T, 3> gra() { return swizzler<T, 3>(vl[1], vl[0], vl[3]); }
-        swizzler<T, 3> tsq() { return swizzler<T, 3>(vl[1], vl[0], vl[3]); }
-        swizzler<T, 3> yzx() { return swizzler<T, 3>(vl[1], vl[2], vl[0]); }
-        swizzler<T, 3> gbr() { return swizzler<T, 3>(vl[1], vl[2], vl[0]); }
-        swizzler<T, 3> tps() { return swizzler<T, 3>(vl[1], vl[2], vl[0]); }
-        swizzler<T, 3> yzw() { return swizzler<T, 3>(vl[1], vl[2], vl[3]); }
-        swizzler<T, 3> gba() { return swizzler<T, 3>(vl[1], vl[2], vl[3]); }
-        swizzler<T, 3> tpq() { return swizzler<T, 3>(vl[1], vl[2], vl[3]); }
-        swizzler<T, 3> ywx() { return swizzler<T, 3>(vl[1], vl[3], vl[0]); }
-        swizzler<T, 3> gar() { return swizzler<T, 3>(vl[1], vl[3], vl[0]); }
-        swizzler<T, 3> tqs() { return swizzler<T, 3>(vl[1], vl[3], vl[0]); }
-        swizzler<T, 3> ywz() { return swizzler<T, 3>(vl[1], vl[3], vl[2]); }
-        swizzler<T, 3> gab() { return swizzler<T, 3>(vl[1], vl[3], vl[2]); }
-        swizzler<T, 3> tqp() { return swizzler<T, 3>(vl[1], vl[3], vl[2]); }
-        swizzler<T, 3> zxy() { return swizzler<T, 3>(vl[2], vl[0], vl[1]); }
-        swizzler<T, 3> brg() { return swizzler<T, 3>(vl[2], vl[0], vl[1]); }
-        swizzler<T, 3> pst() { return swizzler<T, 3>(vl[2], vl[0], vl[1]); }
-        swizzler<T, 3> zxw() { return swizzler<T, 3>(vl[2], vl[0], vl[3]); }
-        swizzler<T, 3> bra() { return swizzler<T, 3>(vl[2], vl[0], vl[3]); }
-        swizzler<T, 3> psq() { return swizzler<T, 3>(vl[2], vl[0], vl[3]); }
-        swizzler<T, 3> zyx() { return swizzler<T, 3>(vl[2], vl[1], vl[0]); }
-        swizzler<T, 3> bgr() { return swizzler<T, 3>(vl[2], vl[1], vl[0]); }
-        swizzler<T, 3> pts() { return swizzler<T, 3>(vl[2], vl[1], vl[0]); }
-        swizzler<T, 3> zyw() { return swizzler<T, 3>(vl[2], vl[1], vl[3]); }
-        swizzler<T, 3> bga() { return swizzler<T, 3>(vl[2], vl[1], vl[3]); }
-        swizzler<T, 3> ptq() { return swizzler<T, 3>(vl[2], vl[1], vl[3]); }
-        swizzler<T, 3> zwx() { return swizzler<T, 3>(vl[2], vl[3], vl[0]); }
-        swizzler<T, 3> bar() { return swizzler<T, 3>(vl[2], vl[3], vl[0]); }
-        swizzler<T, 3> pqs() { return swizzler<T, 3>(vl[2], vl[3], vl[0]); }
-        swizzler<T, 3> zwy() { return swizzler<T, 3>(vl[2], vl[3], vl[1]); }
-        swizzler<T, 3> bag() { return swizzler<T, 3>(vl[2], vl[3], vl[1]); }
-        swizzler<T, 3> pqt() { return swizzler<T, 3>(vl[2], vl[3], vl[1]); }
-        swizzler<T, 3> wxy() { return swizzler<T, 3>(vl[3], vl[0], vl[1]); }
-        swizzler<T, 3> arg() { return swizzler<T, 3>(vl[3], vl[0], vl[1]); }
-        swizzler<T, 3> qst() { return swizzler<T, 3>(vl[3], vl[0], vl[1]); }
-        swizzler<T, 3> wxz() { return swizzler<T, 3>(vl[3], vl[0], vl[2]); }
-        swizzler<T, 3> arb() { return swizzler<T, 3>(vl[3], vl[0], vl[2]); }
-        swizzler<T, 3> qsp() { return swizzler<T, 3>(vl[3], vl[0], vl[2]); }
-        swizzler<T, 3> wyx() { return swizzler<T, 3>(vl[3], vl[1], vl[0]); }
-        swizzler<T, 3> agr() { return swizzler<T, 3>(vl[3], vl[1], vl[0]); }
-        swizzler<T, 3> qts() { return swizzler<T, 3>(vl[3], vl[1], vl[0]); }
-        swizzler<T, 3> wyz() { return swizzler<T, 3>(vl[3], vl[1], vl[2]); }
-        swizzler<T, 3> agb() { return swizzler<T, 3>(vl[3], vl[1], vl[2]); }
-        swizzler<T, 3> qtp() { return swizzler<T, 3>(vl[3], vl[1], vl[2]); }
-        swizzler<T, 3> wzx() { return swizzler<T, 3>(vl[3], vl[2], vl[0]); }
-        swizzler<T, 3> abr() { return swizzler<T, 3>(vl[3], vl[2], vl[0]); }
-        swizzler<T, 3> qps() { return swizzler<T, 3>(vl[3], vl[2], vl[0]); }
-        swizzler<T, 3> wzy() { return swizzler<T, 3>(vl[3], vl[2], vl[1]); }
-        swizzler<T, 3> abg() { return swizzler<T, 3>(vl[3], vl[2], vl[1]); }
-        swizzler<T, 3> qpt() { return swizzler<T, 3>(vl[3], vl[2], vl[1]); }
-        swizzler<T, 4> xyzw() { return swizzler<T, 4>(vl[0], vl[1], vl[2], vl[3]); }
-        swizzler<T, 4> rgba() { return swizzler<T, 4>(vl[0], vl[1], vl[2], vl[3]); }
-        swizzler<T, 4> stpq() { return swizzler<T, 4>(vl[0], vl[1], vl[2], vl[3]); }
-        swizzler<T, 4> xywz() { return swizzler<T, 4>(vl[0], vl[1], vl[3], vl[2]); }
-        swizzler<T, 4> rgab() { return swizzler<T, 4>(vl[0], vl[1], vl[3], vl[2]); }
-        swizzler<T, 4> stqp() { return swizzler<T, 4>(vl[0], vl[1], vl[3], vl[2]); }
-        swizzler<T, 4> xzyw() { return swizzler<T, 4>(vl[0], vl[2], vl[1], vl[3]); }
-        swizzler<T, 4> rbga() { return swizzler<T, 4>(vl[0], vl[2], vl[1], vl[3]); }
-        swizzler<T, 4> sptq() { return swizzler<T, 4>(vl[0], vl[2], vl[1], vl[3]); }
-        swizzler<T, 4> xzwy() { return swizzler<T, 4>(vl[0], vl[2], vl[3], vl[1]); }
-        swizzler<T, 4> rbag() { return swizzler<T, 4>(vl[0], vl[2], vl[3], vl[1]); }
-        swizzler<T, 4> spqt() { return swizzler<T, 4>(vl[0], vl[2], vl[3], vl[1]); }
-        swizzler<T, 4> xwyz() { return swizzler<T, 4>(vl[0], vl[3], vl[1], vl[2]); }
-        swizzler<T, 4> ragb() { return swizzler<T, 4>(vl[0], vl[3], vl[1], vl[2]); }
-        swizzler<T, 4> sqtp() { return swizzler<T, 4>(vl[0], vl[3], vl[1], vl[2]); }
-        swizzler<T, 4> xwzy() { return swizzler<T, 4>(vl[0], vl[3], vl[2], vl[1]); }
-        swizzler<T, 4> rabg() { return swizzler<T, 4>(vl[0], vl[3], vl[2], vl[1]); }
-        swizzler<T, 4> sqpt() { return swizzler<T, 4>(vl[0], vl[3], vl[2], vl[1]); }
-        swizzler<T, 4> yxzw() { return swizzler<T, 4>(vl[1], vl[0], vl[2], vl[3]); }
-        swizzler<T, 4> grba() { return swizzler<T, 4>(vl[1], vl[0], vl[2], vl[3]); }
-        swizzler<T, 4> tspq() { return swizzler<T, 4>(vl[1], vl[0], vl[2], vl[3]); }
-        swizzler<T, 4> yxwz() { return swizzler<T, 4>(vl[1], vl[0], vl[3], vl[2]); }
-        swizzler<T, 4> grab() { return swizzler<T, 4>(vl[1], vl[0], vl[3], vl[2]); }
-        swizzler<T, 4> tsqp() { return swizzler<T, 4>(vl[1], vl[0], vl[3], vl[2]); }
-        swizzler<T, 4> yzxw() { return swizzler<T, 4>(vl[1], vl[2], vl[0], vl[3]); }
-        swizzler<T, 4> gbra() { return swizzler<T, 4>(vl[1], vl[2], vl[0], vl[3]); }
-        swizzler<T, 4> tpsq() { return swizzler<T, 4>(vl[1], vl[2], vl[0], vl[3]); }
-        swizzler<T, 4> yzwx() { return swizzler<T, 4>(vl[1], vl[2], vl[3], vl[0]); }
-        swizzler<T, 4> gbar() { return swizzler<T, 4>(vl[1], vl[2], vl[3], vl[0]); }
-        swizzler<T, 4> tpqs() { return swizzler<T, 4>(vl[1], vl[2], vl[3], vl[0]); }
-        swizzler<T, 4> ywxz() { return swizzler<T, 4>(vl[1], vl[3], vl[0], vl[2]); }
-        swizzler<T, 4> garb() { return swizzler<T, 4>(vl[1], vl[3], vl[0], vl[2]); }
-        swizzler<T, 4> tqsp() { return swizzler<T, 4>(vl[1], vl[3], vl[0], vl[2]); }
-        swizzler<T, 4> ywzx() { return swizzler<T, 4>(vl[1], vl[3], vl[2], vl[0]); }
-        swizzler<T, 4> gabr() { return swizzler<T, 4>(vl[1], vl[3], vl[2], vl[0]); }
-        swizzler<T, 4> tqps() { return swizzler<T, 4>(vl[1], vl[3], vl[2], vl[0]); }
-        swizzler<T, 4> zxyw() { return swizzler<T, 4>(vl[2], vl[0], vl[1], vl[3]); }
-        swizzler<T, 4> brga() { return swizzler<T, 4>(vl[2], vl[0], vl[1], vl[3]); }
-        swizzler<T, 4> pstq() { return swizzler<T, 4>(vl[2], vl[0], vl[1], vl[3]); }
-        swizzler<T, 4> zxwy() { return swizzler<T, 4>(vl[2], vl[0], vl[3], vl[1]); }
-        swizzler<T, 4> brag() { return swizzler<T, 4>(vl[2], vl[0], vl[3], vl[1]); }
-        swizzler<T, 4> psqt() { return swizzler<T, 4>(vl[2], vl[0], vl[3], vl[1]); }
-        swizzler<T, 4> zyxw() { return swizzler<T, 4>(vl[2], vl[1], vl[0], vl[3]); }
-        swizzler<T, 4> bgra() { return swizzler<T, 4>(vl[2], vl[1], vl[0], vl[3]); }
-        swizzler<T, 4> ptsq() { return swizzler<T, 4>(vl[2], vl[1], vl[0], vl[3]); }
-        swizzler<T, 4> zywx() { return swizzler<T, 4>(vl[2], vl[1], vl[3], vl[0]); }
-        swizzler<T, 4> bgar() { return swizzler<T, 4>(vl[2], vl[1], vl[3], vl[0]); }
-        swizzler<T, 4> ptqs() { return swizzler<T, 4>(vl[2], vl[1], vl[3], vl[0]); }
-        swizzler<T, 4> zwxy() { return swizzler<T, 4>(vl[2], vl[3], vl[0], vl[1]); }
-        swizzler<T, 4> barg() { return swizzler<T, 4>(vl[2], vl[3], vl[0], vl[1]); }
-        swizzler<T, 4> pqst() { return swizzler<T, 4>(vl[2], vl[3], vl[0], vl[1]); }
-        swizzler<T, 4> zwyx() { return swizzler<T, 4>(vl[2], vl[3], vl[1], vl[0]); }
-        swizzler<T, 4> bagr() { return swizzler<T, 4>(vl[2], vl[3], vl[1], vl[0]); }
-        swizzler<T, 4> pqts() { return swizzler<T, 4>(vl[2], vl[3], vl[1], vl[0]); }
-        swizzler<T, 4> wxyz() { return swizzler<T, 4>(vl[3], vl[0], vl[1], vl[2]); }
-        swizzler<T, 4> argb() { return swizzler<T, 4>(vl[3], vl[0], vl[1], vl[2]); }
-        swizzler<T, 4> qstp() { return swizzler<T, 4>(vl[3], vl[0], vl[1], vl[2]); }
-        swizzler<T, 4> wxzy() { return swizzler<T, 4>(vl[3], vl[0], vl[2], vl[1]); }
-        swizzler<T, 4> arbg() { return swizzler<T, 4>(vl[3], vl[0], vl[2], vl[1]); }
-        swizzler<T, 4> qspt() { return swizzler<T, 4>(vl[3], vl[0], vl[2], vl[1]); }
-        swizzler<T, 4> wyxz() { return swizzler<T, 4>(vl[3], vl[1], vl[0], vl[2]); }
-        swizzler<T, 4> agrb() { return swizzler<T, 4>(vl[3], vl[1], vl[0], vl[2]); }
-        swizzler<T, 4> qtsp() { return swizzler<T, 4>(vl[3], vl[1], vl[0], vl[2]); }
-        swizzler<T, 4> wyzx() { return swizzler<T, 4>(vl[3], vl[1], vl[2], vl[0]); }
-        swizzler<T, 4> agbr() { return swizzler<T, 4>(vl[3], vl[1], vl[2], vl[0]); }
-        swizzler<T, 4> qtps() { return swizzler<T, 4>(vl[3], vl[1], vl[2], vl[0]); }
-        swizzler<T, 4> wzxy() { return swizzler<T, 4>(vl[3], vl[2], vl[0], vl[1]); }
-        swizzler<T, 4> abrg() { return swizzler<T, 4>(vl[3], vl[2], vl[0], vl[1]); }
-        swizzler<T, 4> qpst() { return swizzler<T, 4>(vl[3], vl[2], vl[0], vl[1]); }
-        swizzler<T, 4> wzyx() { return swizzler<T, 4>(vl[3], vl[2], vl[1], vl[0]); }
-        swizzler<T, 4> abgr() { return swizzler<T, 4>(vl[3], vl[2], vl[1], vl[0]); }
-        swizzler<T, 4> qpts() { return swizzler<T, 4>(vl[3], vl[2], vl[1], vl[0]); }
+        operator const T*() const { return data; }
+        T& operator[](unsigned int i) { return data[i]; }
+        T operator[](unsigned int i) const { return data[i]; }
     };
 
-    template<typename T, int r> vector<T, r> operator+(const array<T, 1, r>& a, const array<T, 1, r>& b) { return a._op_plus(b); }
-    template<typename T, int r> vector<T, r> operator+(const array<T, 1, r>& a) { return a._op_unary_plus(); }
-    template<typename T, int r> vector<T, r> operator-(const array<T, 1, r>& a, const array<T, 1, r>& b) { return a._op_minus(b); }
-    template<typename T, int r> vector<T, r> operator-(const array<T, 1, r>& a) { return a._op_unary_minus(); }
-    template<typename T, int r> vector<T, r> operator*(const array<T, 1, r>& a, const array<T, 1, r>& b) { return a._op_comp_mult(b); }
-    template<typename T, int r> vector<T, r> operator*(T s, const array<T, 1, r>& a) { return a._op_scal_mult(s); }
-    template<typename T, int r> vector<T, r> operator*(const array<T, 1, r>& a, T s) { return a._op_scal_mult(s); }
-    template<typename T, int r> vector<T, r> operator/(const array<T, 1, r>& a, const array<T, 1, r>& b) { return a._op_comp_div(b); }
-    template<typename T, int r> vector<T, r> operator/(const array<T, 1, r>& a, T s) { return a._op_scal_div(s); }
-    template<typename T, int r> vector<T, r> operator%(const array<T, 1, r>& a, const array<T, 1, r>& b) { return a._op_comp_mod(b); }
-    template<typename T, int r> vector<T, r> operator%(const array<T, 1, r>& a, T s) { return a._op_scal_mod(s); }
-    template<typename T, int r> bool operator==(const array<T, 1, r>& a, const array<T, 1, r>& b) { return a._op_equal(b); }
-    template<typename T, int r> bool operator!=(const array<T, 1, r>& a, const array<T, 1, r>& b) { return a._op_notequal(b); }
+    template<typename T, int S> vector<T, S>& operator+=(vector<T, S>& a, const vector<T, S>& b) { a.data._op_plus_assign(b.data); return a; }
+    template<typename T, int S> vector<T, S>& operator-=(vector<T, S>& a, const vector<T, S>& b) { a.data._op_minus_assign(b.data); return a; }
+    template<typename T, int S> vector<T, S>& operator*=(vector<T, S>& a, const vector<T, S>& b) { a.data._op_comp_mult_assign(b.data); return a; }
+    template<typename T, int S> vector<T, S>& operator/=(vector<T, S>& a, const vector<T, S>& b) { a.data._op_comp_div_assign(b.data); return a; }
+    template<typename T, int S> vector<T, S>& operator%=(vector<T, S>& a, const vector<T, S>& b) { a.data._op_comp_mod_assign(b.data); return a; }
+    template<typename T, int S> vector<T, S>& operator*=(vector<T, S>& a, T s) { a.data._op_scal_mult_assign(s); return a; }
+    template<typename T, int S> vector<T, S>& operator/=(vector<T, S>& a, T s) { a.data._op_scal_div_assign(s); return a; }
+    template<typename T, int S> vector<T, S>& operator%=(vector<T, S>& a, T s) { a.data._op_scal_mod_assign(s); return a; }
 
-    template<typename T, int r> vector<T, r> sin(const array<T, 1, r>& v) { return v._sin(); }
-    template<typename T, int r> vector<T, r> cos(const array<T, 1, r>& v) { return v._cos(); }
-    template<typename T, int r> vector<T, r> tan(const array<T, 1, r>& v) { return v._tan(); }
-    template<typename T, int r> vector<T, r> asin(const array<T, 1, r>& v) { return v._asin(); }
-    template<typename T, int r> vector<T, r> acos(const array<T, 1, r>& v) { return v._acos(); }
-    template<typename T, int r> vector<T, r> atan(const array<T, 1, r>& v) { return v._atan(); }
-    template<typename T, int r> vector<T, r> atan(const array<T, 1, r>& v, const array<T, 1, r>& w) { return v._atan(w); }
-    template<typename T, int r> vector<T, r> radians(const array<T, 1, r>& v) { return v._radians(); }
-    template<typename T, int r> vector<T, r> degrees(const array<T, 1, r>& v) { return v._degrees(); }
+    template<typename T, int S> vector<T, S> operator+(const vector<T, S>& a, const vector<T, S>& b) { return a.data._op_plus(b.data); }
+    template<typename T, int S> vector<T, S> operator+(const vector<T, S>& a) { return a.data._op_unary_plus(); }
+    template<typename T, int S> vector<T, S> operator-(const vector<T, S>& a, const vector<T, S>& b) { return a.data._op_minus(b.data); }
+    template<typename T, int S> vector<T, S> operator-(const vector<T, S>& a) { return a.data._op_unary_minus(); }
+    template<typename T, int S> vector<T, S> operator*(const vector<T, S>& a, const vector<T, S>& b) { return a.data._op_comp_mult(b.data); }
+    template<typename T, int S> vector<T, S> operator*(T s, const vector<T, S>& a) { return a.data._op_scal_mult(s); }
+    template<typename T, int S> vector<T, S> operator*(const vector<T, S>& a, T s) { return a.data._op_scal_mult(s); }
+    template<typename T, int S> vector<T, S> operator/(const vector<T, S>& a, const vector<T, S>& b) { return a.data._op_comp_div(b.data); }
+    template<typename T, int S> vector<T, S> operator/(const vector<T, S>& a, T s) { return a.data._op_scal_div(s); }
+    template<typename T, int S> vector<T, S> operator%(const vector<T, S>& a, const vector<T, S>& b) { return a.data._op_comp_mod(b.data); }
+    template<typename T, int S> vector<T, S> operator%(const vector<T, S>& a, T s) { return a.data._op_scal_mod(s); }
+    template<typename T, int S> bool operator==(const vector<T, S>& a, const vector<T, S>& b) { return a.data._op_equal(b.data); }
+    template<typename T, int S> bool operator!=(const vector<T, S>& a, const vector<T, S>& b) { return a.data._op_notequal(b.data); }
 
-    template<typename T, int r> vector<T, r> pow(const array<T, 1, r>& v, T p) { return v._pow(p); }
-    template<typename T, int r> vector<T, r> exp(const array<T, 1, r>& v) { return v._exp(); }
-    template<typename T, int r> vector<T, r> exp2(const array<T, 1, r>& v) { return v._exp2(); }
-    template<typename T, int r> vector<T, r> log(const array<T, 1, r>& v) { return v._log(); }
-    template<typename T, int r> vector<T, r> log2(const array<T, 1, r>& v) { return v._log2(); }
-    template<typename T, int r> vector<T, r> log10(const array<T, 1, r>& v) { return v._log10(); }
-    template<typename T, int r> vector<T, r> sqrt(const array<T, 1, r>& v) { return v._sqrt(); }
-    template<typename T, int r> vector<T, r> inversesqrt(const array<T, 1, r>& v) { return v._inversesqrt(); }
-    template<typename T, int r> vector<T, r> cbrt(const array<T, 1, r>& v) { return v._cbrt(); }
+    template<typename T, int S> vector<T, S> sin(const vector<T, S>& v) { return v.data._sin(); }
+    template<typename T, int S> vector<T, S> cos(const vector<T, S>& v) { return v.data._cos(); }
+    template<typename T, int S> vector<T, S> tan(const vector<T, S>& v) { return v.data._tan(); }
+    template<typename T, int S> vector<T, S> asin(const vector<T, S>& v) { return v.data._asin(); }
+    template<typename T, int S> vector<T, S> acos(const vector<T, S>& v) { return v.data._acos(); }
+    template<typename T, int S> vector<T, S> atan(const vector<T, S>& v) { return v.data._atan(); }
+    template<typename T, int S> vector<T, S> atan(const vector<T, S>& v, const vector<T, S>& w) { return v.data._atan(w.data); }
+    template<typename T, int S> vector<T, S> radians(const vector<T, S>& v) { return v.data._radians(); }
+    template<typename T, int S> vector<T, S> degrees(const vector<T, S>& v) { return v.data._degrees(); }
 
-    template<typename T, int r> vector<bool, r> isfinite(const array<T, 1, r>& v) { return v._isfinite(); }
-    template<typename T, int r> vector<bool, r> isinf(const array<T, 1, r>& v) { return v._isinf(); }
-    template<typename T, int r> vector<bool, r> isnan(const array<T, 1, r>& v) { return v._isnan(); }
-    template<typename T, int r> vector<bool, r> isnormal(const array<T, 1, r>& v) { return v._isnormal(); }
+    template<typename T, int S> vector<T, S> pow(const vector<T, S>& v, T p) { return v.data._pow(p); }
+    template<typename T, int S> vector<T, S> exp(const vector<T, S>& v) { return v.data._exp(); }
+    template<typename T, int S> vector<T, S> exp2(const vector<T, S>& v) { return v.data._exp2(); }
+    template<typename T, int S> vector<T, S> log(const vector<T, S>& v) { return v.data._log(); }
+    template<typename T, int S> vector<T, S> log2(const vector<T, S>& v) { return v.data._log2(); }
+    template<typename T, int S> vector<T, S> log10(const vector<T, S>& v) { return v.data._log10(); }
+    template<typename T, int S> vector<T, S> sqrt(const vector<T, S>& v) { return v.data._sqrt(); }
+    template<typename T, int S> vector<T, S> inversesqrt(const vector<T, S>& v) { return v.data._inversesqrt(); }
+    template<typename T, int S> vector<T, S> cbrt(const vector<T, S>& v) { return v.data._cbrt(); }
 
-    template<typename T, int r> vector<T, r> abs(const array<T, 1, r>& v) { return v._abs(); }
-    template<typename T, int r> vector<T, r> sign(const array<T, 1, r>& v) { return v._sign(); }
-    template<typename T, int r> vector<T, r> floor(const array<T, 1, r>& v) { return v._floor(); }
-    template<typename T, int r> vector<T, r> ceil(const array<T, 1, r>& v) { return v._ceil(); }
-    template<typename T, int r> vector<T, r> round(const array<T, 1, r>& v) { return v._round(); }
-    template<typename T, int r> vector<T, r> fract(const array<T, 1, r>& v) { return v._fract(); }
+    template<typename T, int S> vector<bool, S> isfinite(const vector<T, S>& v) { return v.data._isfinite(); }
+    template<typename T, int S> vector<bool, S> isinf(const vector<T, S>& v) { return v.data._isinf(); }
+    template<typename T, int S> vector<bool, S> isnan(const vector<T, S>& v) { return v.data._isnan(); }
+    template<typename T, int S> vector<bool, S> isnormal(const vector<T, S>& v) { return v.data._isnormal(); }
 
-    template<typename T, int r> vector<T, r> min(const array<T, 1, r>& v, T x) { return v._min(x); }
-    template<typename T, int r> vector<T, r> min(const array<T, 1, r>& v, const array<T, 1, r>& w) { return v._min(w); }
-    template<typename T, int r> vector<T, r> max(const array<T, 1, r>& v, T x) { return v._max(x); }
-    template<typename T, int r> vector<T, r> max(const array<T, 1, r>& v, const array<T, 1, r>& w) { return v._max(w); }
+    template<typename T, int S> vector<T, S> abs(const vector<T, S>& v) { return v.data._abs(); }
+    template<typename T, int S> vector<T, S> sign(const vector<T, S>& v) { return v.data._sign(); }
+    template<typename T, int S> vector<T, S> floor(const vector<T, S>& v) { return v.data._floor(); }
+    template<typename T, int S> vector<T, S> ceil(const vector<T, S>& v) { return v.data._ceil(); }
+    template<typename T, int S> vector<T, S> round(const vector<T, S>& v) { return v.data._round(); }
+    template<typename T, int S> vector<T, S> fract(const vector<T, S>& v) { return v.data._fract(); }
 
-    template<typename T, int r> vector<T, r> clamp(const array<T, 1, r>& v, T a, T b) { return v._clamp(a, b); }
-    template<typename T, int r> vector<T, r> clamp(const array<T, 1, r>& v, const array<T, 1, r>& a, const array<T, 1, r>& b) { return v._clamp(a, b); }
-    template<typename T, int r> vector<T, r> mix(const array<T, 1, r>& v, const array<T, 1, r>& w, T a) { return v._mix(w, a); }
-    template<typename T, int r> vector<T, r> mix(const array<T, 1, r>& v, const array<T, 1, r>& w, const array<T, 1, r>& a) { return v._mix(w, a); }
-    template<typename T, int r> vector<T, r> step(const array<T, 1, r>& v, T a) { return v._step(a); }
-    template<typename T, int r> vector<T, r> step(const array<T, 1, r>& v, const array<T, 1, r>& a) { return v._step(a); }
-    template<typename T, int r> vector<T, r> smoothstep(const array<T, 1, r>& v, T e0, T e1) { return v._smoothstep(e0, e1); }
-    template<typename T, int r> vector<T, r> smoothstep(const array<T, 1, r>& v, const array<T, 1, r>& e0, const array<T, 1, r>& e1) { return v._smoothstep(e0, e1); }
-    template<typename T, int r> vector<T, r> mod(const array<T, 1, r>& v, T x) { return v._mod(x); }
-    template<typename T, int r> vector<T, r> mod(const array<T, 1, r>& v, const array<T, 1, r>& w) { return v._mod(w); }
+    template<typename T, int S> vector<T, S> min(const vector<T, S>& v, T x) { return v.data._min(x); }
+    template<typename T, int S> vector<T, S> min(const vector<T, S>& v, const vector<T, S>& w) { return v.data._min(w.data); }
+    template<typename T, int S> vector<T, S> max(const vector<T, S>& v, T x) { return v.data._max(x); }
+    template<typename T, int S> vector<T, S> max(const vector<T, S>& v, const vector<T, S>& w) { return v.data._max(w.data); }
 
-    template<typename T, int r> vector<bool, r> greaterThan(const array<T, 1, r>& v, const array<T, 1, r>& w) { return v._greaterThan(w); }
-    template<typename T, int r> vector<bool, r> greaterThanEqual(const array<T, 1, r>& v, const array<T, 1, r>& w) { return v._greaterThanEqual(w); }
-    template<typename T, int r> vector<bool, r> lessThan(const array<T, 1, r>& v, const array<T, 1, r>& w) { return v._lessThan(w); }
-    template<typename T, int r> vector<bool, r> lessThanEqual(const array<T, 1, r>& v, const array<T, 1, r>& w) { return v._lessThanEqual(w); }
-    template<typename T, int r> vector<bool, r> equal(const array<T, 1, r>& v, const array<T, 1, r>& w) { return v._equal(w); }
-    template<typename T, int r> vector<bool, r> equal(const array<T, 1, r>& v, const array<T, 1, r>& w, int max_ulps) { return v._equal(w, max_ulps); }
-    template<typename T, int r> vector<bool, r> notEqual(const array<T, 1, r>& v, const array<T, 1, r>& w) { return v._notEqual(w); }
-    template<typename T, int r> vector<bool, r> notEqual(const array<T, 1, r>& v, const array<T, 1, r>& w, int max_ulps) { return v._notEqual(w, max_ulps); }
-    template<int r> bool any(const array<bool, 1, r>& v) { return v._any(); }
-    template<int r> bool all(const array<bool, 1, r>& v) { return v._all(); }
-    template<int r> bool negate(const array<bool, 1, r>& v) { return v._negate(); }
+    template<typename T, int S> vector<T, S> clamp(const vector<T, S>& v, T a, T b) { return v.data._clamp(a, b); }
+    template<typename T, int S> vector<T, S> clamp(const vector<T, S>& v, const vector<T, S>& a, const vector<T, S>& b) { return v.data._clamp(a.data, b.data); }
+    template<typename T, int S> vector<T, S> mix(const vector<T, S>& v, const vector<T, S>& w, T a) { return v.data._mix(w.data, a); }
+    template<typename T, int S> vector<T, S> mix(const vector<T, S>& v, const vector<T, S>& w, const vector<T, S>& a) { return v.data._mix(w.data, a); }
+    template<typename T, int S> vector<T, S> step(const vector<T, S>& v, T a) { return v.data._step(a); }
+    template<typename T, int S> vector<T, S> step(const vector<T, S>& v, const vector<T, S>& a) { return v.data._step(a.data); }
+    template<typename T, int S> vector<T, S> smoothstep(const vector<T, S>& v, T e0, T e1) { return v.data._smoothstep(e0, e1); }
+    template<typename T, int S> vector<T, S> smoothstep(const vector<T, S>& v, const vector<T, S>& e0, const vector<T, S>& e1) { return v.data._smoothstep(e0.data, e1.data); }
+    template<typename T, int S> vector<T, S> mod(const vector<T, S>& v, T x) { return v.data._mod(x); }
+    template<typename T, int S> vector<T, S> mod(const vector<T, S>& v, const vector<T, S>& w) { return v.data._mod(w.data); }
 
-    template<typename T, int r> T length(const array<T, 1, r>& v) { return v._length(); }
-    template<typename T, int r> T distance(const array<T, 1, r>& v, const array<T, 1, r>& w) { return v._distance(w); }
-    template<typename T, int r> T dot(const array<T, 1, r>& v, const array<T, 1, r>& w) { return v._dot(w); }
-    template<typename T, int r> vector<T, r> normalize(const array<T, 1, r>& v) { return v._normalize(); }
+    template<typename T, int S> vector<bool, S> greaterThan(const vector<T, S>& v, const vector<T, S>& w) { return v.data._greaterThan(w.data); }
+    template<typename T, int S> vector<bool, S> greaterThanEqual(const vector<T, S>& v, const vector<T, S>& w) { return v.data._greaterThanEqual(w.data); }
+    template<typename T, int S> vector<bool, S> lessThan(const vector<T, S>& v, const vector<T, S>& w) { return v.data._lessThan(w.data); }
+    template<typename T, int S> vector<bool, S> lessThanEqual(const vector<T, S>& v, const vector<T, S>& w) { return v.data._lessThanEqual(w.data); }
+    template<typename T, int S> vector<bool, S> equal(const vector<T, S>& v, const vector<T, S>& w) { return v.data._equal(w.data); }
+    template<typename T, int S> vector<bool, S> notEqual(const vector<T, S>& v, const vector<T, S>& w) { return v.data._notEqual(w.data); }
+    template<int S> bool any(const vector<bool, S>& v) { return v.data._any(); }
+    template<int S> bool all(const vector<bool, S>& v) { return v.data._all(); }
+    template<int S> bool negate(const vector<bool, S>& v) { return v.data._negate(); }
 
-    template<typename T, int r> vector<T, r> faceforward(const array<T, 1, r>& v, const array<T, 1, r>& I, const array<T, 1, r>& Nref) { return v._faceforward(I, Nref); }
-    template<typename T, int r> vector<T, r> reflect(const array<T, 1, r>& I, const array<T, 1, r>& N) { return I._reflect(N); }
-    template<typename T, int r> vector<T, r> refract(const array<T, 1, r>& I, const array<T, 1, r>& N, T eta) { return I._refract(N, eta); }
+    template<typename T, int S> T length(const vector<T, S>& v) { return v.data._length(); }
+    template<typename T, int S> T distance(const vector<T, S>& v, const vector<T, S>& w) { return v.data._distance(w.data); }
+    template<typename T, int S> T dot(const vector<T, S>& v, const vector<T, S>& w) { return v.data._dot(w.data); }
+    template<typename T, int S> vector<T, S> normalize(const vector<T, S>& v) { return v.data._normalize(); }
 
-    template<typename T> vector<T, 3> cross(const array<T, 1, 3>& v, const array<T, 1, 3>& w)
+    template<typename T, int S> vector<T, S> faceforward(const vector<T, S>& v, const vector<T, S>& I, const vector<T, S>& Nref)
     {
-        return vector<T, 3>(
-                v.vl[1] * w.vl[2] - v.vl[2] * w.vl[1],
-                v.vl[2] * w.vl[0] - v.vl[0] * w.vl[2],
-                v.vl[0] * w.vl[1] - v.vl[1] * w.vl[0]);
+        return Nref.data._dot(I.data) < static_cast<T>(0) ? v : - v;
     }
 
-    template<typename T, int r> vector<bool, r> is_pow2(const array<T, 1, r>& v) { return v._is_pow2(); }
-    template<typename T, int r> vector<T, r> next_pow2(const array<T, 1, r>& v) { return v._next_pow2(); }
-    template<typename T, int r> vector<T, r> next_multiple(const array<T, 1, r>& v, const array<T, 1, r>& w) { return v._next_multiple(w); }
-    template<typename T, int r> vector<T, r> next_multiple(const array<T, 1, r>& v, T x) { return v._next_multiple(x); }
+    template<typename T, int S> vector<T, S> reflect(const vector<T, S>& I, const vector<T, S>& N)
+    {
+        return I - static_cast<T>(2) * N.data._dot(I.data) * N;
+    }
+
+    template<typename T, int S> vector<T, S> refract(const vector<T, S>& I, const vector<T, S>& N, T eta)
+    {
+        const T d = N.data._dot(I.data);
+        const T k = static_cast<T>(1) - eta * eta * (static_cast<T>(1) - d * d);
+        return k < static_cast<T>(0) ? vector<T, S>(static_cast<T>(0)) : I * eta - N * (eta * d + sqrt(k));
+    }
+
+    template<typename T> vector<T, 3> cross(const vector<T, 3>& v, const vector<T, 3>& w)
+    {
+        return vector<T, 3>(
+                v.y * w.z - v.z * w.y,
+                v.z * w.x - v.x * w.z,
+                v.x * w.y - v.y * w.x);
+    }
+
+    template<typename T, int S> vector<bool, S> is_pow2(const vector<T, S>& v) { return v.data._is_pow2(); }
+    template<typename T, int S> vector<T, S> next_pow2(const vector<T, S>& v) { return v.data._next_pow2(); }
+    template<typename T, int S> vector<T, S> next_multiple(const vector<T, S>& v, const vector<T, S>& w) { return v.data._next_multiple(w.data); }
+    template<typename T, int S> vector<T, S> next_multiple(const vector<T, S>& v, T x) { return v.data._next_multiple(x); }
 
     typedef vector<bool, 2> bvec2;
     typedef vector<bool, 3> bvec3;
@@ -4230,238 +2713,292 @@ namespace glvm
 
     /* Matrices */
 
-    template<typename T, int cols, int rows>
-    class matrix : public array<T, cols, rows>
+    template<typename T, int C, int R> class matrix
     {
     public:
-        using array<T, cols, rows>::v;
-        using array<T, cols, rows>::vl;
+        union {
+            Data<T, C * R> data;
+            vector<T, R> columns[C];
+        };
 
         /* Constructors, Destructor */
 
         matrix() {}
-        matrix(const array<T, cols, rows>& a) : array<T, cols, rows>(a) {}
+
+        matrix(const matrix<T, C, R>& a)
+        {
+            for (int i = 0; i < C * R; i++)
+                data[i] = a.data[i];
+        }
+
+        matrix(const Data<T, C * R>& a)
+        {
+            for (int i = 0; i < C * R; i++)
+                data[i] = a.data[i];
+        }
+
+        matrix(const T* a)
+        {
+            for (int i = 0; i < C * R; i++)
+                data[i] = a[i];
+        }
+
         matrix(T x)
         {
-            for (int i = 0; i < cols; i++)
-                for (int j = 0; j < rows; j++)
-                    array<T, cols, rows>::v[i][j] = (i == j ? x : static_cast<T>(0));
+            for (int i = 0; i < C; i++)
+                for (int j = 0; j < R; j++)
+                    data[i * R + j] = (i == j ? x : static_cast<T>(0));
         }
+
         matrix(T v0, T v1, T v2, T v3)
-            : array<T, cols, rows>(v0, v1, v2, v3) {}
+        {
+            static_assert(C * R == 4, "only a matrix with 4 elements can be initialized this way");
+            data[0] = v0; data[1] = v1; data[2] = v2; data[3] = v3;
+        }
+
         matrix(T v0, T v1, T v2, T v3, T v4, T v5)
-            : array<T, cols, rows>(v0, v1, v2, v3, v4, v5) {}
+        {
+            static_assert(C * R == 6, "only a matrix with 6 elements can be initialized this way");
+            data[0] = v0; data[1] = v1; data[2] = v2; data[3] = v3;
+            data[4] = v4; data[5] = v5;
+        }
+
         matrix(T v0, T v1, T v2, T v3, T v4, T v5, T v6, T v7)
-            : array<T, cols, rows>(v0, v1, v2, v3, v4, v5, v6, v7) {}
+        {
+            static_assert(C * R == 6, "only a matrix with 8 elements can be initialized this way");
+            data[0] = v0; data[1] = v1; data[2] = v2; data[3] = v3;
+            data[4] = v4; data[5] = v5; data[6] = v6; data[7] = v7;
+        }
+
         matrix(T v0, T v1, T v2, T v3, T v4, T v5, T v6, T v7, T v8)
-            : array<T, cols, rows>(v0, v1, v2, v3, v4, v5, v6, v7, v8) {}
+        {
+            static_assert(C * R == 9, "only a matrix with 9 elements can be initialized this way");
+            data[0] = v0; data[1] = v1; data[2] = v2; data[3] = v3;
+            data[4] = v4; data[5] = v5; data[6] = v6; data[7] = v7;
+            data[8] = v8;
+        }
+
         matrix(T v0, T v1, T v2, T v3, T v4, T v5, T v6, T v7, T v8, T v9, T v10, T v11)
-            : array<T, cols, rows>(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11) {}
+        {
+            static_assert(C * R == 12, "only a matrix with 12 elements can be initialized this way");
+            data[0] = v0; data[1] = v1; data[2] = v2; data[3] = v3;
+            data[4] = v4; data[5] = v5; data[6] = v6; data[7] = v7;
+            data[8] = v8; data[9] = v9; data[10] = v10; data[11] = v11;
+        }
+
         matrix(T v0, T v1, T v2, T v3, T v4, T v5, T v6, T v7, T v8, T v9, T v10, T v11, T v12, T v13, T v14, T v15)
-            : array<T, cols, rows>(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15) {}
-
-        matrix(const vector<T, rows>& col0, const vector<T, rows>& col1)
         {
-            for (int i = 0; i < rows; i++) {
-                v[0][i] = col0.vl[i];
-                v[1][i] = col1.vl[i];
-            }
-        }
-        matrix(const vector<T, rows>& col0, const vector<T, rows>& col1, const vector<T, rows>& col2)
-        {
-            for (int i = 0; i < rows; i++) {
-                v[0][i] = col0.vl[i];
-                v[1][i] = col1.vl[i];
-                v[2][i] = col2.vl[i];
-            }
-        }
-        matrix(const vector<T, rows>& col0, const vector<T, rows>& col1, const vector<T, rows>& col2, const vector<T, rows>& col3)
-        {
-            for (int i = 0; i < rows; i++) {
-                v[0][i] = col0.vl[i];
-                v[1][i] = col1.vl[i];
-                v[2][i] = col2.vl[i];
-                v[3][i] = col3.vl[i];
-            }
+            static_assert(C * R == 16, "only a matrix with 16 elements can be initialized this way");
+            data[0] = v0; data[1] = v1; data[2] = v2; data[3] = v3;
+            data[4] = v4; data[5] = v5; data[6] = v6; data[7] = v7;
+            data[8] = v8; data[9] = v9; data[10] = v10; data[11] = v11;
+            data[12] = v12; data[13] = v13; data[14] = v14; data[15] = v15;
         }
 
-        matrix(const T* a) : array<T, cols, rows>(a) {}
-        template<typename U> matrix(const matrix<U, cols, rows>& a) : array<T, cols, rows>(a) {}
+        matrix(const vector<T, R>& col0, const vector<T, R>& col1)
+        {
+            static_assert(C == 2, "only a matrix with 2 columns can be initialized this way");
+            columns[0] = col0;
+            columns[1] = col1;
+        }
+        matrix(const vector<T, R>& col0, const vector<T, R>& col1, const vector<T, R>& col2)
+        {
+            static_assert(C == 3, "only a matrix with 3 columns can be initialized this way");
+            columns[0] = col0;
+            columns[1] = col1;
+            columns[2] = col2;
+        }
+        matrix(const vector<T, R>& col0, const vector<T, R>& col1, const vector<T, R>& col2, const vector<T, R>& col3)
+        {
+            static_assert(C == 4, "only a matrix with 4 columns can be initialized this way");
+            columns[0] = col0;
+            columns[1] = col1;
+            columns[2] = col2;
+            columns[3] = col3;
+        }
 
         /* Operators */
 
-        swizzler<T, rows> operator[](unsigned int i)
+        operator const T*() const { return data.data; }
+
+        vector<T, R>& operator[](unsigned int i)
         {
-            return swizzler<T, rows>(v[i]);
+            return columns[i];
         }
 
-        vector<T, rows> operator[](unsigned int i) const
+        vector<T, R> operator[](unsigned int i) const
         {
-            return vector<T, rows>(v[i]);
+            return columns[i];
         }
 
-        const matrix& operator=(const matrix& a)      { this->_op_assign(a); return *this; }
-        matrix operator+(const matrix& a) const       { return this->_op_plus(a); }
-        const matrix& operator+=(const matrix& a)     { this->_op_plus_assign(a); return *this; }
-        matrix operator+() const                      { return array<T, cols, rows>::_op_unary_plus(); }
-        matrix operator-(const matrix& a) const       { return this->_op_minus(a); }
-        const matrix& operator-=(const matrix& a)     { this->_op_minus_assign(a); return *this; }
-        matrix operator-() const                      { return array<T, cols, rows>::_op_unary_minus(); }
-        matrix operator*(T s) const                   { return this->_op_scal_mult(s); }
-        friend matrix operator*(T s, const matrix& a) { return a._op_scal_mult(s); }
-        const matrix& operator*=(T s)                 { this->_op_scal_mult_assign(s); return *this; }
-        matrix operator/(T s) const                   { return this->_op_scal_div(s); }
-        const matrix& operator/=(T s)                 { this->_op_scal_div_assign(s); return *this; }
-        matrix operator%(T s) const                   { return this->_op_scal_mod(s); }
-        const matrix& operator%=(T s)                 { this->_op_scal_mod_assign(s); return *this; }
-        bool operator==(const matrix& a) const        { return this->_op_equal(a); }
-        bool operator!=(const matrix& a) const        { return this->_op_notequal(a); }
+        const matrix& operator=(const matrix& a)      { this->data._op_assign(a.data); return *this; }
+        matrix operator+(const matrix& a) const       { return this->data._op_plus(a.data); }
+        const matrix& operator+=(const matrix& a)     { this->data._op_plus_assign(a.data); return *this; }
+        matrix operator+() const                      { return this->data._op_unary_plus(); }
+        matrix operator-(const matrix& a) const       { return this->data._op_minus(a.data); }
+        const matrix& operator-=(const matrix& a)     { this->data._op_minus_assign(a.data); return *this; }
+        matrix operator-() const                      { return this->data._op_unary_minus(); }
+        matrix operator*(T s) const                   { return this->data._op_scal_mult(s); }
+        friend matrix operator*(T s, const matrix& a) { return a.data._op_scal_mult(s); }
+        const matrix& operator*=(T s)                 { this->data._op_scal_mult_assign(s); return *this; }
+        matrix operator/(T s) const                   { return this->data._op_scal_div(s); }
+        const matrix& operator/=(T s)                 { this->data._op_scal_div_assign(s); return *this; }
+        matrix operator%(T s) const                   { return this->data._op_scal_mod(s); }
+        const matrix& operator%=(T s)                 { this->data._op_scal_mod_assign(s); return *this; }
+        bool operator==(const matrix& a) const        { return this->data._op_equal(a.data); }
+        bool operator!=(const matrix& a) const        { return this->data._op_notequal(a.data); }
 
-        vector<T, rows> operator*(const vector<T, cols>& w) const
+        vector<T, R> operator*(const vector<T, C>& w) const
         {
-            vector<T, rows> r;
-            for (int i = 0; i < rows; i++) {
-                r.vl[i] = static_cast<T>(0);
-                for (int j = 0; j < cols; j++) {
-                    r.vl[i] += array<T, cols, rows>::v[j][i] * w.vl[j];
+            vector<T, R> r;
+            for (int i = 0; i < R; i++) {
+                r.data[i] = static_cast<T>(0);
+                for (int j = 0; j < C; j++) {
+                    r.data[i] += columns[j][i] * w.data[j];
                 }
             }
             return r;
         }
 
-        friend vector<T, cols> operator*(const vector<T, rows>& w, const matrix& m)
+        friend vector<T, C> operator*(const vector<T, R>& w, const matrix& m)
         {
-            vector<T, cols> r;
-            for (int i = 0; i < cols; i++) {
-                r.vl[i] = static_cast<T>(0);
-                for (int j = 0; j < rows; j++) {
-                    r.vl[i] += m.v[i][j] * w.vl[j];
+            vector<T, C> r;
+            for (int i = 0; i < C; i++) {
+                r.data[i] = static_cast<T>(0);
+                for (int j = 0; j < R; j++) {
+                    r.data[i] += m.columns[i][j] * w.data[j];
                 }
             }
             return r;
         }
 
-        matrix<T, rows, rows> operator*(const matrix<T, rows, cols>& n) const
+        matrix<T, R, R> operator*(const matrix<T, R, C>& n) const
         {
-            matrix<T, rows, rows> r;
-            for (int i = 0; i < rows; i++) {
-                for (int j = 0; j < rows; j++) {
-                    r.v[i][j] = static_cast<T>(0);
-                    for (int k = 0; k < cols; k++) {
-                        r.v[i][j] += array<T, cols, rows>::v[k][j] * n.v[i][k];
+            matrix<T, R, R> r;
+            for (int i = 0; i < R; i++) {
+                for (int j = 0; j < R; j++) {
+                    r.columns[i][j] = static_cast<T>(0);
+                    for (int k = 0; k < C; k++) {
+                        r.columns[i][j] += columns[k][j] * n.columns[i][k];
                     }
                 }
             }
             return r;
         }
 
-        const matrix<T, cols, rows>& operator*=(const matrix<T, cols, rows>& n)
+        const matrix<T, C, R>& operator*=(const matrix<T, C, R>& n)
         {
-            matrix<T, cols, rows> r = *this * n;
+            matrix<T, C, R> r = *this * n;
             *this = r;
             return *this;
         }
     };
 
-    template<typename T, int r> vector<T, 2> row(const matrix<T, 2, r>& m, int row) { return vector<T, 2>(m.v[0][row], m.v[1][row]); }
-    template<typename T, int r> vector<T, 3> row(const matrix<T, 3, r>& m, int row) { return vector<T, 3>(m.v[0][row], m.v[1][row], m.v[2][row]); }
-    template<typename T, int r> vector<T, 4> row(const matrix<T, 4, r>& m, int row) { return vector<T, 4>(m.v[0][row], m.v[1][row], m.v[2][row], m.v[3][row]); }
-    template<typename T, int r> swizzler<T, 2> row(matrix<T, 2, r>& m, int row) { return swizzler<T, 2>(m.v[0][row], m.v[1][row]); }
-    template<typename T, int r> swizzler<T, 3> row(matrix<T, 3, r>& m, int row) { return swizzler<T, 3>(m.v[0][row], m.v[1][row], m.v[2][row]); }
-    template<typename T, int r> swizzler<T, 4> row(matrix<T, 4, r>& m, int row) { return swizzler<T, 4>(m.v[0][row], m.v[1][row], m.v[2][row], m.v[3][row]); }
-    template<typename T, int c> vector<T, 2> col(const matrix<T, c, 2>& m, int col) { return vector<T, 2>(m.v[col][0], m.v[col][1]); }
-    template<typename T, int c> vector<T, 3> col(const matrix<T, c, 3>& m, int col) { return vector<T, 3>(m.v[col][0], m.v[col][1], m.v[col][2]); }
-    template<typename T, int c> vector<T, 4> col(const matrix<T, c, 4>& m, int col) { return vector<T, 4>(m.v[col][0], m.v[col][1], m.v[col][2], m.v[col][3]); }
-    template<typename T, int c> swizzler<T, 2> col(matrix<T, c, 2>& m, int col) { return swizzler<T, 2>(m.v[col][0], m.v[col][1]); }
-    template<typename T, int c> swizzler<T, 3> col(matrix<T, c, 3>& m, int col) { return swizzler<T, 3>(m.v[col][0], m.v[col][1], m.v[col][2]); }
-    template<typename T, int c> swizzler<T, 4> col(matrix<T, c, 4>& m, int col) { return swizzler<T, 4>(m.v[col][0], m.v[col][1], m.v[col][2], m.v[col][3]); }
+    template<typename T, int r> vector<T, 2> row(const matrix<T, 2, r>& m, int row) { return vector<T, 2>(m[0][row], m[1][row]); }
+    template<typename T, int r> vector<T, 3> row(const matrix<T, 3, r>& m, int row) { return vector<T, 3>(m[0][row], m[1][row], m[2][row]); }
+    template<typename T, int r> vector<T, 4> row(const matrix<T, 4, r>& m, int row) { return vector<T, 4>(m[0][row], m[1][row], m[2][row], m[3][row]); }
+    template<typename T, int c> vector<T, 2> col(const matrix<T, c, 2>& m, int col) { return vector<T, 2>(m[col][0], m[col][1]); }
+    template<typename T, int c> vector<T, 3> col(const matrix<T, c, 3>& m, int col) { return vector<T, 3>(m[col][0], m[col][1], m[col][2]); }
+    template<typename T, int c> vector<T, 4> col(const matrix<T, c, 4>& m, int col) { return vector<T, 4>(m[col][0], m[col][1], m[col][2], m[col][3]); }
 
-    template<typename T, int c, int r> matrix<T, c - 1, r - 1> strike(const matrix<T, c, r>& m, int col, int row) { return m._strike(col, row); }
+    template<typename T, int c, int r> matrix<T, c - 1, r - 1> strike(const matrix<T, c, r>& m, int col, int row) { return m.data._strike(col, row); }
 
     template<typename T, int c, int r, int rs, int cs> matrix<T, c, r> set(
             const matrix<T, c, r>& m, const matrix<T, cs, rs>& s, int col = 0, int row = 0)
     {
         matrix<T, c, r> result(m);
-        result._set_sub_array(s, col, row);
+        for (int i = 0; i < c; i++) {
+            for (int j = 0; j < r; j++) {
+                result[i][j] = (i >= col && i <= col + cs && j >= row && j <= row + rs)
+                    ? s[i - col][j - row] : m[i][j];
+            }
+        }
         return result;
     }
 
-    template<typename T, int c, int r> matrix<T, c, r> sin(const matrix<T, c, r>& v) { return v._sin(); }
-    template<typename T, int c, int r> matrix<T, c, r> cos(const matrix<T, c, r>& v) { return v._cos(); }
-    template<typename T, int c, int r> matrix<T, c, r> tan(const matrix<T, c, r>& v) { return v._tan(); }
-    template<typename T, int c, int r> matrix<T, c, r> asin(const matrix<T, c, r>& v) { return v._asin(); }
-    template<typename T, int c, int r> matrix<T, c, r> acos(const matrix<T, c, r>& v) { return v._acos(); }
-    template<typename T, int c, int r> matrix<T, c, r> atan(const matrix<T, c, r>& v) { return v._atan(); }
-    template<typename T, int c, int r> matrix<T, c, r> atan(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v._atan(w); }
-    template<typename T, int c, int r> matrix<T, c, r> radians(const matrix<T, c, r>& v) { return v._radians(); }
-    template<typename T, int c, int r> matrix<T, c, r> degrees(const matrix<T, c, r>& v) { return v._degrees(); }
+    template<typename T, int c, int r> matrix<T, c, r> sin(const matrix<T, c, r>& v) { return v.data._sin(); }
+    template<typename T, int c, int r> matrix<T, c, r> cos(const matrix<T, c, r>& v) { return v.data._cos(); }
+    template<typename T, int c, int r> matrix<T, c, r> tan(const matrix<T, c, r>& v) { return v.data._tan(); }
+    template<typename T, int c, int r> matrix<T, c, r> asin(const matrix<T, c, r>& v) { return v.data._asin(); }
+    template<typename T, int c, int r> matrix<T, c, r> acos(const matrix<T, c, r>& v) { return v.data._acos(); }
+    template<typename T, int c, int r> matrix<T, c, r> atan(const matrix<T, c, r>& v) { return v.data._atan(); }
+    template<typename T, int c, int r> matrix<T, c, r> atan(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v.data._atan(w.data); }
+    template<typename T, int c, int r> matrix<T, c, r> radians(const matrix<T, c, r>& v) { return v.data._radians(); }
+    template<typename T, int c, int r> matrix<T, c, r> degrees(const matrix<T, c, r>& v) { return v.data._degrees(); }
 
-    template<typename T, int c, int r> matrix<T, c, r> pow(const matrix<T, c, r>& v, T p) { return v._pow(p); }
-    template<typename T, int c, int r> matrix<T, c, r> exp(const matrix<T, c, r>& v) { return v._exp(); }
-    template<typename T, int c, int r> matrix<T, c, r> exp2(const matrix<T, c, r>& v) { return v._exp2(); }
-    template<typename T, int c, int r> matrix<T, c, r> log(const matrix<T, c, r>& v) { return v._log(); }
-    template<typename T, int c, int r> matrix<T, c, r> log2(const matrix<T, c, r>& v) { return v._log2(); }
-    template<typename T, int c, int r> matrix<T, c, r> log10(const matrix<T, c, r>& v) { return v._log10(); }
-    template<typename T, int c, int r> matrix<T, c, r> sqrt(const matrix<T, c, r>& v) { return v._sqrt(); }
-    template<typename T, int c, int r> matrix<T, c, r> inversesqrt(const matrix<T, c, r>& v) { return v._inversesqrt(); }
-    template<typename T, int c, int r> matrix<T, c, r> cbrt(const matrix<T, c, r>& v) { return v._cbrt(); }
+    template<typename T, int c, int r> matrix<T, c, r> pow(const matrix<T, c, r>& v, T p) { return v.data._pow(p); }
+    template<typename T, int c, int r> matrix<T, c, r> exp(const matrix<T, c, r>& v) { return v.data._exp(); }
+    template<typename T, int c, int r> matrix<T, c, r> exp2(const matrix<T, c, r>& v) { return v.data._exp2(); }
+    template<typename T, int c, int r> matrix<T, c, r> log(const matrix<T, c, r>& v) { return v.data._log(); }
+    template<typename T, int c, int r> matrix<T, c, r> log2(const matrix<T, c, r>& v) { return v.data._log2(); }
+    template<typename T, int c, int r> matrix<T, c, r> log10(const matrix<T, c, r>& v) { return v.data._log10(); }
+    template<typename T, int c, int r> matrix<T, c, r> sqrt(const matrix<T, c, r>& v) { return v.data._sqrt(); }
+    template<typename T, int c, int r> matrix<T, c, r> inversesqrt(const matrix<T, c, r>& v) { return v.data._inversesqrt(); }
+    template<typename T, int c, int r> matrix<T, c, r> cbrt(const matrix<T, c, r>& v) { return v.data._cbrt(); }
 
-    template<typename T, int c, int r> matrix<bool, c, r> isfinite(const matrix<T, c, r>& v) { return v._isfinite(); }
-    template<typename T, int c, int r> matrix<bool, c, r> isinf(const matrix<T, c, r>& v) { return v._isinf(); }
-    template<typename T, int c, int r> matrix<bool, c, r> isnan(const matrix<T, c, r>& v) { return v._isnan(); }
-    template<typename T, int c, int r> matrix<bool, c, r> isnormal(const matrix<T, c, r>& v) { return v._isnormal(); }
+    template<typename T, int c, int r> matrix<bool, c, r> isfinite(const matrix<T, c, r>& v) { return v.data._isfinite(); }
+    template<typename T, int c, int r> matrix<bool, c, r> isinf(const matrix<T, c, r>& v) { return v.data._isinf(); }
+    template<typename T, int c, int r> matrix<bool, c, r> isnan(const matrix<T, c, r>& v) { return v.data._isnan(); }
+    template<typename T, int c, int r> matrix<bool, c, r> isnormal(const matrix<T, c, r>& v) { return v.data._isnormal(); }
 
-    template<typename T, int c, int r> matrix<T, c, r> abs(const matrix<T, c, r>& v) { return v._abs(); }
-    template<typename T, int c, int r> matrix<T, c, r> sign(const matrix<T, c, r>& v) { return v._sign(); }
-    template<typename T, int c, int r> matrix<T, c, r> floor(const matrix<T, c, r>& v) { return v._floor(); }
-    template<typename T, int c, int r> matrix<T, c, r> ceil(const matrix<T, c, r>& v) { return v._ceil(); }
-    template<typename T, int c, int r> matrix<T, c, r> round(const matrix<T, c, r>& v) { return v._round(); }
-    template<typename T, int c, int r> matrix<T, c, r> fract(const matrix<T, c, r>& v) { return v._fract(); }
+    template<typename T, int c, int r> matrix<T, c, r> abs(const matrix<T, c, r>& v) { return v.data._abs(); }
+    template<typename T, int c, int r> matrix<T, c, r> sign(const matrix<T, c, r>& v) { return v.data._sign(); }
+    template<typename T, int c, int r> matrix<T, c, r> floor(const matrix<T, c, r>& v) { return v.data._floor(); }
+    template<typename T, int c, int r> matrix<T, c, r> ceil(const matrix<T, c, r>& v) { return v.data._ceil(); }
+    template<typename T, int c, int r> matrix<T, c, r> round(const matrix<T, c, r>& v) { return v.data._round(); }
+    template<typename T, int c, int r> matrix<T, c, r> fract(const matrix<T, c, r>& v) { return v.data._fract(); }
 
-    template<typename T, int c, int r> matrix<T, c, r> min(const matrix<T, c, r>& v, T x) { return v._min(x); }
-    template<typename T, int c, int r> matrix<T, c, r> min(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v._min(w); }
-    template<typename T, int c, int r> matrix<T, c, r> max(const matrix<T, c, r>& v, T x) { return v._max(x); }
-    template<typename T, int c, int r> matrix<T, c, r> max(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v._max(w); }
+    template<typename T, int c, int r> matrix<T, c, r> min(const matrix<T, c, r>& v, T x) { return v.data._min(x); }
+    template<typename T, int c, int r> matrix<T, c, r> min(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v.data._min(w.data); }
+    template<typename T, int c, int r> matrix<T, c, r> max(const matrix<T, c, r>& v, T x) { return v.data._max(x); }
+    template<typename T, int c, int r> matrix<T, c, r> max(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v.data._max(w.data); }
 
-    template<typename T, int c, int r> matrix<T, c, r> clamp(const matrix<T, c, r>& v, T a, T b) { return v._clamp(a, b); }
-    template<typename T, int c, int r> matrix<T, c, r> clamp(const matrix<T, c, r>& v, const matrix<T, c, r>& a, const matrix<T, c, r>& b) { return v._clamp(a, b); }
-    template<typename T, int c, int r> matrix<T, c, r> mix(const matrix<T, c, r>& v, const matrix<T, c, r>& w, T a) { return v._mix(w, a); }
-    template<typename T, int c, int r> matrix<T, c, r> mix(const matrix<T, c, r>& v, const matrix<T, c, r>& w, const matrix<T, c, r>& a) { return v._mix(w, a); }
-    template<typename T, int c, int r> matrix<T, c, r> step(const matrix<T, c, r>& v, T a) { return v._step(a); }
-    template<typename T, int c, int r> matrix<T, c, r> step(const matrix<T, c, r>& v, const matrix<T, c, r>& a) { return v._step(a); }
-    template<typename T, int c, int r> matrix<T, c, r> smoothstep(const matrix<T, c, r>& v, T e0, T e1) { return v._smoothstep(e0, e1); }
-    template<typename T, int c, int r> matrix<T, c, r> smoothstep(const matrix<T, c, r>& v, const vector<T, 1>& e0, const vector<T, 1>& e1) { return v._smoothstep(e0, e1); }
-    template<typename T, int c, int r> matrix<T, c, r> mod(const matrix<T, c, r>& v, T x) { return v._mod(x); }
-    template<typename T, int c, int r> matrix<T, c, r> mod(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v._mod(w); }
+    template<typename T, int c, int r> matrix<T, c, r> clamp(const matrix<T, c, r>& v, T a, T b) { return v.data._clamp(a, b); }
+    template<typename T, int c, int r> matrix<T, c, r> clamp(const matrix<T, c, r>& v, const matrix<T, c, r>& a, const matrix<T, c, r>& b) { return v.data._clamp(a.data, b.data); }
+    template<typename T, int c, int r> matrix<T, c, r> mix(const matrix<T, c, r>& v, const matrix<T, c, r>& w, T a) { return v.data._mix(w.data, a); }
+    template<typename T, int c, int r> matrix<T, c, r> mix(const matrix<T, c, r>& v, const matrix<T, c, r>& w, const matrix<T, c, r>& a) { return v.data._mix(w.data, a); }
+    template<typename T, int c, int r> matrix<T, c, r> step(const matrix<T, c, r>& v, T a) { return v.data._step(a); }
+    template<typename T, int c, int r> matrix<T, c, r> step(const matrix<T, c, r>& v, const matrix<T, c, r>& a) { return v.data._step(a.data); }
+    template<typename T, int c, int r> matrix<T, c, r> smoothstep(const matrix<T, c, r>& v, T e0, T e1) { return v.data._smoothstep(e0, e1); }
+    template<typename T, int c, int r> matrix<T, c, r> smoothstep(const matrix<T, c, r>& v, const vector<T, 1>& e0, const vector<T, 1>& e1) { return v.data._smoothstep(e0.data, e1.data); }
+    template<typename T, int c, int r> matrix<T, c, r> mod(const matrix<T, c, r>& v, T x) { return v.data._mod(x); }
+    template<typename T, int c, int r> matrix<T, c, r> mod(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v.data._mod(w.data); }
 
-    template<typename T, int c, int r> matrix<bool, c, r> greaterThan(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v._greaterThan(w); }
-    template<typename T, int c, int r> matrix<bool, c, r> greaterThanEqual(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v._greaterThanEqual(w); }
-    template<typename T, int c, int r> matrix<bool, c, r> lessThan(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v._lessThan(w); }
-    template<typename T, int c, int r> matrix<bool, c, r> lessThanEqual(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v._lessThanEqual(w); }
-    template<typename T, int c, int r> matrix<bool, c, r> equal(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v._equal(w); }
-    template<typename T, int c, int r> matrix<bool, c, r> equal(const matrix<T, c, r>& v, const matrix<T, c, r>& w, int max_ulps) { return v._equal(w, max_ulps); }
-    template<typename T, int c, int r> matrix<bool, c, r> notEqual(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v._notEqual(w); }
-    template<typename T, int c, int r> matrix<bool, c, r> notEqual(const matrix<T, c, r>& v, const matrix<T, c, r>& w, int max_ulps) { return v._notEqual(w, max_ulps); }
-    template<int c, int r> bool any(const matrix<bool, c, r>& v) { return v._any(); }
-    template<int c, int r> bool all(const matrix<bool, c, r>& v) { return v._all(); }
-    template<int c, int r> bool negate(const matrix<bool, c, r>& v) { return v._negate(); }
+    template<typename T, int c, int r> matrix<bool, c, r> greaterThan(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v.data._greaterThan(w.data); }
+    template<typename T, int c, int r> matrix<bool, c, r> greaterThanEqual(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v.data._greaterThanEqual(w.data); }
+    template<typename T, int c, int r> matrix<bool, c, r> lessThan(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v.data._lessThan(w.data); }
+    template<typename T, int c, int r> matrix<bool, c, r> lessThanEqual(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v.data._lessThanEqual(w.data); }
+    template<typename T, int c, int r> matrix<bool, c, r> equal(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v.data._equal(w.data); }
+    template<typename T, int c, int r> matrix<bool, c, r> notEqual(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v.data._notEqual(w.data); }
+    template<int c, int r> bool any(const matrix<bool, c, r>& v) { return v.data._any(); }
+    template<int c, int r> bool all(const matrix<bool, c, r>& v) { return v.data._all(); }
+    template<int c, int r> bool negate(const matrix<bool, c, r>& v) { return v.data._negate(); }
 
-    template<typename T, int c, int r> matrix<T, c, r> transpose(const matrix<T, r, c>& m) { return m._transpose(); }
+    template<typename T, int c, int r> matrix<T, r, c> transpose(const matrix<T, c, r>& m)
+    {
+        matrix<T, r, c> t;
+        for (int i = 0; i < r; i++) {
+            for (int j = 0; j < c; j++) {
+                t[i][j] = m[j][i];
+            }
+        }
+        return t;
+    }
 
-    template<typename T, int c, int r> matrix<T, c, r> matrixCompMult(const matrix<T, c, r>& m, const matrix<T, c, r>& n) { return m._op_comp_mult(n); }
+    template<typename T, int c, int r> matrix<T, c, r> matrixCompMult(const matrix<T, c, r>& m, const matrix<T, c, r>& n) { return m.data._op_comp_mult(n.data); }
 
     template<typename T, int c, int r> matrix<T, c, r> outerProduct(const vector<T, r>& v, const vector<T, c>& w)
     {
         matrix<T, c, r> m;
         for (int i = 0; i < c; i++)
             for (int j = 0; j < r; j++)
-                m.v[i][j] = v[j] * w[i];
+                m[i][j] = v[j] * w[i];
         return m;
     }
 
     template<typename T> T det(const matrix<T, 2, 2>& m)
     {
-        return m.v[0][0] * m.v[1][1] - m.v[1][0] * m.v[0][1];
+        return m[0][0] * m[1][1] - m[1][0] * m[0][1];
     }
 
     template<typename T> bool invertible(const matrix<T, 2, 2>& m, T epsilon = std::numeric_limits<T>::epsilon())
@@ -4472,14 +3009,14 @@ namespace glvm
 
     template<typename T> matrix<T, 2, 2> inverse(const matrix<T, 2, 2>& m)
     {
-        return matrix<T, 2, 2>(m.v[1][1], -m.v[1][0], -m.v[0][1], m.v[0][0]) / det(m);
+        return matrix<T, 2, 2>(m[1][1], -m[1][0], -m[0][1], m[0][0]) / det(m);
     }
 
     template<typename T> T det(const matrix<T, 3, 3>& m)
     {
-        return m.v[0][0] * (m.v[1][1] * m.v[2][2] - m.v[1][2] * m.v[2][1])
-            + m.v[0][1] * (m.v[1][2] * m.v[2][0] - m.v[1][0] * m.v[2][2])
-            + m.v[0][2] * (m.v[1][0] * m.v[2][1] - m.v[1][1] * m.v[2][0]);
+        return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
+            + m[0][1] * (m[1][2] * m[2][0] - m[1][0] * m[2][2])
+            + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
     }
 
     template<typename T> bool invertible(const matrix<T, 3, 3>& m, T epsilon = std::numeric_limits<T>::epsilon())
@@ -4494,34 +3031,34 @@ namespace glvm
         // http://en.wikipedia.org/wiki/Invertible_matrix
         // http://en.wikipedia.org/wiki/Minor_(linear_algebra)#Cofactors
         matrix<T, 3, 3> I;
-        I.v[0][0] = m.v[1][1] * m.v[2][2] - m.v[2][1] * m.v[1][2];
-        I.v[0][1] = m.v[2][1] * m.v[0][2] - m.v[0][1] * m.v[2][2];
-        I.v[0][2] = m.v[0][1] * m.v[1][2] - m.v[1][1] * m.v[0][2];
-        I.v[1][0] = m.v[2][0] * m.v[1][2] - m.v[1][0] * m.v[2][2];
-        I.v[1][1] = m.v[0][0] * m.v[2][2] - m.v[2][0] * m.v[0][2];
-        I.v[1][2] = m.v[1][0] * m.v[0][2] - m.v[0][0] * m.v[1][2];
-        I.v[2][0] = m.v[1][0] * m.v[2][1] - m.v[2][0] * m.v[1][1];
-        I.v[2][1] = m.v[2][0] * m.v[0][1] - m.v[0][0] * m.v[2][1];
-        I.v[2][2] = m.v[0][0] * m.v[1][1] - m.v[1][0] * m.v[0][1];
-        T det = m.v[0][0] * I.v[0][0] + m.v[1][0] * I.v[0][1] + m.v[2][0] * I.v[0][2];
+        I[0][0] = m[1][1] * m[2][2] - m[2][1] * m[1][2];
+        I[0][1] = m[2][1] * m[0][2] - m[0][1] * m[2][2];
+        I[0][2] = m[0][1] * m[1][2] - m[1][1] * m[0][2];
+        I[1][0] = m[2][0] * m[1][2] - m[1][0] * m[2][2];
+        I[1][1] = m[0][0] * m[2][2] - m[2][0] * m[0][2];
+        I[1][2] = m[1][0] * m[0][2] - m[0][0] * m[1][2];
+        I[2][0] = m[1][0] * m[2][1] - m[2][0] * m[1][1];
+        I[2][1] = m[2][0] * m[0][1] - m[0][0] * m[2][1];
+        I[2][2] = m[0][0] * m[1][1] - m[1][0] * m[0][1];
+        T det = m[0][0] * I[0][0] + m[1][0] * I[0][1] + m[2][0] * I[0][2];
         return I / det;
     }
 
     template<typename T> T det(const matrix<T, 4, 4>& m)
     {
-        T d0 = m.v[1][1] * (m.v[2][2] * m.v[3][3] - m.v[3][2] * m.v[2][3])
-            + m.v[2][1] * (m.v[3][2] * m.v[1][3] - m.v[1][2] * m.v[3][3])
-            + m.v[3][1] * (m.v[1][2] * m.v[2][3] - m.v[2][2] * m.v[1][3]);
-        T d1 = m.v[0][1] * (m.v[2][2] * m.v[3][3] - m.v[3][2] * m.v[2][3])
-            + m.v[2][1] * (m.v[3][2] * m.v[0][3] - m.v[0][2] * m.v[3][3])
-            + m.v[3][1] * (m.v[0][2] * m.v[2][3] - m.v[2][2] * m.v[0][3]);
-        T d2 = m.v[0][1] * (m.v[1][2] * m.v[3][3] - m.v[3][2] * m.v[1][3])
-            + m.v[1][1] * (m.v[3][2] * m.v[0][3] - m.v[0][2] * m.v[3][3])
-            + m.v[3][1] * (m.v[0][2] * m.v[1][3] - m.v[1][2] * m.v[0][3]);
-        T d3 = m.v[0][1] * (m.v[1][2] * m.v[2][3] - m.v[2][2] * m.v[1][3])
-            + m.v[1][1] * (m.v[2][2] * m.v[0][3] - m.v[0][2] * m.v[2][3])
-            + m.v[2][1] * (m.v[0][2] * m.v[1][3] - m.v[1][2] * m.v[0][3]);
-        return m.v[0][0] * d0 - m.v[1][0] * d1 + m.v[2][0] * d2 - m.v[3][0] * d3;
+        T d0 = m[1][1] * (m[2][2] * m[3][3] - m[3][2] * m[2][3])
+            + m[2][1] * (m[3][2] * m[1][3] - m[1][2] * m[3][3])
+            + m[3][1] * (m[1][2] * m[2][3] - m[2][2] * m[1][3]);
+        T d1 = m[0][1] * (m[2][2] * m[3][3] - m[3][2] * m[2][3])
+            + m[2][1] * (m[3][2] * m[0][3] - m[0][2] * m[3][3])
+            + m[3][1] * (m[0][2] * m[2][3] - m[2][2] * m[0][3]);
+        T d2 = m[0][1] * (m[1][2] * m[3][3] - m[3][2] * m[1][3])
+            + m[1][1] * (m[3][2] * m[0][3] - m[0][2] * m[3][3])
+            + m[3][1] * (m[0][2] * m[1][3] - m[1][2] * m[0][3]);
+        T d3 = m[0][1] * (m[1][2] * m[2][3] - m[2][2] * m[1][3])
+            + m[1][1] * (m[2][2] * m[0][3] - m[0][2] * m[2][3])
+            + m[2][1] * (m[0][2] * m[1][3] - m[1][2] * m[0][3]);
+        return m[0][0] * d0 - m[1][0] * d1 + m[2][0] * d2 - m[3][0] * d3;
     }
 
     template<typename T> bool invertible(const matrix<T, 4, 4>& m, T epsilon = std::numeric_limits<T>::epsilon())
@@ -4560,49 +3097,49 @@ namespace glvm
         /* first set of 2x2 determinants: 12 multiplications, 6 additions */
         T t1[6] =
         {
-            m.v[2][0] * m.v[3][1] - m.v[2][1] * m.v[3][0],
-            m.v[2][0] * m.v[3][2] - m.v[2][2] * m.v[3][0],
-            m.v[2][0] * m.v[3][3] - m.v[2][3] * m.v[3][0],
-            m.v[2][1] * m.v[3][2] - m.v[2][2] * m.v[3][1],
-            m.v[2][1] * m.v[3][3] - m.v[2][3] * m.v[3][1],
-            m.v[2][2] * m.v[3][3] - m.v[2][3] * m.v[3][2]
+            m[2][0] * m[3][1] - m[2][1] * m[3][0],
+            m[2][0] * m[3][2] - m[2][2] * m[3][0],
+            m[2][0] * m[3][3] - m[2][3] * m[3][0],
+            m[2][1] * m[3][2] - m[2][2] * m[3][1],
+            m[2][1] * m[3][3] - m[2][3] * m[3][1],
+            m[2][2] * m[3][3] - m[2][3] * m[3][2]
         };
 
         /* first half of co_matrix: 24 multiplications, 16 additions */
-        result.v[0][0] = m.v[1][1] * t1[5] - m.v[1][2] * t1[4] + m.v[1][3] * t1[3];
-        result.v[1][0] = m.v[1][2] * t1[2] - m.v[1][3] * t1[1] - m.v[1][0] * t1[5];
-        result.v[2][0] = m.v[1][3] * t1[0] - m.v[1][1] * t1[2] + m.v[1][0] * t1[4];
-        result.v[3][0] = m.v[1][1] * t1[1] - m.v[1][0] * t1[3] - m.v[1][2] * t1[0];
-        result.v[0][1] = m.v[0][2] * t1[4] - m.v[0][1] * t1[5] - m.v[0][3] * t1[3];
-        result.v[1][1] = m.v[0][0] * t1[5] - m.v[0][2] * t1[2] + m.v[0][3] * t1[1];
-        result.v[2][1] = m.v[0][1] * t1[2] - m.v[0][3] * t1[0] - m.v[0][0] * t1[4];
-        result.v[3][1] = m.v[0][0] * t1[3] - m.v[0][1] * t1[1] + m.v[0][2] * t1[0];
+        result[0][0] = m[1][1] * t1[5] - m[1][2] * t1[4] + m[1][3] * t1[3];
+        result[1][0] = m[1][2] * t1[2] - m[1][3] * t1[1] - m[1][0] * t1[5];
+        result[2][0] = m[1][3] * t1[0] - m[1][1] * t1[2] + m[1][0] * t1[4];
+        result[3][0] = m[1][1] * t1[1] - m[1][0] * t1[3] - m[1][2] * t1[0];
+        result[0][1] = m[0][2] * t1[4] - m[0][1] * t1[5] - m[0][3] * t1[3];
+        result[1][1] = m[0][0] * t1[5] - m[0][2] * t1[2] + m[0][3] * t1[1];
+        result[2][1] = m[0][1] * t1[2] - m[0][3] * t1[0] - m[0][0] * t1[4];
+        result[3][1] = m[0][0] * t1[3] - m[0][1] * t1[1] + m[0][2] * t1[0];
 
         /* second set of 2x2 determinants: 12 multiplications, 6 additions */
         T t2[6] =
         {
-            m.v[0][0] * m.v[1][1] - m.v[0][1] * m.v[1][0],
-            m.v[0][0] * m.v[1][2] - m.v[0][2] * m.v[1][0],
-            m.v[0][0] * m.v[1][3] - m.v[0][3] * m.v[1][0],
-            m.v[0][1] * m.v[1][2] - m.v[0][2] * m.v[1][1],
-            m.v[0][1] * m.v[1][3] - m.v[0][3] * m.v[1][1],
-            m.v[0][2] * m.v[1][3] - m.v[0][3] * m.v[1][2]
+            m[0][0] * m[1][1] - m[0][1] * m[1][0],
+            m[0][0] * m[1][2] - m[0][2] * m[1][0],
+            m[0][0] * m[1][3] - m[0][3] * m[1][0],
+            m[0][1] * m[1][2] - m[0][2] * m[1][1],
+            m[0][1] * m[1][3] - m[0][3] * m[1][1],
+            m[0][2] * m[1][3] - m[0][3] * m[1][2]
         };
 
         /* second half of co_matrix: 24 multiplications, 16 additions */
-        result.v[0][2] = m.v[3][1] * t2[5] - m.v[3][2] * t2[4] + m.v[3][3] * t2[3];
-        result.v[1][2] = m.v[3][2] * t2[2] - m.v[3][3] * t2[1] - m.v[3][0] * t2[5];
-        result.v[2][2] = m.v[3][3] * t2[0] - m.v[3][1] * t2[2] + m.v[3][0] * t2[4];
-        result.v[3][2] = m.v[3][1] * t2[1] - m.v[3][0] * t2[3] - m.v[3][2] * t2[0];
-        result.v[0][3] = m.v[2][2] * t2[4] - m.v[2][1] * t2[5] - m.v[2][3] * t2[3];
-        result.v[1][3] = m.v[2][0] * t2[5] - m.v[2][2] * t2[2] + m.v[2][3] * t2[1];
-        result.v[2][3] = m.v[2][1] * t2[2] - m.v[2][3] * t2[0] - m.v[2][0] * t2[4];
-        result.v[3][3] = m.v[2][0] * t2[3] - m.v[2][1] * t2[1] + m.v[2][2] * t2[0];
+        result[0][2] = m[3][1] * t2[5] - m[3][2] * t2[4] + m[3][3] * t2[3];
+        result[1][2] = m[3][2] * t2[2] - m[3][3] * t2[1] - m[3][0] * t2[5];
+        result[2][2] = m[3][3] * t2[0] - m[3][1] * t2[2] + m[3][0] * t2[4];
+        result[3][2] = m[3][1] * t2[1] - m[3][0] * t2[3] - m[3][2] * t2[0];
+        result[0][3] = m[2][2] * t2[4] - m[2][1] * t2[5] - m[2][3] * t2[3];
+        result[1][3] = m[2][0] * t2[5] - m[2][2] * t2[2] + m[2][3] * t2[1];
+        result[2][3] = m[2][1] * t2[2] - m[2][3] * t2[0] - m[2][0] * t2[4];
+        result[3][3] = m[2][0] * t2[3] - m[2][1] * t2[1] + m[2][2] * t2[0];
 
         /* determinant: 4 multiplications, 3 additions */
         T determinant =
-            m.v[0][0] * result.v[0][0] + m.v[0][1] * result.v[1][0] +
-            m.v[0][2] * result.v[2][0] + m.v[0][3] * result.v[3][0];
+            m[0][0] * result[0][0] + m[0][1] * result[1][0] +
+            m[0][2] * result[2][0] + m[0][3] * result[3][0];
 
         /* division: 16 multiplications, 1 division */
         return result / determinant;
@@ -4610,44 +3147,39 @@ namespace glvm
 
     template<typename T> vector<T, 3> translation(const matrix<T, 4, 4>& m)
     {
-        return vector<T, 3>(m.v[3][0], m.v[3][1], m.v[3][2]);
-    }
-
-    template<typename T> swizzler<T, 3> translation(matrix<T, 4, 4>& m)
-    {
-        return swizzler<T, 3>(m.v[3][0], m.v[3][1], m.v[3][2]);
+        return vector<T, 3>(m[3][0], m[3][1], m[3][2]);
     }
 
     template<typename T> matrix<T, 4, 4> translate(const matrix<T, 4, 4>& m, const vector<T, 3>& v)
     {
         vector<T, 4> t(v, static_cast<T>(1));
         matrix<T, 4, 4> r;
-        r.v[0][0] = m.v[0][0];
-        r.v[0][1] = m.v[0][1];
-        r.v[0][2] = m.v[0][2];
-        r.v[0][3] = m.v[0][3];
-        r.v[1][0] = m.v[1][0];
-        r.v[1][1] = m.v[1][1];
-        r.v[1][2] = m.v[1][2];
-        r.v[1][3] = m.v[1][3];
-        r.v[2][0] = m.v[2][0];
-        r.v[2][1] = m.v[2][1];
-        r.v[2][2] = m.v[2][2];
-        r.v[2][3] = m.v[2][3];
-        r.v[3][0] = dot(row(m, 0), t);
-        r.v[3][1] = dot(row(m, 1), t);
-        r.v[3][2] = dot(row(m, 2), t);
-        r.v[3][3] = dot(row(m, 3), t);
+        r[0][0] = m[0][0];
+        r[0][1] = m[0][1];
+        r[0][2] = m[0][2];
+        r[0][3] = m[0][3];
+        r[1][0] = m[1][0];
+        r[1][1] = m[1][1];
+        r[1][2] = m[1][2];
+        r[1][3] = m[1][3];
+        r[2][0] = m[2][0];
+        r[2][1] = m[2][1];
+        r[2][2] = m[2][2];
+        r[2][3] = m[2][3];
+        r[3][0] = dot(row(m, 0), t);
+        r[3][1] = dot(row(m, 1), t);
+        r[3][2] = dot(row(m, 2), t);
+        r[3][3] = dot(row(m, 3), t);
         return r;
     }
 
     template<typename T> matrix<T, 4, 4> scale(const matrix<T, 4, 4>& m, const vector<T, 3>& v)
     {
         matrix<T, 4, 4> r;
-        col(r, 0) = col(m, 0) * v.x;
-        col(r, 1) = col(m, 1) * v.y;
-        col(r, 2) = col(m, 2) * v.z;
-        col(r, 3) = col(m, 3);
+        r[0] = m[0] * v.x;
+        r[1] = m[1] * v.y;
+        r[2] = m[2] * v.z;
+        r[3] = m[3];
         return r;
     }
 
@@ -4656,10 +3188,10 @@ namespace glvm
         return m * toMat4(angle, axis);
     }
 
-    template<typename T, int c, int r> matrix<bool, c, r> is_pow2(const matrix<T, c, r>& v) { return v._ispow2(); }
-    template<typename T, int c, int r> matrix<T, c, r> next_pow2(const matrix<T, c, r>& v) { return v._next_pow2(); }
-    template<typename T, int c, int r> matrix<T, c, r> next_multiple(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v._next_multiple(w); }
-    template<typename T, int c, int r> matrix<T, c, r> next_multiple(const matrix<T, c, r>& v, T x) { return v._next_multiple(x); }
+    template<typename T, int c, int r> matrix<bool, c, r> is_pow2(const matrix<T, c, r>& v) { return v.data._ispow2(); }
+    template<typename T, int c, int r> matrix<T, c, r> next_pow2(const matrix<T, c, r>& v) { return v.data._next_pow2(); }
+    template<typename T, int c, int r> matrix<T, c, r> next_multiple(const matrix<T, c, r>& v, const matrix<T, c, r>& w) { return v.data._next_multiple(w); }
+    template<typename T, int c, int r> matrix<T, c, r> next_multiple(const matrix<T, c, r>& v, T x) { return v.data._next_multiple(x); }
 
     typedef matrix<float, 2, 2> mat2;
     typedef matrix<double, 2, 2> dmat2;
@@ -4681,23 +3213,20 @@ namespace glvm
     typedef matrix<double, 4, 3> dmat4x3;
 
     template<typename T>
-    class quaternion : public array<T, 1, 4>
+    class quaternion
     {
     public:
-        using array<T, 1, 4>::vl;
-        using array<T, 1, 4>::x;
-        using array<T, 1, 4>::y;
-        using array<T, 1, 4>::z;
-        using array<T, 1, 4>::w;
+        union {
+            Data<T, 4> data;
+            struct {
+                T x, y, z, w;
+            };
+        };
 
         /* Constructors, Destructor */
 
-        quaternion() {}
-        explicit quaternion(const array<T, 1, 4>& a) : array<T, 1, 4>(a) {}
-        explicit quaternion(const vector<T, 4>& a) : array<T, 1, 4>(a) {}
-        explicit quaternion(const T* v) : array<T, 1, 4>(v) {}
-        template<typename U> explicit quaternion(const quaternion<U>& q) : array<T, 1, 4>(q) {}
-        explicit quaternion(T x, T y, T z, T w) : array<T, 1, 4>(x, y, z, w) {}
+        quaternion() { x = 0; y = 0; z = 0; w = 1; }
+        quaternion(T x, T y, T z, T w) { this->x = x; this->y = y; this->z = z; this->w = w; }
 
         /* Get / set components */
 
@@ -4747,90 +3276,87 @@ namespace glvm
         {
             // return toMat3(*this) * v;
             quaternion<T> t = *this * quaternion<T>(v.x, v.y, v.z, static_cast<T>(0)) * conjugate(*this);
-            return vec3(t.x, t.y, t.z);
+            return vector<T, 3>(t.x, t.y, t.z);
         }
 
         vector<T, 4> operator*(const vector<T, 4>& v) const
         {
             //return toMat4(*this) * v;
             quaternion<T> t = *this * quaternion<T>(v.x, v.y, v.z, static_cast<T>(0)) * conjugate(*this);
-            return vec4(t.x, t.y, t.z, t.w);
+            return vector<T, 4>(t.x, t.y, t.z, t.w);
         }
+
+        operator const T*() const { return &x; }
     };
 
-    template<typename T> T magnitude(const quaternion<T>& q) { return q._length(); }
+    template<typename T> T magnitude(const quaternion<T>& q) { return q.data._length(); }
     template<typename T> quaternion<T> conjugate(const quaternion<T>& q) { return quaternion<T>(-q.x, -q.y, -q.z, q.w); }
-    template<typename T> quaternion<T> inverse(const quaternion<T>& q) { return quaternion<T>(conjugate(q)._op_scal_div(magnitude(q))); }
-    template<typename T> quaternion<T> normalize(const quaternion<T>& q) { return quaternion<T>(q._op_scal_div(magnitude(q))); }
+    template<typename T> quaternion<T> inverse(const quaternion<T>& q) { return quaternion<T>(conjugate(q).data._op_scal_div(magnitude(q))); }
+    template<typename T> quaternion<T> normalize(const quaternion<T>& q) { return quaternion<T>(q.data._op_scal_div(magnitude(q))); }
 
     typedef quaternion<float> quat;
     typedef quaternion<double> dquat;
 
 
     template<typename T>
-    class frustum : public array<T, 1, 6>
+    class frustum
     {
     public:
-        using array<T, 1, 6>::vl;
+        union {
+            Data<T, 6> data;
+            struct {
+                T l, r, b, t, n, f;
+            };
+        };
 
         /* Constructors, Destructor */
 
         frustum() {}
 
-        explicit frustum(const array<T, 1, 6>& a) : array<T, 1, 6>(a) {}
-        explicit frustum(const vector<T, 6>& a) : array<T, 1, 6>(a) {}
-        explicit frustum(const T* v) : array<T, 1, 6>(v) {}
-        explicit frustum(const std::string &s) : array<T, 1, 6>(s) {}
-        template<typename U> explicit frustum(const frustum<U>& q) : array<T, 1, 6>(q) {}
-        explicit frustum(T l, T r, T b, T t, T n, T f) : array<T, 1, 6>(l, r, b, t, n ,f) {}
-
-        /* Get / set components */
-
-        const T& l() const { return vl[0]; }
-        const T& r() const { return vl[1]; }
-        const T& b() const { return vl[2]; }
-        const T& t() const { return vl[3]; }
-        const T& n() const { return vl[4]; }
-        const T& f() const { return vl[5]; }
-        T& l() { return vl[0]; }
-        T& r() { return vl[1]; }
-        T& b() { return vl[2]; }
-        T& t() { return vl[3]; }
-        T& n() { return vl[4]; }
-        T& f() { return vl[5]; }
+        frustum(T l, T r, T b, T t, T n, T f)
+        {
+            this->l = l;
+            this->r = r;
+            this->b = b;
+            this->t = t;
+            this->n = n;
+            this->f = f;
+        }
 
         /* Frustum operations */
 
         void adjust_near(T new_near)
         {
-            T q = new_near / n();
-            l() *= q;
-            r() *= q;
-            b() *= q;
-            t() *= q;
-            n() = new_near;
+            T q = new_near / n;
+            l *= q;
+            r *= q;
+            b *= q;
+            t *= q;
+            n = new_near;
         }
+
+        operator const T*() const { return &l; }
     };
 
     template<typename T> matrix<T, 4, 4> toMat4(const frustum<T>& f)
     {
         matrix<T, 4, 4> m;
-        m.v[0][0] = static_cast<T>(2) * f.n() / (f.r() - f.l());
-        m.v[0][1] = static_cast<T>(0);
-        m.v[0][2] = static_cast<T>(0);
-        m.v[0][3] = static_cast<T>(0);
-        m.v[1][0] = static_cast<T>(0);
-        m.v[1][1] = static_cast<T>(2) * f.n() / (f.t() - f.b());
-        m.v[1][2] = static_cast<T>(0);
-        m.v[1][3] = static_cast<T>(0);
-        m.v[2][0] = (f.r() + f.l()) / (f.r() - f.l());
-        m.v[2][1] = (f.t() + f.b()) / (f.t() - f.b());
-        m.v[2][2] = - (f.f() + f.n()) / (f.f() - f.n());
-        m.v[2][3] = static_cast<T>(-1);
-        m.v[3][0] = static_cast<T>(0);
-        m.v[3][1] = static_cast<T>(0);
-        m.v[3][2] = - static_cast<T>(2) * f.f() * f.n() / (f.f() - f.n());
-        m.v[3][3] = static_cast<T>(0);
+        m[0][0] = static_cast<T>(2) * f.n / (f.r - f.l);
+        m[0][1] = static_cast<T>(0);
+        m[0][2] = static_cast<T>(0);
+        m[0][3] = static_cast<T>(0);
+        m[1][0] = static_cast<T>(0);
+        m[1][1] = static_cast<T>(2) * f.n / (f.t - f.b);
+        m[1][2] = static_cast<T>(0);
+        m[1][3] = static_cast<T>(0);
+        m[2][0] = (f.r + f.l) / (f.r - f.l);
+        m[2][1] = (f.t + f.b) / (f.t - f.b);
+        m[2][2] = - (f.f + f.n) / (f.f - f.n);
+        m[2][3] = static_cast<T>(-1);
+        m[3][0] = static_cast<T>(0);
+        m[3][1] = static_cast<T>(0);
+        m[3][2] = - static_cast<T>(2) * f.f * f.n / (f.f - f.n);
+        m[3][3] = static_cast<T>(0);
         return m;
     }
 
@@ -4888,41 +3414,41 @@ namespace glvm
     {
         quaternion<T> q;
         // From "Matrix and Quaternion FAQ", Q55
-        T t = static_cast<T>(1) + rot_matrix.v[0][0] + rot_matrix.v[1][1] + rot_matrix.v[2][2];
+        T t = static_cast<T>(1) + rot_matrix[0][0] + rot_matrix[1][1] + rot_matrix[2][2];
         if (t > static_cast<T>(1e-8))
         {
             T s = sqrt(t) * static_cast<T>(2);
-            q.x = (rot_matrix.v[1][2] - rot_matrix.v[2][1]) / s;
-            q.y = (rot_matrix.v[2][0] - rot_matrix.v[0][2]) / s;
-            q.z = (rot_matrix.v[0][1] - rot_matrix.v[1][0]) / s;
+            q.x = (rot_matrix[1][2] - rot_matrix[2][1]) / s;
+            q.y = (rot_matrix[2][0] - rot_matrix[0][2]) / s;
+            q.z = (rot_matrix[0][1] - rot_matrix[1][0]) / s;
             q.w = s / static_cast<T>(4);
         }
-        else if (rot_matrix.v[0][0] > rot_matrix.v[1][1] && rot_matrix.v[0][0] > rot_matrix.v[2][2])
+        else if (rot_matrix[0][0] > rot_matrix[1][1] && rot_matrix[0][0] > rot_matrix[2][2])
         {
-            t = static_cast<T>(1) + rot_matrix.v[0][0] - rot_matrix.v[1][1] - rot_matrix.v[2][2];
+            t = static_cast<T>(1) + rot_matrix[0][0] - rot_matrix[1][1] - rot_matrix[2][2];
             T s = sqrt(t) * static_cast<T>(2);
             q.x = s / static_cast<T>(4);
-            q.y = (rot_matrix.v[0][1] + rot_matrix.v[1][0]) / s;
-            q.z = (rot_matrix.v[2][0] + rot_matrix.v[0][2]) / s;
-            q.w = (rot_matrix.v[1][2] - rot_matrix.v[2][1]) / s;
+            q.y = (rot_matrix[0][1] + rot_matrix[1][0]) / s;
+            q.z = (rot_matrix[2][0] + rot_matrix[0][2]) / s;
+            q.w = (rot_matrix[1][2] - rot_matrix[2][1]) / s;
         }
-        else if (rot_matrix.v[1][1] > rot_matrix.v[2][2])
+        else if (rot_matrix[1][1] > rot_matrix[2][2])
         {
-            t = static_cast<T>(1) + rot_matrix.v[1][1] - rot_matrix.v[0][0] - rot_matrix.v[2][2];
+            t = static_cast<T>(1) + rot_matrix[1][1] - rot_matrix[0][0] - rot_matrix[2][2];
             T s = sqrt(t) * static_cast<T>(2);
-            q.x = (rot_matrix.v[0][1] + rot_matrix.v[1][0]) / s;
+            q.x = (rot_matrix[0][1] + rot_matrix[1][0]) / s;
             q.y = s / static_cast<T>(4);
-            q.z = (rot_matrix.v[1][2] + rot_matrix.v[2][1]) / s;
-            q.w = (rot_matrix.v[2][0] - rot_matrix.v[0][2]) / s;
+            q.z = (rot_matrix[1][2] + rot_matrix[2][1]) / s;
+            q.w = (rot_matrix[2][0] - rot_matrix[0][2]) / s;
         }
         else
         {
-            t = static_cast<T>(1) + rot_matrix.v[2][2] - rot_matrix.v[0][0] - rot_matrix.v[1][1];
+            t = static_cast<T>(1) + rot_matrix[2][2] - rot_matrix[0][0] - rot_matrix[1][1];
             T s = sqrt(t) * static_cast<T>(2);
-            q.x = (rot_matrix.v[2][0] + rot_matrix.v[0][2]) / s;
-            q.y = (rot_matrix.v[1][2] + rot_matrix.v[2][1]) / s;
+            q.x = (rot_matrix[2][0] + rot_matrix[0][2]) / s;
+            q.y = (rot_matrix[1][2] + rot_matrix[2][1]) / s;
             q.z = s / static_cast<T>(4);
-            q.w = (rot_matrix.v[0][1] - rot_matrix.v[1][0]) / s;
+            q.w = (rot_matrix[0][1] - rot_matrix[1][0]) / s;
         }
         return q;
     }
@@ -4934,15 +3460,15 @@ namespace glvm
         T s = glvm::sin(angle);
         T mc = static_cast<T>(1) - c;
         matrix<T, 3, 3> m;
-        m.v[0][0] = n.x * n.x * mc + c;
-        m.v[0][1] = n.y * n.x * mc + n.z * s;
-        m.v[0][2] = n.x * n.z * mc - n.y * s;
-        m.v[1][0] = n.x * n.y * mc - n.z * s;
-        m.v[1][1] = n.y * n.y * mc + c;
-        m.v[1][2] = n.y * n.z * mc + n.x * s;
-        m.v[2][0] = n.x * n.z * mc + n.y * s;
-        m.v[2][1] = n.y * n.z * mc - n.x * s;
-        m.v[2][2] = n.z * n.z * mc + c;
+        m[0][0] = n.x * n.x * mc + c;
+        m[0][1] = n.y * n.x * mc + n.z * s;
+        m[0][2] = n.x * n.z * mc - n.y * s;
+        m[1][0] = n.x * n.y * mc - n.z * s;
+        m[1][1] = n.y * n.y * mc + c;
+        m[1][2] = n.y * n.z * mc + n.x * s;
+        m[2][0] = n.x * n.z * mc + n.y * s;
+        m[2][1] = n.y * n.z * mc - n.x * s;
+        m[2][2] = n.z * n.z * mc + c;
         return m;
     }
 
@@ -4970,29 +3496,38 @@ namespace glvm
         T yw = q.y * q.w;
         T zz = q.z * q.z;
         T zw = q.z * q.w;
-        m.v[0][0] = static_cast<T>(1) - static_cast<T>(2) * (yy + zz);
-        m.v[0][1] = static_cast<T>(2) * (xy + zw);
-        m.v[0][2] = static_cast<T>(2) * (xz - yw);
-        m.v[1][0] = static_cast<T>(2) * (xy - zw);
-        m.v[1][1] = static_cast<T>(1) - static_cast<T>(2) * (xx + zz);
-        m.v[1][2] = static_cast<T>(2) * (yz + xw);
-        m.v[2][0] = static_cast<T>(2) * (xz + yw);
-        m.v[2][1] = static_cast<T>(2) * (yz - xw);
-        m.v[2][2] = static_cast<T>(1) - static_cast<T>(2) * (xx + yy);
+        m[0][0] = static_cast<T>(1) - static_cast<T>(2) * (yy + zz);
+        m[0][1] = static_cast<T>(2) * (xy + zw);
+        m[0][2] = static_cast<T>(2) * (xz - yw);
+        m[1][0] = static_cast<T>(2) * (xy - zw);
+        m[1][1] = static_cast<T>(1) - static_cast<T>(2) * (xx + zz);
+        m[1][2] = static_cast<T>(2) * (yz + xw);
+        m[2][0] = static_cast<T>(2) * (xz + yw);
+        m[2][1] = static_cast<T>(2) * (yz - xw);
+        m[2][2] = static_cast<T>(1) - static_cast<T>(2) * (xx + yy);
         return m;
     }
 
     template<typename T> matrix<T, 4, 4> toMat4(T angle, const vector<T, 3>& axis)
     {
+        matrix<T, 3, 3> r = toMat3(angle, axis);
         matrix<T, 4, 4> m;
-        m._set_sub_array(toMat3(angle, axis));
-        m.v[0][3] = static_cast<T>(0);
-        m.v[1][3] = static_cast<T>(0);
-        m.v[2][3] = static_cast<T>(0);
-        m.v[3][0] = static_cast<T>(0);
-        m.v[3][1] = static_cast<T>(0);
-        m.v[3][2] = static_cast<T>(0);
-        m.v[3][3] = static_cast<T>(1);
+        m[0][0] = r[0][0];
+        m[0][1] = r[0][1];
+        m[0][2] = r[0][2];
+        m[0][3] = static_cast<T>(0);
+        m[1][0] = r[1][0];
+        m[1][1] = r[1][1];
+        m[1][2] = r[1][2];
+        m[1][3] = static_cast<T>(0);
+        m[2][0] = r[2][0];
+        m[2][1] = r[2][1];
+        m[2][2] = r[2][2];
+        m[2][3] = static_cast<T>(0);
+        m[3][0] = static_cast<T>(0);
+        m[3][1] = static_cast<T>(0);
+        m[3][2] = static_cast<T>(0);
+        m[3][3] = static_cast<T>(1);
         return m;
     }
 
@@ -5010,15 +3545,24 @@ namespace glvm
 
     template<typename T> matrix<T, 4, 4> toMat4(const quaternion<T>& q)
     {
+        matrix<T, 3, 3> r = toMat3(q);
         matrix<T, 4, 4> m;
-        m._set_sub_array(toMat3(q));
-        m.v[0][3] = static_cast<T>(0);
-        m.v[1][3] = static_cast<T>(0);
-        m.v[2][3] = static_cast<T>(0);
-        m.v[3][0] = static_cast<T>(0);
-        m.v[3][1] = static_cast<T>(0);
-        m.v[3][2] = static_cast<T>(0);
-        m.v[3][3] = static_cast<T>(1);
+        m[0][0] = r[0][0];
+        m[0][1] = r[0][1];
+        m[0][2] = r[0][2];
+        m[0][3] = static_cast<T>(0);
+        m[1][0] = r[1][0];
+        m[1][1] = r[1][1];
+        m[1][2] = r[1][2];
+        m[1][3] = static_cast<T>(0);
+        m[2][0] = r[2][0];
+        m[2][1] = r[2][1];
+        m[2][2] = r[2][2];
+        m[2][3] = static_cast<T>(0);
+        m[3][0] = static_cast<T>(0);
+        m[3][1] = static_cast<T>(0);
+        m[3][2] = static_cast<T>(0);
+        m[3][3] = static_cast<T>(1);
         return m;
     }
 
@@ -5047,7 +3591,7 @@ namespace glvm
             result = vector<T, 3>(
                     static_cast<T>(2) * glvm::atan(q.x, q.w),
                     const_pi_2<T>(),
-                    0.0);
+                    static_cast<T>(0));
         }
         else if (singularity_test < static_cast<T>(-0.4999))
         {
@@ -5055,7 +3599,7 @@ namespace glvm
             result = vector<T, 3>(
                     -static_cast<T>(2) * glvm::atan(q.x, q.w),
                     -const_pi_2<T>(),
-                    0.0);
+                    static_cast<T>(0));
         }
         else
         {
@@ -5074,7 +3618,7 @@ namespace glvm
     // gluPerspective()
     template<typename T> frustum<T> perspective(T fovy, T aspect, T zNear, T zFar)
     {
-        T t = tan(fovy / 2.0f);
+        T t = tan(fovy / static_cast<T>(2));
         T top = zNear * t;
         T bottom = -top;
         T right = top * aspect;
@@ -5083,16 +3627,17 @@ namespace glvm
     }
 
     // gluLookAt()
-    template<typename T> matrix<T, 4, 4> lookat(const vector<T, 3>& eye, const vector<T, 3>& center, const vector<T, 3>& up)
+    template<typename T> matrix<T, 4, 4> lookAt(const vector<T, 3>& eye, const vector<T, 3>& center, const vector<T, 3>& up)
     {
         vector<T, 3> v = normalize(center - eye);
         vector<T, 3> s = normalize(cross(v, up));
         vector<T, 3> u = cross(s, v);
         return translate(matrix<T, 4, 4>(
-                     s.x,  u.x, -v.x, 0.0f,
-                     s.y,  u.y, -v.y, 0.0f,
-                     s.z,  u.z, -v.z, 0.0f,
-                    0.0f, 0.0f, 0.0f, 1.0f), -eye);
+                     s.x,  u.x, -v.x, static_cast<T>(0),
+                     s.y,  u.y, -v.y, static_cast<T>(0),
+                     s.z,  u.z, -v.z, static_cast<T>(0),
+                    static_cast<T>(0), static_cast<T>(0), static_cast<T>(0), static_cast<T>(1)),
+                -eye);
     }
 }
 
