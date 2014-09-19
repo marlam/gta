@@ -122,7 +122,7 @@ View::View() :
     connect(close_action, SIGNAL(triggered()), this, SLOT(close()));
     view_menu->addAction(close_action);
     QAction *quit_action = new QAction(tr("&Quit"), this);
-    quit_action->setShortcut(QKeySequence::Quit);
+    quit_action->setShortcut(tr("Ctrl+Q")); // QKeySequence::Quit is not reliable
     connect(quit_action, SIGNAL(triggered()), this, SLOT(request_quit()));
     view_menu->addAction(quit_action);
 }

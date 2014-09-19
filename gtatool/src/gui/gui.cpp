@@ -798,7 +798,7 @@ GUI::GUI()
     file_export_menu->addAction(file_export_teem_action);
     file_menu->addSeparator();
     QAction *quit_action = new QAction(tr("&Quit"), this);
-    quit_action->setShortcut(QKeySequence::Quit);
+    quit_action->setShortcut(tr("Ctrl+Q")); // QKeySequence::Quit is not reliable
     connect(quit_action, SIGNAL(triggered()), this, SLOT(close()));
     file_menu->addAction(quit_action);
 
