@@ -241,9 +241,10 @@ void View::set_current(size_t index)
     bool recreate = (mode != view_params.mode);
     if (!_minmaxhists[_index].valid())
         _minmaxhists[_index].compute(hdr, _data.ptr());
-    view_params.set_mode(mode, hdr, _minmaxhists[_index]);
-    if (recreate)
+    if (recreate) {
+        view_params.set_mode(mode, hdr, _minmaxhists[_index]);
         recreate_views();
+    }
     emit set_view_params(view_params);
 
     std::vector<GLRenderer*> renderers = _glmanager.get_renderers();
