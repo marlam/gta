@@ -61,14 +61,14 @@ uniform float coloring_lightvar;
 
 // We use the D65 reference white for the RGB values.
 // The computation is exactly the same that is used by pfstools-1.6.2.
-vec3 rgb_to_xyz(vec3 rgb)
+vec3 srgb_to_xyz(vec3 srgb)
 {
     mat3 M = mat3(0.412424, 0.357579, 0.180464,
                   0.212656, 0.715158, 0.072186,
                   0.019332, 0.119193, 0.950444);
-    return rgb * M;
+    return srgb * M;
 }
-vec3 xyz_to_rgb(vec3 xyz)
+vec3 xyz_to_srgb(vec3 xyz)
 {
     mat3 M = mat3( 3.240708, -1.537259, -0.498570,
                   -0.969257,  1.875995,  0.041555,
@@ -76,17 +76,17 @@ vec3 xyz_to_rgb(vec3 xyz)
     return xyz * M;
 }
 
-vec3 srgb_to_rgb(vec3 srgb)
+vec3 rgb_to_srgb(vec3 rgb)
 {
     // See GL_ARB_framebuffer_sRGB extension
-    srgb.r = (srgb.r <= 0.04045 ? (srgb.r / 12.92) : (pow((srgb.r + 0.055) / 1.055, 2.4)));
-    srgb.g = (srgb.g <= 0.04045 ? (srgb.g / 12.92) : (pow((srgb.g + 0.055) / 1.055, 2.4)));
-    srgb.b = (srgb.b <= 0.04045 ? (srgb.b / 12.92) : (pow((srgb.b + 0.055) / 1.055, 2.4)));
-    return srgb;
+    rgb.r = (rgb.r <= 0.0031308 ? (rgb.r * 12.92) : (1.055 * pow(rgb.r, 1.0 / 2.4) - 0.055));
+    rgb.g = (rgb.g <= 0.0031308 ? (rgb.g * 12.92) : (1.055 * pow(rgb.g, 1.0 / 2.4) - 0.055));
+    rgb.b = (rgb.b <= 0.0031308 ? (rgb.b * 12.92) : (1.055 * pow(rgb.b, 1.0 / 2.4) - 0.055));
+    return rgb;
 }
-vec3 srgb_to_xyz(vec3 srgb)
+vec3 rgb_to_xyz(vec3 rgb)
 {
-    return rgb_to_xyz(srgb_to_rgb(srgb));
+    return srgb_to_xyz(rgb_to_srgb(rgb));
 }
 
 vec3 lum_to_xyz(float lum)
@@ -217,7 +217,7 @@ void main()
     } else if (colorspace == COLORSPACE_NULL) {
         color = vec3(v);
     } else {
-        color = xyz_to_rgb(color);
+        color = xyz_to_srgb(color);
     }
 
     gl_FragColor = vec4(color, 1.0);
