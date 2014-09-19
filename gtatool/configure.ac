@@ -41,6 +41,8 @@ AC_LANG([C++])
 AC_C_BIGENDIAN
 
 dnl Check if the C++ compiler works. Autoconf will not do that for us!?
+dnl We want C++11, and blindly add -std=gnu++11. This may only work for gcc and clang...
+CXXFLAGS="-std=gnu++11 $CXXFLAGS"
 AC_MSG_CHECKING([whether the C++ compiler works])
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[]])], [COMPILER_WORKS=1], [COMPILER_WORKS=0])
 if test "$COMPILER_WORKS" = "1"; then
