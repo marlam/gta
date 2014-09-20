@@ -683,7 +683,7 @@ GUI::GUI()
     connect(file_import_jpeg_action, SIGNAL(triggered()), this, SLOT(file_import_jpeg()));
     file_import_jpeg_action->setEnabled(cmd_is_available(cmd_find("from-jpeg")));
     file_import_menu->addAction(file_import_jpeg_action);
-    QAction *file_import_magick_action = new QAction(tr("Image data (via ImageMagick)..."), this);
+    QAction *file_import_magick_action = new QAction(tr("Image data (via " MAGICK_FLAVOR ")..."), this);
     connect(file_import_magick_action, SIGNAL(triggered()), this, SLOT(file_import_magick()));
     file_import_magick_action->setEnabled(cmd_is_available(cmd_find("from-magick")));
     file_import_menu->addAction(file_import_magick_action);
@@ -752,7 +752,7 @@ GUI::GUI()
     connect(file_export_jpeg_action, SIGNAL(triggered()), this, SLOT(file_export_jpeg()));
     file_export_jpeg_action->setEnabled(cmd_is_available(cmd_find("to-jpeg")));
     file_export_menu->addAction(file_export_jpeg_action);
-    QAction *file_export_magick_action = new QAction(tr("Image data (via ImageMagick)..."), this);
+    QAction *file_export_magick_action = new QAction(tr("Image data (via " MAGICK_FLAVOR ")..."), this);
     connect(file_export_magick_action, SIGNAL(triggered()), this, SLOT(file_export_magick()));
     file_export_magick_action->setEnabled(cmd_is_available(cmd_find("to-magick")));
     file_export_menu->addAction(file_export_magick_action);

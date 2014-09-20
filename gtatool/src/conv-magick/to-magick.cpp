@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011, 2012, 2013
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -42,7 +42,7 @@ extern "C" void gtatool_to_magick_help(void)
 {
     msg::req_txt("to-magick [<input-file>] <output-file>\n"
             "\n"
-            "Converts GTAs to a format supported by ImageMagick, determined from "
+            "Converts GTAs to a format supported by " MAGICK_FLAVOR ", determined from "
             "the name of the output file.");
 }
 

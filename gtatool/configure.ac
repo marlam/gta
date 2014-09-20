@@ -174,6 +174,17 @@ if test "$qt_version" != "4" -a "$qt_version" != "5"; then
     qt_version="4"
 fi
 
+dnl Choose Magick flavor for the from-magick and to-magick commands: GraphicsMagick (default) or ImageMagick.
+magick_flavor=""
+AC_ARG_WITH([magick-flavor],
+    [AS_HELP_STRING([--with-magick-flavor], [Choose Magick flavor: GraphicsMagick (default) or ImageMagick.])],
+    [magick_flavor="$withval"], [magick_flavor="GraphicsMagick"])
+if test "$magick_flavor" != "GraphicsMagick" -a "$magick_flavor" != "ImageMagick"; then
+    AC_MSG_WARN([unknown Magick flavor requested, falling back to GraphicsMagick.])
+    magick_flavor="GraphicsMagick"
+fi
+AC_DEFINE_UNQUOTED([MAGICK_FLAVOR], ["${magick_flavor}"], [Magick flavor to use])
+
 dnl stream-foreach: some checks required
 AC_CHECK_FUNCS([sigaction])
 AC_CHECK_HEADERS([sys/wait.h])
@@ -345,16 +356,24 @@ fi
 AC_DEFINE_UNQUOTED([WITH_GDAL], [`if test "$gdal" = "yes"; then echo "1"; else echo "0"; fi`], [Use gdal?])
 AM_CONDITIONAL([WITH_GDAL], [test "$gdal" = "yes"])
 
-dnl conv-magick: ImageMagick
+dnl conv-magick: *Magick
 AC_ARG_WITH([magick],
-    [AS_HELP_STRING([--with-magick], [Enable ImageMagick import/export. Enabled by default if libMagick++ is available.])],
+    [AS_HELP_STRING([--with-magick], [Enable *Magick import/export. Enabled by default if the flavor chosen with --with-magick-flavor is available.])],
     [if test "$withval" = "yes"; then magick="yes"; else magick="no "; fi], [magick="yes"])
 if test "$magick" = "yes"; then
-    PKG_CHECK_MODULES([libmagick], [ImageMagick++ >= 0.0], [],
-        [magick="no "
-        AC_MSG_WARN([ImageMagick++ library not found:])
-        AC_MSG_WARN([$libmagick_PKG_ERRORS])
-        AC_MSG_WARN([Disabled the from-magick and to-magick commands.])])
+    if test "$magick_flavor" = "GraphicsMagick"; then
+        PKG_CHECK_MODULES([libmagick], [GraphicsMagick++ >= 0.0], [],
+            [magick="no "
+            AC_MSG_WARN([GraphicsMagick++ library not found:])
+            AC_MSG_WARN([$libmagick_PKG_ERRORS])
+            AC_MSG_WARN([Disabled the from-magick and to-magick commands.])])
+    else
+        PKG_CHECK_MODULES([libmagick], [ImageMagick++ >= 0.0], [],
+            [magick="no "
+            AC_MSG_WARN([ImageMagick++ library not found:])
+            AC_MSG_WARN([$libmagick_PKG_ERRORS])
+            AC_MSG_WARN([Disabled the from-magick and to-magick commands.])])
+    fi
 fi
 AC_DEFINE_UNQUOTED([WITH_MAGICK], [`if test "$magick" = "yes"; then echo "1"; else echo "0"; fi`], [Use magick?])
 AM_CONDITIONAL([WITH_MAGICK], [test "$magick" = "yes"])
@@ -659,7 +678,7 @@ echo "from-exr, to-exr:        " "$exr" "(Requires OpenEXR)"
 echo "from-ffmpeg:             " "$ffmpeg" "(Requires FFmpeg)"
 echo "from-gdal, to-gdal:      " "$gdal" "(Requires GDAL)"
 echo "from-jpeg, to-jpeg:      " "$jpeg" "(Requires libjpeg)"
-echo "from-magick, to-magick:  " "$magick" "(Requires ImageMagick)"
+echo "from-magick, to-magick:  " "$magick" "(Requires GraphicsMagick or ImageMagick, see --with-magick-flavor)"
 echo "from-mat, to-mat:        " "$mat" "(Requires matio)"
 echo "from-netcdf, to-netcdf:  " "$netcdf" "(Requires NetCDF)"
 echo "from-netpbm, to-netpbm:  " "$netpbm" "(Requires NetPBM)"
