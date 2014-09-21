@@ -1316,7 +1316,7 @@ void GUI::import_from(const std::string &cmd, const std::vector<std::string> &op
         try
         {
             std::vector<std::string> args = options;
-            args.push_back(from_qt(open_file_names[i]));
+            args.push_back(fio::to_sys(from_qt(open_file_names[i])));
             std::string output_name(qPrintable(open_file_names[i]));
             size_t last_slash = output_name.find_last_of('/');
             size_t last_dot = output_name.find_last_of('.');
@@ -1356,7 +1356,7 @@ void GUI::export_to(const std::string &cmd, const std::vector<std::string> &opti
             std::string std_err;
             std::vector<std::string> args = options;
             args.push_back(fio::to_sys(fw->save_name()));
-            args.push_back(from_qt(save_file_name));
+            args.push_back(fio::to_sys(from_qt(save_file_name)));
             int retval = run(cmd, args, std_err, NULL, NULL);
             if (retval != 0)
             {
