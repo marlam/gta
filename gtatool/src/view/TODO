@@ -1,0 +1,20 @@
+First, replicate the functionality of CVLView
+<http://cvtool.sourceforge.net/cvlview.html>:
+- Add "show grid" option
+- Add info area that shows value(s) under cursor
+- Add luminance histogram for color view
+- Add simple 3D view, with z component taken from gta tags
+
+Then, extent existing functionality:
+- Add isolines option
+- For 3D view, add radial depth view and some method to get
+  field of view right (from tag metadata)
+
+At that point, we should have 2D scalar fields supported pretty nicely.
+
+Then, add support for new view modes:
+- Point Clouds
+- 3D scalar fields (Volume Raycasting)
+- 2D vector fields
+- 3D vector fields
+- ...
