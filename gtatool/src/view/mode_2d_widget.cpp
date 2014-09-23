@@ -490,7 +490,7 @@ Mode2DWidget::Mode2DWidget(const gta::header& hdr, const void* data, const MinMa
     layout->setRowStretch(2, 1);
     setLayout(layout);
 
-    setFixedWidth(toolbox->sizeHint().width() + 24);
+    setFixedWidth(toolbox->sizeHint().width() + 48);
 
     update();
 }
