@@ -202,8 +202,26 @@ VIEW_BUILT_SOURCES = gui/viewwidget.moc.cpp view/widget.moc.cpp \
 	view/mode_2d_widget.moc.cpp view/glwidget.moc.cpp view/xqglwidget.moc.cpp \
 	view/view.resources.cpp \
 	view/mode_2d_fs.glsl.h
-EXTRA_DIST += view/view.qrc \
-	view/mode_2d_fs.glsl
+EXTRA_DIST += view/mode_2d_fs.glsl \
+	view/view.qrc \
+	view/icons-local/README \
+	view/icons-local/output-type-alternating.png \
+	view/icons-local/output-type-amber-blue.png \
+	view/icons-local/output-type-checkerboard.png \
+	view/icons-local/output-type-even-odd-columns.png \
+	view/icons-local/output-type-even-odd-rows.png \
+	view/icons-local/output-type-green-magenta.png \
+	view/icons-local/output-type-hdmi-frame-pack.png \
+	view/icons-local/output-type-left-right-half.png \
+	view/icons-local/output-type-left-right.png \
+	view/icons-local/output-type-mono-left.png \
+	view/icons-local/output-type-mono-right.png \
+	view/icons-local/output-type-red-blue.png \
+	view/icons-local/output-type-red-cyan.png \
+	view/icons-local/output-type-red-green.png \
+	view/icons-local/output-type-stereo.png \
+	view/icons-local/output-type-top-bottom-half.png \
+	view/icons-local/output-type-top-bottom.png
 BUILT_SOURCES += $(VIEW_BUILT_SOURCES)
 CLEANFILES += $(VIEW_BUILT_SOURCES)
 if DYNAMIC_MODULES
