@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011, 2013
+ * Copyright (C) 2010, 2011, 2013, 2014
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -29,6 +29,7 @@
 
 #include <muParser.h>
 
+#include "base/dbg.h"
 #include "base/msg.h"
 #include "base/blb.h"
 #include "base/opt.h"
@@ -87,16 +88,31 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
             std::vector<double> comp_vars;
             for (uintmax_t i = 0; i < hdri.components(); i++)
             {
-                if (hdri.component_type(i) == gta::blob
-                        || hdri.component_type(i) == gta::int128
-                        || hdri.component_type(i) == gta::uint128
-                        || hdri.component_type(i) == gta::float128
-                        || hdri.component_type(i) == gta::cfloat128)
+                if (hdri.component_type(i) == gta::blob)
                 {
                     throw exc(namei + ": cannot compute variables of type "
                             + type_to_string(hdri.component_type(i), hdri.component_size(i)));
                 }
-                if (hdri.component_type(i) == gta::cfloat32 || hdri.component_type(i) == gta::cfloat64)
+                if (false
+#ifndef HAVE_INT128_T
+                        || hdri.component_type(i) == gta::int128
+#endif
+#ifndef HAVE_UINT128_T
+                        || hdri.component_type(i) == gta::uint128
+#endif
+#ifndef HAVE_FLOAT128_T
+                        || hdri.component_type(i) == gta::float128
+                        || hdri.component_type(i) == gta::cfloat128
+#endif
+                   )
+                {
+                    throw exc(namei + ": cannot compute variables of type "
+                            + type_to_string(hdri.component_type(i), hdri.component_size(i))
+                            + " on this platform");
+                }
+                if (hdri.component_type(i) == gta::cfloat32
+                        || hdri.component_type(i) == gta::cfloat64
+                        || hdri.component_type(i) == gta::cfloat128)
                 {
                     comp_vars.push_back(0.0);
                     comp_vars.push_back(0.0);
@@ -222,6 +238,24 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
                                 comp_vars[comp_var_index++] = v;
                             }
                             break;
+#ifdef HAVE_INT128_T
+                        case gta::int128:
+                            {
+                                int128_t v;
+                                std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(int128_t));
+                                comp_vars[comp_var_index++] = v;
+                            }
+                            break;
+#endif
+#ifdef HAVE_UINT128_T
+                        case gta::uint128:
+                            {
+                                uint128_t v;
+                                std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(uint128_t));
+                                comp_vars[comp_var_index++] = v;
+                            }
+                            break;
+#endif
                         case gta::float32:
                             {
                                 float v;
@@ -231,9 +265,20 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
                             break;
                         case gta::float64:
                             {
-                                std::memcpy(&(comp_vars[comp_var_index++]), hdri.component(element.ptr(), i), sizeof(double));
+                                double v;
+                                std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(double));
+                                comp_vars[comp_var_index++] = v;
                             }
                             break;
+#ifdef HAVE_FLOAT128_T
+                        case gta::float128:
+                            {
+                                float128_t v;
+                                std::memcpy(&v, hdri.component(element.ptr(), i), sizeof(float128_t));
+                                comp_vars[comp_var_index++] = v;
+                            }
+                            break;
+#endif
                         case gta::cfloat32:
                             {
                                 float v[2];
@@ -250,8 +295,19 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
                                 comp_vars[comp_var_index++] = v[1];
                             }
                             break;
+#ifdef HAVE_FLOAT128_T
+                        case gta::cfloat128:
+                            {
+                                float128_t v[2];
+                                std::memcpy(v, hdri.component(element.ptr(), i), 2 * sizeof(float128_t));
+                                comp_vars[comp_var_index++] = v[0];
+                                comp_vars[comp_var_index++] = v[1];
+                            }
+                            break;
+#endif
                         default:
                             // cannot happen
+                            assert(false);
                             break;
                         }
                     }
@@ -314,6 +370,22 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
                                 std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(uint64_t));
                             }
                             break;
+#ifdef HAVE_INT128_T
+                        case gta::int128:
+                            {
+                                int128_t v = comp_vars[comp_var_index++];
+                                std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(int128_t));
+                            }
+                            break;
+#endif
+#ifdef HAVE_UINT128_T
+                        case gta::uint128:
+                            {
+                                uint128_t v = comp_vars[comp_var_index++];
+                                std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(uint128_t));
+                            }
+                            break;
+#endif
                         case gta::float32:
                             {
                                 float v = comp_vars[comp_var_index++];
@@ -322,9 +394,18 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
                             break;
                         case gta::float64:
                             {
-                                std::memcpy(hdri.component(element.ptr(), i), &(comp_vars[comp_var_index++]), sizeof(double));
+                                double v = comp_vars[comp_var_index++];
+                                std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(double));
                             }
                             break;
+#ifdef HAVE_FLOAT128_T
+                        case gta::float128:
+                            {
+                                float128_t v = comp_vars[comp_var_index++];
+                                std::memcpy(hdri.component(element.ptr(), i), &v, sizeof(float128_t));
+                            }
+                            break;
+#endif
                         case gta::cfloat32:
                             {
                                 float v[2] = { static_cast<float>(comp_vars[comp_var_index]), static_cast<float>(comp_vars[comp_var_index + 1]) };
@@ -334,12 +415,23 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
                             break;
                         case gta::cfloat64:
                             {
-                                std::memcpy(hdri.component(element.ptr(), i), &(comp_vars[comp_var_index]), 2 * sizeof(double));
+                                double v[2] = { comp_vars[comp_var_index], comp_vars[comp_var_index + 1] };
                                 comp_var_index += 2;
+                                std::memcpy(hdri.component(element.ptr(), i), v, 2 * sizeof(double));
                             }
                             break;
+#ifdef HAVE_FLOAT128_T
+                        case gta::cfloat128:
+                            {
+                                float128_t v[2] = { comp_vars[comp_var_index], comp_vars[comp_var_index + 1] };
+                                comp_var_index += 2;
+                                std::memcpy(hdri.component(element.ptr(), i), v, 2 * sizeof(float128_t));
+                            }
+                            break;
+#endif
                         default:
                             // cannot happen
+                            assert(false);
                             break;
                         }
                     }

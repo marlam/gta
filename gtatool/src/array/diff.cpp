@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2013
+ * Copyright (C) 2013, 2014
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -117,6 +117,20 @@ static void float_diff(bool absolute, const void* c0, const void* c1, void* d)
     std::memcpy(d, &z, sizeof(T));
 }
 
+#if !defined(LONG_DOUBLE_IS_IEEE_754_QUAD) && defined(HAVE___FLOAT128)
+template<>
+void float_diff<float128_t>(bool absolute, const void* c0, const void* c1, void* d)
+{
+    float128_t x, y, z;
+    std::memcpy(&x, c0, sizeof(float128_t));
+    std::memcpy(&y, c1, sizeof(float128_t));
+    z = x - y;
+    if (absolute)
+        z = fabsq(z);
+    std::memcpy(d, &z, sizeof(float128_t));
+}
+#endif
+
 static void diff(gta::type t, bool absolute, bool force, const void* c0, const void* c1, void* d)
 {
     if (t == gta::int8)
@@ -135,10 +149,22 @@ static void diff(gta::type t, bool absolute, bool force, const void* c0, const v
         signed_int_diff<int64_t>(absolute, force, c0, c1, d);
     else if (t == gta::uint64)
         unsigned_int_diff<uint64_t>(absolute, force, c0, c1, d);
+#ifdef HAVE_INT128_T
+    else if (t == gta::int128)
+        signed_int_diff<int128_t>(absolute, force, c0, c1, d);
+#endif
+#ifdef HAVE_UINT128_T
+    else if (t == gta::uint128)
+        unsigned_int_diff<uint128_t>(absolute, force, c0, c1, d);
+#endif
     else if (t == gta::float32)
         float_diff<float>(absolute, c0, c1, d);
-    else // t == gta::float64
+    else if (t == gta::float64)
         float_diff<double>(absolute, c0, c1, d);
+#ifdef HAVE_FLOAT128_T
+    else if (t == gta::float128)
+        float_diff<float128_t>(absolute, c0, c1, d);
+#endif
 }
 
 extern "C" int gtatool_diff(int argc, char *argv[])
@@ -196,8 +222,18 @@ extern "C" int gtatool_diff(int argc, char *argv[])
                         && hdri[1].component_type(c) != gta::uint32
                         && hdri[1].component_type(c) != gta::int64
                         && hdri[1].component_type(c) != gta::uint64
+#ifdef HAVE_INT128_T
+                        && hdri[1].component_type(c) != gta::int128
+#endif
+#ifdef HAVE_UINT128_T
+                        && hdri[1].component_type(c) != gta::uint128
+#endif
                         && hdri[1].component_type(c) != gta::float32
-                        && hdri[1].component_type(c) != gta::float64)
+                        && hdri[1].component_type(c) != gta::float64
+#ifdef HAVE_FLOAT128_T
+                        && hdri[1].component_type(c) != gta::float128
+#endif
+                   )
                 {
                     throw exc(namei[1] + ": cannot compute differences of type "
                             + type_to_string(hdri[1].component_type(c), hdri[1].component_size(c)));

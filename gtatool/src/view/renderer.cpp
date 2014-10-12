@@ -28,6 +28,8 @@
 #include "base/msg.h"
 #include "base/tmr.h"
 
+#include "lib.h"
+
 #include "mode_2d_fs.glsl.h"
 
 
@@ -273,6 +275,14 @@ void Renderer::pre_render_shared()
                 format = GL_RED;
                 type = GL_FLOAT;
                 break;
+#ifdef HAVE_FLOAT128
+            case gta::float128:
+                internal_format = GL_R32F; // precision loss!
+                internal_element_size = sizeof(float);
+                format = GL_RED;
+                type = GL_FLOAT;
+                break;
+#endif
             case gta::cfloat32:
                 internal_format = GL_RG32F; // may lose sepcial values, e.g. NaN
                 internal_element_size = 2 * sizeof(float);
@@ -285,6 +295,14 @@ void Renderer::pre_render_shared()
                 format = GL_RG;
                 type = GL_FLOAT;
                 break;
+#ifdef HAVE_FLOAT128
+            case gta::cfloat128:
+                internal_format = GL_RG32F; // precision loss!
+                internal_element_size = 2 * sizeof(float);
+                format = GL_RG;
+                type = GL_FLOAT;
+                break;
+#endif
             default:
                 // cannot happen
                 assert(false);
@@ -322,6 +340,26 @@ void Renderer::pre_render_shared()
                     vf = v;
                     std::memcpy(&component_data[i * internal_element_size], &vf, internal_element_size);
                 }
+#ifdef HAVE_INT128_T
+            } else if (t == gta::int128) {
+                for (size_t i = 0; i < w * h; i++) {
+                    int128_t v;
+                    float vf;
+                    std::memcpy(&v, &gta_data[i * gta_element_size + gta_component_offset], sizeof(int128_t));
+                    vf = v;
+                    std::memcpy(&component_data[i * internal_element_size], &vf, internal_element_size);
+                }
+#endif
+#ifdef HAVE_UINT128_T
+            } else if (t == gta::uint128) {
+                for (size_t i = 0; i < w * h; i++) {
+                    uint128_t v;
+                    float vf;
+                    std::memcpy(&v, &gta_data[i * gta_element_size + gta_component_offset], sizeof(uint128_t));
+                    vf = v;
+                    std::memcpy(&component_data[i * internal_element_size], &vf, internal_element_size);
+                }
+#endif
             } else if (t == gta::float64) {
                 for (size_t i = 0; i < w * h; i++) {
                     double v;
@@ -339,6 +377,25 @@ void Renderer::pre_render_shared()
                     vf[1] = v[1];
                     std::memcpy(&component_data[i * internal_element_size], vf, internal_element_size);
                 }
+#ifdef HAVE_FLOAT128_T
+            } else if (t == gta::float128) {
+                for (size_t i = 0; i < w * h; i++) {
+                    float128_t v;
+                    float vf;
+                    std::memcpy(&v, &gta_data[i * gta_element_size + gta_component_offset], sizeof(float128_t));
+                    vf = v;
+                    std::memcpy(&component_data[i * internal_element_size], &vf, internal_element_size);
+                }
+            } else if (t == gta::cfloat128) {
+                for (size_t i = 0; i < w * h; i++) {
+                    float128_t v[2];
+                    float vf[2];
+                    std::memcpy(v, &gta_data[i * gta_element_size + gta_component_offset], 2 * sizeof(float128_t));
+                    vf[0] = v[0];
+                    vf[1] = v[1];
+                    std::memcpy(&component_data[i * internal_element_size], vf, internal_element_size);
+                }
+#endif
             } else {
                 for (size_t i = 0; i < w * h; i++) {
                     std::memcpy(&component_data[i * internal_element_size],
@@ -440,7 +497,8 @@ void Renderer::render()
             glUniform1iv(glGetUniformLocation(_mode_2d.prg, "components"), 3, components);
             glUniform1i(glGetUniformLocation(_mode_2d.prg, "is_complex"),
                     _gta_hdr.component_type(component) == gta::cfloat32
-                    || _gta_hdr.component_type(component) == gta::cfloat64);
+                    || _gta_hdr.component_type(component) == gta::cfloat64
+                    || _gta_hdr.component_type(component) == gta::cfloat128);
             glUniform1i(glGetUniformLocation(_mode_2d.prg, "colorspace"),
                     static_cast<int>(ViewParameters::colorspace_null));
             glUniform1f(glGetUniformLocation(_mode_2d.prg, "denorm_factor"),

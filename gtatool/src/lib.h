@@ -22,6 +22,33 @@
 #ifndef LIB_H
 #define LIB_H
 
+#include "config.h"
+
+#if !defined(HAVE_INT128_T) && defined(HAVE___INT128)
+typedef __int128 int128_t;
+# define INT128_MAX (__int128) (((unsigned __int128) 1 << 127) - 1)
+# define INT128_MIN (-INT128_MAX - 1)
+# define HAVE_INT128_T 1
+#elif defined(HAVE_INT128_T)
+# define INT128_MAX (std::numeric_limits<int128_t>::max())
+# define INT128_MIN (std::numeric_limits<int128_t>::min())
+#endif
+#if !defined(HAVE_UINT128_T) && defined(HAVE_UNSIGNED___INT128)
+# define UINT128_MAX ((((unsigned __int128) 1 << 127) << 1) - 1)
+typedef unsigned __int128 uint128_t;
+# define HAVE_UINT128_T 1
+#elif defined(HAVE_UINT128_T)
+# define UINT128_MAX (std::numeric_limits<uint128_t>::max())
+#endif
+#ifdef LONG_DOUBLE_IS_IEEE_754_QUAD
+typedef long double float128_t;
+# define HAVE_FLOAT128_T 1
+#elif defined(HAVE___FLOAT128)
+# include <quadmath.h>
+typedef __float128 float128_t;
+# define HAVE_FLOAT128_T 1
+#endif
+
 #include <string>
 #include <vector>
 #include <cerrno>

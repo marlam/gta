@@ -223,146 +223,141 @@ void typelist_from_string(const std::string &s, std::vector<gta::type> *types, s
 
 void value_from_string(const std::string &s, const gta::type t, const uintmax_t size, void *value)
 {
-    std::istringstream is(s);
     switch (t)
     {
     case gta::blob:
         {
-            int tv;
-            is >> tv;
-            if (!is.fail() && (tv < std::numeric_limits<uint8_t>::min() || tv > std::numeric_limits<uint8_t>::max()))
-            {
-                is.setstate(std::ios::failbit);
-            }
+            int tv = str::to<unsigned char>(s);
             memset(value, tv, checked_cast<size_t>(size));
         }
         break;
     case gta::int8:
         {
-            int tv;
-            is >> tv;
-            if (!is.fail() && (tv < std::numeric_limits<int8_t>::min() || tv > std::numeric_limits<int8_t>::max()))
-            {
-                is.setstate(std::ios::failbit);
-            }
-            int8_t v = tv;
+            int8_t v = str::to<int8_t>(s);
             memcpy(value, &v, sizeof(int8_t));
         }
         break;
     case gta::uint8:
         {
-            int tv;
-            is >> tv;
-            if (!is.fail() && (tv < std::numeric_limits<uint8_t>::min() || tv > std::numeric_limits<uint8_t>::max()))
-            {
-                is.setstate(std::ios::failbit);
-            }
-            uint8_t v = tv;
+            uint8_t v = str::to<uint8_t>(s);
             memcpy(value, &v, sizeof(uint8_t));
         }
         break;
     case gta::int16:
         {
-            int16_t v;
-            is >> v;
+            int16_t v = str::to<int16_t>(s);
             memcpy(value, &v, sizeof(int16_t));
         }
         break;
     case gta::uint16:
         {
-            uint16_t v;
-            is >> v;
+            uint16_t v = str::to<uint16_t>(s);
             memcpy(value, &v, sizeof(uint16_t));
         }
         break;
     case gta::int32:
         {
-            int32_t v;
-            is >> v;
+            int32_t v = str::to<int32_t>(s);
             memcpy(value, &v, sizeof(int32_t));
         }
         break;
     case gta::uint32:
         {
-            uint32_t v;
-            is >> v;
+            uint32_t v = str::to<uint32_t>(s);
             memcpy(value, &v, sizeof(uint32_t));
         }
         break;
     case gta::int64:
         {
-            int64_t v;
-            is >> v;
+            int64_t v = str::to<int64_t>(s);
             memcpy(value, &v, sizeof(int64_t));
         }
         break;
     case gta::uint64:
         {
-            uint64_t v;
-            is >> v;
+            uint64_t v = str::to<uint64_t>(s);
             memcpy(value, &v, sizeof(uint64_t));
         }
         break;
     case gta::int128:
+#ifdef HAVE_INT128_T
+        {
+            int128_t v = str::to<int128_t>(s);
+            memcpy(value, &v, sizeof(int128_t));
+        }
+#else
+        throw exc("int128 is not supported on this platform");
+#endif
+        break;
     case gta::uint128:
-        throw exc("128 bit integer types are currently not supported");
+#ifdef HAVE_UINT128_T
+        {
+            uint128_t v = str::to<uint128_t>(s);
+            memcpy(value, &v, sizeof(uint128_t));
+        }
+#else
+        throw exc("uint128 is not supported on this platform");
+#endif
         break;
     case gta::float32:
         {
-            float v;
-            is >> v;
+            float v = str::to<float>(s);
             memcpy(value, &v, sizeof(float));
         }
         break;
     case gta::float64:
         {
-            double v;
-            is >> v;
+            double v = str::to<double>(s);
             memcpy(value, &v, sizeof(double));
         }
         break;
     case gta::float128:
-    case gta::cfloat128:
-        throw exc("the quad-precision floating point type is currently not supported");
+#ifdef HAVE_FLOAT128_T
+        {
+            float128_t v = str::to<float128_t>(s);
+            memcpy(value, &v, sizeof(float128_t));
+        }
+#else
+        throw exc("float128 is not supported on this platform");
+#endif
         break;
     case gta::cfloat32:
         {
-            char *float_value = static_cast<char *>(value);
-            float v0;
-            is >> v0;
-            memcpy(float_value + 0, &v0, sizeof(float));
-            char comma = '\0';
-            is >> comma;
-            if (comma != ',')
-            {
+            std::vector<std::string> toks = str::tokens(s, ",");
+            if (toks.size() != 2)
                 throw exc("two comma separated values expected for complex types");
-            }
-            float v1;
-            is >> v1;
-            memcpy(float_value + sizeof(float), &v1, sizeof(float));
+            float v0 = str::to<float>(toks[0]);
+            memcpy(value, &v0, sizeof(float));
+            float v1 = str::to<float>(toks[1]);
+            memcpy(static_cast<unsigned char*>(value) + sizeof(float), &v1, sizeof(float));
         }
         break;
     case gta::cfloat64:
         {
-            char *double_value = static_cast<char *>(value);
-            double v0;
-            is >> v0;
-            memcpy(double_value + 0, &v0, sizeof(double));
-            char comma = '\0';
-            is >> comma;
-            if (comma != ',')
-            {
+            std::vector<std::string> toks = str::tokens(s, ",");
+            if (toks.size() != 2)
                 throw exc("two comma separated values expected for complex types");
-            }
-            double v1;
-            is >> v1;
-            memcpy(double_value + sizeof(double), &v1, sizeof(double));
+            double v0 = str::to<double>(toks[0]);
+            memcpy(value, &v0, sizeof(double));
+            double v1 = str::to<double>(toks[1]);
+            memcpy(static_cast<unsigned char*>(value) + sizeof(double), &v1, sizeof(double));
         }
         break;
-    }
-    if (is.fail() || !is.eof())
-    {
-        throw exc(std::string("cannot read ") + type_to_string(t, 0) + " from " + str::sanitize(s), EINVAL);
+    case gta::cfloat128:
+        {
+            std::vector<std::string> toks = str::tokens(s, ",");
+            if (toks.size() != 2)
+                throw exc("two comma separated values expected for complex types");
+#ifdef HAVE_FLOAT128_T
+            float128_t v0 = str::to<float128_t>(toks[0]);
+            memcpy(value, &v0, sizeof(float128_t));
+            float128_t v1 = str::to<float128_t>(toks[1]);
+            memcpy(static_cast<unsigned char*>(value) + sizeof(float128_t), &v1, sizeof(float128_t));
+#else
+            throw exc("cfloat128 is not supported on this platform");
+#endif
+        }
+        break;
     }
 }
 

@@ -27,6 +27,8 @@
 #include "base/dbg.h"
 #include "base/sys.h"
 
+#include "lib.h"
+
 
 void ViewParameters::set_mode(mode_t m, const gta::header& hdr, const MinMaxHist& minmaxhist)
 {
@@ -244,7 +246,17 @@ ViewParameters::mode_t ViewParameters::suggest_mode(const gta::header& hdr, std:
         gta::type t = hdr.component_type(c);
         if (t != gta::int8 && t != gta::uint8 && t != gta::int16 && t != gta::uint16
                 && t != gta::int32 && t != gta::uint32 && t != gta::int64 && t != gta::uint64
-                && t != gta::float32 && t != gta::float64 && t != gta::cfloat32 && t != gta::cfloat64) {
+                && t != gta::float32 && t != gta::float64 && t != gta::cfloat32 && t != gta::cfloat64
+#ifdef HAVE_INT128_T
+                && t != gta::int128
+#endif
+#ifdef HAVE_UINT128_T
+                && t != gta::uint128
+#endif
+#ifdef HAVE_FLOAT128_T
+                && t != gta::float128 && t != gta::cfloat128
+#endif
+                ) {
             if (failure_reason)
                 *failure_reason = "Unsupported component type";
             return mode_null;

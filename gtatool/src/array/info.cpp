@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011, 2012, 2013
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -106,8 +106,17 @@ extern "C" int gtatool_info(int argc, char *argv[])
                             uint32_t uint32_v;
                             int64_t int64_v;
                             uint64_t uint64_v;
+#ifdef HAVE_INT128_T
+                            int128_t int128_v;
+#endif
+#ifdef HAVE_UINT128_T
+                            uint128_t uint128_v;
+#endif
                             float float_v;
                             double double_v;
+#ifdef HAVE_FLOAT128_T
+                            float128_t float128_v;
+#endif
                         } nodata_value;
                         bool have_nodata_value = false;
                         const char* tagval = hdr.component_taglist(c).get("NO_DATA_VALUE");
@@ -139,6 +148,16 @@ extern "C" int gtatool_info(int argc, char *argv[])
                             case gta::uint64:
                                 have_nodata_value = (str::to(tagval, &nodata_value.uint64_v) == 0);
                                 break;
+#ifdef HAVE_INT128_T
+                            case gta::int128:
+                                have_nodata_value = (str::to(tagval, &nodata_value.int128_v) == 0);
+                                break;
+#endif
+#ifdef HAVE_UINT128_T
+                            case gta::uint128:
+                                have_nodata_value = (str::to(tagval, &nodata_value.uint128_v) == 0);
+                                break;
+#endif
                             case gta::float32:
                             case gta::cfloat32:
                                 have_nodata_value = (str::to(tagval, &nodata_value.float_v) == 0);
@@ -147,6 +166,12 @@ extern "C" int gtatool_info(int argc, char *argv[])
                             case gta::cfloat64:
                                 have_nodata_value = (str::to(tagval, &nodata_value.double_v) == 0);
                                 break;
+#ifdef HAVE_FLOAT128_T
+                            case gta::float128:
+                            case gta::cfloat128:
+                                have_nodata_value = (str::to(tagval, &nodata_value.double_v) == 0);
+                                break;
+#endif
                             default:
                                 throw exc(std::string("cannot handle NO_DATA_VALUE for component type ")
                                         + type_to_string(hdr.component_type(c), hdr.component_size(c)));
@@ -221,6 +246,26 @@ extern "C" int gtatool_info(int argc, char *argv[])
                                     val = v;
                             }
                             break;
+#ifdef HAVE_INT128_T
+                        case gta::int128:
+                            {
+                                int128_t v;
+                                memcpy(&v, component, sizeof(int128_t));
+                                if (!have_nodata_value || v != nodata_value.int128_v)
+                                    val = v;
+                            }
+                            break;
+#endif
+#ifdef HAVE_UINT128_T
+                        case gta::uint128:
+                            {
+                                uint128_t v;
+                                memcpy(&v, component, sizeof(uint128_t));
+                                if (!have_nodata_value || v != nodata_value.uint128_v)
+                                    val = v;
+                            }
+                            break;
+#endif
                         case gta::float32:
                         case gta::cfloat32:
                             {
@@ -239,6 +284,17 @@ extern "C" int gtatool_info(int argc, char *argv[])
                                     val = v;
                             }
                             break;
+#ifdef HAVE_FLOAT128_T
+                        case gta::float128:
+                        case gta::cfloat128:
+                            {
+                                float128_t v;
+                                memcpy(&v, component, sizeof(float128_t));
+                                if (!have_nodata_value || std::memcmp(&v, &nodata_value.double_v, sizeof(float128_t)) != 0)
+                                    val = v;
+                            }
+                            break;
+#endif
                         default:
                             throw exc(std::string("cannot compute minimum/maximum for component type ")
                                     + type_to_string(hdr.component_type(c), hdr.component_size(c)));

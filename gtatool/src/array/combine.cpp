@@ -185,8 +185,12 @@ static void combine(gta::type t, combine_mode_t mode, bool force, size_t n, cons
             bit_combine<uint16_t>(mode, n, c, l);
         else if (t == gta::int32 || t == gta::uint32 || t == gta::float32)
             bit_combine<uint32_t>(mode, n, c, l);
-        else // (t == gta::int64 || t == gta::uint64 || t == gta::float64)
+        else if (t == gta::int64 || t == gta::uint64 || t == gta::float64)
             bit_combine<uint64_t>(mode, n, c, l);
+#ifdef HAVE_UINT128_T
+        else if (t == gta::int128 || t == gta::uint128 || t == gta::float128)
+            bit_combine<uint128_t>(mode, n, c, l);
+#endif
     }
     else
     {
@@ -206,10 +210,22 @@ static void combine(gta::type t, combine_mode_t mode, bool force, size_t n, cons
             int_arith_combine<int64_t>(mode, force, n, c, l);
         else if (t == gta::uint64)
             int_arith_combine<uint64_t>(mode, force, n, c, l);
+#ifdef HAVE_INT128_T
+        else if (t == gta::int128)
+            int_arith_combine<int128_t>(mode, force, n, c, l);
+#endif
+#ifdef HAVE_UINT128_T
+        else if (t == gta::uint128)
+            int_arith_combine<uint128_t>(mode, force, n, c, l);
+#endif
         else if (t == gta::float32)
             float_arith_combine<float>(mode, n, c, l);
-        else // t == gta::float64
+        else if (t == gta::float64)
             float_arith_combine<double>(mode, n, c, l);
+#ifdef HAVE_FLOAT128_T
+        else if (t == gta::float128)
+            float_arith_combine<float128_t>(mode, n, c, l);
+#endif
     }
 }
 
@@ -293,8 +309,18 @@ extern "C" int gtatool_combine(int argc, char *argv[])
                             && hdri[i].component_type(c) != gta::uint32
                             && hdri[i].component_type(c) != gta::int64
                             && hdri[i].component_type(c) != gta::uint64
+#if defined(HAVE_INT128_T) && defined(HAVE_UINT128_T)
+                            && hdri[i].component_type(c) != gta::int128
+#endif
+#ifdef HAVE_UINT128_T
+                            && hdri[i].component_type(c) != gta::uint128
+#endif
                             && hdri[i].component_type(c) != gta::float32
-                            && hdri[i].component_type(c) != gta::float64)
+                            && hdri[i].component_type(c) != gta::float64
+#if defined(HAVE_FLOAT128_T) && defined(HAVE_UINT128_T)
+                            && hdri[i].component_type(c) != gta::float128
+#endif
+                       )
                     {
                         throw exc(namei[i] + ": cannot compute combinations of type "
                                 + type_to_string(hdri[i].component_type(c), hdri[i].component_size(c)));

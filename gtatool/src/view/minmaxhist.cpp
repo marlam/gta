@@ -28,6 +28,8 @@
 
 #include "minmaxhist.hpp"
 
+#include "lib.h"
+
 
 template<typename T>
 static void get_gta_nodata(const gta::header& hdr, size_t component, T* nodata_value, bool* have_nodata_value)
@@ -167,6 +169,20 @@ void MinMaxHist::compute(const gta::header& hdr, const void* data)
             histograms[c].resize(1024, 0);
             get_gta_histogram_helper<int64_t>(hdr, data, c, minvals[c], maxvals[c], &histograms[c], &histogram_maxvals[c]);
             break;
+#ifdef HAVE_UINT128_T
+        case gta::uint128:
+            get_gta_minmax_helper<uint128_t>(hdr, data, c, &minvals[c], &maxvals[c]);
+            histograms[c].resize(1024, 0);
+            get_gta_histogram_helper<uint128_t>(hdr, data, c, minvals[c], maxvals[c], &histograms[c], &histogram_maxvals[c]);
+            break;
+#endif
+#ifdef HAVE_INT128_T
+        case gta::int128:
+            get_gta_minmax_helper<int128_t>(hdr, data, c, &minvals[c], &maxvals[c]);
+            histograms[c].resize(1024, 0);
+            get_gta_histogram_helper<int128_t>(hdr, data, c, minvals[c], maxvals[c], &histograms[c], &histogram_maxvals[c]);
+            break;
+#endif
         case gta::float32:
             get_gta_minmax_helper<float>(hdr, data, c, &minvals[c], &maxvals[c]);
             histograms[c].resize(1024, 0);
@@ -177,6 +193,13 @@ void MinMaxHist::compute(const gta::header& hdr, const void* data)
             histograms[c].resize(1024, 0);
             get_gta_histogram_helper<double>(hdr, data, c, minvals[c], maxvals[c], &histograms[c], &histogram_maxvals[c]);
             break;
+#ifdef HAVE_FLOAT128_T
+        case gta::float128:
+            get_gta_minmax_helper<float128_t>(hdr, data, c, &minvals[c], &maxvals[c]);
+            histograms[c].resize(1024, 0);
+            get_gta_histogram_helper<float128_t>(hdr, data, c, minvals[c], maxvals[c], &histograms[c], &histogram_maxvals[c]);
+            break;
+#endif
         case gta::cfloat32:
             get_gta_minmax_helper<float>(hdr, data, c, &minvals[c], &maxvals[c]);
             histograms[c].resize(1024, 0);
@@ -187,6 +210,13 @@ void MinMaxHist::compute(const gta::header& hdr, const void* data)
             histograms[c].resize(1024, 0);
             get_gta_histogram_helper<double>(hdr, data, c, minvals[c], maxvals[c], &histograms[c], &histogram_maxvals[c]);
             break;
+#ifdef HAVE_FLOAT128_T
+        case gta::cfloat128:
+            get_gta_minmax_helper<float128_t>(hdr, data, c, &minvals[c], &maxvals[c]);
+            histograms[c].resize(1024, 0);
+            get_gta_histogram_helper<float128_t>(hdr, data, c, minvals[c], maxvals[c], &histograms[c], &histogram_maxvals[c]);
+            break;
+#endif
         default:
             // cannot happen
             assert(false);
