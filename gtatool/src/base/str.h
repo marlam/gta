@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2010, 2011, 2012, 2013
+ * Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,6 +24,8 @@
 
 #ifndef STR_H
 #define STR_H
+
+#include "config.h"
 
 #include <string>
 #include <vector>
@@ -59,9 +61,18 @@ namespace str
     std::string from(unsigned long x);
     std::string from(long long x);
     std::string from(unsigned long long x);
+#if !defined(HAVE_INT128_T) && defined(HAVE___INT128)
+    std::string from(__int128 x);
+#endif
+#if !defined(HAVE_UINT128_T) && defined(HAVE_UNSIGNED___INT128)
+    std::string from(unsigned __int128 x);
+#endif
     std::string from(float x);
     std::string from(double x);
     std::string from(long double x);
+#if !defined(LONG_DOUBLE_IS_IEEE_754_QUAD) && defined(HAVE___FLOAT128)
+    std::string from(__float128 x);
+#endif
 
     /* Convert a string to one of the basic data types */
     template<typename T> T to(const std::string &s);
@@ -76,9 +87,18 @@ namespace str
     template<> unsigned long to<unsigned long>(const std::string &s);
     template<> long long to<long long>(const std::string &s);
     template<> unsigned long long to<unsigned long long>(const std::string &s);
+#if !defined(HAVE_INT128_T) && defined(HAVE___INT128)
+    template<> __int128 to<__int128>(const std::string &s);
+#endif
+#if !defined(HAVE_UINT128_T) && defined(HAVE_UNSIGNED___INT128)
+    template<> unsigned __int128 to<unsigned __int128>(const std::string &s);
+#endif
     template<> float to<float>(const std::string &s);
     template<> double to<double>(const std::string &s);
     template<> long double to<long double>(const std::string &s);
+#if !defined(LONG_DOUBLE_IS_IEEE_754_QUAD) && defined(HAVE___FLOAT128)
+    template<> __float128 to<__float128>(const std::string &s);
+#endif
     template<typename T> bool to(const std::string& s, T* x);
     template<> bool to(const std::string& s, bool* x);
     template<> bool to(const std::string& s, signed char* x);
@@ -91,9 +111,18 @@ namespace str
     template<> bool to(const std::string& s, unsigned long* x);
     template<> bool to(const std::string& s, long long* x);
     template<> bool to(const std::string& s, unsigned long long* x);
+#if !defined(HAVE_INT128_T) && defined(HAVE___INT128)
+    template<> bool to(const std::string& s, __int128* x);
+#endif
+#if !defined(HAVE_UINT128_T) && defined(HAVE_UNSIGNED___INT128)
+    template<> bool to(const std::string& s, unsigned __int128* x);
+#endif
     template<> bool to(const std::string& s, float* x);
     template<> bool to(const std::string& s, double* x);
     template<> bool to(const std::string& s, long double* x);
+#if !defined(LONG_DOUBLE_IS_IEEE_754_QUAD) && defined(HAVE___FLOAT128)
+    template<> bool to(const std::string& s, __float128* x);
+#endif
 
     /* Create std::strings printf-like */
     std::string vasprintf(const char *format, va_list args) STR_AFP(1, 0);
