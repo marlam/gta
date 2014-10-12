@@ -26,11 +26,9 @@
 #include <cstdio>
 #include <cstring>
 
-#define __STDC_FORMAT_MACROS
-#include <inttypes.h>
-
 #include <gta/gta.hpp>
 
+#include "base/dbg.h"
 #include "base/msg.h"
 #include "base/str.h"
 #include "base/fio.h"
@@ -51,67 +49,53 @@ extern "C" void gtatool_to_csv_help(void)
             "be separated by blank lines in the output.");
 }
 
-static void write_component(const void* c, gta::type t, char s[32])
+template<typename T>
+static std::string write_component(const void* c)
 {
-    if (t == gta::int8)
-    {
-        int8_t v;
-        std::memcpy(&v, c, sizeof(int8_t));
-        snprintf(s, 32, "%" PRId8, v);
-    }
-    else if (t == gta::uint8)
-    {
-        uint8_t v;
-        std::memcpy(&v, c, sizeof(uint8_t));
-        snprintf(s, 32, "%" PRIu8, v);
-    }
-    else if (t == gta::int16)
-    {
-        int16_t v;
-        std::memcpy(&v, c, sizeof(int16_t));
-        snprintf(s, 32, "%" PRId16, v);
-    }
-    else if (t == gta::uint16)
-    {
-        uint16_t v;
-        std::memcpy(&v, c, sizeof(uint16_t));
-        snprintf(s, 32, "%" PRIu16, v);
-    }
-    else if (t == gta::int32)
-    {
-        int32_t v;
-        std::memcpy(&v, c, sizeof(int32_t));
-        snprintf(s, 32, "%" PRId32, v);
-    }
-    else if (t == gta::uint32)
-    {
-        uint32_t v;
-        std::memcpy(&v, c, sizeof(uint32_t));
-        snprintf(s, 32, "%" PRIu32, v);
-    }
-    else if (t == gta::int64)
-    {
-        int64_t v;
-        std::memcpy(&v, c, sizeof(int64_t));
-        snprintf(s, 32, "%" PRId64, v);
-    }
-    else if (t == gta::uint64)
-    {
-        uint64_t v;
-        std::memcpy(&v, c, sizeof(uint64_t));
-        snprintf(s, 32, "%" PRIu64, v);
-    }
-    else if (t == gta::float32)
-    {
-        float v;
-        std::memcpy(&v, c, sizeof(float));
-        snprintf(s, 32, "%.9g", v);
-    }
-    else // t == gta::float64
-    {
-        double v;
-        std::memcpy(&v, c, sizeof(double));
-        snprintf(s, 32, "%.17g", v);
+    T v;
+    std::memcpy(&v, c, sizeof(T));
+    return str::from(v);
+}
+
+static std::string write_component(const void* c, gta::type t)
+{
+    switch (t) {
+    case gta::int8:
+        return write_component<int8_t>(c);
+    case gta::uint8:
+        return write_component<uint8_t>(c);
+    case gta::int16:
+        return write_component<int16_t>(c);
+    case gta::uint16:
+        return write_component<uint16_t>(c);
+    case gta::int32:
+        return write_component<int32_t>(c);
+    case gta::uint32:
+        return write_component<uint32_t>(c);
+    case gta::int64:
+        return write_component<int64_t>(c);
+    case gta::uint64:
+        return write_component<uint64_t>(c);
+#ifdef HAVE_INT128_T
+    case gta::int128:
+        return write_component<int128_t>(c);
+#endif
+#ifdef HAVE_UINT128_T
+    case gta::uint128:
+        return write_component<uint128_t>(c);
+#endif
+    case gta::float32:
+        return write_component<float>(c);
+    case gta::float64:
+        return write_component<double>(c);
+#ifdef HAVE_FLOAT128_T
+    case gta::float128:
+        return write_component<float128_t>(c);
+#endif
+    default:
+        // cannot happen
+        assert(false);
+        return "";
     }
 }
 
@@ -164,8 +148,18 @@ extern "C" int gtatool_to_csv(int argc, char *argv[])
                         && hdr.component_type(c) != gta::uint32
                         && hdr.component_type(c) != gta::int64
                         && hdr.component_type(c) != gta::uint64
+#ifdef HAVE_INT128_T
+                        && hdr.component_type(c) != gta::int128
+#endif
+#ifdef HAVE_UINT128_T
+                        && hdr.component_type(c) != gta::uint128
+#endif
                         && hdr.component_type(c) != gta::float32
-                        && hdr.component_type(c) != gta::float64)
+                        && hdr.component_type(c) != gta::float64
+#ifdef HAVE_FLOAT128_T
+                        && hdr.component_type(c) != gta::float128
+#endif
+                   )
                 {
                     throw exc(name + ": unsupported element component type(s).");
                 }
@@ -199,7 +193,7 @@ extern "C" int gtatool_to_csv(int argc, char *argv[])
                 }
             }
 
-            char sbuf[32];
+            std::string s;
             element_loop_t element_loop;
             array_loop.start_element_loop(element_loop, hdr, gta::header());
             for (uintmax_t e = 0; e < hdr.elements(); e++)
@@ -210,13 +204,13 @@ extern "C" int gtatool_to_csv(int argc, char *argv[])
                     if (no_data_values[c].size() != 0
                             && std::memcmp(no_data_values[c].ptr(), hdr.component(p, c), no_data_values[c].size()) == 0)
                     {
-                        sbuf[0] = '\0';
+                        s = std::string();
                     }
                     else
                     {
-                        write_component(hdr.component(p, c), hdr.component_type(c), sbuf);
+                        s = write_component(hdr.component(p, c), hdr.component_type(c));
                     }
-                    if (std::fputs(sbuf, fo) == EOF)
+                    if (std::fputs(s.c_str(), fo) == EOF)
                     {
                         throw exc(nameo + ": output error.");
                     }
