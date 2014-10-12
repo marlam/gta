@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011, 2012, 2013
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -100,14 +100,25 @@ extern "C" int gtatool_to_pfs(int argc, char *argv[])
                         || hdr.component_type(i) == gta::uint32
                         || hdr.component_type(i) == gta::int64
                         || hdr.component_type(i) == gta::uint64
-                        || hdr.component_type(i) == gta::float64)
+#ifdef HAVE_INT128_T
+                        || hdr.component_type(i) == gta::int128
+#endif
+#ifdef HAVE_UINT128_T
+                        || hdr.component_type(i) == gta::uint128
+#endif
+                        || hdr.component_type(i) == gta::float64
+#ifdef HAVE_FLOAT128_T
+                        || hdr.component_type(i) == gta::float128
+#endif
+                   )
                 {
-                    msg::wrn_txt("converting %s to float32 for array element component %s may lose precision",
-                            (hdr.component_type(i) == gta::int32 ? "int32"
-                             : hdr.component_type(i) == gta::uint32 ? "uint32"
-                             : hdr.component_type(i) == gta::int64 ? "int64"
-                             : hdr.component_type(i) == gta::uint64 ? "uint64" : "float64"),
-                            str::from(i).c_str());
+                    msg::wrn_txt(std::string("converting ")
+                            + type_to_string(hdr.component_type(i), hdr.component_size(i))
+                            + " to "
+                            + type_to_string(gta::float32, sizeof(float))
+                            + " for array element component "
+                            + str::from(i)
+                            + " may lose precision");
                 }
                 else if (hdr.component_type(i) != gta::int8
                         && hdr.component_type(i) != gta::uint8
@@ -255,17 +266,47 @@ extern "C" int gtatool_to_pfs(int argc, char *argv[])
                             memcpy(&v, component, sizeof(uint64_t));
                             channels[i][y * hdr.dimension_size(0) + x] = v;
                         }
+#ifdef HAVE_INT128_T
+                        else if (hdr.component_type(i) == gta::int128)
+                        {
+                            int128_t v;
+                            memcpy(&v, component, sizeof(int128_t));
+                            channels[i][y * hdr.dimension_size(0) + x] = v;
+                        }
+#endif
+#ifdef HAVE_UINT128_T
+                        else if (hdr.component_type(i) == gta::uint128)
+                        {
+                            uint128_t v;
+                            memcpy(&v, component, sizeof(uint128_t));
+                            channels[i][y * hdr.dimension_size(0) + x] = v;
+                        }
+#endif
+                        else if (hdr.component_type(i) == gta::float32)
+                        {
+                            float v;
+                            memcpy(&v, component, sizeof(float));
+                            channels[i][y * hdr.dimension_size(0) + x] = v;
+                        }
                         else if (hdr.component_type(i) == gta::float64)
                         {
                             double v;
                             memcpy(&v, component, sizeof(double));
                             channels[i][y * hdr.dimension_size(0) + x] = v;
                         }
-                        else // gta::float32
+#ifdef HAVE_FLOAT128_T
+                        else if (hdr.component_type(i) == gta::float128)
                         {
-                            float v;
-                            memcpy(&v, component, sizeof(float));
+                            float128_t v;
+                            memcpy(&v, component, sizeof(float128_t));
                             channels[i][y * hdr.dimension_size(0) + x] = v;
+                        }
+#endif
+                        else
+                        {
+                            // cannot happen
+                            assert(false);
+                            channels[i][y * hdr.dimension_size(0) + x] = 0;
                         }
                     }
                 }
