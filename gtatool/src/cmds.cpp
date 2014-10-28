@@ -115,6 +115,7 @@ CMD_DECL(from_pcd)
 CMD_DECL(from_pfs)
 CMD_DECL(from_ply)
 CMD_DECL(from_pmd)
+CMD_DECL(from_png)
 CMD_DECL(from_pvm)
 CMD_DECL(from_rat)
 CMD_DECL(from_raw)
@@ -145,6 +146,7 @@ CMD_DECL(to_netpbm)
 CMD_DECL(to_pcd)
 CMD_DECL(to_pfs)
 CMD_DECL(to_ply)
+CMD_DECL(to_png)
 CMD_DECL(to_pvm)
 CMD_DECL(to_rat)
 CMD_DECL(to_raw)
@@ -230,6 +232,8 @@ static cmd_t cmds[] =
             "Import arrays from PLY point data"),
     CMD("from-pmd",          cmd_conversion, from_pmd,          WITH_PMD,      "conv-pmd",
             "Import arrays from PMD ToF sensor data files"),
+    CMD("from-png",          cmd_conversion, from_png,          WITH_PNG,      "conv-png",
+            "Import arrays from PNG files"),
     CMD("from-pvm",          cmd_conversion, from_pvm,          WITH_PVM,      "conv-pvm",
             "Import arrays from PVM volume data"),
     CMD("from-rat",          cmd_conversion, from_rat,          WITH_RAT,      "conv-rat",
@@ -290,6 +294,8 @@ static cmd_t cmds[] =
             "Export arrays to PFS images"),
     CMD("to-ply",            cmd_conversion, to_ply,            WITH_PLY,      "conv-ply",
             "Export arrays to PLY point data"),
+    CMD("to-png",            cmd_conversion, to_png,            WITH_PNG,      "conv-png",
+            "Export arrays to PNG files"),
     CMD("to-pvm",            cmd_conversion, to_pvm,            WITH_PVM,      "conv-pvm",
             "Export arrays to PVM volume data"),
     CMD("to-rat",            cmd_conversion, to_rat,            WITH_RAT,      "conv-rat",

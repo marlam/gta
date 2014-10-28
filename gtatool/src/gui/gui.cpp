@@ -707,6 +707,10 @@ GUI::GUI()
     connect(file_import_ply_action, SIGNAL(triggered()), this, SLOT(file_import_ply()));
     file_import_ply_action->setEnabled(cmd_is_available(cmd_find("from-ply")));
     file_import_menu->addAction(file_import_ply_action);
+    QAction *file_import_png_action = new QAction(tr("PNG image data..."), this);
+    connect(file_import_png_action, SIGNAL(triggered()), this, SLOT(file_import_png()));
+    file_import_png_action->setEnabled(cmd_is_available(cmd_find("from-png")));
+    file_import_menu->addAction(file_import_png_action);
     QAction *file_import_pvm_action = new QAction(tr("PVM volume data..."), this);
     connect(file_import_pvm_action, SIGNAL(triggered()), this, SLOT(file_import_pvm()));
     file_import_pvm_action->setEnabled(cmd_is_available(cmd_find("from-pvm")));
@@ -776,6 +780,10 @@ GUI::GUI()
     connect(file_export_ply_action, SIGNAL(triggered()), this, SLOT(file_export_ply()));
     file_export_ply_action->setEnabled(cmd_is_available(cmd_find("to-ply")));
     file_export_menu->addAction(file_export_ply_action);
+    QAction *file_export_png_action = new QAction(tr("PVM volume data..."), this);
+    connect(file_export_png_action, SIGNAL(triggered()), this, SLOT(file_export_png()));
+    file_export_png_action->setEnabled(cmd_is_available(cmd_find("to-png")));
+    file_export_menu->addAction(file_export_png_action);
     QAction *file_export_pvm_action = new QAction(tr("PVM volume data..."), this);
     connect(file_export_pvm_action, SIGNAL(triggered()), this, SLOT(file_export_pvm()));
     file_export_pvm_action->setEnabled(cmd_is_available(cmd_find("to-pvm")));
@@ -1648,6 +1656,11 @@ void GUI::file_import_ply()
     import_from("from-ply", std::vector<std::string>(), QStringList("PLY files (*.ply)"));
 }
 
+void GUI::file_import_png()
+{
+    import_from("from-png", std::vector<std::string>(), QStringList("PNG files (*.png)"));
+}
+
 void GUI::file_import_pvm()
 {
     import_from("from-pvm", std::vector<std::string>(), QStringList("PVM files (*.pvm)"));
@@ -1769,6 +1782,11 @@ void GUI::file_export_pfs()
 void GUI::file_export_ply()
 {
     export_to("to-ply", std::vector<std::string>(), "ply", QStringList("PLY files (*.ply)"));
+}
+
+void GUI::file_export_png()
+{
+    export_to("to-png", std::vector<std::string>(), "png", QStringList("PNG files (*.png)"));
 }
 
 void GUI::file_export_pvm()

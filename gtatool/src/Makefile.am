@@ -22,6 +22,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/src -DPKGLIBDIR=\"$(pkglibdir)\" \
 	$(libnetcdf_CFLAGS) \
 	$(libpcl_io_CFLAGS) \
 	$(libpfs_CFLAGS) \
+	$(libpng_CFLAGS) \
 	$(libsndfile_CFLAGS) \
 	$(libteem_CFLAGS) \
 	$(libqtopengl_CFLAGS) \
@@ -401,6 +402,17 @@ conv_pmd_la_LIBADD = $(LTLIBPMDACCESS2)
 else
 libbuiltin_la_SOURCES += conv-pmd/from-pmd.cpp
 libbuiltin_la_LIBADD += $(LTLIBPMDACCESS2)
+endif
+endif
+
+if WITH_PNG
+if DYNAMIC_MODULES
+pkglib_LTLIBRARIES += conv-png.la
+conv_png_la_SOURCES = conv-png/from-png.cpp conv-png/to-png.cpp
+conv_png_la_LIBADD = $(libpng_LIBS)
+else
+libbuiltin_la_SOURCES += conv-png/from-png.cpp conv-png/to-png.cpp
+libbuiltin_la_LIBADD += $(libpng_LIBS)
 endif
 endif
 

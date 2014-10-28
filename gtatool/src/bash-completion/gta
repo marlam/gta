@@ -1,4 +1,4 @@
-# Copyright (C) 2013
+# Copyright (C) 2013, 2014
 # Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -48,6 +48,7 @@ _gta()
 	from-pfs
 	from-ply
 	from-pmd
+	from-png
 	from-pvm
 	from-rat
 	from-raw
@@ -78,6 +79,7 @@ _gta()
 	to-pcd
 	to-pfs
 	to-ply
+	to-png
 	to-pvm
 	to-rat
 	to-raw
@@ -360,6 +362,13 @@ _gta()
 	    COMPREPLY=( $(compgen -f -o plusdirs -- ${cur}) )
 	fi
 	;;
+    from-png)
+	if [[ ${cur} == -* ]]; then
+	    COMPREPLY=( $(compgen -W "--help" -- ${cur}) )
+	else
+	    COMPREPLY=( $(compgen -f -o plusdirs -- ${cur}) )
+	fi
+	;;
     from-pvm)
 	if [[ ${cur} == -* ]]; then
 	    COMPREPLY=( $(compgen -W "--help" -- ${cur}) )
@@ -560,6 +569,13 @@ _gta()
 	fi
 	;;
     to-ply)
+	if [[ ${cur} == -* ]]; then
+	    COMPREPLY=( $(compgen -W "--help" -- ${cur}) )
+	else
+	    COMPREPLY=( $(compgen -f -o plusdirs -- ${cur}) )
+	fi
+	;;
+    to-png)
 	if [[ ${cur} == -* ]]; then
 	    COMPREPLY=( $(compgen -W "--help" -- ${cur}) )
 	else

@@ -504,6 +504,20 @@ fi
 AC_DEFINE_UNQUOTED([WITH_PMD], [`if test "$pmd" = "yes"; then echo "1"; else echo "0"; fi`], [Use pmd?])
 AM_CONDITIONAL([WITH_PMD], [test "$pmd" = "yes"])
 
+dnl conv-png: libpng
+AC_ARG_WITH([png],
+    [AS_HELP_STRING([--with-png], [Enable PNG import/export. Enabled by default if libpng is available.])],
+    [if test "$withval" = "yes"; then png="yes"; else png="no "; fi], [png="yes"])
+if test "$png" = "yes"; then
+    PKG_CHECK_MODULES([libpng], [libpng >= 1.2.0], [],
+        [png="no "
+        AC_MSG_WARN([PNG library not found:])
+        AC_MSG_WARN([$libpng_PKG_ERRORS])
+        AC_MSG_WARN([Disabled the from-png and to-png commands.])])
+fi
+AC_DEFINE_UNQUOTED([WITH_PNG], [`if test "$png" = "yes"; then echo "1"; else echo "0"; fi`], [Use png?])
+AM_CONDITIONAL([WITH_PNG], [test "$png" = "yes"])
+
 dnl conv-pvm
 AC_ARG_WITH([pvm],
     [AS_HELP_STRING([--with-pvm], [Enable PVM import/export. Enabled by default.])],
@@ -691,6 +705,7 @@ echo "from-pcd, to-pcd:        " "$pcd" "(Requires the Point Cloud Library IO mo
 echo "from-pfs, to-pfs:        " "$pfs" "(Requires pfstools)"
 echo "from-ply, to-ply:        " "$ply" ""
 echo "from-pmd:                " "$pmd" "(Requires the proprietary PMD SDK)"
+echo "from-png, to-png:        " "$png" "(Requires libpng)"
 echo "from-pvm, to-pvm:        " "$pvm" ""
 echo "from-rat, to-rat:        " "$rat" ""
 echo "from-raw, to-raw:        " "$raw" ""

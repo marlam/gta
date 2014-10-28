@@ -81,6 +81,7 @@ std::vector<std::string> find_filters(const std::string& extension, bool import)
     } else if (extension == "ply") {
         filters.push_back("ply");
     } else if (extension == "png") {
+        filters.push_back("png");
         filters.push_back("magick");
     } else if (extension == "pvm") {
         filters.push_back("pvm");

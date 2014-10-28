@@ -95,6 +95,9 @@ endif
 if WITH_PMD
 TESTS += conv-pmd.sh
 endif
+if WITH_PNG
+TESTS += conv-png.sh
+endif
 if WITH_PVM
 TESTS += conv-pvm.sh
 endif
