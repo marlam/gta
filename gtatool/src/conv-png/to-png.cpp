@@ -165,7 +165,7 @@ extern "C" int gtatool_to_png(int argc, char *argv[])
                     PNG_COMPRESSION_TYPE_DEFAULT,
                     PNG_FILTER_TYPE_DEFAULT);
             png_set_compression_level(png_ptr, Z_BEST_COMPRESSION);
-            png_set_sRGB(png_ptr, info_ptr, PNG_INFO_sRGB);
+            png_set_sRGB(png_ptr, info_ptr, PNG_sRGB_INTENT_ABSOLUTE);
             if (text.size() > 0)
                 png_set_text(png_ptr, info_ptr, &(text[0]), text.size());
             png_set_rows(png_ptr, info_ptr, &(row_pointers[0]));

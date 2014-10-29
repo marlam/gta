@@ -41,7 +41,9 @@ extern "C" void gtatool_from_png_help(void)
 {
     msg::req_txt("from-png <input-file> [<output-file>]\n"
             "\n"
-            "Converts PNG images to GTAs.");
+            "Converts PNG images to GTAs.\n"
+            "The output will be 8-bit or 16-bit. Colors and gray scales will "
+            "follow sRGB convention, and alpha (if present) will be linear.");
 }
 
 static std::string namei;
@@ -94,9 +96,10 @@ extern "C" int gtatool_from_png(int argc, char *argv[])
             throw exc(namei + ": png_create_info_struct failed");
         png_init_io(png_ptr, pngfile);
         png_set_sig_bytes(png_ptr, 8);
+        png_set_gamma(png_ptr, 2.2, 0.45455);
         png_read_png(png_ptr, info_ptr,
-                endianness::endianness == endianness::big
-                ? PNG_TRANSFORM_IDENTITY : PNG_TRANSFORM_SWAP_ENDIAN,
+                PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_PACKING
+                | (endianness::endianness == endianness::big ? 0 : PNG_TRANSFORM_SWAP_ENDIAN),
                 NULL);
         int width = png_get_image_width(png_ptr, info_ptr);
         int height = png_get_image_height(png_ptr, info_ptr);
@@ -124,10 +127,10 @@ extern "C" int gtatool_from_png(int argc, char *argv[])
         gta::type gta_type = (bit_depth <= 8 ? gta::uint8 : gta::uint16);
         if (channels == 1) {
             hdr.set_components(gta_type);
-            hdr.component_taglist(0).set("INTERPRETATION", "GRAY");
+            hdr.component_taglist(0).set("INTERPRETATION", "SRGB/GRAY");
         } else if (channels == 2) {
             hdr.set_components(gta_type, gta_type);
-            hdr.component_taglist(0).set("INTERPRETATION", "GRAY");
+            hdr.component_taglist(0).set("INTERPRETATION", "SRGB/GRAY");
             hdr.component_taglist(1).set("INTERPRETATION", "ALPHA");
         } else if (channels == 3) {
             hdr.set_components(gta_type, gta_type, gta_type);
