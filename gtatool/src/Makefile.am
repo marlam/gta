@@ -37,7 +37,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/src -DPKGLIBDIR=\"$(pkglibdir)\" \
 
 bin_PROGRAMS = gta
 gta_SOURCES = main.cpp cmds.h cmds.cpp lib.h lib.cpp
-gta_LDADD = libbuiltin.la base/libbase.la $(libgta_LIBS) $(LIB_DLOPEN) $(LIBICONV)
+gta_LDADD = libbuiltin.la base/libbase.la $(libgta_LIBS) $(DLOPEN_LIBS) $(LIBICONV) $(BASE_LIBS)
 if DYNAMIC_MODULES
 gta_LDFLAGS = -export-dynamic
 endif

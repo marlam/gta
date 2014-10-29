@@ -94,11 +94,11 @@ fi
 AM_CONDITIONAL([VALGRIND_TESTS], [test "$valgrind_tests" = "yes"])
 
 dnl Dynamic modules
-LIB_DLOPEN=
-AC_SUBST([LIB_DLOPEN])
+DLOPEN_LIBS=
+AC_SUBST([DLOPEN_LIBS])
 SAVED_LIBS="$LIBS"
 AC_SEARCH_LIBS([dlopen], [dl],
-    [test "$ac_cv_search_dlopen" = "none required" || LIB_DLOPEN="$ac_cv_search_dlopen"])
+    [test "$ac_cv_search_dlopen" = "none required" || DLOPEN_LIBS="$ac_cv_search_dlopen"])
 AC_CHECK_FUNCS([dlopen])
 LIBS="$SAVED_LIBS"
 AC_ARG_ENABLE([dynamic-modules],
@@ -117,6 +117,9 @@ if test "$ndebug" = "1"; then
 fi
 
 dnl Feature checks needed by the base modules
+BASE_LIBS=
+AC_SUBST([BASE_LIBS])
+SAVED_LIBS="$LIBS"
 AC_LANG_PUSH([C])
 dnl - dbg
 AC_CHECK_FUNCS([backtrace sigaction])
@@ -139,7 +142,8 @@ else
     AC_MSG_RESULT([no])
     AC_MSG_ERROR([GCC atomic builtins not found. Please use a newer compiler.])
 fi
-AC_SEARCH_LIBS([pthread_create], [pthread])
+AC_SEARCH_LIBS([pthread_create], [pthread],
+    [test "$ac_cv_search_pthread_create" = "none required" || BASE_LIBS="$BASE_LIBS $ac_cv_search_pthread_create"])
 CPPFLAGS_bak="$CPPFLAGS"
 LDFLAGS_bak="$LDFLAGS"
 CPPFLAGS="-pthread $CPPFLAGS"
@@ -151,14 +155,17 @@ AC_CHECK_FUNCS([nl_langinfo vasprintf wcswidth])
 AC_CHECK_TYPES([int128_t, uint128_t], [], [], [[#include <cstdint>]])
 AC_CHECK_TYPES([__int128, unsigned __int128])
 AC_CHECK_TYPES([__float128])
-AC_SEARCH_LIBS([strtoflt128], [quadmath])
+AC_SEARCH_LIBS([strtoflt128], [quadmath],
+    [test "$ac_cv_search_strtoflt128" = "none required" || BASE_LIBS="$BASE_LIBS $ac_cv_search_strtoflt128"])
 dnl TODO: define LONG_DOUBLE_IS_IEEE_754_QUAD on systems where this is true
 dnl - sys
 AC_CHECK_FUNCS([nanosleep sysconf sched_yield])
 dnl - tmr
-AC_SEARCH_LIBS([clock_gettime], [rt])
+AC_SEARCH_LIBS([clock_gettime], [rt],
+    [test "$ac_cv_search_clock_gettime" = "none required" || BASE_LIBS="$BASE_LIBS $ac_cv_search_clock_gettime"])
 AC_CHECK_FUNCS([clock_gettime])
 AC_LANG_POP([C])
+LIBS="$SAVED_LIBS"
 
 dnl pkg-config
 PKG_PROG_PKG_CONFIG([])
