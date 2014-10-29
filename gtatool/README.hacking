@@ -1,0 +1,32 @@
+Random notes on how to modify this software
+===========================================
+
+
+How to add new import/export commands from-foo, to-foo
+------------------------------------------------------
+
+Adding new commands from-foo, to-foo requires changes in several places, but
+all of them can be handled by simply copying and modifying a few lines of code
+from existing import/export commands.
+1) In configure.ac:
+   - Add a --with-foo option, find library libfoo (if required), and define
+     WITH_FOO.
+   - Add output "from-foo, to-foo: yes/no" at the end of the script.
+2) In src/Makefile.am:
+   - Add $(libfoo_CFLAGS) to AM_CPPFLAGS
+   - Add a new dynamic module conv-foo, and add this also to libbuiltin in case
+     dynamic modules are not used.
+3) In src/cmds.cpp: 
+   - Add declarations and command list entries for from-foo, to-foo.
+4) Write files src/conv-foo/from-foo.cpp and src/conv-foo/to-foo.cpp.
+5) In src/conv/filters.cpp:
+   - Add entries for .foo files, if it makes sense, so that automatic import/
+     export works.
+6) In src/gui/gui.hpp and src/gui/gui.cpp:
+   - Add menu entries and actions GUI::file_import_foo() and
+     GUI::file_export_foo()
+7) In tests/:
+   - Write a test script conv-foo.sh
+   - Add this test to Makefile.am, depending on WITH_FOO
+8) In src/bash-completion/gta:
+   - Add the from-foo, to-foo commands.
