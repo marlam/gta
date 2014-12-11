@@ -407,7 +407,7 @@ extern "C" int gtatool_info(int argc, char *argv[])
                 msg::req(4, std::string("element component ") + str::from(i) + ": "
                         + type_to_string(hdr.component_type(i), hdr.component_size(i)) + ", "
                         + str::human_readable_memsize(hdr.component_size(i)));
-                if (statistics.value() && !hdr.data_size() == 0)
+                if (statistics.value() && hdr.data_size() != 0)
                 {
                     msg::req(8, std::string("minimum value = ") + (valid_values[i] > 0 ? str::from(minima[i]) : "unavailable"));
                     msg::req(8, std::string("maximum value = ") + (valid_values[i] > 0 ? str::from(maxima[i]) : "unavailable"));

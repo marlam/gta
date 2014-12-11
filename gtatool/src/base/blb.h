@@ -45,8 +45,12 @@ private:
 
     static void* alloc(size_t s)
     {
+        if (s == 0)
+        {
+            return NULL;
+        }
         void* ptr = std::malloc(s);
-        if (s != 0 && !ptr) {
+        if (!ptr) {
             throw std::runtime_error(std::strerror(ENOMEM));
         }
         return ptr;
@@ -54,8 +58,12 @@ private:
 
     static void* realloc(void* p, size_t s)
     {
+        if (s == 0)
+        {
+            return NULL;
+        }
         void* ptr = std::realloc(p, s);
-        if (s != 0 && !ptr) {
+        if (!ptr) {
             throw std::runtime_error(std::strerror(ENOMEM));
         }
         return ptr;

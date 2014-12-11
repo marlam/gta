@@ -1042,7 +1042,7 @@ void GUI::file_changed_on_disk(const QString& fn)
             break;
     }
     _files_watcher->removePath(fn);
-    bool changes_lost = !fw->is_saved();
+    bool changes_lost = !fw || !fw->is_saved();
     _files_widget->removeTab(fi);
     delete fw;
     open(file_name, file_name, fi);

@@ -78,9 +78,12 @@ static void get_gta_minmax_helper(const gta::header& hdr, const void* data, size
     if (have_valid_values) {
         *minval = tmp_minval;
         *maxval = tmp_maxval;
-    } else {
+    } else if (have_nodata_value) {
         *minval = nodata_value;
         *maxval = nodata_value;
+    } else {
+        *minval = 0.0f;
+        *maxval = 0.0f;
     }
 }
 
