@@ -2536,7 +2536,7 @@ exit:
         free(temp_header->global_taglist);
         free(temp_header->component_types);
         free(temp_header->component_blob_sizes);
-        if (temp_header->component_taglists != NULL )
+        if (temp_header->component_taglists)
         {
             for (size_t i = 0; i < temp_header->components; i++)
             {
@@ -2546,7 +2546,7 @@ exit:
             free(temp_header->component_taglists);
         }
         free(temp_header->dimension_sizes);
-        if (temp_header->dimension_taglists != NULL)
+        if (temp_header->dimension_taglists)
         {
             for (size_t i = 0; i < temp_header->dimensions; i++)
             {
