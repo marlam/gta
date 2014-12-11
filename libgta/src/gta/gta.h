@@ -4,7 +4,7 @@
  * This file is part of libgta, a library that implements the Generic Tagged
  * Array (GTA) file format.
  *
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2014
  * Martin Lambers <marlam@marlam.de>
  *
  * Libgta is free software: you can redistribute it and/or modify it under the
@@ -711,7 +711,7 @@ GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
  */
 extern GTA_EXPORT gta_result_t
 gta_set_components(gta_header_t *GTA_RESTRICT header, uintmax_t n, const gta_type_t *GTA_RESTRICT types, const uintmax_t *GTA_RESTRICT sizes)
-GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NONNULL2(1, 3) GTA_ATTR_NOTHROW;
+GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NONNULL1(1) GTA_ATTR_NOTHROW;
 
 /**
  * \brief               Set the dimensions.
@@ -725,7 +725,7 @@ GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NONNULL2(1, 3) GTA_ATTR_NOTHROW;
  */
 extern GTA_EXPORT gta_result_t
 gta_set_dimensions(gta_header_t *GTA_RESTRICT header, uintmax_t n, const uintmax_t *GTA_RESTRICT sizes)
-GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
+GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NONNULL1(1) GTA_ATTR_NOTHROW;
 
 /*@}*/
 
@@ -1100,7 +1100,7 @@ GTA_ATTR_NONNULL_ALL GTA_ATTR_PURE GTA_ATTR_NOTHROW;
  */
 extern GTA_EXPORT const void *
 gta_get_component_const(const gta_header_t *GTA_RESTRICT header, const void *GTA_RESTRICT element, uintmax_t i)
-GTA_ATTR_NONNULL_ALL GTA_ATTR_PURE GTA_ATTR_NOTHROW;
+GTA_ATTR_NONNULL1(1) GTA_ATTR_PURE GTA_ATTR_NOTHROW;
 
 /**
  * \brief               Get the address of a component of an array element (modifiable).
@@ -1111,7 +1111,7 @@ GTA_ATTR_NONNULL_ALL GTA_ATTR_PURE GTA_ATTR_NOTHROW;
  */
 extern GTA_EXPORT void *
 gta_get_component(const gta_header_t *GTA_RESTRICT header, void *GTA_RESTRICT element, uintmax_t i)
-GTA_ATTR_NONNULL_ALL GTA_ATTR_PURE GTA_ATTR_NOTHROW;
+GTA_ATTR_NONNULL1(1) GTA_ATTR_PURE GTA_ATTR_NOTHROW;
 
 /*@}*/
 
