@@ -60,6 +60,7 @@ private:
     {
         if (s == 0)
         {
+            free(p);
             return NULL;
         }
         void* ptr = std::realloc(p, s);
