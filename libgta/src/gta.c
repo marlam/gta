@@ -389,6 +389,7 @@ static GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NOTHROW
 gta_result_t
 gta_compress(void **dst, size_t *dst_size, const void *src, size_t src_size, gta_compression_t compression)
 {
+    void* tmp_ptr;
     gta_result_t retval = GTA_OK;
 
     switch (compression)
@@ -462,12 +463,14 @@ gta_compress(void **dst, size_t *dst_size, const void *src, size_t src_size, gta
                 break;
             }
             *dst_size = zlib_compressed_size;
-            *dst = realloc(*dst, *dst_size);
-            if (!*dst)
+            tmp_ptr = realloc(*dst, *dst_size);
+            if (!tmp_ptr)
             {
+                free(*dst);
                 retval = GTA_SYSTEM_ERROR;
                 break;
             }
+            *dst = tmp_ptr;
         }
         break;
 
@@ -506,12 +509,14 @@ gta_compress(void **dst, size_t *dst_size, const void *src, size_t src_size, gta
                 break;
             }
             *dst_size = bz2_compressed_size;
-            *dst = realloc(*dst, *dst_size);
-            if (!*dst)
+            tmp_ptr = realloc(*dst, *dst_size);
+            if (!tmp_ptr)
             {
+                free(*dst);
                 retval = GTA_SYSTEM_ERROR;
                 break;
             }
+            *dst = tmp_ptr;
         }
         break;
 
@@ -565,6 +570,7 @@ gta_compress(void **dst, size_t *dst_size, const void *src, size_t src_size, gta
             *dst = realloc(buf, *dst_size);
             if (!*dst)
             {
+                free(buf);
                 lzma_end(&strm);
                 retval = GTA_SYSTEM_ERROR;
                 break;
@@ -2008,17 +2014,20 @@ gta_append_element_to_array(
 {
     if (*array_elements == *array_size)
     {
+        void *tmp_ptr;
         if (*array_size > SIZE_MAX - gta_bufsize_inc
                 || gta_size_overflow(*array_size + gta_bufsize_inc, element_size))
         {
             return GTA_OVERFLOW;
         }
         *array_size += gta_bufsize_inc;
-        *array = realloc(*array, *array_size * element_size);
-        if (!*array)
+        tmp_ptr = realloc(*array, *array_size * element_size);
+        if (!tmp_ptr)
         {
+            free(*array);
             return GTA_SYSTEM_ERROR;
         }
+        *array = tmp_ptr;
     }
     void *dst = (char *)(*array) + *array_elements * element_size;
     memcpy(dst, element, element_size);
@@ -2334,6 +2343,7 @@ gta_read_header(gta_header_t *GTA_RESTRICT header, gta_read_t read_fn, intptr_t 
             temp_header->component_types = realloc(comp_array, comp_array_elements * sizeof(uint8_t));
             if (!temp_header->component_types)
             {
+                free(comp_array);
                 retval = GTA_SYSTEM_ERROR;
                 goto exit;
             }
@@ -2343,6 +2353,7 @@ gta_read_header(gta_header_t *GTA_RESTRICT header, gta_read_t read_fn, intptr_t 
             temp_header->component_blob_sizes = realloc(bs_array, bs_array_elements * sizeof(uintmax_t));
             if (!temp_header->component_blob_sizes)
             {
+                free(bs_array);
                 retval = GTA_SYSTEM_ERROR;
                 goto exit;
             }
@@ -2397,6 +2408,7 @@ gta_read_header(gta_header_t *GTA_RESTRICT header, gta_read_t read_fn, intptr_t 
             temp_header->dimension_sizes = realloc(dim_array, dim_array_elements * sizeof(uintmax_t));
             if (!temp_header->dimension_sizes)
             {
+                free(dim_array);
                 retval = GTA_SYSTEM_ERROR;
                 goto exit;
             }
@@ -2446,6 +2458,7 @@ gta_read_header(gta_header_t *GTA_RESTRICT header, gta_read_t read_fn, intptr_t 
             temp_header->component_taglists = realloc(tl_array, tl_array_elements * sizeof(gta_taglist_t *));
             if (!temp_header->component_taglists)
             {
+                free(tl_array);
                 retval = GTA_SYSTEM_ERROR;
                 goto exit;
             }
@@ -2481,6 +2494,7 @@ gta_read_header(gta_header_t *GTA_RESTRICT header, gta_read_t read_fn, intptr_t 
             temp_header->dimension_taglists = realloc(tl_array, tl_array_elements * sizeof(gta_taglist_t *));
             if (!temp_header->dimension_taglists)
             {
+                free(tl_array);
                 retval = GTA_SYSTEM_ERROR;
                 goto exit;
             }
