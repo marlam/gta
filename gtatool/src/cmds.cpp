@@ -67,8 +67,8 @@ typedef struct
 #if DYNAMIC_MODULES
 #   define CMD(NAME, CATEGORY, FNBASE, AVAILABLE, MODULE, DESCR) \
         { NAME, CATEGORY, AVAILABLE, MODULE, NULL, \
-            AVAILABLE && !MODULE ? gtatool_ ## FNBASE : NULL, \
-            AVAILABLE && !MODULE ? gtatool_ ## FNBASE ## _help : NULL, \
+            AVAILABLE && (MODULE == NULL) ? gtatool_ ## FNBASE : NULL, \
+            AVAILABLE && (MODULE == NULL) ? gtatool_ ## FNBASE ## _help : NULL, \
             DESCR }
 #else
 #   define CMD(NAME, CATEGORY, FNBASE, AVAILABLE, MODULE, DESCR) \

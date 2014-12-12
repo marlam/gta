@@ -376,7 +376,7 @@ template<> int float_startbufsize<long double>() { return 128; }
 #if !defined(LONG_DOUBLE_IS_IEEE_754_QUAD) && defined(HAVE___FLOAT128)
 template<> int float_startbufsize<__float128>() { return 128; }
 #endif
-template<typename T> static int float_snprintf(char* str, size_t size, T x) { return -1; /* will never be called */ }
+template<typename T> static int float_snprintf(char*, size_t, T) { return -1; /* will never be called */ }
 template<> int float_snprintf<float>(char* str, size_t size, float x) { return snprintf(str, size, "%.9g", x); }
 template<> int float_snprintf<double>(char* str, size_t size, double x) { return snprintf(str, size, "%.17g", x); }
 template<> int float_snprintf<long double>(char* str, size_t size, long double x) { return snprintf(str, size, "%.36Lg", x); }
@@ -412,7 +412,7 @@ template<typename T> static T str_to_small_int(const char* nptr, char** endptr, 
     }
     return x;
 }
-template<typename T> static T strtox(const char* nptr, char** endptr, int base) { return 0; /* will never be called */ }
+template<typename T> static T strtox(const char*, char**, int) { return 0; /* will never be called */ }
 template<> signed char strtox<signed char>(const char* nptr, char** endptr, int base) { return str_to_small_int<signed char>(nptr, endptr, base); }
 template<> unsigned char strtox<unsigned char>(const char* nptr, char** endptr, int base) { return str_to_small_int<unsigned char>(nptr, endptr, base); }
 template<> short strtox<short>(const char* nptr, char** endptr, int base) { return str_to_small_int<short>(nptr, endptr, base); }
