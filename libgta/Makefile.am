@@ -7,7 +7,7 @@
 
 SUBDIRS = doc src tests
 
-EXTRA_DIST = CMakeLists.txt
+EXTRA_DIST = CMakeLists.txt cmake/FindGTA.cmake
 
 cmakedir = $(datadir)/$(PACKAGE)/cmake
 cmake_DATA = cmake/FindGTA.cmake
