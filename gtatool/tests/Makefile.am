@@ -1,9 +1,68 @@
-# Copyright (C) 2010, 2011, 2012, 2013
+# Copyright (C) 2010, 2011, 2012, 2013, 2014
 # Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
 # permitted in any medium without royalty provided the copyright notice and this
 # notice are preserved. This file is offered as-is, without any warranty.
+
+EXTRA_DIST = \
+	gta-help.sh \
+	gta-version.sh \
+	gta-component-add.sh \
+	gta-component-set.sh \
+	gta-component-convert.sh \
+	gta-component-extract.sh \
+	gta-component-merge.sh \
+	gta-component-reorder.sh \
+	gta-component-split.sh \
+	gta-dimension-add.sh \
+	gta-dimension-extract.sh \
+	gta-dimension-flatten.sh \
+	gta-dimension-merge.sh \
+	gta-dimension-reorder.sh \
+	gta-dimension-reverse.sh \
+	gta-dimension-split.sh \
+	gta-combine.sh \
+	gta-compress.sh \
+	gta-create.sh \
+	gta-diff.sh \
+	gta-extract.sh \
+	gta-fill.sh \
+	gta-info.sh \
+	gta-merge.sh \
+	gta-resize.sh \
+	gta-set.sh \
+	gta-tag.sh \
+	gta-uncompress.sh \
+	gta-stream-extract.sh \
+	gta-stream-foreach.sh \
+	gta-stream-grep.sh \
+	gta-stream-merge.sh \
+	gta-stream-split.sh \
+	gta-component-compute.sh \
+	gta-gui.sh \
+	gta-view.sh \
+	conv-csv.sh \
+	conv-datraw.sh \
+	conv-dcmtk.sh \
+	conv-exr.sh \
+	conv-ffmpeg.sh \
+	conv-gdal.sh \
+	conv-jpeg.sh \
+	conv-magick.sh \
+	conv-mat.sh \
+	conv-netcdf.sh \
+	conv-netpbm.sh \
+	conv-pcd.sh \
+	conv-pfs.sh \
+	conv-ply.sh \
+	conv-pmd.sh \
+	conv-png.sh \
+	conv-pvm.sh \
+	conv-rat.sh \
+	conv-raw.sh \
+	conv-sndfile.sh \
+	conv-teem.sh
 
 TESTS = \
 	gta-help.sh \
@@ -113,8 +172,6 @@ endif
 if WITH_TEEM
 TESTS += conv-teem.sh
 endif
-
-EXTRA_DIST = $(TESTS)
 
 if VALGRIND_TESTS
 VALGRIND_CMD = $(VALGRIND) --quiet --log-fd=2 --error-exitcode=1 \
