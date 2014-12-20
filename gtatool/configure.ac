@@ -23,7 +23,7 @@ dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 dnl Autotools init stuff
 AC_PREREQ([2.65])
-AC_INIT([GTA Tool], [2.0.1], [gta-list@nongnu.org], [gtatool], [http://gta.nongnu.org/])
+AC_INIT([GTA Tool], [2.1.0], [gta-list@nongnu.org], [gtatool], [http://gta.nongnu.org/])
 AC_CONFIG_SRCDIR([src/main.cpp])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
