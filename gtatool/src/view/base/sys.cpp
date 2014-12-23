@@ -32,7 +32,6 @@
 #if HAVE_SYSCONF && HAVE_SCHED_YIELD
 #else
 # define WIN32_LEAN_AND_MEAN    /* do not include more than necessary */
-# define _WIN32_WINNT 0x0500    /* Windows 2000 or later */
 # include <windows.h>
 #endif
 

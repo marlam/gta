@@ -49,9 +49,9 @@
 #if W32
 # include <climits>
 # define WIN32_LEAN_AND_MEAN    /* do not include more than necessary */
-# define _WIN32_WINNT 0x0500    /* Windows 2000 or later */
 # include <windows.h>
 # include <shlwapi.h>
+# include <direct.h>
 # include <sys/locking.h>
 #endif
 

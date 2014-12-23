@@ -27,7 +27,6 @@
 #include <unistd.h>
 #if W32
 #   define WIN32_LEAN_AND_MEAN
-#   define _WIN32_WINNT 0x0502
 #   include <windows.h>
 #endif
 
