@@ -5,7 +5,7 @@ dnl
 dnl This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
 dnl (GTAs).
 dnl
-dnl Copyright (C) 2010, 2011, 2012, 2013, 2014
+dnl Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015
 dnl Martin Lambers <marlam@marlam.de>
 dnl
 dnl This program is free software; you can redistribute it and/or modify
@@ -486,6 +486,12 @@ if test "$pfs" = "yes"; then
         AC_MSG_WARN([PFS library not found:])
         AC_MSG_WARN([$libpfs_PKG_ERRORS])
         AC_MSG_WARN([Disabled the from-pfs and to-pfs commands.])])
+fi
+if test "$pfs" = "yes"; then
+    CPPFLAGS_bak="$CPPFLAGS"
+    CPPFLAGS="$libpfs_CFLAGS $CPPFLAGS"
+    AC_CHECK_HEADERS([pfs/pfs.h])
+    CPPFLAGS="$CPPFLAGS_bak"
 fi
 AC_DEFINE_UNQUOTED([WITH_PFS], [`if test "$pfs" = "yes"; then echo "1"; else echo "0"; fi`], [Use pfs?])
 AM_CONDITIONAL([WITH_PFS], [test "$pfs" = "yes"])

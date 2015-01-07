@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2014
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,11 @@
 #include <string>
 #include <limits>
 
-#include <pfs-1.2/pfs.h>
+#ifdef HAVE_PFS_PFS_H
+# include <pfs/pfs.h>
+#else
+# include <pfs-1.2/pfs.h>
+#endif
 
 #include <gta/gta.hpp>
 
