@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011, 2012, 2013
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -98,7 +98,7 @@ extern "C" int gtatool_from_netpbm(int argc, char *argv[])
             tuple *tuplerow;
 
             pm_init("gta from-netpbm", 0);
-#ifdef PAM_STRUCT_SIZE
+#if 0
             pnm_readpaminit(fi, &inpam, PAM_STRUCT_SIZE(tuple_type));
 #else
             pnm_readpaminit(fi, &inpam, sizeof(struct pam));
