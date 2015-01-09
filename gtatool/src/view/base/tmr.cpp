@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010, 2011, 2012, 2013
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,11 +25,11 @@
 # include <sys/time.h>
 #endif
 
-#include "base/gettext.h"
-#define _(string) gettext(string)
-
 #include "base/exc.h"
 #include "base/tmr.h"
+
+#include "base/gettext.h"
+#define _(string) gettext(string)
 
 
 long long timer::get(timer::type t)

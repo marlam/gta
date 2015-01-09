@@ -54,58 +54,61 @@
 namespace glvm
 {
     /* Basic numeric constants. Values copied from /usr/include/math.h on a recent GNU/Linux system. */
-    template<typename T> inline T const_e();       /* e */
-    template<> inline long double const_e<long double>() { return 2.7182818284590452353602874713526625L; }
-    template<> inline double const_e<double>() { return static_cast<double>(const_e<long double>()); }
-    template<> inline float const_e<float>() { return static_cast<float>(const_e<long double>()); }
-    template<typename T> inline T const_log2e();   /* log_2 e */
-    template<> inline long double const_log2e<long double>() { return 1.4426950408889634073599246810018921L; }
-    template<> inline double const_log2e<double>() { return const_log2e<long double>(); }
-    template<> inline float const_log2e<float>() { return const_log2e<long double>(); }
-    template<typename T> inline T const_log10e();  /* log_10 e */
-    template<> inline long double const_log10e<long double>() { return 0.4342944819032518276511289189166051L; }
-    template<> inline double const_log10e<double>() { return const_log10e<long double>(); }
-    template<> inline float const_log10e<float>() { return const_log10e<long double>(); }
-    template<typename T> inline T const_ln2();     /* log_e 2 */
-    template<> inline long double const_ln2<long double>() { return 0.6931471805599453094172321214581766L; }
-    template<> inline double const_ln2<double>() { return const_ln2<long double>(); }
-    template<> inline float const_ln2<float>() { return const_ln2<long double>(); }
-    template<typename T> inline T const_ln10();    /* log_e 10 */
-    template<> inline long double const_ln10<long double>() { return 2.3025850929940456840179914546843642L; }
-    template<> inline double const_ln10<double>() { return const_ln10<long double>(); }
-    template<> inline float const_ln10<float>() { return const_ln10<long double>(); }
-    template<typename T> inline T const_pi();      /* pi */
-    template<> inline long double const_pi<long double>() { return 3.1415926535897932384626433832795029L; }
-    template<> inline double const_pi<double>() { return const_pi<long double>(); }
-    template<> inline float const_pi<float>() { return const_pi<long double>(); }
-    template<typename T> inline T const_pi_2();    /* pi / 2 */
-    template<> inline long double const_pi_2<long double>() { return 1.5707963267948966192313216916397514L; }
-    template<> inline double const_pi_2<double>() { return const_pi_2<long double>(); }
-    template<> inline float const_pi_2<float>() { return const_pi_2<long double>(); }
-    template<typename T> inline T const_pi_4();    /* pi / 4 */
-    template<> inline long double const_pi_4<long double>() { return 0.7853981633974483096156608458198757L; }
-    template<> inline double const_pi_4<double>() { return const_pi_4<long double>(); }
-    template<> inline float const_pi_4<float>() { return const_pi_4<long double>(); }
-    template<typename T> inline T const_1_pi();    /* 1 / pi */
-    template<> inline long double const_1_pi<long double>() { return 0.3183098861837906715377675267450287L; }
-    template<> inline double const_1_pi<double>() { return const_1_pi<long double>(); }
-    template<> inline float const_1_pi<float>() { return const_1_pi<long double>(); }
-    template<typename T> inline T const_2_pi();    /* 2 / pi */
-    template<> inline long double const_2_pi<long double>() { return 0.6366197723675813430755350534900574L; }
-    template<> inline double const_2_pi<double>() { return const_2_pi<long double>(); }
-    template<> inline float const_2_pi<float>() { return const_2_pi<long double>(); }
-    template<typename T> inline T const_2_sqrtpi(); /* 2 / sqrt(pi) */
-    template<> inline long double const_2_sqrtpi<long double>() { return 1.1283791670955125738961589031215452L; }
-    template<> inline double const_2_sqrtpi<double>() { return const_2_sqrtpi<long double>(); }
-    template<> inline float const_2_sqrtpi<float>() { return const_2_sqrtpi<long double>(); }
-    template<typename T> inline T const_sqrt2();    /* sqrt(2) */
-    template<> inline long double const_sqrt2<long double>() { return 1.4142135623730950488016887242096981L; }
-    template<> inline double const_sqrt2<double>() { return const_sqrt2<long double>(); }
-    template<> inline float const_sqrt2<float>() { return const_sqrt2<long double>(); }
-    template<typename T> inline T const_sqrt1_2();  /* 1 / sqrt(2) */
-    template<> inline long double const_sqrt1_2<long double>() { return 0.7071067811865475244008443621048490L; }
-    template<> inline double const_sqrt1_2<double>() { return const_sqrt1_2<long double>(); }
-    template<> inline float const_sqrt1_2<float>() { return const_sqrt1_2<long double>(); }
+    namespace constants
+    {
+        template<typename T> constexpr T e();       /* e */
+        template<> constexpr long double e<long double>() { return 2.7182818284590452353602874713526625L; }
+        template<> constexpr double e<double>() { return static_cast<double>(e<long double>()); }
+        template<> constexpr float e<float>() { return static_cast<float>(e<long double>()); }
+        template<typename T> constexpr T log2e();   /* log_2 e */
+        template<> constexpr long double log2e<long double>() { return 1.4426950408889634073599246810018921L; }
+        template<> constexpr double log2e<double>() { return static_cast<double>(log2e<long double>()); }
+        template<> constexpr float log2e<float>() { return static_cast<float>(log2e<long double>()); }
+        template<typename T> constexpr T log10e();  /* log_10 e */
+        template<> constexpr long double log10e<long double>() { return 0.4342944819032518276511289189166051L; }
+        template<> constexpr double log10e<double>() { return static_cast<double>(log10e<long double>()); }
+        template<> constexpr float log10e<float>() { return static_cast<float>(log10e<long double>()); }
+        template<typename T> constexpr T ln2();     /* log_e 2 */
+        template<> constexpr long double ln2<long double>() { return 0.6931471805599453094172321214581766L; }
+        template<> constexpr double ln2<double>() { return static_cast<double>(ln2<long double>()); }
+        template<> constexpr float ln2<float>() { return static_cast<float>(ln2<long double>()); }
+        template<typename T> constexpr T ln10();    /* log_e 10 */
+        template<> constexpr long double ln10<long double>() { return 2.3025850929940456840179914546843642L; }
+        template<> constexpr double ln10<double>() { return static_cast<double>(ln10<long double>()); }
+        template<> constexpr float ln10<float>() { return static_cast<float>(ln10<long double>()); }
+        template<typename T> constexpr T pi();      /* pi */
+        template<> constexpr long double pi<long double>() { return 3.1415926535897932384626433832795029L; }
+        template<> constexpr double pi<double>() { return static_cast<double>(pi<long double>()); }
+        template<> constexpr float pi<float>() { return static_cast<float>(pi<long double>()); }
+        template<typename T> constexpr T pi_div_2();    /* pi / 2 */
+        template<> constexpr long double pi_div_2<long double>() { return 1.5707963267948966192313216916397514L; }
+        template<> constexpr double pi_div_2<double>() { return static_cast<double>(pi_div_2<long double>()); }
+        template<> constexpr float pi_div_2<float>() { return static_cast<float>(pi_div_2<long double>()); }
+        template<typename T> constexpr T pi_div_4();    /* pi / 4 */
+        template<> constexpr long double pi_div_4<long double>() { return 0.7853981633974483096156608458198757L; }
+        template<> constexpr double pi_div_4<double>() { return static_cast<double>(pi_div_4<long double>()); }
+        template<> constexpr float pi_div_4<float>() { return static_cast<float>(pi_div_4<long double>()); }
+        template<typename T> constexpr T one_div_pi();    /* 1 / pi */
+        template<> constexpr long double one_div_pi<long double>() { return 0.3183098861837906715377675267450287L; }
+        template<> constexpr double one_div_pi<double>() { return static_cast<double>(one_div_pi<long double>()); }
+        template<> constexpr float one_div_pi<float>() { return static_cast<float>(one_div_pi<long double>()); }
+        template<typename T> constexpr T two_div_pi();    /* 2 / pi */
+        template<> constexpr long double two_div_pi<long double>() { return 0.6366197723675813430755350534900574L; }
+        template<> constexpr double two_div_pi<double>() { return static_cast<double>(two_div_pi<long double>()); }
+        template<> constexpr float two_div_pi<float>() { return static_cast<float>(two_div_pi<long double>()); }
+        template<typename T> constexpr T two_div_sqrtpi(); /* 2 / sqrt(pi) */
+        template<> constexpr long double two_div_sqrtpi<long double>() { return 1.1283791670955125738961589031215452L; }
+        template<> constexpr double two_div_sqrtpi<double>() { return static_cast<double>(two_div_sqrtpi<long double>()); }
+        template<> constexpr float two_div_sqrtpi<float>() { return static_cast<float>(two_div_sqrtpi<long double>()); }
+        template<typename T> constexpr T sqrt2();    /* sqrt(2) */
+        template<> constexpr long double sqrt2<long double>() { return 1.4142135623730950488016887242096981L; }
+        template<> constexpr double sqrt2<double>() { return static_cast<double>(sqrt2<long double>()); }
+        template<> constexpr float sqrt2<float>() { return static_cast<float>(sqrt2<long double>()); }
+        template<typename T> constexpr T one_div_sqrt2();  /* 1 / sqrt(2) */
+        template<> constexpr long double one_div_sqrt2<long double>() { return 0.7071067811865475244008443621048490L; }
+        template<> constexpr double one_div_sqrt2<double>() { return static_cast<double>(one_div_sqrt2<long double>()); }
+        template<> constexpr float one_div_sqrt2<float>() { return static_cast<float>(one_div_sqrt2<long double>()); }
+    }
 
     /* Define the GLSL functions for the subset of the base data types
      * for which the function makes sense. The base data types are:
@@ -119,474 +122,474 @@ namespace glvm
      * float, double, long double
      */
 
-    inline signed char min(signed char x, signed char y)
+    constexpr signed char min(signed char x, signed char y)
     {
         return (x < y ? x : y);
     }
 
-    inline unsigned char min(unsigned char x, unsigned char y)
+    constexpr unsigned char min(unsigned char x, unsigned char y)
     {
         return (x < y ? x : y);
     }
 
-    inline short min(short x, short y)
+    constexpr short min(short x, short y)
     {
         return (x < y ? x : y);
     }
 
-    inline unsigned short min(unsigned short x, unsigned short y)
+    constexpr unsigned short min(unsigned short x, unsigned short y)
     {
         return (x < y ? x : y);
     }
 
-    inline int min(int x, int y)
+    constexpr int min(int x, int y)
     {
         return (x < y ? x : y);
     }
 
-    inline unsigned int min(unsigned int x, unsigned int y)
+    constexpr unsigned int min(unsigned int x, unsigned int y)
     {
         return (x < y ? x : y);
     }
 
-    inline long min(long x, long y)
+    constexpr long min(long x, long y)
     {
         return (x < y ? x : y);
     }
 
-    inline unsigned long min(unsigned long x, unsigned long y)
+    constexpr unsigned long min(unsigned long x, unsigned long y)
     {
         return (x < y ? x : y);
     }
 
-    inline long long min(long long x, long long y)
+    constexpr long long min(long long x, long long y)
     {
         return (x < y ? x : y);
     }
 
-    inline unsigned long long min(unsigned long long x, unsigned long long y)
+    constexpr unsigned long long min(unsigned long long x, unsigned long long y)
     {
         return (x < y ? x : y);
     }
 
-    inline float min(float x, float y)
+    constexpr float min(float x, float y)
     {
         return (x < y ? x : y);
     }
 
-    inline double min(double x, double y)
+    constexpr double min(double x, double y)
     {
         return (x < y ? x : y);
     }
 
-    inline long double min(long double x, long double y)
+    constexpr long double min(long double x, long double y)
     {
         return (x < y ? x : y);
     }
 
     // Bonus: min() for 3 and 4 arguments
-    template<typename T> inline T min(T x, T y, T z) { return min(min(x, y), z); }
-    template<typename T> inline T min(T x, T y, T z, T w) { return min(min(min(x, y), z), w); }
+    template<typename T> constexpr T min(T x, T y, T z) { return min(min(x, y), z); }
+    template<typename T> constexpr T min(T x, T y, T z, T w) { return min(min(min(x, y), z), w); }
 
-    inline signed char max(signed char x, signed char y)
+    constexpr signed char max(signed char x, signed char y)
     {
         return (x > y ? x : y);
     }
 
-    inline unsigned char max(unsigned char x, unsigned char y)
+    constexpr unsigned char max(unsigned char x, unsigned char y)
     {
         return (x > y ? x : y);
     }
 
-    inline short max(short x, short y)
+    constexpr short max(short x, short y)
     {
         return (x > y ? x : y);
     }
 
-    inline unsigned short max(unsigned short x, unsigned short y)
+    constexpr unsigned short max(unsigned short x, unsigned short y)
     {
         return (x > y ? x : y);
     }
 
-    inline int max(int x, int y)
+    constexpr int max(int x, int y)
     {
         return (x > y ? x : y);
     }
 
-    inline unsigned int max(unsigned int x, unsigned int y)
+    constexpr unsigned int max(unsigned int x, unsigned int y)
     {
         return (x > y ? x : y);
     }
 
-    inline long max(long x, long y)
+    constexpr long max(long x, long y)
     {
         return (x > y ? x : y);
     }
 
-    inline unsigned long max(unsigned long x, unsigned long y)
+    constexpr unsigned long max(unsigned long x, unsigned long y)
     {
         return (x > y ? x : y);
     }
 
-    inline long long max(long long x, long long y)
+    constexpr long long max(long long x, long long y)
     {
         return (x > y ? x : y);
     }
 
-    inline unsigned long long max(unsigned long long x, unsigned long long y)
+    constexpr unsigned long long max(unsigned long long x, unsigned long long y)
     {
         return (x > y ? x : y);
     }
 
-    inline float max(float x, float y)
+    constexpr float max(float x, float y)
     {
         return (x > y ? x : y);
     }
 
-    inline double max(double x, double y)
+    constexpr double max(double x, double y)
     {
         return (x > y ? x : y);
     }
 
-    inline long double max(long double x, long double y)
+    constexpr long double max(long double x, long double y)
     {
         return (x > y ? x : y);
     }
 
     // Bonus: max() for 3 and 4 arguments
-    template<typename T> inline T max(T x, T y, T z) { return max(max(x, y), z); }
-    template<typename T> inline T max(T x, T y, T z, T w) { return max(max(max(x, y), z), w); }
+    template<typename T> constexpr T max(T x, T y, T z) { return max(max(x, y), z); }
+    template<typename T> constexpr T max(T x, T y, T z, T w) { return max(max(max(x, y), z), w); }
 
-    inline signed char clamp(signed char x, signed char minval, signed char maxval)
+    constexpr signed char clamp(signed char x, signed char minval, signed char maxval)
     {
         return min(maxval, max(minval, x));
     }
 
-    inline unsigned char clamp(unsigned char x, unsigned char minval, unsigned char maxval)
+    constexpr unsigned char clamp(unsigned char x, unsigned char minval, unsigned char maxval)
     {
         return min(maxval, max(minval, x));
     }
 
-    inline short clamp(short x, short minval, short maxval)
+    constexpr short clamp(short x, short minval, short maxval)
     {
         return min(maxval, max(minval, x));
     }
 
-    inline unsigned short clamp(unsigned short x, unsigned short minval, unsigned short maxval)
+    constexpr unsigned short clamp(unsigned short x, unsigned short minval, unsigned short maxval)
     {
         return min(maxval, max(minval, x));
     }
 
-    inline int clamp(int x, int minval, int maxval)
+    constexpr int clamp(int x, int minval, int maxval)
     {
         return min(maxval, max(minval, x));
     }
 
-    inline unsigned int clamp(unsigned int x, unsigned int minval, unsigned int maxval)
+    constexpr unsigned int clamp(unsigned int x, unsigned int minval, unsigned int maxval)
     {
         return min(maxval, max(minval, x));
     }
 
-    inline long clamp(long x, long minval, long maxval)
+    constexpr long clamp(long x, long minval, long maxval)
     {
         return min(maxval, max(minval, x));
     }
 
-    inline unsigned long clamp(unsigned long x, unsigned long minval, unsigned long maxval)
+    constexpr unsigned long clamp(unsigned long x, unsigned long minval, unsigned long maxval)
     {
         return min(maxval, max(minval, x));
     }
 
-    inline long long clamp(long long x, long long minval, long long maxval)
+    constexpr long long clamp(long long x, long long minval, long long maxval)
     {
         return min(maxval, max(minval, x));
     }
 
-    inline unsigned long long clamp(unsigned long long x, unsigned long long minval, unsigned long long maxval)
+    constexpr unsigned long long clamp(unsigned long long x, unsigned long long minval, unsigned long long maxval)
     {
         return min(maxval, max(minval, x));
     }
 
-    inline float clamp(float x, float minval, float maxval)
+    constexpr float clamp(float x, float minval, float maxval)
     {
         return min(maxval, max(minval, x));
     }
 
-    inline double clamp(double x, double minval, double maxval)
+    constexpr double clamp(double x, double minval, double maxval)
     {
         return min(maxval, max(minval, x));
     }
 
-    inline long double clamp(long double x, long double minval, long double maxval)
+    constexpr long double clamp(long double x, long double minval, long double maxval)
     {
         return min(maxval, max(minval, x));
     }
 
-    inline signed char step(signed char x, signed char edge)
+    constexpr signed char step(signed char x, signed char edge)
     {
         return (x < edge ? 0 : 1);
     }
 
-    inline unsigned char step(unsigned char x, unsigned char edge)
+    constexpr unsigned char step(unsigned char x, unsigned char edge)
     {
         return (x < edge ? 0 : 1);
     }
 
-    inline short step(short x, short edge)
+    constexpr short step(short x, short edge)
     {
         return (x < edge ? 0 : 1);
     }
 
-    inline unsigned short step(unsigned short x, unsigned short edge)
+    constexpr unsigned short step(unsigned short x, unsigned short edge)
     {
         return (x < edge ? 0 : 1);
     }
 
-    inline int step(int x, int edge)
+    constexpr int step(int x, int edge)
     {
         return (x < edge ? 0 : 1);
     }
 
-    inline unsigned int step(unsigned int x, unsigned int edge)
+    constexpr unsigned int step(unsigned int x, unsigned int edge)
     {
         return (x < edge ? 0 : 1);
     }
 
-    inline long step(long x, long edge)
+    constexpr long step(long x, long edge)
     {
         return (x < edge ? 0 : 1);
     }
 
-    inline unsigned long step(unsigned long x, unsigned long edge)
+    constexpr unsigned long step(unsigned long x, unsigned long edge)
     {
         return (x < edge ? 0 : 1);
     }
 
-    inline long long step(long long x, long long edge)
+    constexpr long long step(long long x, long long edge)
     {
         return (x < edge ? 0 : 1);
     }
 
-    inline unsigned long long step(unsigned long long x, unsigned long long edge)
+    constexpr unsigned long long step(unsigned long long x, unsigned long long edge)
     {
         return (x < edge ? 0 : 1);
     }
 
-    inline float step(float x, float edge)
+    constexpr float step(float x, float edge)
     {
         return (x < edge ? 0.0f : 1.0f);
     }
 
-    inline double step(double x, double edge)
+    constexpr double step(double x, double edge)
     {
         return (x < edge ? 0.0 : 1.0);
     }
 
-    inline long double step(long double x, long double edge)
+    constexpr long double step(long double x, long double edge)
     {
         return (x < edge ? 0.0L : 1.0L);
     }
 
-    inline signed char mod(signed char x, signed char y)
+    constexpr signed char mod(signed char x, signed char y)
     {
         return x - (x / y) * y;
     }
 
-    inline unsigned char mod(unsigned char x, unsigned char y)
+    constexpr unsigned char mod(unsigned char x, unsigned char y)
     {
         return x - (x / y) * y;
     }
 
-    inline short mod(short x, short y)
+    constexpr short mod(short x, short y)
     {
         return x - (x / y) * y;
     }
 
-    inline unsigned short mod(unsigned short x, unsigned short y)
+    constexpr unsigned short mod(unsigned short x, unsigned short y)
     {
         return x - (x / y) * y;
     }
 
-    inline int mod(int x, int y)
+    constexpr int mod(int x, int y)
     {
         return x - (x / y) * y;
     }
 
-    inline unsigned int mod(unsigned int x, unsigned int y)
+    constexpr unsigned int mod(unsigned int x, unsigned int y)
     {
         return x - (x / y) * y;
     }
 
-    inline long mod(long x, long y)
+    constexpr long mod(long x, long y)
     {
         return x - (x / y) * y;
     }
 
-    inline unsigned long mod(unsigned long x, unsigned long y)
+    constexpr unsigned long mod(unsigned long x, unsigned long y)
     {
         return x - (x / y) * y;
     }
 
-    inline long long mod(long long x, long long y)
+    constexpr long long mod(long long x, long long y)
     {
         return x - (x / y) * y;
     }
 
-    inline unsigned long long mod(unsigned long long x, unsigned long long y)
+    constexpr unsigned long long mod(unsigned long long x, unsigned long long y)
     {
         return x - (x / y) * y;
     }
 
-    inline float mod(float x, float y)
+    constexpr float mod(float x, float y)
     {
         return x - std::floor(x / y) * y;
     }
 
-    inline double mod(double x, double y)
+    constexpr double mod(double x, double y)
     {
         return x - std::floor(x / y) * y;
     }
 
-    inline long double mod(long double x, long double y)
+    constexpr long double mod(long double x, long double y)
     {
         return x - std::floor(x / y) * y;
     }
 
-    inline signed char sign(signed char x)
+    constexpr signed char sign(signed char x)
     {
         return (x < 0 ? -1 : x > 0 ? +1 : 0);
     }
 
-    inline unsigned char sign(unsigned char x)
+    constexpr unsigned char sign(unsigned char x)
     {
         return (x > 0 ? +1 : 0);
     }
 
-    inline short sign(short x)
+    constexpr short sign(short x)
     {
         return (x < 0 ? -1 : x > 0 ? +1 : 0);
     }
 
-    inline unsigned short sign(unsigned short x)
+    constexpr unsigned short sign(unsigned short x)
     {
         return (x > 0 ? +1 : 0);
     }
 
-    inline int sign(int x)
+    constexpr int sign(int x)
     {
         return (x < 0 ? -1 : x > 0 ? +1 : 0);
     }
 
-    inline unsigned int sign(unsigned int x)
+    constexpr unsigned int sign(unsigned int x)
     {
         return (x > 0 ? +1 : 0);
     }
 
-    inline long sign(long x)
+    constexpr long sign(long x)
     {
         return (x < 0 ? -1 : x > 0 ? +1 : 0);
     }
 
-    inline unsigned long sign(unsigned long x)
+    constexpr unsigned long sign(unsigned long x)
     {
         return (x > 0 ? +1 : 0);
     }
 
-    inline long long sign(long long x)
+    constexpr long long sign(long long x)
     {
         return (x < 0 ? -1 : x > 0 ? +1 : 0);
     }
 
-    inline unsigned long long sign(unsigned long long x)
+    constexpr unsigned long long sign(unsigned long long x)
     {
         return (x > 0 ? +1 : 0);
     }
 
-    inline float sign(float x)
+    constexpr float sign(float x)
     {
         return (x < 0.0f ? -1.0f : x > 0.0f ? +1.0f : 0.0f);
     }
 
-    inline double sign(double x)
+    constexpr double sign(double x)
     {
         return (x < 0.0 ? -1.0 : x > 0.0 ? +1.0 : 0.0);
     }
 
-    inline long double sign(long double x)
+    constexpr long double sign(long double x)
     {
         return (x < 0.0L ? -1.0L : x > 0.0L ? +1.0L : 0.0L);
     }
 
     using std::abs;
 
-    inline bool abs(bool x)
+    constexpr bool abs(bool x)
     {
         return x;
     }
 
-    inline signed char abs(signed char x)
+    constexpr signed char abs(signed char x)
     {
         return (x < 0 ? -x : x);
     }
 
-    inline unsigned char abs(unsigned char x)
+    constexpr unsigned char abs(unsigned char x)
     {
         return x;
     }
 
-    inline short abs(short x)
+    constexpr short abs(short x)
     {
         return (x < 0 ? -x : x);
     }
 
-    inline unsigned short abs(unsigned short x)
+    constexpr unsigned short abs(unsigned short x)
     {
         return x;
     }
 
-    inline unsigned int abs(unsigned int x)
+    constexpr unsigned int abs(unsigned int x)
     {
         return x;
     }
 
-    inline unsigned long abs(unsigned long x)
+    constexpr unsigned long abs(unsigned long x)
     {
         return x;
     }
 
-    inline unsigned long long abs(unsigned long long x)
+    constexpr unsigned long long abs(unsigned long long x)
     {
         return x;
     }
 
-    inline float radians(float x)
+    constexpr float radians(float x)
     {
-        return x * (const_pi<float>() / 180.0f);
+        return x * (constants::pi<float>() / 180.0f);
     }
 
-    inline double radians(double x)
+    constexpr double radians(double x)
     {
-        return x * (const_pi<double>() / 180.0);
+        return x * (constants::pi<double>() / 180.0);
     }
 
-    inline long double radians(long double x)
+    constexpr long double radians(long double x)
     {
-        return x * (const_pi<long double>() / 180.0L);
+        return x * (constants::pi<long double>() / 180.0L);
     }
 
-    inline float degrees(float x)
+    constexpr float degrees(float x)
     {
-        return x * (180.0f / const_pi<float>());
+        return x * (180.0f / constants::pi<float>());
     }
 
-    inline double degrees(double x)
+    constexpr double degrees(double x)
     {
-        return x * (180.0 / const_pi<double>());
+        return x * (180.0 / constants::pi<double>());
     }
 
-    inline long double degrees(long double x)
+    constexpr long double degrees(long double x)
     {
-        return x * (180.0L / const_pi<long double>());
+        return x * (180.0L / constants::pi<long double>());
     }
 
     using std::sin;
@@ -601,17 +604,17 @@ namespace glvm
 
     using std::atan;
 
-    inline float atan(float x, float y)
+    constexpr float atan(float x, float y)
     {
         return std::atan2(x, y);
     }
 
-    inline double atan(double x, double y)
+    constexpr double atan(double x, double y)
     {
         return std::atan2(x, y);
     }
 
-    inline long double atan(long double x, long double y)
+    constexpr long double atan(long double x, long double y)
     {
         return std::atan2(x, y);
     }
@@ -630,17 +633,17 @@ namespace glvm
 
     using std::sqrt;
 
-    inline float inversesqrt(float x)
+    constexpr float inversesqrt(float x)
     {
         return 1.0f / std::sqrt(x);
     }
 
-    inline double inversesqrt(double x)
+    constexpr double inversesqrt(double x)
     {
         return 1.0 / std::sqrt(x);
     }
 
-    inline long double inversesqrt(long double x)
+    constexpr long double inversesqrt(long double x)
     {
         return 1.0L / std::sqrt(x);
     }
@@ -653,17 +656,17 @@ namespace glvm
 
     using std::ceil;
 
-    inline float fract(float x)
+    constexpr float fract(float x)
     {
         return x - std::floor(x);
     }
 
-    inline double fract(double x)
+    constexpr double fract(double x)
     {
         return x - std::floor(x);
     }
 
-    inline long double fract(long double x)
+    constexpr long double fract(long double x)
     {
         return x - std::floor(x);
     }
@@ -676,574 +679,567 @@ namespace glvm
 
     using std::isnormal;
 
-    inline float mix(float x, float y, float alpha)
+    constexpr float mix(float x, float y, float alpha)
     {
         return x * (1.0f - alpha) + y * alpha;
     }
 
-    inline double mix(double x, double y, double alpha)
+    constexpr double mix(double x, double y, double alpha)
     {
         return x * (1.0 - alpha) + y * alpha;
     }
 
-    inline long double mix(long double x, long double y, long double alpha)
+    constexpr long double mix(long double x, long double y, long double alpha)
     {
         return x * (1.0L - alpha) + y * alpha;
     }
 
-    inline float smoothstep(float x, float edge0, float edge1)
+    template<typename T> constexpr T _smoothstep_helper(T x, T edge0, T edge1)
     {
-        float t = clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
-        return t * t * (3.0f - t * 2.0f);
+        return clamp((x - edge0) / (edge1 - edge0), static_cast<T>(0), static_cast<T>(1));
     }
 
-    inline double smoothstep(double x, double edge0, double edge1)
+    constexpr float smoothstep(float x, float edge0, float edge1)
     {
-        double t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
-        return t * t * (3.0 - t * 2.0);
+        return _smoothstep_helper(x, edge0, edge1) * _smoothstep_helper(x, edge0, edge1)
+            * (3.0f - _smoothstep_helper(x, edge0, edge1) * 2.0f);
     }
 
-    inline long double smoothstep(long double x, long double edge0, long double edge1)
+    constexpr double smoothstep(double x, double edge0, double edge1)
     {
-        long double t = clamp((x - edge0) / (edge1 - edge0), 0.0L, 1.0L);
-        return t * t * (3.0L - t * 2.0L);
+        return _smoothstep_helper(x, edge0, edge1) * _smoothstep_helper(x, edge0, edge1)
+            * (3.0 - _smoothstep_helper(x, edge0, edge1) * 2.0);
     }
 
-    inline bool greaterThan(bool a, bool b)
+    constexpr long double smoothstep(long double x, long double edge0, long double edge1)
     {
-        return a > b;
+        return _smoothstep_helper(x, edge0, edge1) * _smoothstep_helper(x, edge0, edge1)
+            * (3.0L - _smoothstep_helper(x, edge0, edge1) * 2.0L);
     }
 
-    inline bool greaterThan(signed char a, signed char b)
-    {
-        return a > b;
-    }
-
-    inline bool greaterThan(unsigned char a, unsigned char b)
+    constexpr bool greaterThan(bool a, bool b)
     {
         return a > b;
     }
 
-    inline bool greaterThan(short a, short b)
+    constexpr bool greaterThan(signed char a, signed char b)
     {
         return a > b;
     }
 
-    inline bool greaterThan(unsigned short a, unsigned short b)
+    constexpr bool greaterThan(unsigned char a, unsigned char b)
     {
         return a > b;
     }
 
-    inline bool greaterThan(int a, int b)
+    constexpr bool greaterThan(short a, short b)
     {
         return a > b;
     }
 
-    inline bool greaterThan(unsigned int a, unsigned int b)
+    constexpr bool greaterThan(unsigned short a, unsigned short b)
     {
         return a > b;
     }
 
-    inline bool greaterThan(long a, long b)
+    constexpr bool greaterThan(int a, int b)
     {
         return a > b;
     }
 
-    inline bool greaterThan(unsigned long a, unsigned long b)
+    constexpr bool greaterThan(unsigned int a, unsigned int b)
     {
         return a > b;
     }
 
-    inline bool greaterThan(long long a, long long b)
+    constexpr bool greaterThan(long a, long b)
     {
         return a > b;
     }
 
-    inline bool greaterThan(unsigned long long a, unsigned long long b)
+    constexpr bool greaterThan(unsigned long a, unsigned long b)
     {
         return a > b;
     }
 
-    inline bool greaterThan(float a, float b)
+    constexpr bool greaterThan(long long a, long long b)
+    {
+        return a > b;
+    }
+
+    constexpr bool greaterThan(unsigned long long a, unsigned long long b)
+    {
+        return a > b;
+    }
+
+    constexpr bool greaterThan(float a, float b)
     {
         return std::isgreater(a, b);
     }
 
-    inline bool greaterThan(double a, double b)
+    constexpr bool greaterThan(double a, double b)
     {
         return std::isgreater(a, b);
     }
 
-    inline bool greaterThan(long double a, long double b)
+    constexpr bool greaterThan(long double a, long double b)
     {
         return std::isgreater(a, b);
     }
 
-    inline bool greaterThanEqual(bool a, bool b)
+    constexpr bool greaterThanEqual(bool a, bool b)
     {
         return a >= b;
     }
 
-    inline bool greaterThanEqual(signed char a, signed char b)
+    constexpr bool greaterThanEqual(signed char a, signed char b)
     {
         return a >= b;
     }
 
-    inline bool greaterThanEqual(unsigned char a, unsigned char b)
+    constexpr bool greaterThanEqual(unsigned char a, unsigned char b)
     {
         return a >= b;
     }
 
-    inline bool greaterThanEqual(short a, short b)
+    constexpr bool greaterThanEqual(short a, short b)
     {
         return a >= b;
     }
 
-    inline bool greaterThanEqual(unsigned short a, unsigned short b)
+    constexpr bool greaterThanEqual(unsigned short a, unsigned short b)
     {
         return a >= b;
     }
 
-    inline bool greaterThanEqual(int a, int b)
+    constexpr bool greaterThanEqual(int a, int b)
     {
         return a >= b;
     }
 
-    inline bool greaterThanEqual(unsigned int a, unsigned int b)
+    constexpr bool greaterThanEqual(unsigned int a, unsigned int b)
     {
         return a >= b;
     }
 
-    inline bool greaterThanEqual(long a, long b)
+    constexpr bool greaterThanEqual(long a, long b)
     {
         return a >= b;
     }
 
-    inline bool greaterThanEqual(unsigned long a, unsigned long b)
+    constexpr bool greaterThanEqual(unsigned long a, unsigned long b)
     {
         return a >= b;
     }
 
-    inline bool greaterThanEqual(long long a, long long b)
+    constexpr bool greaterThanEqual(long long a, long long b)
     {
         return a >= b;
     }
 
-    inline bool greaterThanEqual(unsigned long long a, unsigned long long b)
+    constexpr bool greaterThanEqual(unsigned long long a, unsigned long long b)
     {
         return a >= b;
     }
 
-    inline bool greaterThanEqual(float a, float b)
+    constexpr bool greaterThanEqual(float a, float b)
     {
         return std::isgreaterequal(a, b);
     }
 
-    inline bool greaterThanEqual(double a, double b)
+    constexpr bool greaterThanEqual(double a, double b)
     {
         return std::isgreaterequal(a, b);
     }
 
-    inline bool greaterThanEqual(long double a, long double b)
+    constexpr bool greaterThanEqual(long double a, long double b)
     {
         return std::isgreaterequal(a, b);
     }
 
-    inline bool lessThan(bool a, bool b)
+    constexpr bool lessThan(bool a, bool b)
     {
         return a < b;
     }
 
-    inline bool lessThan(signed char a, signed char b)
+    constexpr bool lessThan(signed char a, signed char b)
     {
         return a < b;
     }
 
-    inline bool lessThan(unsigned char a, unsigned char b)
+    constexpr bool lessThan(unsigned char a, unsigned char b)
     {
         return a < b;
     }
 
-    inline bool lessThan(short a, short b)
+    constexpr bool lessThan(short a, short b)
     {
         return a < b;
     }
 
-    inline bool lessThan(unsigned short a, unsigned short b)
+    constexpr bool lessThan(unsigned short a, unsigned short b)
     {
         return a < b;
     }
 
-    inline bool lessThan(int a, int b)
+    constexpr bool lessThan(int a, int b)
     {
         return a < b;
     }
 
-    inline bool lessThan(unsigned int a, unsigned int b)
+    constexpr bool lessThan(unsigned int a, unsigned int b)
     {
         return a < b;
     }
 
-    inline bool lessThan(long a, long b)
+    constexpr bool lessThan(long a, long b)
     {
         return a < b;
     }
 
-    inline bool lessThan(unsigned long a, unsigned long b)
+    constexpr bool lessThan(unsigned long a, unsigned long b)
     {
         return a < b;
     }
 
-    inline bool lessThan(long long a, long long b)
+    constexpr bool lessThan(long long a, long long b)
     {
         return a < b;
     }
 
-    inline bool lessThan(unsigned long long a, unsigned long long b)
+    constexpr bool lessThan(unsigned long long a, unsigned long long b)
     {
         return a < b;
     }
 
-    inline bool lessThan(float a, float b)
+    constexpr bool lessThan(float a, float b)
     {
         return std::isless(a, b);
     }
 
-    inline bool lessThan(double a, double b)
+    constexpr bool lessThan(double a, double b)
     {
         return std::isless(a, b);
     }
 
-    inline bool lessThan(long double a, long double b)
+    constexpr bool lessThan(long double a, long double b)
     {
         return std::isless(a, b);
     }
 
-    inline bool lessThanEqual(bool a, bool b)
+    constexpr bool lessThanEqual(bool a, bool b)
     {
         return a <= b;
     }
 
-    inline bool lessThanEqual(signed char a, signed char b)
+    constexpr bool lessThanEqual(signed char a, signed char b)
     {
         return a <= b;
     }
 
-    inline bool lessThanEqual(unsigned char a, unsigned char b)
+    constexpr bool lessThanEqual(unsigned char a, unsigned char b)
     {
         return a <= b;
     }
 
-    inline bool lessThanEqual(short a, short b)
+    constexpr bool lessThanEqual(short a, short b)
     {
         return a <= b;
     }
 
-    inline bool lessThanEqual(unsigned short a, unsigned short b)
+    constexpr bool lessThanEqual(unsigned short a, unsigned short b)
     {
         return a <= b;
     }
 
-    inline bool lessThanEqual(int a, int b)
+    constexpr bool lessThanEqual(int a, int b)
     {
         return a <= b;
     }
 
-    inline bool lessThanEqual(unsigned int a, unsigned int b)
+    constexpr bool lessThanEqual(unsigned int a, unsigned int b)
     {
         return a <= b;
     }
 
-    inline bool lessThanEqual(long a, long b)
+    constexpr bool lessThanEqual(long a, long b)
     {
         return a <= b;
     }
 
-    inline bool lessThanEqual(unsigned long a, unsigned long b)
+    constexpr bool lessThanEqual(unsigned long a, unsigned long b)
     {
         return a <= b;
     }
 
-    inline bool lessThanEqual(long long a, long long b)
+    constexpr bool lessThanEqual(long long a, long long b)
     {
         return a <= b;
     }
 
-    inline bool lessThanEqual(unsigned long long a, unsigned long long b)
+    constexpr bool lessThanEqual(unsigned long long a, unsigned long long b)
     {
         return a <= b;
     }
 
-    inline bool lessThanEqual(float a, float b)
+    constexpr bool lessThanEqual(float a, float b)
     {
         return std::islessequal(a, b);
     }
 
-    inline bool lessThanEqual(double a, double b)
+    constexpr bool lessThanEqual(double a, double b)
     {
         return std::islessequal(a, b);
     }
 
-    inline bool lessThanEqual(long double a, long double b)
+    constexpr bool lessThanEqual(long double a, long double b)
     {
         return std::islessequal(a, b);
     }
 
-    inline bool equal(bool a, bool b)
+    constexpr bool equal(bool a, bool b)
     {
         return a == b;
     }
 
-    inline bool equal(signed char a, signed char b)
+    constexpr bool equal(signed char a, signed char b)
     {
         return a == b;
     }
 
-    inline bool equal(unsigned char a, unsigned char b)
+    constexpr bool equal(unsigned char a, unsigned char b)
     {
         return a == b;
     }
 
-    inline bool equal(short a, short b)
+    constexpr bool equal(short a, short b)
     {
         return a == b;
     }
 
-    inline bool equal(unsigned short a, unsigned short b)
+    constexpr bool equal(unsigned short a, unsigned short b)
     {
         return a == b;
     }
 
-    inline bool equal(int a, int b)
+    constexpr bool equal(int a, int b)
     {
         return a == b;
     }
 
-    inline bool equal(unsigned int a, unsigned int b)
+    constexpr bool equal(unsigned int a, unsigned int b)
     {
         return a == b;
     }
 
-    inline bool equal(long a, long b)
+    constexpr bool equal(long a, long b)
     {
         return a == b;
     }
 
-    inline bool equal(unsigned long a, unsigned long b)
+    constexpr bool equal(unsigned long a, unsigned long b)
     {
         return a == b;
     }
 
-    inline bool equal(long long a, long long b)
+    constexpr bool equal(long long a, long long b)
     {
         return a == b;
     }
 
-    inline bool equal(unsigned long long a, unsigned long long b)
+    constexpr bool equal(unsigned long long a, unsigned long long b)
     {
         return a == b;
     }
 
-    inline bool equal(float a, float b)
+    constexpr bool equal(float a, float b)
     {
         return greaterThanEqual(a, b) && lessThanEqual(a, b);
     }
 
-    inline bool equal(double a, double b)
+    constexpr bool equal(double a, double b)
     {
         return greaterThanEqual(a, b) && lessThanEqual(a, b);
     }
 
-    inline bool equal(long double a, long double b)
+    constexpr bool equal(long double a, long double b)
     {
         return greaterThanEqual(a, b) && lessThanEqual(a, b);
     }
 
-    inline bool notEqual(bool a, bool b)
+    constexpr bool notEqual(bool a, bool b)
     {
         return a != b;
     }
 
-    inline bool notEqual(signed char a, signed char b)
+    constexpr bool notEqual(signed char a, signed char b)
     {
         return a != b;
     }
 
-    inline bool notEqual(unsigned char a, unsigned char b)
+    constexpr bool notEqual(unsigned char a, unsigned char b)
     {
         return a != b;
     }
 
-    inline bool notEqual(short a, short b)
+    constexpr bool notEqual(short a, short b)
     {
         return a != b;
     }
 
-    inline bool notEqual(unsigned short a, unsigned short b)
+    constexpr bool notEqual(unsigned short a, unsigned short b)
     {
         return a != b;
     }
 
-    inline bool notEqual(int a, int b)
+    constexpr bool notEqual(int a, int b)
     {
         return a != b;
     }
 
-    inline bool notEqual(unsigned int a, unsigned int b)
+    constexpr bool notEqual(unsigned int a, unsigned int b)
     {
         return a != b;
     }
 
-    inline bool notEqual(long a, long b)
+    constexpr bool notEqual(long a, long b)
     {
         return a != b;
     }
 
-    inline bool notEqual(unsigned long a, unsigned long b)
+    constexpr bool notEqual(unsigned long a, unsigned long b)
     {
         return a != b;
     }
 
-    inline bool notEqual(long long a, long long b)
+    constexpr bool notEqual(long long a, long long b)
     {
         return a != b;
     }
 
-    inline bool notEqual(unsigned long long a, unsigned long long b)
+    constexpr bool notEqual(unsigned long long a, unsigned long long b)
     {
         return a != b;
     }
 
-    inline bool notEqual(float a, float b)
+    constexpr bool notEqual(float a, float b)
     {
         return !equal(a, b);
     }
 
-    inline bool notEqual(double a, double b)
+    constexpr bool notEqual(double a, double b)
     {
         return !equal(a, b);
     }
 
-    inline bool notEqual(long double a, long double b)
+    constexpr bool notEqual(long double a, long double b)
     {
         return !equal(a, b);
     }
 
-    inline bool any(bool a)
+    constexpr bool any(bool a)
     {
         return a;
     }
 
-    inline bool all(bool a)
+    constexpr bool all(bool a)
     {
         return a;
     }
 
-    inline bool negate(bool a)
+    constexpr bool negate(bool a)
     {
         return !a;
     }
 
     // Bonus: log2 for positive integers
-    template<typename T> inline T _log2(T x)
+    template<typename T> constexpr T _log2(T x)
     {
-        const T zero = static_cast<T>(0);
-        const T one = static_cast<T>(1);
 #ifdef __GNUC__
-        return x < one ? zero : (std::numeric_limits<unsigned int>::digits - 1 - __builtin_clz(x));
+        return x < static_cast<T>(1) ? static_cast<T>(0) : (std::numeric_limits<unsigned int>::digits - 1 - __builtin_clz(x));
 #else
-        T r = zero;
-        while (x > one) {
-            x >>= one;
+        T r = static_cast<T>(0);
+        while (x > static_cast<T>(1)) {
+            x >>= static_cast<T>(1);
             r++;
         }
         return r;
 #endif
     }
-    template<typename T> inline T _log2l(T x)
+    template<typename T> constexpr T _log2l(T x)
     {
 #ifdef __GNUC__
-        const T zero = static_cast<T>(0);
-        const T one = static_cast<T>(1);
-        return x < one ? zero : (std::numeric_limits<unsigned long>::digits - 1 - __builtin_clzl(x));
+        return x < static_cast<T>(1) ? static_cast<T>(0) : (std::numeric_limits<unsigned long>::digits - 1 - __builtin_clzl(x));
 #else
         return _log2(x);
 #endif
     }
-    template<typename T> inline T _log2ll(T x)
+    template<typename T> constexpr T _log2ll(T x)
     {
 #ifdef __GNUC__
-        const T zero = static_cast<T>(0);
-        const T one = static_cast<T>(1);
-        return x < one ? zero : (std::numeric_limits<unsigned long long>::digits - 1 - __builtin_clzll(x));
+        return x < static_cast<T>(1) ? static_cast<T>(0) : (std::numeric_limits<unsigned long long>::digits - 1 - __builtin_clzll(x));
 #else
         return _log2(x);
 #endif
     }
-    inline signed char log2(signed char x) { return _log2(x); }
-    inline unsigned char log2(unsigned char x) { return _log2(x); }
-    inline short log2(short x) { return _log2(x); }
-    inline unsigned short log2(unsigned short x) { return _log2(x); }
-    inline int log2(int x) { return _log2(x); }
-    inline unsigned int log2(unsigned int x) { return _log2(x); }
-    inline long log2(long x) { return _log2l(x); }
-    inline unsigned long log2(unsigned long x) { return _log2l(x); }
-    inline long long log2(long long x) { return _log2ll(x); }
-    inline unsigned long long log2(unsigned long long x) { return _log2ll(x); }
+    constexpr signed char log2(signed char x) { return _log2(x); }
+    constexpr unsigned char log2(unsigned char x) { return _log2(x); }
+    constexpr short log2(short x) { return _log2(x); }
+    constexpr unsigned short log2(unsigned short x) { return _log2(x); }
+    constexpr int log2(int x) { return _log2(x); }
+    constexpr unsigned int log2(unsigned int x) { return _log2(x); }
+    constexpr long log2(long x) { return _log2l(x); }
+    constexpr unsigned long log2(unsigned long x) { return _log2l(x); }
+    constexpr long long log2(long long x) { return _log2ll(x); }
+    constexpr unsigned long long log2(unsigned long long x) { return _log2ll(x); }
 
     // Bonus: power-of-two check for positive integers
-    template<typename T> inline bool _is_pow2(T x)
+    template<typename T> constexpr bool _is_pow2(T x)
     {
-        const T zero = static_cast<T>(0);
-        const T one = static_cast<T>(1);
-        return (x > zero && (x & (x - one)) == zero);
+        return (x > static_cast<T>(0) && (x & (x - static_cast<T>(1))) == static_cast<T>(0));
     }
-    inline bool is_pow2(signed char x) { return _is_pow2(x); }
-    inline bool is_pow2(unsigned char x) { return _is_pow2(x); }
-    inline bool is_pow2(short x) { return _is_pow2(x); }
-    inline bool is_pow2(unsigned short x) { return _is_pow2(x); }
-    inline bool is_pow2(int x) { return _is_pow2(x); }
-    inline bool is_pow2(unsigned int x) { return _is_pow2(x); }
-    inline bool is_pow2(long x) { return _is_pow2(x); }
-    inline bool is_pow2(unsigned long x) { return _is_pow2(x); }
-    inline bool is_pow2(long long x) { return _is_pow2(x); }
-    inline bool is_pow2(unsigned long long x) { return _is_pow2(x); }
+    constexpr bool is_pow2(signed char x) { return _is_pow2(x); }
+    constexpr bool is_pow2(unsigned char x) { return _is_pow2(x); }
+    constexpr bool is_pow2(short x) { return _is_pow2(x); }
+    constexpr bool is_pow2(unsigned short x) { return _is_pow2(x); }
+    constexpr bool is_pow2(int x) { return _is_pow2(x); }
+    constexpr bool is_pow2(unsigned int x) { return _is_pow2(x); }
+    constexpr bool is_pow2(long x) { return _is_pow2(x); }
+    constexpr bool is_pow2(unsigned long x) { return _is_pow2(x); }
+    constexpr bool is_pow2(long long x) { return _is_pow2(x); }
+    constexpr bool is_pow2(unsigned long long x) { return _is_pow2(x); }
 
     // Bonus: return the next power of two, or x itself if it already is a power of two
-    template<typename T> inline T _next_pow2(T x)
+    template<typename T> constexpr T _next_pow2(T x)
     {
-        const T zero = static_cast<T>(0);
-        const T one = static_cast<T>(1);
-        return (x < one ? one : (x & (x - one)) == zero ? x : one << (log2(x) + one));
+        return (x < static_cast<T>(1) ? static_cast<T>(1) : (x & (x - static_cast<T>(1))) == static_cast<T>(0) ? x : static_cast<T>(1) << (log2(x) + static_cast<T>(1)));
     }
-    inline signed char next_pow2(signed char x) { return _next_pow2(x); }
-    inline unsigned char next_pow2(unsigned char x) { return _next_pow2(x); }
-    inline short next_pow2(short x) { return _next_pow2(x); }
-    inline unsigned short next_pow2(unsigned short x) { return _next_pow2(x); }
-    inline int next_pow2(int x) { return _next_pow2(x); }
-    inline unsigned int next_pow2(unsigned int x) { return _next_pow2(x); }
-    inline long next_pow2(long x) { return _next_pow2(x); }
-    inline unsigned long next_pow2(unsigned long x) { return _next_pow2(x); }
-    inline long long next_pow2(long long x) { return _next_pow2(x); }
-    inline unsigned long long next_pow2(unsigned long long x) { return _next_pow2(x); }
+    constexpr signed char next_pow2(signed char x) { return _next_pow2(x); }
+    constexpr unsigned char next_pow2(unsigned char x) { return _next_pow2(x); }
+    constexpr short next_pow2(short x) { return _next_pow2(x); }
+    constexpr unsigned short next_pow2(unsigned short x) { return _next_pow2(x); }
+    constexpr int next_pow2(int x) { return _next_pow2(x); }
+    constexpr unsigned int next_pow2(unsigned int x) { return _next_pow2(x); }
+    constexpr long next_pow2(long x) { return _next_pow2(x); }
+    constexpr unsigned long next_pow2(unsigned long x) { return _next_pow2(x); }
+    constexpr long long next_pow2(long long x) { return _next_pow2(x); }
+    constexpr unsigned long long next_pow2(unsigned long long x) { return _next_pow2(x); }
 
     // Bonus: return the next multiple of b (> 0) that is greater than or equal to a (>= 0).
-    template<typename T> inline T _next_multiple(T a, T b)
+    template<typename T> constexpr T _next_multiple(T a, T b)
     {
-        const T zero = static_cast<T>(0);
-        const T one = static_cast<T>(1);
-        return ((a / b) + (a % b == zero ? zero : one)) * b;
+        return ((a / b) + (a % b == static_cast<T>(0) ? static_cast<T>(0) : static_cast<T>(1))) * b;
     }
-    inline signed char next_multiple(signed char a, signed char b) { return _next_multiple(a, b); }
-    inline unsigned char next_multiple(unsigned char a, unsigned char b) { return _next_multiple(a, b); }
-    inline short next_multiple(short a, short b) { return _next_multiple(a, b); }
-    inline unsigned short next_multiple(unsigned short a, unsigned short b) { return _next_multiple(a, b); }
-    inline int next_multiple(int a, int b) { return _next_multiple(a, b); }
-    inline unsigned int next_multiple(unsigned int a, unsigned int b) { return _next_multiple(a, b); }
-    inline long next_multiple(long a, long b) { return _next_multiple(a, b); }
-    inline unsigned long next_multiple(unsigned long a, unsigned long b) { return _next_multiple(a, b); }
-    inline long long next_multiple(long long a, long long b) { return _next_multiple(a, b); }
-    inline unsigned long long next_multiple(unsigned long long a, unsigned long long b) { return _next_multiple(a, b); }
+    constexpr signed char next_multiple(signed char a, signed char b) { return _next_multiple(a, b); }
+    constexpr unsigned char next_multiple(unsigned char a, unsigned char b) { return _next_multiple(a, b); }
+    constexpr short next_multiple(short a, short b) { return _next_multiple(a, b); }
+    constexpr unsigned short next_multiple(unsigned short a, unsigned short b) { return _next_multiple(a, b); }
+    constexpr int next_multiple(int a, int b) { return _next_multiple(a, b); }
+    constexpr unsigned int next_multiple(unsigned int a, unsigned int b) { return _next_multiple(a, b); }
+    constexpr long next_multiple(long a, long b) { return _next_multiple(a, b); }
+    constexpr unsigned long next_multiple(unsigned long a, unsigned long b) { return _next_multiple(a, b); }
+    constexpr long long next_multiple(long long a, long long b) { return _next_multiple(a, b); }
+    constexpr unsigned long long next_multiple(unsigned long long a, unsigned long long b) { return _next_multiple(a, b); }
 
 
 
@@ -1253,18 +1249,10 @@ namespace glvm
     {
     public:
         T data[S];
+        T& operator[](std::ptrdiff_t i) { return data[i]; }
+        T operator[](std::ptrdiff_t i) const { return data[i]; }
 
         /* Operators */
-
-        T& operator[](unsigned int i)
-        {
-            return data[i];
-        }
-
-        T operator[](unsigned int i) const
-        {
-            return data[i];
-        }
 
         const Data& _op_assign(const Data& a)
         {
@@ -2006,9 +1994,9 @@ namespace glvm
         vector(const swizzler<T, 2, S, I, J, K, L>& s)
         : vector(s.data[I], s.data[J]) {}
 
-        operator const T*() const { return data; }
-        T& operator[](unsigned int i) { return data[i]; }
-        T operator[](unsigned int i) const { return data[i]; }
+        operator const T*() const { return data.data; }
+        T& operator[](std::ptrdiff_t i) { return data.data[i]; }
+        T operator[](std::ptrdiff_t i) const { return data.data[i]; }
     };
 
     template<typename T> class vector<T, 3>
@@ -2167,9 +2155,9 @@ namespace glvm
         vector(const swizzler<T, 3, S, I, J, K, L>& s)
         : vector(s.data[I], s.data[J], s.data[K]) {}
 
-        operator const T*() const { return data; }
-        T& operator[](unsigned int i) { return data[i]; }
-        T operator[](unsigned int i) const { return data[i]; }
+        operator const T*() const { return data.data; }
+        T& operator[](std::ptrdiff_t i) { return data.data[i]; }
+        T operator[](std::ptrdiff_t i) const { return data.data[i]; }
     };
 
     template<typename T> class vector<T, 4>
@@ -2555,9 +2543,9 @@ namespace glvm
         vector(const swizzler<T, 4, S, I, J, K, L>& s)
         : vector(s.data[I], s.data[J], s.data[K], s.data[L]) {}
 
-        operator const T*() const { return data; }
-        T& operator[](unsigned int i) { return data[i]; }
-        T operator[](unsigned int i) const { return data[i]; }
+        operator const T*() const { return data.data; }
+        T& operator[](std::ptrdiff_t i) { return data.data[i]; }
+        T operator[](std::ptrdiff_t i) const { return data.data[i]; }
     };
 
     template<typename T, int S> vector<T, S>& operator+=(vector<T, S>& a, const vector<T, S>& b) { a.data._op_plus_assign(b.data); return a; }
@@ -2821,12 +2809,12 @@ namespace glvm
 
         operator const T*() const { return data.data; }
 
-        vector<T, R>& operator[](unsigned int i)
+        vector<T, R>& operator[](std::ptrdiff_t i)
         {
             return columns[i];
         }
 
-        vector<T, R> operator[](unsigned int i) const
+        vector<T, R> operator[](std::ptrdiff_t i) const
         {
             return columns[i];
         }
@@ -3285,14 +3273,45 @@ namespace glvm
             quaternion<T> t = *this * quaternion<T>(v.x, v.y, v.z, static_cast<T>(0)) * conjugate(*this);
             return vector<T, 4>(t.x, t.y, t.z, t.w);
         }
-
-        operator const T*() const { return &x; }
     };
 
     template<typename T> T magnitude(const quaternion<T>& q) { return q.data._length(); }
     template<typename T> quaternion<T> conjugate(const quaternion<T>& q) { return quaternion<T>(-q.x, -q.y, -q.z, q.w); }
     template<typename T> quaternion<T> inverse(const quaternion<T>& q) { return quaternion<T>(conjugate(q).data._op_scal_div(magnitude(q))); }
     template<typename T> quaternion<T> normalize(const quaternion<T>& q) { return quaternion<T>(q.data._op_scal_div(magnitude(q))); }
+
+    template<typename T> quaternion<T> slerp(const quaternion<T>& q, const quaternion<T>& r, T alpha)
+    {
+        quaternion<T> w = r;
+        T cos_half_angle = q.data._dot(r.data);
+        if (cos_half_angle < static_cast<T>(0)) {
+            // quat(x, y, z, w) and quat(-x, -y, -z, -w) represent the same rotation
+            w.x = -w.x; w.y = -w.y; w.z = -w.z; w.w = -w.w;
+            cos_half_angle = -cos_half_angle;
+        }
+        T tmp_q, tmp_w;
+        if (abs(cos_half_angle) >= static_cast<T>(1)) {
+            // angle is zero => rotations are identical
+            tmp_q = static_cast<T>(1);
+            tmp_w = static_cast<T>(0);
+        } else {
+            T half_angle = acos(cos_half_angle);
+            T sin_half_angle = sqrt(static_cast<T>(1) - cos_half_angle * cos_half_angle);
+            if (abs(sin_half_angle) < static_cast<T>(0.001)){
+                // angle is 180 degrees => result is not clear
+                tmp_q = static_cast<T>(0.5);
+                tmp_w = static_cast<T>(0.5);
+            } else {
+                tmp_q = sin((static_cast<T>(1) - alpha) * half_angle) / sin_half_angle;
+                tmp_w = sin(alpha * half_angle) / sin_half_angle;
+            }
+        }
+        return quaternion<T>(
+                q.x * tmp_q + w.x * tmp_w,
+                q.y * tmp_q + w.y * tmp_w,
+                q.z * tmp_q + w.z * tmp_w,
+                q.w * tmp_q + w.w * tmp_w);
+    }
 
     typedef quaternion<float> quat;
     typedef quaternion<double> dquat;
@@ -3334,8 +3353,6 @@ namespace glvm
             t *= q;
             n = new_near;
         }
-
-        operator const T*() const { return &l; }
     };
 
     template<typename T> matrix<T, 4, 4> toMat4(const frustum<T>& f)
@@ -3590,7 +3607,7 @@ namespace glvm
             // north pole
             result = vector<T, 3>(
                     static_cast<T>(2) * glvm::atan(q.x, q.w),
-                    const_pi_2<T>(),
+                    constants::pi_div_2<T>(),
                     static_cast<T>(0));
         }
         else if (singularity_test < static_cast<T>(-0.4999))
@@ -3598,7 +3615,7 @@ namespace glvm
             // south pole
             result = vector<T, 3>(
                     -static_cast<T>(2) * glvm::atan(q.x, q.w),
-                    -const_pi_2<T>(),
+                    -constants::pi_div_2<T>(),
                     static_cast<T>(0));
         }
         else
@@ -3615,7 +3632,7 @@ namespace glvm
 
     /* Replacements for some useful old GLU functions */
 
-    // gluPerspective()
+    // gluPerspective(), but fovy is radians not degrees
     template<typename T> frustum<T> perspective(T fovy, T aspect, T zNear, T zFar)
     {
         T t = tan(fovy / static_cast<T>(2));

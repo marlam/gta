@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015
  * Martin Lambers <marlam@marlam.de>
  * Joe <joe@wpj.cz>
  * D. Matz <bandregent@yahoo.de>
@@ -28,7 +28,7 @@
 #include <string>
 #include <stdint.h>
 
-#include "s11n.h"
+#include "base/ser.h"
 #include "base/msg.h"
 
 

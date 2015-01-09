@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013
+ * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2015
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -709,6 +709,32 @@ error_exit:
     bool writelock(FILE *f, const std::string &filename)
     {
         return lock(1, f, filename);
+    }
+
+    void unlock(FILE *f, const std::string &filename)
+    {
+        int fd = fileno(f);     // Do not use ::fileno(f); fileno might be a macro
+        bool success;
+#if !W32
+        struct flock lock;
+        lock.l_type = F_UNLCK;
+        lock.l_whence = SEEK_SET;
+        lock.l_start = 0;
+        lock.l_len = 0;
+#endif /* !W32 */
+
+        errno = 0;
+#if W32
+        success = (::_locking(fd, _LK_UNLCK, LONG_MAX) == 0);
+#else /* POSIX */
+        success = (::fcntl(fd, F_SETLK, &lock) == 0);
+#endif
+        if (!success)
+        {
+            throw exc(std::string("Cannot unlock ")
+                    + (!filename.empty() ? to_sys(filename) : "temporary file")
+                    + ": " + std::strerror(errno), errno);
+        }
     }
 
     void read(void *dest, size_t s, size_t n, FILE *f, const std::string &filename)

@@ -279,18 +279,19 @@ endif
 endif
 
 if WITH_FFMPEG
+AM_CPPFLAGS += -I$(top_srcdir)/src/conv-ffmpeg
 if DYNAMIC_MODULES
 pkglib_LTLIBRARIES += conv-ffmpeg.la
 conv_ffmpeg_la_SOURCES = conv-ffmpeg/from-ffmpeg.cpp \
-	conv-ffmpeg/s11n.h conv-ffmpeg/s11n.cpp \
-	conv-ffmpeg/thread.h conv-ffmpeg/thread.cpp \
+	conv-ffmpeg/base/ser.h conv-ffmpeg/base/ser.cpp \
+	conv-ffmpeg/base/pth.h conv-ffmpeg/base/pth.cpp \
 	conv-ffmpeg/media_data.h conv-ffmpeg/media_data.cpp \
 	conv-ffmpeg/media_object.h conv-ffmpeg/media_object.cpp
 conv_ffmpeg_la_LIBADD = $(libffmpeg_LIBS)
 else
 libbuiltin_la_SOURCES += conv-ffmpeg/from-ffmpeg.cpp \
-	conv-ffmpeg/s11n.h conv-ffmpeg/s11n.cpp \
-	conv-ffmpeg/thread.h conv-ffmpeg/thread.cpp \
+	conv-ffmpeg/base/ser.h conv-ffmpeg/base/ser.cpp \
+	conv-ffmpeg/base/pth.h conv-ffmpeg/base/pth.cpp \
 	conv-ffmpeg/media_data.h conv-ffmpeg/media_data.cpp \
 	conv-ffmpeg/media_object.h conv-ffmpeg/media_object.cpp
 libbuiltin_la_LIBADD += $(libffmpeg_LIBS)

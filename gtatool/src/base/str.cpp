@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014
+ * Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014, 2015
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -52,12 +52,12 @@
 # include <quadmath.h>
 #endif
 
-#include "base/gettext.h"
-#define _(string) gettext(string)
-
 #include "base/dbg.h"
 #include "base/exc.h"
 #include "base/msg.h"
+
+#include "base/gettext.h"
+#define _(string) gettext(string)
 
 #include "base/str.h"
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013
+ * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2015
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,8 +22,8 @@
  * C-style IO for C++, with exception handling.
  */
 
-#ifndef CIO_H
-#define CIO_H
+#ifndef FIO_H
+#define FIO_H
 
 #include <cstdio>
 #include <string>
@@ -103,6 +103,7 @@ namespace fio
     // advisory locks (for the whole file)
     bool readlock(FILE *f, const std::string &filename = std::string(""));
     bool writelock(FILE *f, const std::string &filename = std::string(""));
+    void unlock(FILE *f, const std::string &filename = std::string(""));
 
     // fread and fwrite replacements
     void read(void *dest, size_t s, size_t n, FILE *f, const std::string &filename = std::string(""));

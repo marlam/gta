@@ -71,8 +71,8 @@ if test "$w32" = "yes"; then
     CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE"
     dnl For PathMatchSpec() in base module fio:
     LIBS="$LIBS -lshlwapi"
-    dnl To allow us to use more than 2 GiB of memory:
-    LDFLAGS="$LDFLAGS -Wl,--large-address-aware"
+    dnl To allow us to use more than 2 GiB of memory on 32 bit Windows:
+    case "${target}" in i*86-*-mingw32*) LDFLAGS="$LDFLAGS -Wl,--large-address-aware" ;; esac
 else
     MAKENSIS=":"
 fi
