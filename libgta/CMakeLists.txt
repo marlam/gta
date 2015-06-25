@@ -1,4 +1,4 @@
-# Copyright (C) 2014
+# Copyright (C) 2014, 2015
 # Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -69,7 +69,7 @@ if(GTA_BUILD_STATIC_LIB)
     ARCHIVE DESTINATION "lib${LIB_SUFFIX}"
   )
 endif()
-install(FILES src/gta/gta.h "${CMAKE_BINARY_DIR}/src/gta/gta_version.h" DESTINATION include/gta)
+install(FILES src/gta/gta.h src/gta/gta.hpp "${CMAKE_BINARY_DIR}/src/gta/gta_version.h" DESTINATION include/gta)
 # pkg-config file: gta.pc
 set(prefix "${CMAKE_INSTALL_PREFIX}")
 set(exec_prefix "\${prefix}")
