@@ -23,12 +23,6 @@
 
 #include <string>
 
-#ifdef HAVE_PFS_PFS_H
-# include <pfs/pfs.h>
-#else
-# include <pfs-1.2/pfs.h>
-#endif
-
 #include <gta/gta.hpp>
 
 #include "base/msg.h"
@@ -38,6 +32,12 @@
 #include "base/chk.h"
 
 #include "lib.h"
+
+#ifdef HAVE_PFS_PFS_H
+# include <pfs/pfs.h>
+#else
+# include <pfs-1.2/pfs.h>
+#endif
 
 
 extern "C" void gtatool_from_pfs_help(void)
