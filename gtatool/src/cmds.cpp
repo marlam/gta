@@ -2,7 +2,8 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014
+ * Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+ * 2015, 2016
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -154,7 +155,6 @@ CMD_DECL(to_sndfile)
 CMD_DECL(to_teem)
 CMD_DECL(uncompress)
 CMD_DECL(version)
-CMD_DECL(view)
 
 static cmd_t cmds[] =
 {
@@ -310,8 +310,6 @@ static cmd_t cmds[] =
             "Uncompress arrays"),
     CMD("version",           cmd_misc,       version,           true,          BUILTIN,
             "Show program version"),
-    CMD("view",              cmd_misc,       view,              WITH_QTOPENGL && WITH_GLEWMX,   "view",
-            "Visualize GTAs"),
 };
 
 

@@ -87,7 +87,6 @@ _gta()
 	to-teem
 	uncompress
 	version
-    view
     "
 
     cmd=""
@@ -625,13 +624,6 @@ _gta()
 	fi
 	;;
     version)
-	;;
-    view)
-	if [[ ${cur} == -* ]]; then
-	    COMPREPLY=( $(compgen -W "--help" -- ${cur}) )
-	else
-	    COMPREPLY=( $(compgen -f -o plusdirs -X '!*.gta' -- ${cur}) )
-	fi
 	;;
     *)
 	# we only have "gta"

@@ -1,4 +1,4 @@
-# Copyright (C) 2010, 2011, 2012, 2013, 2014
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016
 # Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -41,7 +41,6 @@ EXTRA_DIST = \
 	gta-stream-split.sh \
 	gta-component-compute.sh \
 	gta-gui.sh \
-	gta-view.sh \
 	conv-csv.sh \
 	conv-datraw.sh \
 	conv-dcmtk.sh \
@@ -104,9 +103,6 @@ TESTS += gta-component-compute.sh
 endif
 if WITH_QT
 TESTS += gta-gui.sh
-if WITH_GLEWMX
-TESTS += gta-view.sh
-endif
 endif
 
 if WITH_CSV

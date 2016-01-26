@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2014
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -137,14 +137,11 @@ private:
     QSpinBox *_array_spinbox;
     QGridLayout *_array_widget_layout;
     ArrayWidget* _array_widget;
-    QPushButton *_view_button;
-    ViewWidget* _view_widget;
 
 private slots:
     void update_label();
     void update_array();
     void array_changed(size_t index);
-    void view_closed();
     void request_quit();
 
 public:
@@ -193,9 +190,6 @@ public:
 
     void saved_to(const std::string &save_name);
 
-public slots:
-    void open_view();
-
 signals:
     void changed(const std::string &file_name, const std::string &save_name);
     void quit();
@@ -233,7 +227,7 @@ public:
     GUI();
     ~GUI();
 
-    void open(const std::string &file_name, const std::string &save_name, int tab_index = -1, bool view = false);
+    void open(const std::string &file_name, const std::string &save_name, int tab_index = -1);
 
 private slots:
     void file_open();

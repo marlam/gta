@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2014
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -64,8 +64,6 @@
 #include "cmds.h"
 #include "gui.hpp"
 
-#include "viewwidget.hpp"
-
 
 extern "C" void gtatool_gui_help(void)
 {
@@ -75,13 +73,7 @@ extern "C" void gtatool_gui_help(void)
             "Starts a graphical user interface (GUI) and opens the given GTA files, if any.");
 }
 
-// View initialization
 static QSettings* global_settings = NULL;
-#if DYNAMIC_MODULES || !WITH_GLEWMX
-static ViewWidget* (*gtatool_view_create)(void) = NULL;
-#else
-extern "C" ViewWidget* gtatool_view_create(void);
-#endif
 
 // Helper functions: convert path names between our representation and Qt's representation
 static QString to_qt(const std::string& path)
@@ -104,11 +96,7 @@ TaglistWidget::TaglistWidget(gta::header *header, enum type type, uintmax_t inde
     header_labels.append("Value");
     _tablewidget->setHorizontalHeaderLabels(header_labels);
     _tablewidget->setSelectionBehavior(QAbstractItemView::SelectRows);
-#if QT_VERSION < 0x050000
-    _tablewidget->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
-#else
     _tablewidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-#endif
     _tablewidget->horizontalHeader()->hide();
     _tablewidget->verticalHeader()->hide();
     connect(_tablewidget, SIGNAL(itemSelectionChanged()), this, SLOT(selection_changed()));
@@ -476,8 +464,7 @@ FileWidget::FileWidget(const std::string &file_name, const std::string &save_nam
         QWidget *parent)
     : QWidget(parent),
     _file_name(file_name), _save_name(save_name), _is_changed(false),
-    _headers(headers), _offsets(offsets), _array_changed(_headers.size(), false),
-    _view_widget(NULL)
+    _headers(headers), _offsets(offsets), _array_changed(_headers.size(), false)
 {
     _array_label = new QLabel("Array index:");
     _array_spinbox = new QSpinBox;
@@ -488,10 +475,6 @@ FileWidget::FileWidget(const std::string &file_name, const std::string &save_nam
     l0->addWidget(_array_label, 0, 0);
     l0->addWidget(_array_spinbox, 0, 1);
     l0->addWidget(new QLabel(QString("(Total: ") + QString::number(_headers.size()) + QString(")")), 0, 2);
-    _view_button = new QPushButton("View");
-    _view_button->setEnabled(cmd_is_available(cmd_find("view")));
-    connect(_view_button, SIGNAL(clicked()), this, SLOT(open_view()));
-    l0->addWidget(_view_button, 0, 4);
     l0->addItem(new QSpacerItem(0, _array_label->minimumSizeHint().height() / 3 * 2,
                 QSizePolicy::Minimum, QSizePolicy::Fixed), 1, 0, 1, 4);
     l0->setColumnStretch(3, 1);
@@ -507,10 +490,6 @@ FileWidget::FileWidget(const std::string &file_name, const std::string &save_nam
 
 FileWidget::~FileWidget()
 {
-    if (_view_widget) {
-        _view_widget->close();
-        //delete _view_widget;
-    }
     if (_save_name.length() > 0 && _save_name.compare(_file_name) != 0) {
         try { fio::remove(_save_name); } catch (...) {}
     }
@@ -539,8 +518,6 @@ void FileWidget::update_array()
     _array_widget->layout()->setContentsMargins(0, 0, 0, 0);
     _array_widget_layout->addWidget(_array_widget, 0, 0);
     update_label();
-    if (_view_widget && !_view_widget->isHidden())
-        _view_widget->set_current(index);
 }
 
 void FileWidget::array_changed(size_t index)
@@ -571,38 +548,6 @@ void FileWidget::saved_to(const std::string &save_name)
             _array_changed[i] = false;
         update_label();
     }
-}
-
-void FileWidget::open_view()
-{
-#if DYNAMIC_MODULES
-    if (!gtatool_view_create) {
-        int i = cmd_find("view");
-        cmd_open(i);
-        gtatool_view_create = reinterpret_cast<ViewWidget* (*)(void)>(
-                cmd_symbol(i, "gtatool_view_create"));
-    }
-#endif
-    if (_view_widget && !_view_widget->isHidden()) {
-        _view_widget->raise();
-    } else {
-        delete _view_widget;
-        _view_widget = NULL;
-    }
-    if (!_view_widget) {
-        _view_widget = gtatool_view_create();
-        connect(_view_widget, SIGNAL(closed()), this, SLOT(view_closed()));
-        connect(_view_widget, SIGNAL(quit()), this, SLOT(request_quit()));
-        _view_widget->init(gtatool_argc, gtatool_argv, global_settings,
-                _file_name, _save_name, _headers, _offsets);
-    }
-    _view_widget->set_current(_array_spinbox->value());
-    _view_button->setText("Update view");
-}
-
-void FileWidget::view_closed()
-{
-    _view_button->setText("View");
 }
 
 void FileWidget::request_quit()
@@ -1377,7 +1322,7 @@ void GUI::export_to(const std::string &cmd, const std::vector<std::string> &opti
     }
 }
 
-void GUI::open(const std::string &file_name, const std::string &save_name, int tab_index, bool view)
+void GUI::open(const std::string &file_name, const std::string &save_name, int tab_index)
 {
     if (file_name.length() > 0)
     {
@@ -1436,8 +1381,6 @@ void GUI::open(const std::string &file_name, const std::string &save_name, int t
             _files_widget->setCurrentIndex(ti);
             if (file_name.compare(name) == 0)
                 _files_watcher->addPath(to_qt(file_name));
-            if (view)
-                static_cast<FileWidget*>(_files_widget->widget(ti))->open_view();
         }
     }
     catch (std::exception &e)
@@ -2840,7 +2783,7 @@ void GUI::help_about()
 {
     QMessageBox::about(this, tr("About " PACKAGE_NAME), tr(
                 "<p>This is %1 version %2, using libgta version %3.</p>"
-                "<p>Copyright (C) 2014 Martin Lambers.</p>"
+                "<p>Copyright (C) 2016 Martin Lambers.</p>"
                 "<p>See <a href=\"%4\">%4</a> for more information on this software.</p>"
                 "This is <a href=\"http://www.gnu.org/philosophy/free-sw.html\">free software</a>. "
                 "You may redistribute copies of it under the terms of the "
@@ -2850,24 +2793,14 @@ void GUI::help_about()
 }
 
 extern int qInitResources_gui();
-#if QT_VERSION >= 0x050000
-# if W32
+#if W32
 Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)
 Q_IMPORT_PLUGIN(AccessibleFactory)
-# endif
 #endif
 
-#if QT_VERSION < 0x050000
-static void qt_msg_handler(QtMsgType type, const char *msg)
-#else
 static void qt_msg_handler(QtMsgType type, const QMessageLogContext&, const QString& msg)
-#endif
 {
-#if QT_VERSION < 0x050000
-    std::string s = msg;
-#else
     std::string s = qPrintable(msg);
-#endif
     switch (type)
     {
     case QtDebugMsg:
@@ -2888,28 +2821,9 @@ static void qt_msg_handler(QtMsgType type, const QMessageLogContext&, const QStr
 
 extern "C" int gtatool_gui(int argc, char *argv[])
 {
-#ifdef Q_WS_X11
-    // This only works with Qt4; Qt5 ignores the 'have_display' flag.
-    const char *display = getenv("DISPLAY");
-    bool have_display = (display && display[0] != '\0');
-#else
-    bool have_display = true;
-#endif
-#ifdef Q_OS_UNIX
-    setenv("__GL_SYNC_TO_VBLANK", "0", 1);                      // for the 'view' command; works on Linux
-#endif
-    QCoreApplication::setAttribute(Qt::AA_X11InitThreads);      // for the 'view' command on X11
     /* Let Qt handle the command line first, so that Qt options work */
-#if QT_VERSION < 0x050000
-    qInstallMsgHandler(qt_msg_handler);
-#else
     qInstallMessageHandler(qt_msg_handler);
-#endif
-    QApplication *app = new QApplication(argc, argv, have_display);
-#if QT_VERSION < 0x050000
-    // Make Qt4 behave like Qt5: always interpret all C strings as UTF-8.
-    QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
-#endif
+    QApplication *app = new QApplication(argc, argv);
     // Set the correct encoding for the locale. Required e.g. for qPrintable() to work.
     QTextCodec::setCodecForLocale(QTextCodec::codecForName(str::localcharset().c_str()));
     QCoreApplication::setOrganizationName(PACKAGE_TARNAME);
@@ -2917,21 +2831,10 @@ extern "C" int gtatool_gui(int argc, char *argv[])
     global_settings = new QSettings;
     /* Force linking of the Qt resources. Necessary if dynamic modules are disabled. */
     qInitResources_gui();
-    /* Now handle our own command line options / arguments.
-     * Accept and ignore some options that may be passed to Equalizer from the view command. */
+    /* Now handle our own command line options / arguments. */
     std::vector<opt::option *> options;
     opt::info help("help", '\0', opt::optional);
     options.push_back(&help);
-    opt::val<std::string> eq_server("eq-server", '\0', opt::optional);
-    options.push_back(&eq_server);
-    opt::val<std::string> eq_config("eq-config", '\0', opt::optional);
-    options.push_back(&eq_config);
-    opt::val<std::string> eq_listen("eq-listen", '\0', opt::optional);
-    options.push_back(&eq_listen);
-    opt::val<std::string> eq_logfile("eq-logfile", '\0', opt::optional);
-    options.push_back(&eq_logfile);
-    opt::val<std::string> eq_render_client("eq-render-client", '\0', opt::optional);
-    options.push_back(&eq_render_client);
     std::vector<std::string> arguments;
     if (!opt::parse(argc, argv, options, -1, -1, arguments))
     {
@@ -2941,22 +2844,12 @@ extern "C" int gtatool_gui(int argc, char *argv[])
     }
     if (help.value())
     {
-        if (::strcmp(argv[0], "view") == 0)
-            cmd_run_help(cmd_find("view"));
-        else
-            gtatool_gui_help();
+        gtatool_gui_help();
         delete app;
         delete global_settings;
         return 0;
     }
     /* Run the GUI */
-    if (!have_display)
-    {
-        msg::err_txt("GUI failure: cannot connect to X server");
-        delete app;
-        delete global_settings;
-        return 1;
-    }
 #if W32
     DWORD console_process_list[1];
     if (GetConsoleProcessList(console_process_list, 1) == 1)
@@ -2977,9 +2870,8 @@ extern "C" int gtatool_gui(int argc, char *argv[])
     {
         GUI *gui = new GUI();
         gui->show();
-        bool view = (::strcmp(argv[0], "view") == 0);
         for (size_t i = 0; i < arguments.size(); i++) {
-            gui->open(fio::from_sys(arguments[i]), fio::from_sys(arguments[i]), -1, view);
+            gui->open(fio::from_sys(arguments[i]), fio::from_sys(arguments[i]), -1);
         }
         retval = app->exec();
         delete gui;
@@ -2994,10 +2886,6 @@ extern "C" int gtatool_gui(int argc, char *argv[])
         msg::err_txt("GUI failure");
         retval = 1;
     }
-#if DYNAMIC_MODULES
-    if (gtatool_view_create && ::strcmp(argv[0], "view") != 0)
-        cmd_close(cmd_find("view"));
-#endif
     delete app;
     delete global_settings;
     return retval;

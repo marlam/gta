@@ -2,7 +2,8 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014
+ * Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+ * 2015, 2016
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -66,7 +67,7 @@ extern "C" int gtatool_version(int argc, char *argv[])
         return 0;
     }
     msg::req_txt("%s version %s on %s, using libgta version %s\n"
-            "Copyright (C) 2014  Martin Lambers <marlam@marlam.de>.\n"
+            "Copyright (C) 2016  Martin Lambers <marlam@marlam.de>.\n"
             "This is free software. You may redistribute copies of it under the terms of "
             "the GNU General Public License.\n"
             "There is NO WARRANTY, to the extent permitted by law.",
@@ -243,19 +244,6 @@ int main(int argc, char *argv[])
             msg::set_level(msg::DBG);
         }
         int cmd_index = cmd_find(argv[argv_cmd_index]);
-#if WITH_EQUALIZER
-        if (cmd_index < 0)
-        {
-            for (int i = argv_cmd_index; i < argc; i++)
-            {
-                if (std::strcmp(argv[i], "--eq-client") == 0)
-                {
-                    cmd_index = cmd_find("view");
-                    break;
-                }
-            }
-        }
-#endif
         if (cmd_index < 0)
         {
             msg::err("command unknown: %s", argv[argv_cmd_index]);
