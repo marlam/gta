@@ -724,7 +724,7 @@ GUI::GUI()
     connect(file_export_ply_action, SIGNAL(triggered()), this, SLOT(file_export_ply()));
     file_export_ply_action->setEnabled(cmd_is_available(cmd_find("to-ply")));
     file_export_menu->addAction(file_export_ply_action);
-    QAction *file_export_png_action = new QAction(tr("PVM volume data..."), this);
+    QAction *file_export_png_action = new QAction(tr("PNG image data..."), this);
     connect(file_export_png_action, SIGNAL(triggered()), this, SLOT(file_export_png()));
     file_export_png_action->setEnabled(cmd_is_available(cmd_find("to-png")));
     file_export_menu->addAction(file_export_png_action);
