@@ -1,4 +1,4 @@
-# Copyright (C) 2014, 2015
+# Copyright (C) 2014, 2015, 2016
 # Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -18,9 +18,9 @@ option(GTA_BUILD_DOCUMENTATION "Build API reference documentation (requires Doxy
 # libgta version
 set(GTA_VERSION_MAJOR "1")
 set(GTA_VERSION_MINOR "0")
-set(GTA_VERSION_PATCH "7")
-set(GTA_VERSION 1.0.7)
-set(GTA_VERSION_NUMBER 0x010007)
+set(GTA_VERSION_PATCH "8")
+set(GTA_VERSION 1.0.8)
+set(GTA_VERSION_NUMBER 0x010008)
 set(GTA_LIB_VERSION "0.0.4")
 set(GTA_LIB_SOVERSION "0")
 
