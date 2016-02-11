@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (C) 2012
+# Copyright (C) 2012, 2016
 # Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -9,8 +9,8 @@
 
 set -e
 
-TMPD="`mktemp -d tmp-\`basename $0 .sh\`.XXXXXX`"
-
-$GTA gui --help 2> "$TMPD"/gta-gui-help.txt
-
-rm -r "$TMPD"
+if [ -n "$DISPLAY" ]; then
+    TMPD="`mktemp -d tmp-\`basename $0 .sh\`.XXXXXX`"
+    $GTA gui --help 2> "$TMPD"/gta-gui-help.txt
+    rm -r "$TMPD"
+fi
