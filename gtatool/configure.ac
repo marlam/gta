@@ -224,7 +224,27 @@ if test "$qt" = "yes"; then
             AC_CHECK_TOOLS([RCC], [rcc-qt5 rcc])
         fi
         if test -z "$MOC"; then
-            AC_CHECK_TOOLS([MOC], [moc-qt5 moc])
+            AC_CHECK_TOOL(MOC, [moc-qt5 moc])
+            AC_MSG_CHECKING([for Qt5 moc])
+            mocversion=`$MOC -v 2>&1`
+            mocversiongrep=`echo $mocversion | grep "Qt 5\|moc 5"`
+            if test x"$mocversiongrep" != x"$mocversion"; then
+                AC_MSG_RESULT([no])
+                # moc was not the qt5 one, try with qtchooser
+                AC_CHECK_TOOL(QTCHOOSER, qtchooser)
+                AC_MSG_CHECKING([for qtchooser])
+                qt5tooldir=`QT_SELECT=qt5 qtchooser -print-env | grep QTTOOLDIR | cut -d '=' -f 2 | cut -d \" -f 2`
+                mocversion=`$qt5tooldir/moc -v 2>&1`
+                mocversiongrep=`echo $mocversion | grep "Qt 5\|moc 5"`
+                if test x"$mocversiongrep" != x"$mocversion"; then
+                    # no valid moc found
+                    MOC="not found"
+                else
+                    MOC=$qt5tooldir/moc
+                fi
+            fi
+            AC_SUBST(MOC)
+            AC_MSG_RESULT([$MOC])
         fi
         dnl For a static Windows build with MXE, we need to statically link the
         dnl QWindowsIntegrationPlugin and AccessibleFactory plugins.
