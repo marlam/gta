@@ -624,6 +624,7 @@ static void to_max_cfloat(max_float_t c[2], const void *val, gta::type type, boo
             c[0] = v[0];
             c[1] = v[1];
         }
+        break;
 #endif
     default:
         // cannot happen
