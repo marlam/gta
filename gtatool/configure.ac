@@ -5,7 +5,7 @@ dnl
 dnl This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
 dnl (GTAs).
 dnl
-dnl Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016
+dnl Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
 dnl Martin Lambers <marlam@marlam.de>
 dnl
 dnl This program is free software; you can redistribute it and/or modify
@@ -129,7 +129,7 @@ dnl - end
 AC_C_BIGENDIAN
 dnl - fio
 case "${target}" in *-*-mingw*) LIBS="$LIBS -lshlwapi" ;; esac
-AC_CHECK_FUNCS([fdatasync fnmatch fseeko ftello getpwuid link mmap posix_fadvise readdir_r symlink])
+AC_CHECK_FUNCS([fdatasync fnmatch fseeko ftello getpwuid link mmap posix_fadvise symlink])
 dnl - opt
 case "${target}" in *-*-mingw*) CPPFLAGS="$CPPFLAGS -D_BSD_SOURCE" ;; esac
 AC_CHECK_DECLS([optreset], [], [], [#include <getopt.h>])

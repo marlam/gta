@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2015
+ * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2015, 2017
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -116,41 +116,6 @@
 static int fnmatch(const char* pattern, const char* string, int flags)
 {
     return (PathMatchSpec(string, pattern) ? 0 : FNM_NOMATCH);
-}
-#endif
-
-#if HAVE_READDIR_R
-#else
-// Only Windows lacks readdir_r, so we use a W32 mutex here to avoid
-// depending on the thread module.
-static int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
-{
-    static HANDLE w32_mutex = CreateMutex(NULL, FALSE, NULL);
-    if (w32_mutex == NULL)
-    {
-        errno = EAGAIN;
-        return errno;
-    }
-
-    WaitForSingleObject(w32_mutex, INFINITE);
-    struct dirent *r;
-    errno = 0;
-    r = ::readdir(dirp);
-    if (!r) {
-        if (errno != 0) {
-            ReleaseMutex(w32_mutex);
-            return errno;
-        } else {
-            ReleaseMutex(w32_mutex);
-            *result = NULL;
-            return 0;
-        }
-    } else {
-        std::memcpy(entry, r, sizeof(struct dirent));
-        ReleaseMutex(w32_mutex);
-        *result = entry;
-        return 0;
-    }
 }
 #endif
 
@@ -1057,7 +1022,6 @@ error_exit:
     {
         DIR* d;
         struct dirent* rde;
-        struct dirent de;
         std::vector<std::string> list;
 
         d = ::opendir(dirname.c_str());
@@ -1067,21 +1031,26 @@ error_exit:
                     + ": " + std::strerror(errno), errno);
         }
 
-        try {
-            while (::readdir_r(d, &de, &rde) == 0 && rde)
-            {
-                if (std::strcmp(de.d_name, ".") != 0 && std::strcmp(de.d_name, "..") != 0) {
-                    if (pattern.length() == 0 || fnmatch(pattern.c_str(), de.d_name, 0) == 0) {
-                        list.push_back(de.d_name);
+        errno = 0;
+        while ((rde = ::readdir(d)))
+        {
+            if (std::strcmp(rde->d_name, ".") != 0 && std::strcmp(rde->d_name, "..") != 0) {
+                if (pattern.length() == 0 || fnmatch(pattern.c_str(), rde->d_name, 0) == 0) {
+                    try {
+                        list.push_back(rde->d_name);
+                    } catch (std::exception&) {
+                        errno = ENOMEM;
+                        break;
                     }
                 }
             }
-            ::closedir(d);
-        } catch (std::exception& e) {
-            ::closedir(d);
+        }
+        ::closedir(d);
+        if (errno)
+        {
             throw exc(std::string("Cannot read directory ")
                     + to_sys(dirname)
-                    + ": " + std::strerror(ENOMEM), ENOMEM);
+                    + ": " + std::strerror(errno), errno);
         }
         return list;
     }
