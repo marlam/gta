@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007, 2009, 2010, 2011, 2012, 2013, 2015
+ * Copyright (C) 2006, 2007, 2009, 2010, 2011, 2012, 2013, 2015, 2017
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -54,7 +54,7 @@ namespace opt
         int shortopts_ind;          /* index in short options */
         int *shortopt_opt_ind;      /* Mapping from index of short options to index of options */
         bool option_shortname;      /* Whether the short name of an option was used */
-        bool *option_was_seen;      /* Whether option i was used */
+        std::vector<bool> option_was_seen; /* Whether option i was used */
         bool info_option_was_seen;  /* Whether an option of type opt_info was seen */
         bool error;
 
@@ -143,7 +143,7 @@ namespace opt
         longopts[longopt_count].val = 0;
 
         /* The getopt_long() loop */
-        option_was_seen = new bool[longopt_count];
+        option_was_seen.resize(longopt_count);
         for (int i = 0; i < longopt_count; i++)
         {
             option_was_seen[i] = false;
@@ -277,7 +277,6 @@ namespace opt
         delete[] longopts;
         delete[] shortopts;
         delete[] shortopt_opt_ind;
-        delete[] option_was_seen;
         return !error;
     }
 }
