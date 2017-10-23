@@ -92,10 +92,10 @@ extern "C" int gtatool_from_pmd(int argc, char *argv[])
 
     try
     {
+        const bool host_endianness = (endianness::endianness == endianness::big);
         if (dimensions.value().size() > 0) {
             const int frame_header_size = 0;
             const int phase_header_size = 512;
-            bool host_endianness = (endianness::endianness == endianness::big);
             gta::header hdr;
             hdr.set_dimensions(dimensions.value().size(), &(dimensions.value()[0]));
             hdr.set_components(gta::uint16, gta::uint16);
@@ -128,18 +128,14 @@ extern "C" int gtatool_from_pmd(int argc, char *argv[])
             static const int pmd_str_size = 256;
             char pmd_str[pmd_str_size];
 
-            blob pmd_distances, pmd_amplitudes, pmd_intensities, pmd_flags, pmd_coords;
-            struct
+            blob pmd_distances, pmd_amplitudes, pmd_intensities, pmd_phases, pmd_flags, pmd_coords;
+            struct __attribute__((packed))
             {
                 float d, a, i;
-                uint8_t f0, f1, f2, f3;
                 float x, y, z;
+                uint16_t pa0, pb0, pa1, pb1, pa2, pb2, pa3, pb3;
+                uint8_t f0, f1, f2, f3, f4;
             } gta_element;
-            // We assume this struct is tightly packed. Should be true except maybe on very exotic platforms, but check it here:
-            if (sizeof(gta_element) != 6 * sizeof(float) + 4 * sizeof(uint8_t))
-            {
-                throw exc(std::string("Unexpected element structure size. This is a bug! Please report it."));
-            }
 
             // Initialize access: open the file with the 'pmdfile' source plugin,
             // and use the appropriate processing plugin.
@@ -207,11 +203,13 @@ extern "C" int gtatool_from_pmd(int argc, char *argv[])
                 pmd_distances.resize(w, h, sizeof(float));
                 pmd_amplitudes.resize(w, h, sizeof(float));
                 pmd_intensities.resize(w, h, sizeof(float));
+                pmd_phases.resize(pmd_dd.size);
                 pmd_flags.resize(w, h, sizeof(unsigned int));
                 pmd_coords.resize(w, h, 3 * sizeof(float));
                 if (pmdGetDistances(pmd_hnd, pmd_distances.ptr<float>(), pmd_distances.size()) != PMD_OK
                         || pmdGetAmplitudes(pmd_hnd, pmd_amplitudes.ptr<float>(), pmd_amplitudes.size()) != PMD_OK
                         || pmdGetIntensities(pmd_hnd, pmd_intensities.ptr<float>(), pmd_intensities.size()) != PMD_OK
+                        || pmdGetSourceData(pmd_hnd, pmd_phases.ptr<unsigned char>(), pmd_dd.size) != PMD_OK
                         || pmdGetFlags(pmd_hnd, pmd_flags.ptr<unsigned int>(), pmd_flags.size()) != PMD_OK
                         || pmdGet3DCoordinates(pmd_hnd, pmd_coords.ptr<float>(), pmd_coords.size()) != PMD_OK)
                 {
@@ -222,9 +220,11 @@ extern "C" int gtatool_from_pmd(int argc, char *argv[])
                 gta::header hdr;
                 hdr.set_dimensions(w, h);
                 gta::type types[] = { gta::float32, gta::float32, gta::float32,
-                    gta::uint8, gta::uint8, gta::uint8, gta::uint8,
-                    gta::float32, gta::float32, gta::float32 };
-                hdr.set_components(10, types);
+                    gta::float32, gta::float32, gta::float32,
+                    gta::uint16, gta::uint16, gta::uint16, gta::uint16, gta::uint16, gta::uint16, gta::uint16, gta::uint16,
+                    gta::uint8, gta::uint8, gta::uint8, gta::uint8, gta::uint8,
+                };
+                hdr.set_components(19, types);
                 hdr.global_taglist().set("DESCRIPTION", "PMD frame");
                 hdr.global_taglist().set("DATE", str::rfc2822_time(frame_time).c_str());
                 hdr.global_taglist().set("X-PMD-TIMESTAMP-HI", str::from(frame_time).c_str());
@@ -234,13 +234,22 @@ extern "C" int gtatool_from_pmd(int argc, char *argv[])
                 hdr.component_taglist(0).set("INTERPRETATION", "DISTANCE");
                 hdr.component_taglist(1).set("INTERPRETATION", "X-PMD-AMPLITUDE");
                 hdr.component_taglist(2).set("INTERPRETATION", "X-PMD-INTENSITY");
-                hdr.component_taglist(3).set("INTERPRETATION", "X-PMD-FLAG-INVALID");
-                hdr.component_taglist(4).set("INTERPRETATION", "X-PMD-FLAG-SATURATED");
-                hdr.component_taglist(5).set("INTERPRETATION", "X-PMD-FLAG-LOW-SIGNAL");
-                hdr.component_taglist(6).set("INTERPRETATION", "X-PMD-FLAG-INCONSISTENT");
-                hdr.component_taglist(7).set("INTERPRETATION", "X");
-                hdr.component_taglist(8).set("INTERPRETATION", "Y");
-                hdr.component_taglist(9).set("INTERPRETATION", "Z");
+                hdr.component_taglist(3).set("INTERPRETATION", "X");
+                hdr.component_taglist(4).set("INTERPRETATION", "Y");
+                hdr.component_taglist(5).set("INTERPRETATION", "Z");
+                hdr.component_taglist(6).set("INTERPRETATION", "X-PMD-PHASE0-A");
+                hdr.component_taglist(7).set("INTERPRETATION", "X-PMD-PHASE0-B");
+                hdr.component_taglist(8).set("INTERPRETATION", "X-PMD-PHASE1-A");
+                hdr.component_taglist(9).set("INTERPRETATION", "X-PMD-PHASE1-B");
+                hdr.component_taglist(10).set("INTERPRETATION", "X-PMD-PHASE2-A");
+                hdr.component_taglist(11).set("INTERPRETATION", "X-PMD-PHASE2-B");
+                hdr.component_taglist(12).set("INTERPRETATION", "X-PMD-PHASE3-A");
+                hdr.component_taglist(13).set("INTERPRETATION", "X-PMD-PHASE3-B");
+                hdr.component_taglist(14).set("INTERPRETATION", "X-PMD-FLAG-INVALID");
+                hdr.component_taglist(15).set("INTERPRETATION", "X-PMD-FLAG-SATURATED");
+                hdr.component_taglist(16).set("INTERPRETATION", "X-PMD-FLAG-SBI");
+                hdr.component_taglist(17).set("INTERPRETATION", "X-PMD-FLAG-LOW-SIGNAL");
+                hdr.component_taglist(18).set("INTERPRETATION", "X-PMD-FLAG-INCONSISTENT");
                 array_loop.write(hdr, nameo);
                 element_loop_t element_loop;
                 array_loop.start_element_loop(element_loop, gta::header(), hdr);
@@ -249,13 +258,33 @@ extern "C" int gtatool_from_pmd(int argc, char *argv[])
                     gta_element.d = pmd_distances.ptr<float>()[e];
                     gta_element.a = pmd_amplitudes.ptr<float>()[e];
                     gta_element.i = pmd_intensities.ptr<float>()[e];
-                    gta_element.f0 = (pmd_flags.ptr<unsigned int>()[e] & PMD_FLAG_INVALID) ? 0xff : 0x00;
-                    gta_element.f1 = (pmd_flags.ptr<unsigned int>()[e] & PMD_FLAG_SATURATED) ? 0xff : 0x00;
-                    gta_element.f2 = (pmd_flags.ptr<unsigned int>()[e] & PMD_FLAG_LOW_SIGNAL) ? 0xff : 0x00;
-                    gta_element.f3 = (pmd_flags.ptr<unsigned int>()[e] & PMD_FLAG_INCONSISTENT) ? 0xff : 0x00;
                     gta_element.x = pmd_coords.ptr<float>()[3 * e + 0];
                     gta_element.y = pmd_coords.ptr<float>()[3 * e + 1];
                     gta_element.z = pmd_coords.ptr<float>()[3 * e + 2];
+                    gta_element.pa0 = pmd_phases.ptr<uint16_t>()[256 + 0 * (256 + 2 * w * h) + 2 * e + 0];
+                    gta_element.pb0 = pmd_phases.ptr<uint16_t>()[256 + 0 * (256 + 2 * w * h) + 2 * e + 1];
+                    gta_element.pa1 = pmd_phases.ptr<uint16_t>()[256 + 1 * (256 + 2 * w * h) + 2 * e + 0];
+                    gta_element.pb1 = pmd_phases.ptr<uint16_t>()[256 + 1 * (256 + 2 * w * h) + 2 * e + 1];
+                    gta_element.pa2 = pmd_phases.ptr<uint16_t>()[256 + 2 * (256 + 2 * w * h) + 2 * e + 0];
+                    gta_element.pb2 = pmd_phases.ptr<uint16_t>()[256 + 2 * (256 + 2 * w * h) + 2 * e + 1];
+                    gta_element.pa3 = pmd_phases.ptr<uint16_t>()[256 + 3 * (256 + 2 * w * h) + 2 * e + 0];
+                    gta_element.pb3 = pmd_phases.ptr<uint16_t>()[256 + 3 * (256 + 2 * w * h) + 2 * e + 1];
+                    if (!host_endianness)
+                    {
+                        endianness::swap16(&gta_element.pa0);
+                        endianness::swap16(&gta_element.pb0);
+                        endianness::swap16(&gta_element.pa1);
+                        endianness::swap16(&gta_element.pb1);
+                        endianness::swap16(&gta_element.pa2);
+                        endianness::swap16(&gta_element.pb2);
+                        endianness::swap16(&gta_element.pa3);
+                        endianness::swap16(&gta_element.pb3);
+                    }
+                    gta_element.f0 = (pmd_flags.ptr<unsigned int>()[e] & PMD_FLAG_INVALID) ? 0xff : 0x00;
+                    gta_element.f1 = (pmd_flags.ptr<unsigned int>()[e] & PMD_FLAG_SATURATED) ? 0xff : 0x00;
+                    gta_element.f2 = (pmd_flags.ptr<unsigned int>()[e] & PMD_FLAG_SBI) ? 0xff : 0x00;
+                    gta_element.f3 = (pmd_flags.ptr<unsigned int>()[e] & PMD_FLAG_LOW_SIGNAL) ? 0xff : 0x00;
+                    gta_element.f4 = (pmd_flags.ptr<unsigned int>()[e] & PMD_FLAG_INCONSISTENT) ? 0xff : 0x00;
                     element_loop.write(&gta_element);
                 }
             }
