@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011, 2012, 2013
+ * Copyright (C) 2010, 2011, 2012, 2013, 2018
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -117,12 +117,31 @@ extern "C" int gtatool_from_exr(int argc, char *argv[])
         }
         blob data(checked_cast<size_t>(hdr.data_size()));
         FrameBuffer framebuffer;
-        int c = 0;
-        for (ChannelList::ConstIterator iter = channellist.begin(); iter != channellist.end(); iter++)
-        {
-            framebuffer.insert(iter.name(), Slice(FLOAT, data.ptr<char>(c * sizeof(float)),
+        if ((channels == 3 || channels == 4)
+                && channellist.findChannel("R") && channellist.findChannel("G") && channellist.findChannel("B")
+                && (channels == 3 || channellist.findChannel("A"))) {
+            hdr.component_taglist(0).set("INTERPRETATION", "RED");
+            framebuffer.insert("R", Slice(FLOAT, data.ptr<char>(0 * sizeof(float)),
                         channels * sizeof(float), channels * width * sizeof(float), 1, 1, 0.0f));
-            c++;
+            hdr.component_taglist(1).set("INTERPRETATION", "GREEN");
+            framebuffer.insert("G", Slice(FLOAT, data.ptr<char>(1 * sizeof(float)),
+                        channels * sizeof(float), channels * width * sizeof(float), 1, 1, 0.0f));
+            hdr.component_taglist(2).set("INTERPRETATION", "BLUE");
+            framebuffer.insert("B", Slice(FLOAT, data.ptr<char>(2 * sizeof(float)),
+                        channels * sizeof(float), channels * width * sizeof(float), 1, 1, 0.0f));
+            if (channels == 4) {
+                hdr.component_taglist(3).set("INTERPRETATION", "ALPHA");
+                framebuffer.insert("A", Slice(FLOAT, data.ptr<char>(3 * sizeof(float)),
+                            channels * sizeof(float), channels * width * sizeof(float), 1, 1, 0.0f));
+            }
+        } else {
+            int c = 0;
+            for (ChannelList::ConstIterator iter = channellist.begin(); iter != channellist.end(); iter++)
+            {
+                framebuffer.insert(iter.name(), Slice(FLOAT, data.ptr<char>(c * sizeof(float)),
+                            channels * sizeof(float), channels * width * sizeof(float), 1, 1, 0.0f));
+                c++;
+            }
         }
         file.setFrameBuffer(framebuffer);
         file.readPixels(dw.min.y, dw.max.y);
