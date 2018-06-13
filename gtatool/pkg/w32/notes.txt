@@ -1,5 +1,5 @@
 The source code for this software is available at
-http://gta.nongnu.org/download.html
+https://marlam.de/gta
 
 This package was produced on a GNU/Linux system using the
 MXE cross-compiler environment: http://mxe.cc/

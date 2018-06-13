@@ -42,7 +42,7 @@
  * - GTAs can use ZLIB, BZIP2, or XZ compression, allowing a tradeoff between compression/decompression speed and compression ratio\n
  * - Uncompressed GTA files allow easy out-of-core data access for very large arrays
  *
- * See the <a href="http://www.nongnu.org/gta/doc/specification.pdf">GTA file format specification</a> for details.
+ * See the <a href="https://marlam.de/gta/specification.pdf">GTA file format specification</a> for details.
  *
  * \section lib The libgta Library
  *

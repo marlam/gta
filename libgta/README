@@ -10,4 +10,4 @@ format. This file format has the following features:
 * Uncompressed GTA files allow easy out-of-core data access for very large
   arrays
 
-See http://gta.nongnu.org/ for more information.
+See https://marlam.de/gta for more information.

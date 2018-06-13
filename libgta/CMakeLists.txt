@@ -27,7 +27,7 @@ set(GTA_LIB_SOVERSION "0")
 # Autoconf compatibility
 set(PACKAGE_NAME "${PROJECT_NAME}")       # required by doxyfile.in
 set(PACKAGE_VERSION "${GTA_VERSION}")     # required by doxyfile.in and gta.pc.in
-set(PACKAGE_URL "http://gta.nongnu.org/") # required by gta.pc.in
+set(PACKAGE_URL "https://marlam.de/gta")  # required by gta.pc.in
 set(top_srcdir ${CMAKE_SOURCE_DIR})       # required by doxyfile.in
 check_type_size(int SIZEOF_INT)           # required by gta.c via config.h
 check_type_size(int8_t SIZEOF_INT8_T)     # required by gta.c via config.h
