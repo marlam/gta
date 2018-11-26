@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011, 2013, 2014
+ * Copyright (C) 2010, 2011, 2013, 2014, 2018
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,8 +22,11 @@
 #include "config.h"
 
 #include <sstream>
+#include <algorithm>
 #include <cstdio>
+#include <cstdlib>
 #include <cctype>
+#include <unistd.h>
 
 #include <gta/gta.hpp>
 
@@ -53,10 +56,109 @@ extern "C" void gtatool_component_compute_help(void)
             "non-modifiable variables are defined: c (the number of components of an array element), "
             "d (the number of dimensions of the array), d0..d(d-1) (the array size in each dimension), "
             "i0..i(d-1) (the index of the current array element).\n"
-            "The expressions are evaluated using the muParser library; see <http://muparser.sourceforge.net/> for an "
-            "overview of functions and operators that can be used.\n"
+            "The expressions are evaluated using the muParser library, with additions taken from mucalc. See "
+            "<https://gitlab.marlam.de/marlam/mucalc> for an overview "
+            "of functions and operators that can be used.\n"
             "Example: component-compute -e 'c3 = 0.2126 * c0 + 0.7152 * c1 + 0.0722 * c2' rgba.gta > rgb+lum.gta");
 }
+
+/* muparser custom constants */
+
+static const double e = 2.7182818284590452353602874713526625;
+static const double pi = 3.1415926535897932384626433832795029;
+
+/* muparser custom operators */
+
+static double mod(double x, double y)
+{
+    return x - y * floor(x / y);
+}
+
+/* muparser custom functions */
+
+static double deg(double x)
+{
+    return x * 180.0 / pi;
+}
+
+static double rad(double x)
+{
+    return x * pi / 180.0;
+}
+
+static double int_(double x)
+{
+    return (int)x;
+}
+
+static double fract(double x)
+{
+    return x - floor(x);
+}
+
+static double med(const double* x, int n)
+{
+    std::vector<double> values(x, x + n);
+    std::sort(values.begin(), values.end());
+    if (n % 2 == 1) {
+        return values[n / 2];
+    } else {
+        return (values[n / 2 - 1] + values[n / 2]) / 2.0;
+    }
+}
+
+static double clamp(double x, double minval, double maxval)
+{
+    return std::min(maxval, std::max(minval, x));
+}
+
+static double step(double x, double edge)
+{
+    return (x < edge ? 0.0 : 1.0);
+}
+
+static double smoothstep(double x, double edge0, double edge1)
+{
+    double t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+    return t * t * (3.0 - t * 2.0);
+}
+
+static double mix(double x, double y, double t)
+{
+    return x * (1.0 - t) + y * t;
+}
+
+static double unary_plus(double x)
+{
+    return x;
+}
+
+static double my_srand48(double x)
+{
+    srand48(x);
+    return x;
+}
+
+static double my_random()
+{
+    static bool initialized = false;
+    static unsigned short xsubi[3];
+    if (!initialized) {
+        FILE* f = fopen("/dev/urandom", "r");
+        if (f) {
+            setbuf(f, NULL);
+            fread(xsubi, sizeof(unsigned short), 3, f);
+            fclose(f);
+        } else {
+            xsubi[0] = 0x330E;
+            xsubi[1] = getpid() & 0xffff;
+            xsubi[2] = time(NULL) & 0xffff;
+        }
+        initialized = true;
+    }
+    return erand48(xsubi);
+}
+
 
 extern "C" int gtatool_component_compute(int argc, char *argv[])
 {
@@ -131,6 +233,31 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
             parsers.resize(expressions.values().size());
             for (size_t p = 0; p < expressions.values().size(); p++)
             {
+                parsers[p].ClearConst();
+                parsers[p].DefineConst("e", e);
+                parsers[p].DefineConst("pi", pi);
+                parsers[p].DefineOprt("%", mod, mu::prMUL_DIV, mu::oaRIGHT, true);
+                parsers[p].DefineFun("deg", deg);
+                parsers[p].DefineFun("rad", rad);
+                parsers[p].DefineFun("atan2", atan2);
+                parsers[p].DefineFun("fract", fract);
+                parsers[p].DefineFun("pow", pow);
+                parsers[p].DefineFun("exp2", exp2);
+                parsers[p].DefineFun("cbrt", cbrt);
+                parsers[p].DefineFun("int", int_);
+                parsers[p].DefineFun("ceil", ceil);
+                parsers[p].DefineFun("floor", floor);
+                parsers[p].DefineFun("round", round);
+                parsers[p].DefineFun("trunc", trunc);
+                parsers[p].DefineFun("med", med);
+                parsers[p].DefineFun("clamp", clamp);
+                parsers[p].DefineFun("step", step);
+                parsers[p].DefineFun("smoothstep", smoothstep);
+                parsers[p].DefineFun("mix", mix);
+                parsers[p].DefineFun("random", my_random, false);
+                parsers[p].DefineFun("srand48", my_srand48, false);
+                parsers[p].DefineFun("drand48", drand48, false);
+                parsers[p].DefineInfixOprt("+", unary_plus);
                 size_t comp_vars_index = 0;
                 for (uintmax_t i = 0; i < hdri.components(); i++)
                 {
