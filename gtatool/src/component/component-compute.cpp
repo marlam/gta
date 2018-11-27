@@ -236,7 +236,7 @@ extern "C" int gtatool_component_compute(int argc, char *argv[])
                 parsers[p].ClearConst();
                 parsers[p].DefineConst("e", e);
                 parsers[p].DefineConst("pi", pi);
-                parsers[p].DefineOprt("%", mod, mu::prMUL_DIV, mu::oaRIGHT, true);
+                parsers[p].DefineOprt("%", mod, mu::prMUL_DIV, mu::oaLEFT, true);
                 parsers[p].DefineFun("deg", deg);
                 parsers[p].DefineFun("rad", rad);
                 parsers[p].DefineFun("atan2", atan2);
