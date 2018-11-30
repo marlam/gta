@@ -2,7 +2,7 @@
  * This file is part of gtatool, a tool to manipulate Generic Tagged Arrays
  * (GTAs).
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2017
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2017, 2018
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -142,12 +142,13 @@ static max_uint_t to_max_uint(const void *val, gta::type type, max_uint_t normal
         {
             float v;
             std::memcpy(&v, val, sizeof(float));
-            if (v < 0.0f)
-                v = 0.0f;
-            else if (v > 1.0f)
-                v = 1.0f;
-            if (normalization_max)
+            if (normalization_max) {
+                if (v < 0.0f)
+                    v = 0.0f;
+                else if (v > 1.0f)
+                    v = 1.0f;
                 v *= normalization_max;
+            }
             x = ((!std::isfinite(v) || v < 0) ? 0 : v);
         }
         break;
@@ -156,12 +157,13 @@ static max_uint_t to_max_uint(const void *val, gta::type type, max_uint_t normal
         {
             double v;
             std::memcpy(&v, val, sizeof(double));
-            if (v < 0.0)
-                v = 0.0;
-            else if (v > 1.0)
-                v = 1.0;
-            if (normalization_max)
+            if (normalization_max) {
                 v *= normalization_max;
+                if (v < 0.0)
+                    v = 0.0;
+                else if (v > 1.0)
+                    v = 1.0;
+            }
             x = ((!std::isfinite(v) || v < 0) ? 0 : v);
         }
         break;
@@ -171,12 +173,13 @@ static max_uint_t to_max_uint(const void *val, gta::type type, max_uint_t normal
         {
             float128_t v;
             std::memcpy(&v, val, sizeof(float128_t));
-            if (v < 0.0)
-                v = 0.0;
-            else if (v > 1.0)
-                v = 1.0;
-            if (normalization_max)
+            if (normalization_max) {
+                if (v < 0.0)
+                    v = 0.0;
+                else if (v > 1.0)
+                    v = 1.0;
                 v *= normalization_max;
+            }
 #ifdef LONG_DOUBLE_IS_IEEE_754_QUAD
             x = ((!std::isfinite(v) || v < 0) ? 0 : v);
 #else
@@ -278,10 +281,12 @@ static max_int_t to_max_int(const void *val, gta::type type, max_int_t normaliza
         {
             float v;
             std::memcpy(&v, val, sizeof(float));
-            if (v < -1.0f)
-                v = -1.0f;
-            else if (v > 1.0f)
-                v = 1.0f;
+            if (normalization_min || normalization_max) {
+                if (v < -1.0f)
+                    v = -1.0f;
+                else if (v > 1.0f)
+                    v = 1.0f;
+            }
             if (normalization_min && v < 0)
                 v *= -1.0f * normalization_min;
             if (normalization_max && v > 0)
@@ -294,10 +299,12 @@ static max_int_t to_max_int(const void *val, gta::type type, max_int_t normaliza
         {
             double v;
             std::memcpy(&v, val, sizeof(double));
-            if (v < -1.0)
-                v = -1.0;
-            else if (v > 1.0)
-                v = 1.0;
+            if (normalization_min || normalization_max) {
+                if (v < -1.0)
+                    v = -1.0;
+                else if (v > 1.0)
+                    v = 1.0;
+            }
             if (normalization_min && v < 0)
                 v *= -1.0 * normalization_min;
             if (normalization_max && v > 0)
@@ -311,10 +318,12 @@ static max_int_t to_max_int(const void *val, gta::type type, max_int_t normaliza
         {
             float128_t v;
             std::memcpy(&v, val, sizeof(float128_t));
-            if (v < -1.0)
-                v = -1.0;
-            else if (v > 1.0)
-                v = 1.0;
+            if (normalization_min || normalization_max) {
+                if (v < -1.0)
+                    v = -1.0;
+                else if (v > 1.0)
+                    v = 1.0;
+            }
             if (normalization_min && v < 0)
                 v *= -1.0 * normalization_min;
             if (normalization_max && v > 0)
