@@ -57,7 +57,7 @@ extern "C" void gtatool_component_compute_help(void)
             "d (the number of dimensions of the array), d0..d(d-1) (the array size in each dimension), "
             "i0..i(d-1) (the index of the current array element).\n"
             "The expressions are evaluated using the muParser library, with additions taken from mucalc. See "
-            "<https://gitlab.marlam.de/marlam/mucalc> for an overview "
+            "<https://git.marlam.de/gitweb/?p=mucalc.git> for an overview "
             "of functions and operators that can be used.\n"
             "Example: component-compute -e 'c3 = 0.2126 * c0 + 0.7152 * c1 + 0.0722 * c2' rgba.gta > rgb+lum.gta");
 }
