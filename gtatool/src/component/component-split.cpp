@@ -134,7 +134,7 @@ extern "C" int gtatool_component_split(int argc, char *argv[])
                         size_t out_comp_offset = 0;
                         for (uintmax_t i = 0; i < hdri.components(); i++)
                         {
-                            if (i == comp_indices[out_index])
+                            if (out_index < comp_indices.size() && i == comp_indices[out_index])
                             {
                                 tmpeloops[out_index].write(static_cast<const char *>(element) + out_comp_offset);
                                 out_index++;
