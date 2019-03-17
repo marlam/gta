@@ -137,7 +137,7 @@ extern "C" int gtatool_component_extract(int argc, char *argv[])
                     }
                 }
             }
-            hdro.set_components(hdro_comp_types.size(), &(hdro_comp_types[0]),
+            hdro.set_components(hdro_comp_types.size(), hdro_comp_types.data(),
                     (hdro_comp_sizes.size() > 0 ? &(hdro_comp_sizes[0]) : NULL));
             for (size_t i = 0; i < hdro_comp_indices.size(); i++)
             {

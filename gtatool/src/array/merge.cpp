@@ -167,7 +167,7 @@ extern "C" int gtatool_merge(int argc, char *argv[])
                     hdro_comp_sizes.push_back(hdri[0].component_size(c));
                 }
             }
-            hdro.set_components(hdro_comp_types.size(), &(hdro_comp_types[0]),
+            hdro.set_components(hdro_comp_types.size(), hdro_comp_types.data(),
                     (hdro_comp_sizes.size() > 0 ? &(hdro_comp_sizes[0]) : NULL));
             for (uintmax_t c = 0; c < hdri[0].components(); c++)
             {

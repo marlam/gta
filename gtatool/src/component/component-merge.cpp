@@ -115,7 +115,7 @@ extern "C" int gtatool_component_merge(int argc, char *argv[])
             {
                 hdro_dim_sizes.push_back(hdris[0].dimension_size(d));
             }
-            hdro.set_dimensions(hdro_dim_sizes.size(), &(hdro_dim_sizes[0]));
+            hdro.set_dimensions(hdro_dim_sizes.size(), hdro_dim_sizes.data());
             for (uintmax_t d = 0; d < hdris[0].dimensions(); d++)
             {
                 hdro.dimension_taglist(d) = hdris[0].dimension_taglist(d);
@@ -133,7 +133,7 @@ extern "C" int gtatool_component_merge(int argc, char *argv[])
                     }
                 }
             }
-            hdro.set_components(hdro_comp_types.size(), &(hdro_comp_types[0]),
+            hdro.set_components(hdro_comp_types.size(), hdro_comp_types.data(),
                     (hdro_comp_sizes.size() > 0 ? &(hdro_comp_sizes[0]) : NULL));
             uintmax_t hdro_c = 0;
             for (size_t i = 0; i < arguments.size(); i++)

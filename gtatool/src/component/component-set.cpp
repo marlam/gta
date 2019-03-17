@@ -103,7 +103,7 @@ extern "C" int gtatool_component_set(int argc, char *argv[])
                     comp_sizes.push_back(hdri.component_size(current_indices[i]));
                 }
             }
-            hdrt.set_components(comp_types.size(), &(comp_types[0]), comp_sizes.size() == 0 ? NULL : &(comp_sizes[0]));
+            hdrt.set_components(comp_types.size(), comp_types.data(), comp_sizes.size() == 0 ? NULL : &(comp_sizes[0]));
             blob comp_values(checked_cast<size_t>(hdrt.element_size()));
             if (value.value().empty())
             {
