@@ -457,9 +457,9 @@ AC_ARG_WITH([pcd],
     [if test "$withval" = "yes"; then pcd="yes"; else pcd="no "; fi], [pcd="yes"])
 if test "$pcd" = "yes"; then
     dnl The PCL team puts the PCL version number into the module name. Ouch.
-    PKG_CHECK_MODULES([libpcl_io], [pcl_io >= 1.6], [],
-        [PKG_CHECK_MODULES([libpcl_io], [pcl_io-1.7 >= 1.7], [],
-            [PKG_CHECK_MODULES([libpcl_io], [pcl_io-1.8 >= 1.8], [],
+    PKG_CHECK_MODULES([libpcl_io], [pcl_io >= 1.8], [],
+        [PKG_CHECK_MODULES([libpcl_io], [pcl_io-1.9 >= 1.9], [],
+            [PKG_CHECK_MODULES([libpcl_io], [pcl_io-1.10 >= 1.10], [],
                 [pcd="no "
                 AC_MSG_WARN([PCL io library not found:])
                 AC_MSG_WARN([$libpcl_io_PKG_ERRORS])
