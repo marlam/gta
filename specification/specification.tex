@@ -1,4 +1,4 @@
-% Copyright (C) 2010, 2013  Martin Lambers <marlam@marlam.de>
+% Copyright (C) 2010, 2013, 2019  Martin Lambers <marlam@marlam.de>
 %
 
 \documentclass[a4paper,11pt]{article}
@@ -31,7 +31,7 @@
 
 \noindent
 {\scriptsize
-Copyright (C) 2010, 2013 Martin Lambers\\~\\
+Copyright (C) 2010, 2013, 2019 Martin Lambers\\~\\
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
@@ -46,6 +46,7 @@ Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
 \section*{Changes}
 
 \begin{itemize}
+\item \textbf{2019-08-26} Compression is now Deprecated.
 \item \textbf{2013-02-06} Fixed typos.
 \item \textbf{2010-08-17} Remove the meaning of the second lowest bit in the
 flag byte of the header. The same information can be extracted from the sixth
@@ -69,10 +70,7 @@ This file format has the following features:
 \item GTA files can use simple tags to describe the data
 \item GTA files are streamable, which allows direct reading from and
 	writing to pipes, network sockets, or other non-seekable media
-\item GTA files can optionally use ZLIB, BZIP2, or XZ compression,
-	allowing a tradeoff between compression/decompression speed and
-	compression ratio
-\item Uncompressed GTA files allow easy out-of-core data access
+\item GTA files allow easy out-of-core data access
 \end{itemize}
 
 
@@ -164,6 +162,8 @@ a tag list for the second dimensions containing the tag
 \subsection{Chunks}
 
 A \emph{chunk} stores a number of chunk data bytes, either compressed or uncompressed.
+Note that compression is deprecated, so only legacy files may be compressed but
+newly written files must always be uncompressed.
 It begins with a chunk header, defined as follows:
 \begin{itemize}
 \item The first 8 bytes of the chunk header contain a value of type \code{GTA\_UINT64},
@@ -204,7 +204,9 @@ Compression method & Number & Description\\\hline
                   &   & moderate decompression speed,\\
 		  &   & good or very good compression rates) \\
 \end{tabular}
-\caption{GTA compression methods.}
+\caption{GTA compression methods. Note that compression is deprecated and only
+described here for backwards compatibility. New GTA files are always
+uncompressed.}
 \label{tab:compression}
 \end{table}
 
@@ -235,7 +237,8 @@ GTA version and properties. See Fig.~\ref{fig:gta-header}.
 \begin{center}
 \includegraphics[width=\textwidth]{gta-header.pdf}
 \end{center}
-\caption{The first six bytes of a GTA header.}
+\caption{The first six bytes of a GTA header. Note that the compression method
+must be \code{GTA\_NONE} for all new files since compression is deprecated.}
 \label{fig:gta-header}
 \end{figure}
 
@@ -264,9 +267,10 @@ All six remaining bit flags are reserved and must currently always be unset (0).
 
 The sixth byte in the header is of type \code{GTA\_UINT8} and contains a
 recommendation for the compression type of the GTA, which must be one of the
-values defined in Tab.~\ref{tab:compression}.
+values defined in Tab.~\ref{tab:compression}. Since compression is deprecated,
+the values of this field must be \code{GTA\_NONE} for all new files.
 
-If this value if \code{GTA\_NONE}, then the GTA data must not be stored in
+If this value is \code{GTA\_NONE}, then the GTA data must not be stored in
 chunks. If this value is not \code{GTA\_NONE}, then the GTA data must be stored
 in chunks.
 
@@ -318,7 +322,8 @@ the same as that of a C array when the first dimension is specified last
 three-dimensional array: \code{element\_type array[size2][size1][size0]}.
 
 The array data is stored as-is if the compression method recommended in the
-sixth byte of the header is \code{GTA\_NONE}. Otherwise, it is stored in a chunk
+sixth byte of the header is \code{GTA\_NONE} (which it is for all new files
+since compression is deprecated). Otherwise, it is stored in a chunk
 list.
 
 When stored as-is, individual data elements can easily be accessed if the input
