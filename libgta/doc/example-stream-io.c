@@ -58,8 +58,6 @@ int main(void)
     if (r != GTA_OK) {
         return 1;
     }
-    /* In this example, the output GTA is always uncompressed */
-    gta_set_compression(outheader, GTA_NONE);
     r = gta_write_header_to_stream(outheader, outfile);
     if (r != GTA_OK) {
         return 1;

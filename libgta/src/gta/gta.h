@@ -4,7 +4,7 @@
  * This file is part of libgta, a library that implements the Generic Tagged
  * Array (GTA) file format.
  *
- * Copyright (C) 2010, 2011, 2012, 2014
+ * Copyright (C) 2010, 2011, 2012, 2014, 2019
  * Martin Lambers <marlam@marlam.de>
  *
  * Libgta is free software: you can redistribute it and/or modify it under the
@@ -39,7 +39,6 @@
  * - GTAs can store any kind of data in multidimensional arrays\n
  * - GTAs can optionally use simple tags to store rich metadata\n
  * - GTAs are streamable, which allows direct reading from and writing to pipes, network sockets, and other non-seekable media\n
- * - GTAs can use ZLIB, BZIP2, or XZ compression, allowing a tradeoff between compression/decompression speed and compression ratio\n
  * - Uncompressed GTA files allow easy out-of-core data access for very large arrays
  *
  * See the <a href="https://marlam.de/gta/specification.pdf">GTA file format specification</a> for details.
@@ -237,8 +236,7 @@ typedef enum
     /**<
      * \brief   Invalid data
      *
-     * Some data was invalid. For example, an input file is not in GTA format,
-     * or decompression of the data failed.
+     * Some data was invalid. For example, an input file is not in GTA format.
      */
     GTA_SYSTEM_ERROR = 5
     /**<
@@ -291,13 +289,7 @@ typedef enum
 /**
  * \brief       GTA compression algorithms
  *
- * Compression algorithms used to compress the array.\n
- * Only uncompressed files are suitable for out-of-core data access; compressed
- * files must be decompressed first.\n
- * \a GTA_ZLIB compression is fast and achieves a moderate compression ratio.
- * \a GTA_BZIP2 compression is moderately fast and achieves a good compression ratio.
- * \a GTA_XZ compression is slow for compression, moderately fast for decompression,
- * and achieves good or very good compression rates.
+ * These are deprecated. Do not use them anymore, they will be removed in a future version.
  */
 typedef enum
 {
@@ -401,7 +393,7 @@ GTA_ATTR_NOTHROW;
  *
  * Creates a new GTA header and initializes it.
  * The GTA will initially be empty (zero element components, zero dimensions)
- * and contain no tags. The compression method will be \a GTA_NONE.
+ * and contain no tags.
  */
 extern GTA_EXPORT gta_result_t
 gta_create_header(gta_header_t *GTA_RESTRICT *GTA_RESTRICT header)
@@ -661,10 +653,10 @@ GTA_ATTR_NONNULL_ALL GTA_ATTR_PURE GTA_ATTR_NOTHROW;
  * \param header        The header.
  * \return              The compression type.
  *
- * Gets the compression type for the header and data.\n
- * See \a gta_compression_t for more information on compression types.\n
- * Compressed data is always stored in chunks, while uncompressed
- * data is never stored in chunks.
+ * Gets the compression type for the header and data. Compression
+ * is deprecated so the return value should always be GTA_NONE, unless
+ * you read legacy files.
+ * This function will be removed in a future version.
  */
 extern GTA_EXPORT gta_compression_t
 gta_get_compression(const gta_header_t *GTA_RESTRICT header)
@@ -675,8 +667,9 @@ GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
  * \param header        The header.
  * \param compression   The compression type.
  *
- * Sets the compression type for writing the header and data.\n
- * See \a gta_compression_t for more information on compression types.
+ * Sets the compression type for writing the header and data.
+ * Compression is deprecated and this function actually does nothing.
+ * This function will be removed in a future version.
  */
 extern GTA_EXPORT void
 gta_set_compression(gta_header_t *GTA_RESTRICT header, gta_compression_t compression)
@@ -968,7 +961,7 @@ GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NONNULL1(1) GTA_ATTR_NOTHROW;
  * \return              \a GTA_OK or \a GTA_SYSTEM_ERROR.
  *
  * Copies the complete data.
- * The data encoding is altered as necessary (endianness correction, compression).
+ * The data encoding is altered as necessary (endianness correction).
  * Note that the data encoding may change even if \a read_header and \a write_header
  * point to the same header!
  */
@@ -987,7 +980,7 @@ GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NONNULL_ALL;
  * \return              \a GTA_OK or \a GTA_SYSTEM_ERROR.
  *
  * Copies the complete data.
- * The data encoding is altered as necessary (endianness correction, compression).
+ * The data encoding is altered as necessary (endianness correction).
  * Note that the data encoding may change even if \a read_header and \a write_header
  * point to the same header!
  */
@@ -1006,7 +999,7 @@ GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NONNULL_ALL GTA_ATTR_NOTHROW;
  * \return              \a GTA_OK or \a GTA_SYSTEM_ERROR.
  *
  * Copies the complete data.
- * The data encoding is altered as necessary (endianness correction, compression).
+ * The data encoding is altered as necessary (endianness correction).
  * Note that the data encoding may change even if \a read_header and \a write_header
  * point to the same header!
  */
@@ -1123,7 +1116,7 @@ GTA_ATTR_NONNULL1(1) GTA_ATTR_PURE GTA_ATTR_NOTHROW;
  * These functions are intended to be used for filtering a complete array on a per-element basis.
  * They read or write a given number of elements, and it is expected that they are used
  * repeatedly until all elements of an array have been read or written.
- * Theses function work for all GTAs, with or without compression, an the input and output streams
+ * Theses function work for all GTAs, an the input and output streams
  * do not need to be seekable.
  *
  * Element-based input/output needs a state structure. This structure must be allocated with
@@ -1273,8 +1266,7 @@ GTA_ATTR_WARN_UNUSED_RESULT GTA_ATTR_NONNULL_ALL;
  *
  * \name Read and Write Array Blocks
  *
- * These functions can only be used if the data is not compression (see \a gta_get_compression())
- * and the input/output is seekable.\n
+ * These functions can only be used if the input/output is seekable.\n
  * They are suitable for applications that do not want to store the complete array data in
  * memory.\n
  * A block is given by the lowest and highest element coordinates in each dimension.

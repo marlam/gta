@@ -366,7 +366,6 @@ int main(void)
     /* Write the array to a file */
     f = fopen("test-endianness.tmp", "w");
     check(f);
-    gta_set_compression(header, GTA_BZIP2);
     r = gta_write_header_to_stream(header, f);
     check(r == GTA_OK);
     r = gta_write_data_to_stream(header, data, f);
@@ -375,7 +374,7 @@ int main(void)
 
     /* Read the two endianness test files.
      * They were generated with the above code on little and big endian systems
-     * and their contant must be identical to the content we just generated. */
+     * and their content must be identical to the content we just generated. */
     f = fopen(le_test_file, "r");
     check(f);
     r = gta_read_header_from_stream(le_header, f);

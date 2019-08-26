@@ -87,10 +87,6 @@ int main(int argc, char *argv[])
     check(r == 0);
     r = gta_copy_data_stream(iheader, f, oheader, nullf);
     check(r == GTA_OK);
-    if (gta_get_compression(oheader) == GTA_NONE)
-        gta_set_compression(oheader, GTA_ZLIB);
-    else
-        gta_set_compression(oheader, GTA_NONE);
     r = fseeko(f, data_offset, SEEK_SET);
     check(r == 0);
     r = gta_copy_data_stream(iheader, f, oheader, nullf);
@@ -119,10 +115,6 @@ int main(int argc, char *argv[])
         check(r == GTA_OK);
         r = gta_create_io_state(&ostate);
         check(r == GTA_OK);
-        if (gta_get_compression(oheader) == GTA_NONE)
-            gta_set_compression(oheader, GTA_ZLIB);
-        else
-            gta_set_compression(oheader, GTA_NONE);
         for (uintmax_t i = 0; i < gta_get_elements(iheader); i++) {
             r = gta_read_elements_from_stream(iheader, istate, 1, data, f);
             check(r == GTA_OK);
@@ -165,10 +157,6 @@ int main(int argc, char *argv[])
         r = gta_copy_data_stream(iheader, f, oheader, nullf);
         r = fseeko(f, data_offset, SEEK_SET);
         check(r == 0);
-        if (gta_get_compression(oheader) == GTA_NONE)
-            gta_set_compression(oheader, GTA_ZLIB);
-        else
-            gta_set_compression(oheader, GTA_NONE);
         r = gta_copy_data_stream(iheader, f, oheader, nullf);
         free(data);
         /* Read/write the data element-wise */
@@ -199,10 +187,6 @@ int main(int argc, char *argv[])
             check(r == GTA_OK);
             r = gta_create_io_state(&ostate);
             check(r == GTA_OK);
-            if (gta_get_compression(oheader) == GTA_NONE)
-                gta_set_compression(oheader, GTA_ZLIB);
-            else
-                gta_set_compression(oheader, GTA_NONE);
             for (uintmax_t i = 0; i < gta_get_elements(iheader); i++) {
                 r = gta_read_elements_from_stream(iheader, istate, 1, data, f);
                 if (r != GTA_OK)

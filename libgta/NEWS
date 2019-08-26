@@ -1,0 +1,9 @@
+Version 1.2.0:
+- Compression is now deprecated. The library is built without support for
+  compression by default and cannot read compressed GTA files. You can enable
+  compression with the --with-compression configure option to be able to read
+  compressed GTA files, but even then the library will write all files
+  uncompressed.
+- Building with the autoconf configure script is now deprecated. It is still
+  supported, but will be removed in a future version. Building with CMake is
+  recommended.

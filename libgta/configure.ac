@@ -5,7 +5,7 @@ dnl
 dnl This file is part of libgta, a library that implements the Generic Tagged
 dnl Array (GTA) file format.
 dnl
-dnl Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2018
+dnl Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2018, 2019
 dnl Martin Lambers <marlam@marlam.de>
 dnl
 dnl Libgta is free software: you can redistribute it and/or modify it under the
@@ -23,7 +23,7 @@ dnl along with Libgta. If not, see <http://www.gnu.org/licenses/>.
 
 dnl Autotools init stuff
 AC_PREREQ([2.65])
-AC_INIT([libgta], [1.0.9], [marlam@marlam.de], [libgta], [https://marlam.de/gta])
+AC_INIT([libgta], [1.2.0], [marlam@marlam.de], [libgta], [https://marlam.de/gta])
 AC_CONFIG_SRCDIR([src/gta.c])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
@@ -72,27 +72,31 @@ AC_SYS_LARGEFILE
 AC_C_BIGENDIAN
 
 dnl Compression libraries
-AC_LIB_HAVE_LINKFLAGS([z], [], [#include <zlib.h>], [zlibVersion();])
-if test "$HAVE_LIBZ" != "yes"; then
-    AC_MSG_WARN([libz not found])
-    AC_MSG_WARN([libz is provided by zlib; Debian package: libz-dev])
+AC_ARG_WITH([compression],
+    [AS_HELP_STRING([--with-compression], [Enable the deprecated compression feature for backward compatibility.])],
+    [if test "$withval" = "yes"; then compression="yes"; else compression="no "; fi], [compression="no "])
+if test "$compression" = "yes"; then
+    AC_LIB_HAVE_LINKFLAGS([z], [], [#include <zlib.h>], [zlibVersion();])
+    if test "$HAVE_LIBZ" != "yes"; then
+        AC_MSG_WARN([libz not found])
+    fi
+    AC_LIB_HAVE_LINKFLAGS([bz2], [],
+        [#define BZ_IMPORT
+         #include <bzlib.h>],
+        [BZ2_bzlibVersion();])
+    if test "$HAVE_LIBBZ2" != "yes"; then
+        AC_MSG_WARN([libbz2 not found])
+    fi
+    AC_LIB_HAVE_LINKFLAGS([lzma], [], [#include <lzma.h>], [lzma_version_string();])
+    if test "$HAVE_LIBLZMA" != "yes"; then
+        AC_MSG_WARN([liblzma not found])
+    fi
+    if test "$HAVE_LIBZ" != "yes" -o "$HAVE_LIBBZ2" != "yes" -o "$HAVE_LIBLZMA" != "yes"; then
+        AC_MSG_ERROR([Required compression libraries were not found. See messages above.])
+    fi
 fi
-AC_LIB_HAVE_LINKFLAGS([bz2], [],
-    [#define BZ_IMPORT
-     #include <bzlib.h>],
-    [BZ2_bzlibVersion();])
-if test "$HAVE_LIBBZ2" != "yes"; then
-    AC_MSG_WARN([libbz2 not found])
-    AC_MSG_WARN([libbz2 is provided by bzip2; Debian package: libbz2-dev])
-fi
-AC_LIB_HAVE_LINKFLAGS([lzma], [], [#include <lzma.h>], [lzma_version_string();])
-if test "$HAVE_LIBLZMA" != "yes"; then
-    AC_MSG_WARN([liblzma not found])
-    AC_MSG_WARN([liblzma is provided by xz; Debian package: liblzma-dev])
-fi
-if test "$HAVE_LIBZ" != "yes" -o "$HAVE_LIBBZ2" != "yes" -o "$HAVE_LIBLZMA" != "yes"; then
-    AC_MSG_ERROR([Required libraries were not found. See messages above.])
-fi
+AC_DEFINE_UNQUOTED([WITH_COMPRESSION], [`if test "$compression" = "yes"; then echo "1"; else echo "0"; fi`], [Enable compression?])
+AM_CONDITIONAL([WITH_COMPRESSION], [test "$compression" = "yes"])
 
 dnl libgta package version
 AC_SUBST([GTA_VERSION], [$PACKAGE_VERSION])
@@ -108,8 +112,8 @@ dnl Library code modified:            REVISION++
 dnl Interfaces changed/added/removed: CURRENT++ REVISION=0
 dnl Interfaces added:                 AGE++
 dnl Interfaces removed:               AGE=0
-AC_SUBST([LT_CURRENT], [0])
-AC_SUBST([LT_REVISION], [4])
+AC_SUBST([LT_CURRENT], [1])
+AC_SUBST([LT_REVISION], [0])
 AC_SUBST([LT_AGE], [0])
 
 dnl Sanity checks for type sizes

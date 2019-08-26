@@ -52,10 +52,6 @@ int main(int argc, char *argv[])
         GTA_FLOAT32, GTA_FLOAT64, GTA_FLOAT128,
         GTA_CFLOAT32, GTA_CFLOAT64, GTA_CFLOAT128
     };
-    const gta_compression_t zlib_variants[10] = {
-        GTA_ZLIB, GTA_ZLIB1, GTA_ZLIB2, GTA_ZLIB3, GTA_ZLIB4,
-        GTA_ZLIB5, GTA_ZLIB6, GTA_ZLIB7, GTA_ZLIB8, GTA_ZLIB9
-    };
     const int tag_variants = 3;
     const char *tag_names[] = { "TAG0", "X", "_?_" };
     const char *tag_values[] = { "", "42", "(*)" };
@@ -76,21 +72,6 @@ int main(int argc, char *argv[])
     /* Create a header */
     r = gta_create_header(&header);
     check(r == GTA_OK);
-    if (rand_in_range(0, 1)) {
-        gta_set_compression(header, GTA_NONE);
-    } else {
-        switch (rand_in_range(0, 2)) {
-        case 0:
-            gta_set_compression(header, GTA_BZIP2);
-            break;
-        case 1:
-            gta_set_compression(header, GTA_XZ);
-            break;
-        default:
-            gta_set_compression(header, zlib_variants[rand_in_range(0, 9)]);
-            break;
-        }
-    }
 
     /* Set global tags */
     int global_tags = rand_in_range(0, 3);
@@ -178,14 +159,7 @@ int main(int argc, char *argv[])
     gta_destroy_header(header);
 
     /* Now corrupt the second file */
-    int max_corrupt_offset;
-    if (gta_get_compression(header) == GTA_NONE) {
-        /* Not much point in corrupting the uncompressed data since we do not check it */
-        max_corrupt_offset = header_size - 1;
-    } else {
-        /* In this case, we can hit chunk lists and/or compressed data */
-        max_corrupt_offset = total_size - 1;
-    }
+    int max_corrupt_offset = header_size - 1;
     f = fopen(argv[3], "r+");
     check(f);
     int corruptions = rand_in_range(1, 4);

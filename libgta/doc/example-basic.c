@@ -66,7 +66,6 @@ int main(void)
     if (!f) {
         return 1;
     }
-    gta_set_compression(header, GTA_BZIP2);
     r = gta_write_header_to_stream(header, f);
     if (r != GTA_OK) {
         return 1;

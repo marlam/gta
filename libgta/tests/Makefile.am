@@ -7,24 +7,26 @@
 
 check_PROGRAMS = \
 	basic		\
-	compression	\
 	taglists	\
 	filedescriptors	\
-	endianness	\
 	blocks		\
 	elements	\
 	fuzztest-create \
 	fuzztest-check
+if WITH_COMPRESSION
+check_PROGRAMS += endianness
+endif
 
 TESTS = \
 	basic		\
-	compression	\
 	taglists	\
 	filedescriptors	\
-	endianness	\
 	blocks		\
 	elements	\
 	fuzztest.sh
+if WITH_COMPRESSION
+TESTS += endianness
+endif
 
 EXTRA_DIST = little-endian.gta big-endian.gta fuzztest.sh
 

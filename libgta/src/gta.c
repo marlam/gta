@@ -4,7 +4,7 @@
  * This file is part of libgta, a library that implements the Generic Tagged
  * Array (GTA) file format.
  *
- * Copyright (C) 2010, 2011, 2012, 2014
+ * Copyright (C) 2010, 2011, 2012, 2014, 2019
  * Martin Lambers <marlam@marlam.de>
  *
  * Libgta is free software: you can redistribute it and/or modify it under the
@@ -407,6 +407,7 @@ gta_compress(void **dst, size_t *dst_size, const void *src, size_t src_size, gta
         }
         break;
 
+#if WITH_COMPRESSION
     case GTA_ZLIB:
     case GTA_ZLIB1:
     case GTA_ZLIB2:
@@ -578,6 +579,7 @@ gta_compress(void **dst, size_t *dst_size, const void *src, size_t src_size, gta
             lzma_end(&strm);
         }
         break;
+#endif
     }
 
     return retval;
@@ -602,6 +604,7 @@ gta_uncompress(void *dst, size_t dst_size, const void *src, size_t src_size, gta
         }
         break;
 
+#if WITH_COMPRESSION
     case GTA_ZLIB:
     case GTA_ZLIB1:
     case GTA_ZLIB2:
@@ -718,6 +721,7 @@ gta_uncompress(void *dst, size_t dst_size, const void *src, size_t src_size, gta
             lzma_end(&strm);
         }
         break;
+#endif
     }
 
     return retval;
@@ -1033,6 +1037,7 @@ gta_read_chunk(const gta_header_t *GTA_RESTRICT header,
     }
     else
     {
+#if WITH_COMPRESSION
         r = read_fn(userdata, &size_compressed, sizeof(uint64_t), &error);
         if (error)
         {
@@ -1085,6 +1090,10 @@ gta_read_chunk(const gta_header_t *GTA_RESTRICT header,
         }
         free(chunk_compressed);
         chunk_compressed = NULL;
+#else
+        retval = GTA_UNSUPPORTED_DATA;
+        goto exit;
+#endif
     }
 
 exit:
@@ -1198,6 +1207,7 @@ gta_skip_chunk(const gta_header_t *GTA_RESTRICT header, size_t *chunk_size,
     }
     else
     {
+#if WITH_COMPRESSION
         r = read_fn(userdata, &size_compressed, sizeof(uint64_t), &error);
         if (error)
         {
@@ -1242,6 +1252,10 @@ gta_skip_chunk(const gta_header_t *GTA_RESTRICT header, size_t *chunk_size,
                 goto exit;
             }
         }
+#else
+        retval = GTA_UNSUPPORTED_DATA;
+        goto exit;
+#endif
     }
 
 exit:
@@ -1271,9 +1285,6 @@ gta_write_chunk(const gta_header_t *GTA_RESTRICT header,
     int error = false;
     uint64_t size_uncompressed = chunk_size;
     uint8_t output_compression;
-    uint64_t size_compressed;
-    void *compressed = NULL;
-    size_t compressed_size = 0;
     gta_result_t retval = GTA_OK;
     size_t r;
 
@@ -1298,29 +1309,7 @@ gta_write_chunk(const gta_header_t *GTA_RESTRICT header,
         retval = GTA_OK;
         goto exit;
     }
-    if (header->compression == GTA_NONE)
-    {
-        output_compression = GTA_NONE;
-    }
-    else
-    {
-        retval = gta_compress(&compressed, &compressed_size,
-                chunk, chunk_size, header->compression);
-        if (retval != GTA_OK)
-        {
-            goto exit;
-        }
-        if (compressed_size + sizeof(uint64_t) >= chunk_size)
-        {
-            free(compressed);
-            compressed = NULL;
-            output_compression = GTA_NONE;
-        }
-        else
-        {
-            output_compression = header->compression;
-        }
-    }
+    output_compression = GTA_NONE;
     errno = 0;
     r = write_fn(userdata, &output_compression, sizeof(uint8_t), &error);
     if (error || r < sizeof(uint8_t))
@@ -1332,51 +1321,19 @@ gta_write_chunk(const gta_header_t *GTA_RESTRICT header,
         retval = GTA_SYSTEM_ERROR;
         goto exit;
     }
-    if (output_compression == GTA_NONE)
+    errno = 0;
+    r = write_fn(userdata, chunk, chunk_size, &error);
+    if (error || r < chunk_size)
     {
-        errno = 0;
-        r = write_fn(userdata, chunk, chunk_size, &error);
-        if (error || r < chunk_size)
+        if (errno == 0)
         {
-            if (errno == 0)
-            {
-                errno = EIO;
-            }
-            retval = GTA_SYSTEM_ERROR;
-            goto exit;
+            errno = EIO;
         }
-    }
-    else
-    {
-        size_compressed = compressed_size;
-        errno = 0;
-        r = write_fn(userdata, &size_compressed, sizeof(uint64_t), &error);
-        if (error || r < sizeof(uint64_t))
-        {
-            if (errno == 0)
-            {
-                errno = EIO;
-            }
-            retval = GTA_SYSTEM_ERROR;
-            goto exit;
-        }
-        errno = 0;
-        r = write_fn(userdata, compressed, compressed_size, &error);
-        if (error || r < compressed_size)
-        {
-            if (errno == 0)
-            {
-                errno = EIO;
-            }
-            retval = GTA_SYSTEM_ERROR;
-            goto exit;
-        }
-        free(compressed);
-        compressed = NULL;
+        retval = GTA_SYSTEM_ERROR;
+        goto exit;
     }
 
 exit:
-    free(compressed);
     return retval;
 }
 
@@ -2657,12 +2614,7 @@ gta_write_header(const gta_header_t *GTA_RESTRICT header, gta_write_t write_fn, 
 #if WORDS_BIGENDIAN
     firstblock[4] |= 0x01;
 #endif
-    if (header->compression != GTA_NONE)
-    {
-        // This is only here so that libgta versions <= 0.9.2 can read files created by this libgta version.
-        firstblock[4] |= 0x02;
-    }
-    firstblock[5] = header->compression;
+    firstblock[5] = GTA_NONE;
     errno = 0;
     r = write_fn(userdata, firstblock, 6, &output_error);
     if (output_error || r < 6)
@@ -3182,13 +3134,18 @@ gta_get_data_size(const gta_header_t *GTA_RESTRICT header)
 gta_compression_t
 gta_get_compression(const gta_header_t *GTA_RESTRICT header)
 {
+    /* We do not support compression anymore. This function will be removed in
+     * a future version. */
     return header->compression;
 }
 
 void
 gta_set_compression(gta_header_t *GTA_RESTRICT header, gta_compression_t compression)
 {
-    header->compression = compression;
+    /* We do not support compression anymore. This function does nothing and
+     * will be removed in a future version. */
+    (void)header;
+    (void)compression;
 }
 
 
@@ -3318,6 +3275,7 @@ gta_read_data(const gta_header_t *GTA_RESTRICT header, void *GTA_RESTRICT data, 
     // We know that the data size fits into size_t, because the caller already allocated a buffer for all the data.
     if (gta_get_compression(header) != GTA_NONE)
     {
+#if WITH_COMPRESSION
         char *data_ptr = data;
         size_t remaining_size = gta_get_data_size(header);
         void *chunk;
@@ -3352,6 +3310,9 @@ gta_read_data(const gta_header_t *GTA_RESTRICT header, void *GTA_RESTRICT data, 
             remaining_size -= chunk_size;
             data_ptr += chunk_size;
         }
+#else
+        return GTA_UNSUPPORTED_DATA;
+#endif
     }
     else
     {
@@ -3396,6 +3357,7 @@ gta_skip_data(const gta_header_t *GTA_RESTRICT header, gta_read_t read_fn, gta_s
 
     if (gta_get_compression(header) != GTA_NONE)
     {
+#if WITH_COMPRESSION
         uintmax_t s = gta_get_data_size(header);
         size_t chunk_size;
         while (s > 0)
@@ -3424,6 +3386,9 @@ gta_skip_data(const gta_header_t *GTA_RESTRICT header, gta_read_t read_fn, gta_s
         {
             return GTA_INVALID_DATA;
         }
+#else
+        return GTA_UNSUPPORTED_DATA;
+#endif
     }
     else
     {
@@ -3470,49 +3435,18 @@ gta_result_t
 gta_write_data(const gta_header_t *GTA_RESTRICT header, const void *GTA_RESTRICT data, gta_write_t write_fn, intptr_t userdata)
 {
     // We know that the data size fits into size_t, because the caller already allocated a buffer for all the data.
-    if (gta_get_compression(header) != GTA_NONE)
+    int output_error = false;
+    errno = 0;
+    size_t r = write_fn(userdata, data, gta_get_data_size(header), &output_error);
+    if (output_error || r < gta_get_data_size(header))
     {
-        const char *chunk_ptr = data;
-        size_t remaining_size = gta_get_data_size(header);
-        size_t chunk_size;
-        gta_result_t retval;
-
-        for (;;)
+        if (errno == 0)
         {
-            chunk_size = gta_max_chunk_size;
-            if (chunk_size > remaining_size)
-            {
-                chunk_size = remaining_size;
-            }
-            retval = gta_write_chunk(header, chunk_ptr, chunk_size, write_fn, userdata);
-            if (retval != GTA_OK)
-            {
-                return retval;
-            }
-            if (chunk_size == 0)
-            {
-                break;
-            }
-            chunk_ptr += chunk_size;
-            remaining_size -= chunk_size;
+            errno = EIO;
         }
-        return GTA_OK;
+        return GTA_SYSTEM_ERROR;
     }
-    else
-    {
-        int output_error = false;
-        errno = 0;
-        size_t r = write_fn(userdata, data, gta_get_data_size(header), &output_error);
-        if (output_error || r < gta_get_data_size(header))
-        {
-            if (errno == 0)
-            {
-                errno = EIO;
-            }
-            return GTA_SYSTEM_ERROR;
-        }
-        return GTA_OK;
-    }
+    return GTA_OK;
 }
 
 gta_result_t
@@ -3561,6 +3495,7 @@ gta_copy_data(const gta_header_t *GTA_RESTRICT read_header, gta_read_t read_fn, 
 
     if (gta_get_compression(read_header) != GTA_NONE)
     {
+#if WITH_COMPRESSION
         void *chunk = NULL;
         size_t chunk_size = 0;
         do
@@ -3576,23 +3511,16 @@ gta_copy_data(const gta_header_t *GTA_RESTRICT read_header, gta_read_t read_fn, 
                 free(chunk);
                 return GTA_INVALID_DATA;
             }
-            if (gta_get_compression(write_header) != GTA_NONE)
+            int error = false;
+            errno = 0;
+            size_t r = write_fn(write_userdata, chunk, chunk_size, &error);
+            if (error || r < chunk_size)
             {
-                retval = gta_write_chunk(write_header, chunk, chunk_size, write_fn, write_userdata);
-            }
-            else
-            {
-                int error = false;
-                errno = 0;
-                size_t r = write_fn(write_userdata, chunk, chunk_size, &error);
-                if (error || r < chunk_size)
+                if (errno == 0)
                 {
-                    if (errno == 0)
-                    {
-                        errno = EIO;
-                    }
-                    retval = GTA_SYSTEM_ERROR;
+                    errno = EIO;
                 }
+                retval = GTA_SYSTEM_ERROR;
             }
             free(chunk);
             if (retval != GTA_OK)
@@ -3606,6 +3534,9 @@ gta_copy_data(const gta_header_t *GTA_RESTRICT read_header, gta_read_t read_fn, 
         {
             return GTA_UNEXPECTED_EOF;
         }
+#else
+        return GTA_UNSUPPORTED_DATA;
+#endif
     }
     else
     {
@@ -3617,16 +3548,6 @@ gta_copy_data(const gta_header_t *GTA_RESTRICT read_header, gta_read_t read_fn, 
         if (!buffer)
         {
             return GTA_SYSTEM_ERROR;
-        }
-        if (gta_get_compression(write_header) != GTA_NONE)
-        {
-            chunk_size = (size < gta_max_chunk_size ? size : gta_max_chunk_size);
-            chunk = malloc(chunk_size);
-            if (!chunk)
-            {
-                free(buffer);
-                return GTA_SYSTEM_ERROR;
-            }
         }
         while (size > 0)
         {
@@ -3645,54 +3566,22 @@ gta_copy_data(const gta_header_t *GTA_RESTRICT read_header, gta_read_t read_fn, 
                 free(chunk);
                 return GTA_UNEXPECTED_EOF;
             }
-            if (gta_get_compression(write_header) != GTA_NONE)
+            error = false;
+            errno = 0;
+            r = write_fn(write_userdata, buffer, x, &error);
+            if (error || r < x)
             {
-                retval = gta_write_blob_to_chunk(write_header, write_fn, write_userdata,
-                        chunk, chunk_size, &chunk_index, buffer, x);
-                if (retval != GTA_OK)
+                if (errno == 0)
                 {
-                    free(buffer);
-                    free(chunk);
-                    return retval;
+                    errno = EIO;
                 }
-            }
-            else
-            {
-                int error = false;
-                errno = 0;
-                r = write_fn(write_userdata, buffer, x, &error);
-                if (error || r < x)
-                {
-                    if (errno == 0)
-                    {
-                        errno = EIO;
-                    }
-                    free(buffer);
-                    free(chunk);
-                    return GTA_SYSTEM_ERROR;
-                }
+                free(buffer);
+                free(chunk);
+                return GTA_SYSTEM_ERROR;
             }
             size -= x;
         }
         free(buffer);
-        if (gta_get_compression(write_header) != GTA_NONE)
-        {
-            if (chunk_index > 0)
-            {
-                retval = gta_write_chunk(write_header, chunk, chunk_index, write_fn, write_userdata);
-                if (retval != GTA_OK)
-                {
-                    free(chunk);
-                    return retval;
-                }
-            }
-            free(chunk);
-            retval = gta_write_chunk(write_header, NULL, 0, write_fn, write_userdata);
-            if (retval != GTA_OK)
-            {
-                return retval;
-            }
-        }
     }
     return GTA_OK;
 }
@@ -3819,10 +3708,15 @@ gta_read_elements(const gta_header_t *GTA_RESTRICT header, gta_io_state_t *GTA_R
         {
             if (gta_get_compression(header) != GTA_NONE)
             {
+#if WITH_COMPRESSION
                 free(io_state->chunk);
                 io_state->chunk = NULL;
                 gta_result_t retval = gta_read_chunk(header, &(io_state->chunk),
                         &(io_state->chunk_size), read_fn, userdata);
+#else
+                gta_result_t retval = GTA_UNSUPPORTED_DATA;
+
+#endif
                 if (retval != GTA_OK)
                 {
                     goto exit;
@@ -3880,6 +3774,7 @@ gta_read_elements(const gta_header_t *GTA_RESTRICT header, gta_io_state_t *GTA_R
     {
         if (gta_get_compression(header) != GTA_NONE)
         {
+#if WITH_COMPRESSION
             if (io_state->chunk_index != io_state->chunk_size)
             {
                 retval = GTA_INVALID_DATA;
@@ -3899,6 +3794,10 @@ gta_read_elements(const gta_header_t *GTA_RESTRICT header, gta_io_state_t *GTA_R
                 retval = GTA_INVALID_DATA;
                 goto exit;
             }
+#else
+            retval = GTA_UNSUPPORTED_DATA;
+            goto exit;
+#endif
         }
         else
         {
@@ -3975,59 +3874,34 @@ gta_write_elements(const gta_header_t *GTA_RESTRICT header, gta_io_state_t *GTA_
     {
         if (io_state->chunk_index == io_state->chunk_size)
         {
-            if (gta_get_compression(header) != GTA_NONE)
+            if (!io_state->chunk)
             {
-                if (io_state->counter > 0)
+                size_t chunk_size = gta_max_chunk_size;
+                if (gta_get_data_size(header) < chunk_size)
                 {
-                    retval = gta_write_chunk(header, io_state->chunk,
-                            io_state->chunk_index, write_fn, userdata);
-                    if (retval != GTA_OK)
-                    {
-                        goto exit;
-                    }
+                    chunk_size = gta_get_data_size(header);
                 }
-                free(io_state->chunk);
-                uintmax_t remaining_data = gta_get_data_size(header)
-                    - io_state->counter * gta_get_element_size(header) - i;
-                io_state->chunk_size = (remaining_data < gta_max_chunk_size) ? remaining_data : gta_max_chunk_size;
-                io_state->chunk = malloc(io_state->chunk_size);
+                io_state->chunk = malloc(chunk_size);
                 if (!io_state->chunk)
                 {
                     retval = GTA_SYSTEM_ERROR;
                     goto exit;
                 }
+                io_state->chunk_size = chunk_size;
             }
-            else
+            if (io_state->chunk_index > 0)
             {
-                if (!io_state->chunk)
+                int error = false;
+                errno = 0;
+                size_t r = write_fn(userdata, io_state->chunk, io_state->chunk_size, &error);
+                if (error || r < io_state->chunk_size)
                 {
-                    size_t chunk_size = gta_max_chunk_size;
-                    if (gta_get_data_size(header) < chunk_size)
+                    if (errno == 0)
                     {
-                        chunk_size = gta_get_data_size(header);
+                        errno = EIO;
                     }
-                    io_state->chunk = malloc(chunk_size);
-                    if (!io_state->chunk)
-                    {
-                        retval = GTA_SYSTEM_ERROR;
-                        goto exit;
-                    }
-                    io_state->chunk_size = chunk_size;
-                }
-                if (io_state->chunk_index > 0)
-                {
-                    int error = false;
-                    errno = 0;
-                    size_t r = write_fn(userdata, io_state->chunk, io_state->chunk_size, &error);
-                    if (error || r < io_state->chunk_size)
-                    {
-                        if (errno == 0)
-                        {
-                            errno = EIO;
-                        }
-                        retval = GTA_SYSTEM_ERROR;
-                        goto exit;
-                    }
+                    retval = GTA_SYSTEM_ERROR;
+                    goto exit;
                 }
             }
             io_state->chunk_index = 0;
@@ -4044,47 +3918,25 @@ gta_write_elements(const gta_header_t *GTA_RESTRICT header, gta_io_state_t *GTA_
     io_state->counter += n;
     if (io_state->counter == gta_get_elements(header))
     {
-        if (gta_get_compression(header) != GTA_NONE)
+        // flush
+        if (io_state->chunk_index > 0)
         {
-            // flush chunk and write empty chunk
-            if (io_state->chunk_index > 0)
+            int error = false;
+            errno = 0;
+            size_t r = write_fn(userdata, io_state->chunk, io_state->chunk_index, &error);
+            if (error || r < io_state->chunk_index)
             {
-                retval = gta_write_chunk(header, io_state->chunk, io_state->chunk_index, write_fn, userdata);
-                if (retval != GTA_OK)
+                if (errno == 0)
                 {
-                    goto exit;
+                    errno = EIO;
                 }
-            }
-            free(io_state->chunk);
-            io_state->chunk = NULL;
-            retval = gta_write_chunk(header, NULL, 0, write_fn, userdata);
-            if (retval != GTA_OK)
-            {
+                retval = GTA_SYSTEM_ERROR;
                 goto exit;
             }
         }
-        else
-        {
-            // flush
-            if (io_state->chunk_index > 0)
-            {
-                int error = false;
-                errno = 0;
-                size_t r = write_fn(userdata, io_state->chunk, io_state->chunk_index, &error);
-                if (error || r < io_state->chunk_index)
-                {
-                    if (errno == 0)
-                    {
-                        errno = EIO;
-                    }
-                    retval = GTA_SYSTEM_ERROR;
-                    goto exit;
-                }
-            }
-            // free the chunk; it will not be needed anymore
-            free(io_state->chunk);
-            io_state->chunk = NULL;
-        }
+        // free the chunk; it will not be needed anymore
+        free(io_state->chunk);
+        io_state->chunk = NULL;
     }
 exit:
     if (retval != GTA_OK)

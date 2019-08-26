@@ -9,7 +9,9 @@ lib_LTLIBRARIES = libgta.la
 nobase_include_HEADERS = gta/gta_version.h gta/gta.h gta/gta.hpp
 libgta_la_SOURCES = gta.c
 libgta_la_LDFLAGS = -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE) -no-undefined
+if WITH_COMPRESSION
 libgta_la_LIBADD = $(LTLIBLZMA) $(LTLIBBZ2) $(LTLIBZ)
+endif
 AM_CPPFLAGS = -I$(top_builddir)/src
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = gta.pc

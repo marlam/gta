@@ -35,7 +35,6 @@ int main(void)
 
         /* Write the GTA to a file */
         std::ofstream ofs("rgb.gta", std::ios::out | std::ios::binary);
-        header.set_compression(gta::bzip2);
         header.write_to(ofs);
         header.write_data(ofs, &(data[0]));
         ofs.close();

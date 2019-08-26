@@ -4,7 +4,7 @@
  * This file is part of libgta, a library that implements the Generic Tagged
  * Array (GTA) file format.
  *
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2019
  * Martin Lambers <marlam@marlam.de>
  *
  * Libgta is free software: you can redistribute it and/or modify it under the
@@ -88,8 +88,7 @@ namespace gta
         /**<
          * \brief   Invalid data
          *
-         * Some data was invalid. For example, an input file is not in GTA format,
-         * or decompression of the data failed.
+         * Some data was invalid. For example, an input file is not in GTA format.
          */
         system_error = GTA_SYSTEM_ERROR
         /**<
@@ -142,15 +141,7 @@ namespace gta
     /**
      * \brief GTA compression methods
      *
-     * This is equivalent to \a gta_compression_t from the C interface.
-     *
-     * Compression algorithms used to compress the array.\n
-     * Only uncompressed files are suitable for out-of-core data access; compressed
-     * files must be decompressed first.\n
-     * \a gta::zlib compression is fast and achieves a moderate compression ratio.
-     * \a gta::bzip2 compression is moderately fast and achieves a good compression ratio.
-     * \a gta::xz compression is slow for compression, moderately fast for decompression,
-     * and achieves good or very good compression rates.
+     * These are deprecated. Do not use them anymore, they will be removed in a future version.
      */
     enum compression
     {
@@ -1077,9 +1068,9 @@ namespace gta
          * \return              The compression type.
          *
          * Gets the compression type for the header and data.\n
-         * See \a gta_compression_t for more information on compression types.\n
-         * Compressed data is always stored in chunks, while uncompressed
-         * data is never stored in chunks.
+         * Compression is deprecated so the return value should always be gta::none,
+         * unless you read legacy files.
+         * This function will be removed in a future version.
          */
         gta::compression compression() const
         {
@@ -1090,8 +1081,9 @@ namespace gta
          * \brief               Set the compression.
          * \param compression   The compression type.
          *
-         * Sets the compression type for writing the header and data.\n
-         * See \a gta_compression_t for more information on compression types.
+         * Sets the compression type for writing the header and data.
+         * Compression is deprecated and this function actually does nothing.
+         * This function will be removed in a future version.
          */
         void set_compression(gta::compression compression)
         {
@@ -1753,7 +1745,7 @@ namespace gta
          * These functions are intended to be used for filtering a complete array on a per-element basis.
          * They read or write a given number of elements, and it is expected that they are used
          * repeatedly until all elements of an array have been read or written.
-         * Theses function work for all GTAs, with or without compression, an the input and output streams
+         * Theses function work for all GTAs, and the input and output streams
          * do not need to be seekable.
          *
          * Element-based input/output needs a state object gta::io_state. The same state object must be
@@ -1913,8 +1905,7 @@ namespace gta
         /**
          * \name Read and Write Array Blocks
          *
-         * These functions can only be used if the data is not compressed (see \a header::compression())
-         * and the input/output is seekable.\n
+         * These functions can only be used if the input/output is seekable.\n
          * They are suitable for applications that do not want to store the complete array data in
          * memory.\n
          * A block is given by the lowest and highest element coordinates in each dimension.

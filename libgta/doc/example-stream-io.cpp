@@ -28,8 +28,6 @@ int main(void)
         /* Copy the GTA header */
         inheader.read_from(instream);
         outheader = inheader;
-        /* In this example, the output GTA is always uncompressed */
-        outheader.set_compression(gta::none);
         outheader.write_to(outstream);
 
         /* Copy the array data */

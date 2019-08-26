@@ -38,117 +38,88 @@
 
 int main(void)
 {
-    FILE *fu, *fc;
-    gta_header_t *hu, *hc;
-    gta_io_state_t *su, *sc;
+    FILE *f;
+    gta_header_t *h;
+    gta_io_state_t *s;
     gta_result_t r;
     uintmax_t dims[] = { 7, 11, 13, 17 };
     uintmax_t index;
 
-    r = gta_create_header(&hu);
-    r = gta_create_header(&hc);
+    r = gta_create_header(&h);
     check(r == GTA_OK);
 
     /* Define an array */
     gta_type_t types[] = { GTA_UINT16 };
-    r = gta_set_components(hu, 1, types, NULL);
+    r = gta_set_components(h, 1, types, NULL);
     check(r == GTA_OK);
-    r = gta_set_components(hc, 1, types, NULL);
+    r = gta_set_dimensions(h, 4, dims);
     check(r == GTA_OK);
-    r = gta_set_dimensions(hu, 4, dims);
-    check(r == GTA_OK);
-    r = gta_set_dimensions(hc, 4, dims);
-    check(r == GTA_OK);
-    gta_set_compression(hc, GTA_ZLIB);
 
-    /* Write the array with and without compression */
-    fu = fopen("test-elements-uncompressed.tmp", "w");
-    check(fu);
-    fc = fopen("test-elements-compressed.tmp", "w");
-    check(fc);
-    r = gta_write_header_to_stream(hu, fu);
+    /* Write the array */
+    f = fopen("test-elements.tmp", "w");
+    check(f);
+    r = gta_write_header_to_stream(h, f);
     check(r == GTA_OK);
-    r = gta_write_header_to_stream(hc, fc);
-    check(r == GTA_OK);
-    r = gta_create_io_state(&su);
-    check(r == GTA_OK);
-    r = gta_create_io_state(&sc);
+    r = gta_create_io_state(&s);
     check(r == GTA_OK);
     index = 0;
-    for (uintmax_t w = 0; w < gta_get_dimension_size(hu, 3); w++)
+    for (uintmax_t w = 0; w < gta_get_dimension_size(h, 3); w++)
     {
-        for (uintmax_t z = 0; z < gta_get_dimension_size(hu, 2); z++)
+        for (uintmax_t z = 0; z < gta_get_dimension_size(h, 2); z++)
         {
-            for (uintmax_t y = 0; y < gta_get_dimension_size(hu, 1); y++)
+            for (uintmax_t y = 0; y < gta_get_dimension_size(h, 1); y++)
             {
-                for (uintmax_t x = 0; x < gta_get_dimension_size(hu, 0); x++)
+                for (uintmax_t x = 0; x < gta_get_dimension_size(h, 0); x++)
                 {
                     uintmax_t indices[4] = { x, y, z, w };
-                    uintmax_t test_index = gta_indices_to_linear_index(hu, indices);
+                    uintmax_t test_index = gta_indices_to_linear_index(h, indices);
                     check(test_index == index);
                     uintmax_t test_indices[4] = { -1, -1, -1, -1 };
-                    gta_linear_index_to_indices(hu, index, test_indices);
+                    gta_linear_index_to_indices(h, index, test_indices);
                     check(test_indices[0] == indices[0]);
                     check(test_indices[1] == indices[1]);
                     check(test_indices[2] == indices[2]);
                     check(test_indices[3] == indices[3]);
                     uint16_t i = index;
-                    r = gta_write_elements_to_stream(hu, su, 1, &i, fu);
-                    check(r == GTA_OK);
-                    r = gta_write_elements_to_stream(hc, sc, 1, &i, fc);
+                    r = gta_write_elements_to_stream(h, s, 1, &i, f);
                     check(r == GTA_OK);
                     index++;
                 }
             }
         }
     }
-    gta_destroy_io_state(su);
-    gta_destroy_io_state(sc);
-    fclose(fu);
-    fclose(fc);
+    gta_destroy_io_state(s);
+    fclose(f);
 
     /* Open the files, read and check the arrays */
-    fu = fopen("test-elements-uncompressed.tmp", "r");
-    check(fu);
-    fc = fopen("test-elements-compressed.tmp", "r");
-    check(fc);
-    r = gta_read_header_from_stream(hu, fu);
+    f = fopen("test-elements.tmp", "r");
+    check(f);
+    r = gta_read_header_from_stream(h, f);
     check(r == GTA_OK);
-    r = gta_read_header_from_stream(hc, fc);
-    check(r == GTA_OK);
-    r = gta_create_io_state(&su);
-    check(r == GTA_OK);
-    r = gta_create_io_state(&sc);
+    r = gta_create_io_state(&s);
     check(r == GTA_OK);
     index = 0;
-    for (uintmax_t w = 0; w < gta_get_dimension_size(hu, 3); w++)
+    for (uintmax_t w = 0; w < gta_get_dimension_size(h, 3); w++)
     {
-        for (uintmax_t z = 0; z < gta_get_dimension_size(hu, 2); z++)
+        for (uintmax_t z = 0; z < gta_get_dimension_size(h, 2); z++)
         {
-            for (uintmax_t y = 0; y < gta_get_dimension_size(hu, 1); y++)
+            for (uintmax_t y = 0; y < gta_get_dimension_size(h, 1); y++)
             {
-                for (uintmax_t x = 0; x < gta_get_dimension_size(hu, 0); x++)
+                for (uintmax_t x = 0; x < gta_get_dimension_size(h, 0); x++)
                 {
-                    uint16_t iu, ic;
-                    r = gta_read_elements_from_stream(hu, su, 1, &iu, fu);
+                    uint16_t i;
+                    r = gta_read_elements_from_stream(h, s, 1, &i, f);
                     check(r == GTA_OK);
-                    r = gta_read_elements_from_stream(hc, sc, 1, &ic, fc);
-                    check(r == GTA_OK);
-                    check(iu == index);
-                    check(iu == ic);
+                    check(i == index);
                     index++;
                 }
             }
         }
     }
-    gta_destroy_io_state(su);
-    gta_destroy_io_state(sc);
-    fclose(fu);
-    fclose(fc);
+    gta_destroy_io_state(s);
+    fclose(f);
 
-    gta_destroy_header(hu);
-    gta_destroy_header(hc);
-    remove("test-elements-uncompressed.tmp");
-    remove("test-elements-compressed.tmp");
+    gta_destroy_header(h);
+    remove("test-elements.tmp");
     return 0;
 }
