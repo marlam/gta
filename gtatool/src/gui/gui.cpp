@@ -313,45 +313,16 @@ ArrayWidget::ArrayWidget(size_t index, gta::header *header, QWidget *parent)
     _size_ledt = new QLineEdit("");
     _size_ledt->setReadOnly(true);
     layout->addWidget(_size_ledt, 2, 1, 1, 3);
-    layout->addWidget(new QLabel("Compression:"), 3, 0, 1, 1);
-    _compression_combobox = new QComboBox();
-    _compression_combobox->setEditable(false);
-    // the order of entries corresponds to the gta_compression_t enumeration
-    _compression_combobox->addItem("none");
-    _compression_combobox->addItem("Zlib default level");
-    _compression_combobox->addItem("Bzip2");
-    _compression_combobox->addItem("XZ");
-    _compression_combobox->addItem("Zlib level 1");
-    _compression_combobox->addItem("Zlib level 2");
-    _compression_combobox->addItem("Zlib level 3");
-    _compression_combobox->addItem("Zlib level 4");
-    _compression_combobox->addItem("Zlib level 5");
-    _compression_combobox->addItem("Zlib level 6");
-    _compression_combobox->addItem("Zlib level 7");
-    _compression_combobox->addItem("Zlib level 8");
-    _compression_combobox->addItem("Zlib level 9");
-    _compression_combobox->setCurrentIndex(header->compression());
-    connect(_compression_combobox, SIGNAL(activated(int)), this, SLOT(compression_changed(int)));
-    layout->addWidget(_compression_combobox, 3, 1, 1, 2);
     _taglists_widget = new MyTabWidget;
-    layout->addWidget(_taglists_widget, 4, 0, 1, 4);
+    layout->addWidget(_taglists_widget, 3, 0, 1, 4);
     update();
-    layout->setRowStretch(4, 1);
+    layout->setRowStretch(3, 1);
     layout->setColumnStretch(3, 1);
     setLayout(layout);
 }
 
 ArrayWidget::~ArrayWidget()
 {
-}
-
-void ArrayWidget::compression_changed(int index)
-{
-    if (index != static_cast<int>(_header->compression()))
-    {
-        _header->set_compression(static_cast<gta::compression>(index));
-        emit changed(_index);
-    }
 }
 
 void ArrayWidget::taglist_changed(gta::header *, int type, uintmax_t index)
