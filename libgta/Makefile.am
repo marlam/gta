@@ -7,7 +7,7 @@
 
 SUBDIRS = doc src tests
 
-EXTRA_DIST = CMakeLists.txt libgtaConfig.cmake.in
+EXTRA_DIST = CMakeLists.txt GTAConfig.cmake.in
 
 fuzztest:
 	$(MAKE) -C tests fuzztest

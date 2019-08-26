@@ -74,20 +74,20 @@ include(CMakePackageConfigHelpers)
 set(INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/include)
 set(LIB_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX})
 configure_package_config_file(
-    libgtaConfig.cmake.in ${CMAKE_BINARY_DIR}/libgtaConfig.cmake
-    INSTALL_DESTINATION lib${LIB_SUFFIX}/cmake/libgta-{GTA_VERSION}
+    GTAConfig.cmake.in ${CMAKE_BINARY_DIR}/GTAConfig.cmake
+    INSTALL_DESTINATION lib${LIB_SUFFIX}/cmake/GTA-{GTA_VERSION}
     PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
     NO_CHECK_REQUIRED_COMPONENTS_MACRO
 )
 write_basic_package_version_file(
-    ${CMAKE_BINARY_DIR}/libgtaConfigVersion.cmake
+    ${CMAKE_BINARY_DIR}/GTAConfigVersion.cmake
     VERSION ${GTA_VERSION}
     COMPATIBILITY SameMajorVersion
 )
 install(FILES
-    ${CMAKE_BINARY_DIR}/libgtaConfig.cmake
-    ${CMAKE_BINARY_DIR}/libgtaConfigVersion.cmake
-    DESTINATION ${LIB_INSTALL_DIR}/cmake/libgta-${GTA_VERSION}
+    ${CMAKE_BINARY_DIR}/GTAConfig.cmake
+    ${CMAKE_BINARY_DIR}/GTAConfigVersion.cmake
+    DESTINATION ${LIB_INSTALL_DIR}/cmake/GTA-${GTA_VERSION}
 )
 
 # Optional target: reference documentation
