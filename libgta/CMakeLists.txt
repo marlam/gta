@@ -36,6 +36,7 @@ file(APPEND "${CMAKE_BINARY_DIR}/src/config.h" "#define SIZEOF_INT ${SIZEOF_INT}
 file(APPEND "${CMAKE_BINARY_DIR}/src/config.h" "#define SIZEOF_INT8_T ${SIZEOF_INT8_T}\n")
 
 # Main target: libgta
+add_definitions(-DWITH_COMPRESSION=0)
 configure_file("${CMAKE_SOURCE_DIR}/src/gta/gta_version.h.in" "${CMAKE_BINARY_DIR}/src/gta/gta_version.h" @ONLY)
 include_directories("${CMAKE_SOURCE_DIR}/src" "${CMAKE_BINARY_DIR}/src")
 if(GTA_BUILD_SHARED_LIB)
