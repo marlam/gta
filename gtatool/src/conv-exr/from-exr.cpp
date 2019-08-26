@@ -101,7 +101,7 @@ extern "C" int gtatool_from_exr(int argc, char *argv[])
         {
             channels++;
         }
-        if (channels < 1 || channels > 4)
+        if (channels < 1)
         {
             throw exc("cannot import " + ifilename + ": unsupported number of channels");
         }
@@ -109,8 +109,8 @@ extern "C" int gtatool_from_exr(int argc, char *argv[])
         hdr.set_dimensions(width, height);
         hdr.dimension_taglist(0).set("INTERPRETATION", "X");
         hdr.dimension_taglist(1).set("INTERPRETATION", "Y");
-        gta::type types[] = { gta::float32, gta::float32, gta::float32, gta::float32 };
-        hdr.set_components(channels, types, NULL);
+        std::vector<gta::type> types(channels, gta::float32);
+        hdr.set_components(channels, types.data(), NULL);
         if (hdr.data_size() > std::numeric_limits<size_t>::max())
         {
             throw exc("cannot import " + ifilename + ": image too large");
