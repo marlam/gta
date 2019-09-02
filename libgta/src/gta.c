@@ -34,17 +34,17 @@
 #   include <unistd.h>
 #endif
 
-#include <zlib.h>
-
-#if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__ && defined DLL_EXPORT
-#   define BZ_IMPORT
+#if WITH_COMPRESSION
+#   include <zlib.h>
+#   if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__ && defined DLL_EXPORT
+#      define BZ_IMPORT
+#   endif
+#   include <bzlib.h>
+#   if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__ && !defined DLL_EXPORT
+#      define LZMA_API_STATIC
+#   endif
+#   include <lzma.h>
 #endif
-#include <bzlib.h>
-
-#if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__ && !defined DLL_EXPORT
-#   define LZMA_API_STATIC
-#endif
-#include <lzma.h>
 
 #define GTA_BUILD
 #include "gta/gta.h"
