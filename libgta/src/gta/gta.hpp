@@ -267,7 +267,7 @@ namespace gta
             _taglist = taglist;
         }
 
-        taglist()
+        taglist() : _taglist(nullptr)
         {
         }
         /** \endcond */
